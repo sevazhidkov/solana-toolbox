@@ -1,5 +1,7 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use std::time::Instant;
 
+use async_trait::async_trait;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::account::Account;
 use solana_sdk::clock::Clock;
@@ -8,8 +10,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock;
 use solana_sdk::transaction::Transaction;
-
-use async_trait::async_trait;
 use tokio::time::sleep;
 
 use crate::endpoint_error::EndpointError;
@@ -23,7 +23,10 @@ impl EndpointInner for RpcClient {
             .map_err(EndpointError::Client)
     }
 
-    async fn get_rent_minimum_balance(&mut self, space: usize) -> Result<u64, EndpointError> {
+    async fn get_rent_minimum_balance(
+        &mut self,
+        space: usize,
+    ) -> Result<u64, EndpointError> {
         self.get_minimum_balance_for_rent_exemption(space)
             .await
             .map_err(EndpointError::Client)
@@ -32,10 +35,12 @@ impl EndpointInner for RpcClient {
     async fn get_clock(&mut self) -> Result<Clock, EndpointError> {
         let accounts = self.get_accounts(&[clock::ID]).await?;
         match &accounts[0] {
-            Some(account) => Ok(bincode::deserialize(&account.data)
-                .ok()
-                .ok_or(EndpointError::Custom("sysvar clock failed to deserialize"))?),
-            None => Err(EndpointError::Custom("sysvar clock not found")),
+            | Some(account) => {
+                Ok(bincode::deserialize(&account.data).ok().ok_or(
+                    EndpointError::Custom("sysvar clock failed to deserialize"),
+                )?)
+            },
+            | None => Err(EndpointError::Custom("sysvar clock not found")),
         }
     }
 
@@ -67,7 +72,9 @@ impl EndpointInner for RpcClient {
             }
             let duration = start.elapsed();
             if duration > Duration::from_secs(5) {
-                return Err(EndpointError::Custom("Timeout on awaiting confirmation"));
+                return Err(EndpointError::Custom(
+                    "Timeout on awaiting confirmation",
+                ));
             }
             sleep(Duration::from_secs(1)).await;
         }

@@ -4737,6 +4737,8 @@ dependencies = [
  "solana-client",
  "solana-program-test",
  "solana-sdk",
+ "spl-associated-token-account",
+ "spl-token",
  "tokio",
 ]
 

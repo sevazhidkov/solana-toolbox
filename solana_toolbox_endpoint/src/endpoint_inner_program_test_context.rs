@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use solana_program_test::ProgramTestBanksClientExt;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
@@ -10,8 +11,6 @@ use solana_sdk::system_instruction::transfer;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
-use async_trait::async_trait;
-
 use crate::endpoint_error::EndpointError;
 use crate::endpoint_inner::EndpointInner;
 
@@ -21,7 +20,10 @@ impl EndpointInner for ProgramTestContext {
         Ok(self.last_blockhash)
     }
 
-    async fn get_rent_minimum_balance(&mut self, space: usize) -> Result<u64, EndpointError> {
+    async fn get_rent_minimum_balance(
+        &mut self,
+        space: usize,
+    ) -> Result<u64, EndpointError> {
         let rent = self
             .banks_client
             .get_rent()
@@ -80,8 +82,10 @@ impl EndpointInner for ProgramTestContext {
             .map_err(|e| EndpointError::Signature(e.to_string()))?;
         let instruction = transfer(&from.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
-        let mut transaction: Transaction =
-            Transaction::new_with_payer(&[instruction.clone()], Some(&from.pubkey()));
+        let mut transaction: Transaction = Transaction::new_with_payer(
+            &[instruction.clone()],
+            Some(&from.pubkey()),
+        );
         transaction.partial_sign(&[&from], latest_blockhash);
         self.process_transaction(transaction).await
     }
@@ -99,7 +103,8 @@ impl EndpointInner for ProgramTestContext {
         let mut forwarded_clock = current_clock;
         forwarded_clock.epoch += 1;
         forwarded_clock.slot += slot_delta;
-        forwarded_clock.unix_timestamp += i64::try_from(unix_timestamp_delta).unwrap();
+        forwarded_clock.unix_timestamp +=
+            i64::try_from(unix_timestamp_delta).unwrap();
         self.set_sysvar::<Clock>(&forwarded_clock);
         Ok(())
     }

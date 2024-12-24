@@ -1,0 +1,48 @@
+imports_granularity = "Item"
+imports_layout = "Vertical"
+group_imports = "StdExternalCrate"
+
+reorder_imports = true
+reorder_impl_items = true
+reorder_modules = true
+
+wrap_comments = true
+comment_width = 80
+
+max_width = 80
+
+control_brace_style = "ClosingNextLine"
+empty_item_single_line = false
+
+# fn_args_layout = "Vertical"
+fn_params_layout = "Vertical"
+
+force_multiline_blocks = true
+format_macro_bodies = true
+format_strings = true
+
+hex_literal_case = "Upper"
+
+match_arm_leading_pipes = "Always"
+match_arm_blocks = true
+
+trailing_comma = "Always"
+trailing_semicolon = true
+
+match_block_trailing_comma = true
+
+single_line_if_else_max_width = 0
+single_line_let_else_max_width = 0
+fn_single_line = false
+where_single_line = false
+struct_lit_single_line = false
+struct_field_align_threshold = 0
+struct_variant_width = 0
+
+indent_style = "Block"
+brace_style = "AlwaysNextLine"
+use_field_init_shorthand = true
+
+use_try_shorthand = true
+combine_control_expr = false
+condense_wildcard_suffixes = true

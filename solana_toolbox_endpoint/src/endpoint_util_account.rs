@@ -15,7 +15,10 @@ impl Endpoint {
         Ok(self.get_accounts(&[*address]).await?.pop().flatten())
     }
 
-    pub async fn get_account_exists(&mut self, address: &Pubkey) -> Result<bool, EndpointError> {
+    pub async fn get_account_exists(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<bool, EndpointError> {
         Ok(self.get_account(address).await.is_ok())
     }
 

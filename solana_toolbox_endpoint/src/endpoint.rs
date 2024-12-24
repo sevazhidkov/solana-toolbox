@@ -1,4 +1,5 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
+use std::ops::DerefMut;
 
 use crate::endpoint_inner::EndpointInner;
 
@@ -14,6 +15,7 @@ impl From<Box<dyn EndpointInner>> for Endpoint {
 
 impl Deref for Endpoint {
     type Target = Box<dyn EndpointInner>;
+
     fn deref(&self) -> &Self::Target {
         &self.inner
     }

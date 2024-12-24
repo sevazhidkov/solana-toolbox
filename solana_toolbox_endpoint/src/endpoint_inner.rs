@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
@@ -5,15 +6,16 @@ use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
-use async_trait::async_trait;
-
 use crate::endpoint_error::EndpointError;
 
 #[async_trait]
 pub trait EndpointInner {
     async fn get_latest_blockhash(&mut self) -> Result<Hash, EndpointError>;
 
-    async fn get_rent_minimum_balance(&mut self, space: usize) -> Result<u64, EndpointError>;
+    async fn get_rent_minimum_balance(
+        &mut self,
+        space: usize,
+    ) -> Result<u64, EndpointError>;
 
     async fn get_clock(&mut self) -> Result<Clock, EndpointError>;
 
