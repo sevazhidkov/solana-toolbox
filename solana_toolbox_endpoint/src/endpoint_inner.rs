@@ -11,14 +11,14 @@ use crate::endpoint_error::EndpointError;
 
 #[async_trait]
 pub trait EndpointInner {
-    async fn get_latest_blockhash(&self) -> Result<Hash, EndpointError>;
+    async fn get_latest_blockhash(&mut self) -> Result<Hash, EndpointError>;
 
-    async fn get_rent_minimum_balance(&self, space: usize) -> Result<u64, EndpointError>;
+    async fn get_rent_minimum_balance(&mut self, space: usize) -> Result<u64, EndpointError>;
 
-    async fn get_clock(&self) -> Result<Clock, EndpointError>;
+    async fn get_clock(&mut self) -> Result<Clock, EndpointError>;
 
     async fn get_accounts(
-        &self,
+        &mut self,
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, EndpointError>;
 

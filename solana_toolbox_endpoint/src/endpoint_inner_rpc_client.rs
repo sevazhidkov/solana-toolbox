@@ -17,19 +17,19 @@ use crate::endpoint_inner::EndpointInner;
 
 #[async_trait]
 impl EndpointInner for RpcClient {
-    async fn get_latest_blockhash(&self) -> Result<Hash, EndpointError> {
+    async fn get_latest_blockhash(&mut self) -> Result<Hash, EndpointError> {
         RpcClient::get_latest_blockhash(self)
             .await
             .map_err(EndpointError::Client)
     }
 
-    async fn get_rent_minimum_balance(&self, space: usize) -> Result<u64, EndpointError> {
+    async fn get_rent_minimum_balance(&mut self, space: usize) -> Result<u64, EndpointError> {
         self.get_minimum_balance_for_rent_exemption(space)
             .await
             .map_err(EndpointError::Client)
     }
 
-    async fn get_clock(&self) -> Result<Clock, EndpointError> {
+    async fn get_clock(&mut self) -> Result<Clock, EndpointError> {
         let accounts = self.get_accounts(&[clock::ID]).await?;
         match &accounts[0] {
             Some(account) => Ok(bincode::deserialize(&account.data)
@@ -40,7 +40,7 @@ impl EndpointInner for RpcClient {
     }
 
     async fn get_accounts(
-        &self,
+        &mut self,
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, EndpointError> {
         self.get_multiple_accounts(addresses)
