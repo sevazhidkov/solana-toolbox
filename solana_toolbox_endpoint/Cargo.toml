@@ -1,5 +1,5 @@
 [package]
-name = "solana_toolbox_endpoint"
+name = "solana-toolbox-endpoint"
 description = "Toolbox for interacting with an arbitrary solana endpoint"
 version = "0.1.0"
 edition = "2021"

@@ -5187,6 +5187,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "solana-toolbox-endpoint"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bincode",
+ "borsh 1.5.3",
+ "solana-client",
+ "solana-program-test",
+ "solana-sdk",
+ "tokio",
+]
+
+[[package]]
 name = "solana-tpu-client"
 version = "2.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5467,19 +5480,6 @@ dependencies = [
  "scroll",
  "thiserror 1.0.69",
  "winapi",
-]
-
-[[package]]
-name = "solana_toolbox_endpoint"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "bincode",
- "borsh 1.5.3",
- "solana-client",
- "solana-program-test",
- "solana-sdk",
- "tokio",
 ]
 
 [[package]]
