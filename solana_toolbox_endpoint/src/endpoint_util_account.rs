@@ -19,7 +19,7 @@ impl Endpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<bool, EndpointError> {
-        Ok(self.get_account(address).await.is_ok())
+        Ok(self.get_account(address).await?.is_some())
     }
 
     pub async fn get_account_lamports(

@@ -7,7 +7,7 @@ use crate::Endpoint;
 use crate::EndpointError;
 
 impl Endpoint {
-    pub async fn process_spl_token_mint_create(
+    pub async fn process_spl_token_mint_init(
         &mut self,
         payer: &Keypair,
         mint: &Keypair,
@@ -89,17 +89,18 @@ impl Endpoint {
         Ok(())
     }
 
-    pub async fn process_spl_associated_token_account_get_or_create(
+    pub async fn process_spl_associated_token_account_get_or_init(
         &mut self,
         payer: &Keypair,
         mint: &Pubkey,
         authority: &Pubkey,
     ) -> Result<Pubkey, EndpointError> {
-        let pda = spl_associated_token_account::get_associated_token_address(
-            authority, mint,
-        );
-        if self.get_account_exists(&pda).await? {
-            return Ok(pda);
+        let token_account =
+            spl_associated_token_account::get_associated_token_address(
+                authority, mint,
+            );
+        if self.get_account_exists(&token_account).await? {
+            return Ok(token_account);
         }
         let instruction =
             spl_associated_token_account::instruction::create_associated_token_account_idempotent(
@@ -109,6 +110,6 @@ impl Endpoint {
                 &spl_token::id(),
             );
         self.process_instruction(instruction, payer).await?;
-        Ok(pda)
+        Ok(token_account)
     }
 }
