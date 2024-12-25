@@ -25,28 +25,34 @@ impl Endpoint {
     pub async fn get_account_lamports(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<u64>, EndpointError> {
+    ) -> Result<u64, EndpointError> {
         Ok(self
             .get_account(address)
             .await?
-            .map(|account| account.lamports))
+            .map(|account| account.lamports)
+            .unwrap_or_default())
     }
 
     pub async fn get_account_owner(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<Pubkey>, EndpointError> {
+    ) -> Result<Pubkey, EndpointError> {
         Ok(self
             .get_account(address)
             .await?
-            .map(|account| account.owner))
+            .map(|account| account.owner)
+            .unwrap_or_default())
     }
 
     pub async fn get_account_data(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<Vec<u8>>, EndpointError> {
-        Ok(self.get_account(address).await?.map(|account| account.data))
+    ) -> Result<Vec<u8>, EndpointError> {
+        Ok(self
+            .get_account(address)
+            .await?
+            .map(|account| account.data)
+            .unwrap_or_default())
     }
 
     pub async fn get_account_data_unpacked<T: Pack + IsInitialized>(
