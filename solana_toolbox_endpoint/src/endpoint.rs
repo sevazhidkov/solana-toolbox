@@ -15,7 +15,6 @@ impl From<Box<dyn EndpointInner>> for Endpoint {
 
 impl Deref for Endpoint {
     type Target = Box<dyn EndpointInner>;
-
     fn deref(&self) -> &Self::Target {
         &self.inner
     }

@@ -7,7 +7,7 @@ use crate::Endpoint;
 use crate::EndpointError;
 
 impl Endpoint {
-    pub async fn process_spl_token_mint_init(
+    pub async fn process_spl_token_mint_create(
         &mut self,
         payer: &Keypair,
         mint: &Keypair,
