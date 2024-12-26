@@ -71,13 +71,13 @@ impl Endpoint {
         &mut self,
         payer: &Keypair,
         authority: &Keypair,
-        source_token_account: &Pubkey,
+        authority_token_account: &Pubkey,
         destination_token_account: &Pubkey,
         amount: u64,
     ) -> Result<(), EndpointError> {
         let instruction = spl_token::instruction::transfer(
             &spl_token::ID,
-            source_token_account,
+            authority_token_account,
             destination_token_account,
             &authority.pubkey(),
             &[],
@@ -92,11 +92,13 @@ impl Endpoint {
     pub async fn process_spl_associated_token_account_get_or_init(
         &mut self,
         payer: &Keypair,
-        mint: &Pubkey,
         authority: &Pubkey,
+        mint: &Pubkey,
     ) -> Result<Pubkey, EndpointError> {
         let token_account =
-            self.find_spl_associated_token_account(authority, mint);
+            spl_associated_token_account::get_associated_token_address(
+                authority, mint,
+            );
         if self.get_account_exists(&token_account).await? {
             return Ok(token_account);
         }
@@ -109,15 +111,5 @@ impl Endpoint {
             );
         self.process_instruction(instruction, payer).await?;
         Ok(token_account)
-    }
-
-    pub fn find_spl_associated_token_account(
-        &mut self,
-        authority: &Pubkey,
-        mint: &Pubkey,
-    ) -> Pubkey {
-        spl_associated_token_account::get_associated_token_address(
-            authority, mint,
-        )
     }
 }
