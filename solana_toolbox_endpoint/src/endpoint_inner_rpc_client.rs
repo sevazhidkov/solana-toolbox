@@ -35,12 +35,12 @@ impl EndpointInner for RpcClient {
     async fn get_clock(&mut self) -> Result<Clock, EndpointError> {
         let accounts = self.get_accounts(&[clock::ID]).await?;
         match &accounts[0] {
-            | Some(account) => {
+            Some(account) => {
                 Ok(bincode::deserialize(&account.data).ok().ok_or(
                     EndpointError::Custom("sysvar clock failed to deserialize"),
                 )?)
             },
-            | None => Err(EndpointError::Custom("sysvar clock not found")),
+            None => Err(EndpointError::Custom("sysvar clock not found")),
         }
     }
 

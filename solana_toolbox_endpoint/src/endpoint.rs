@@ -9,12 +9,15 @@ pub struct Endpoint {
 
 impl From<Box<dyn EndpointInner>> for Endpoint {
     fn from(inner: Box<dyn EndpointInner>) -> Self {
-        Self { inner }
+        Self {
+            inner,
+        }
     }
 }
 
 impl Deref for Endpoint {
     type Target = Box<dyn EndpointInner>;
+
     fn deref(&self) -> &Self::Target {
         &self.inner
     }

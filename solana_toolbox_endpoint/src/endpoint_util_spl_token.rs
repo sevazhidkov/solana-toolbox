@@ -96,9 +96,7 @@ impl Endpoint {
         authority: &Pubkey,
     ) -> Result<Pubkey, EndpointError> {
         let token_account =
-            spl_associated_token_account::get_associated_token_address(
-                authority, mint,
-            );
+            self.find_spl_associated_token_account(authority, mint);
         if self.get_account_exists(&token_account).await? {
             return Ok(token_account);
         }
@@ -111,5 +109,15 @@ impl Endpoint {
             );
         self.process_instruction(instruction, payer).await?;
         Ok(token_account)
+    }
+
+    pub fn find_spl_associated_token_account(
+        &mut self,
+        authority: &Pubkey,
+        mint: &Pubkey,
+    ) -> Pubkey {
+        spl_associated_token_account::get_associated_token_address(
+            authority, mint,
+        )
     }
 }
