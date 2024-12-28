@@ -1,5 +1,5 @@
 #[derive(Debug)]
 pub enum ToolboxAnchorError {
-    ToolboxEndpoint(ToolboxEndpointError),
-    Anchor(anchor_lang::Error),
+    ToolboxEndpoint(solana_toolbox_endpoint::ToolboxEndpointError),
+    Anchor(anchor_lang::error::Error),
 }
