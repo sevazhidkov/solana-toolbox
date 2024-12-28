@@ -98,6 +98,6 @@ impl EndpointInner for RpcClient {
         _unix_timestamp_delta: u64,
         _slot_delta: u64,
     ) -> Result<(), EndpointError> {
-        Err(EndpointError::Custom("Clock forward not supported on RPCs"))
+        Err(EndpointError::Custom("Clock forwarding not supported on RPCs"))
     }
 }

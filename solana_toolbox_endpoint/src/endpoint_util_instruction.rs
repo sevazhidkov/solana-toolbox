@@ -13,8 +13,7 @@ impl Endpoint {
         instruction: Instruction,
         payer: &Keypair,
     ) -> Result<Signature, EndpointError> {
-        self.process_instructions_with_signers(&[instruction], payer, &[])
-            .await
+        self.process_instructions_with_signers(&[instruction], payer, &[]).await
     }
 
     pub async fn process_instruction_with_signers(

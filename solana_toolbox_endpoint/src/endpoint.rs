@@ -9,9 +9,7 @@ pub struct Endpoint {
 
 impl From<Box<dyn EndpointInner>> for Endpoint {
     fn from(inner: Box<dyn EndpointInner>) -> Self {
-        Self {
-            inner,
-        }
+        Self { inner }
     }
 }
 

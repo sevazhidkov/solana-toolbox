@@ -2,6 +2,8 @@ use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+use spl_token::state::Account;
+use spl_token::state::Mint;
 
 use crate::Endpoint;
 use crate::EndpointError;
@@ -14,7 +16,7 @@ impl Endpoint {
         mint_authority: &Pubkey,
         decimals: u8,
     ) -> Result<(), EndpointError> {
-        let rent_space = spl_token::state::Mint::LEN;
+        let rent_space = Mint::LEN;
         let rent_minimum_lamports =
             self.get_rent_minimum_balance(rent_space).await?;
         let instruction_create = solana_sdk::system_instruction::create_account(
@@ -111,5 +113,19 @@ impl Endpoint {
             );
         self.process_instruction(instruction, payer).await?;
         Ok(token_account)
+    }
+
+    pub async fn get_spl_token_mint(
+        &mut self,
+        mint: &Pubkey,
+    ) -> Result<Option<Mint>, EndpointError> {
+        self.get_account_data_unpacked::<Mint>(mint).await
+    }
+
+    pub async fn get_spl_token_account(
+        &mut self,
+        token_account: &Pubkey,
+    ) -> Result<Option<Account>, EndpointError> {
+        self.get_account_data_unpacked::<Account>(token_account).await
     }
 }
