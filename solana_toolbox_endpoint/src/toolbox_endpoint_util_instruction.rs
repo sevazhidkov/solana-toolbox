@@ -4,15 +4,15 @@ use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
 
-use crate::endpoint::Endpoint;
-use crate::endpoint_error::EndpointError;
+use crate::toolbox_endpoint::ToolboxEndpoint;
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
-impl Endpoint {
+impl ToolboxEndpoint {
     pub async fn process_instruction(
         &mut self,
         instruction: Instruction,
         payer: &Keypair,
-    ) -> Result<Signature, EndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         self.process_instructions_with_signers(&[instruction], payer, &[]).await
     }
 
@@ -21,7 +21,7 @@ impl Endpoint {
         instruction: Instruction,
         payer: &Keypair,
         signers: &[&Keypair],
-    ) -> Result<Signature, EndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         self.process_instructions_with_signers(&[instruction], payer, signers)
             .await
     }
@@ -31,7 +31,7 @@ impl Endpoint {
         instructions: &[Instruction],
         payer: &Keypair,
         signers: &[&Keypair],
-    ) -> Result<Signature, EndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let latest_blockhash = self.get_latest_blockhash().await?;
         let mut transaction: Transaction =
             Transaction::new_with_payer(instructions, Some(&payer.pubkey()));

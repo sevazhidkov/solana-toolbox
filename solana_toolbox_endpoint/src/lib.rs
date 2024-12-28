@@ -1,13 +1,13 @@
-mod endpoint;
-mod endpoint_error;
-mod endpoint_inner;
-mod endpoint_inner_program_test_context;
-mod endpoint_inner_rpc_client;
-mod endpoint_util_account;
-mod endpoint_util_factory;
-mod endpoint_util_instruction;
-mod endpoint_util_spl_token;
-mod endpoint_util_system;
+mod toolbox_endpoint;
+mod toolbox_endpoint_error;
+mod toolbox_endpoint_inner;
+mod toolbox_endpoint_inner_program_test_context;
+mod toolbox_endpoint_inner_rpc_client;
+mod toolbox_endpoint_util_account;
+mod toolbox_endpoint_util_factory;
+mod toolbox_endpoint_util_instruction;
+mod toolbox_endpoint_util_spl_token;
+mod toolbox_endpoint_util_system;
 
-pub use endpoint::Endpoint;
-pub use endpoint_error::EndpointError;
+pub use toolbox_endpoint::ToolboxEndpoint;
+pub use toolbox_endpoint_error::ToolboxEndpointError;

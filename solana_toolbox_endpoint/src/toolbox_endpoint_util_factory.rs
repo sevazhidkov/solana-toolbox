@@ -4,28 +4,29 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::endpoint::Endpoint;
-use crate::endpoint_inner::EndpointInner;
+use crate::toolbox_endpoint::ToolboxEndpoint;
+use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
 
-impl From<ProgramTestContext> for Endpoint {
+impl From<ProgramTestContext> for ToolboxEndpoint {
     fn from(program_test_context: ProgramTestContext) -> Self {
-        let endpoint_inner: Box<dyn EndpointInner> =
+        let endpoint_inner: Box<dyn ToolboxEndpointInner> =
             Box::new(program_test_context);
-        Endpoint::from(endpoint_inner)
+        ToolboxEndpoint::from(endpoint_inner)
     }
 }
 
-impl From<RpcClient> for Endpoint {
+impl From<RpcClient> for ToolboxEndpoint {
     fn from(rpc_client: RpcClient) -> Self {
-        let endpoint_inner: Box<dyn EndpointInner> = Box::new(rpc_client);
-        Endpoint::from(endpoint_inner)
+        let endpoint_inner: Box<dyn ToolboxEndpointInner> =
+            Box::new(rpc_client);
+        ToolboxEndpoint::from(endpoint_inner)
     }
 }
 
-impl Endpoint {
+impl ToolboxEndpoint {
     pub async fn new_program_test_with_preloaded_programs(
         preloaded_programs: &[(Pubkey, &str)]
-    ) -> Endpoint {
+    ) -> ToolboxEndpoint {
         let mut program_test = ProgramTest::default();
         program_test.prefer_bpf(true);
         for preloaded_program in preloaded_programs {
@@ -41,7 +42,7 @@ impl Endpoint {
     pub fn new_rpc_with_url_and_commitment(
         url: String,
         commitment_config: CommitmentConfig,
-    ) -> Endpoint {
+    ) -> ToolboxEndpoint {
         RpcClient::new_with_commitment(url, commitment_config).into()
     }
 }

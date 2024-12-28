@@ -11,47 +11,49 @@ use solana_sdk::system_instruction::transfer;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
-use crate::endpoint_error::EndpointError;
-use crate::endpoint_inner::EndpointInner;
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
 
 #[async_trait]
-impl EndpointInner for ProgramTestContext {
-    async fn get_latest_blockhash(&mut self) -> Result<Hash, EndpointError> {
+impl ToolboxEndpointInner for ProgramTestContext {
+    async fn get_latest_blockhash(
+        &mut self
+    ) -> Result<Hash, ToolboxEndpointError> {
         Ok(self.last_blockhash)
     }
 
     async fn get_rent_minimum_balance(
         &mut self,
         space: usize,
-    ) -> Result<u64, EndpointError> {
+    ) -> Result<u64, ToolboxEndpointError> {
         let rent = self
             .banks_client
             .get_rent()
             .await
-            .map_err(EndpointError::BanksClient)?;
+            .map_err(ToolboxEndpointError::BanksClient)?;
         Ok(rent.minimum_balance(space))
     }
 
-    async fn get_clock(&mut self) -> Result<Clock, EndpointError> {
+    async fn get_clock(&mut self) -> Result<Clock, ToolboxEndpointError> {
         let clock = self
             .banks_client
             .get_sysvar::<Clock>()
             .await
-            .map_err(EndpointError::BanksClient)?;
+            .map_err(ToolboxEndpointError::BanksClient)?;
         Ok(clock)
     }
 
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
-    ) -> Result<Vec<Option<Account>>, EndpointError> {
+    ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
         let mut accounts = vec![];
         for address in addresses {
             accounts.push(
                 self.banks_client
                     .get_account(*address)
                     .await
-                    .map_err(EndpointError::BanksClient)?,
+                    .map_err(ToolboxEndpointError::BanksClient)?,
             )
         }
         Ok(accounts)
@@ -60,16 +62,16 @@ impl EndpointInner for ProgramTestContext {
     async fn process_transaction(
         &mut self,
         transaction: Transaction,
-    ) -> Result<Signature, EndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         self.last_blockhash = self
             .banks_client
             .get_new_latest_blockhash(&self.last_blockhash)
             .await
-            .map_err(EndpointError::Io)?;
+            .map_err(ToolboxEndpointError::Io)?;
         self.banks_client
             .process_transaction(transaction)
             .await
-            .map_err(EndpointError::BanksClient)?;
+            .map_err(ToolboxEndpointError::BanksClient)?;
         Ok(Signature::default())
     }
 
@@ -77,9 +79,9 @@ impl EndpointInner for ProgramTestContext {
         &mut self,
         to: &Pubkey,
         lamports: u64,
-    ) -> Result<Signature, EndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let from = Keypair::from_bytes(&self.payer.to_bytes())
-            .map_err(|e| EndpointError::Signature(e.to_string()))?;
+            .map_err(|e| ToolboxEndpointError::Signature(e.to_string()))?;
         let instruction = transfer(&from.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
         let mut transaction: Transaction = Transaction::new_with_payer(
@@ -94,12 +96,12 @@ impl EndpointInner for ProgramTestContext {
         &mut self,
         unix_timestamp_delta: u64,
         slot_delta: u64,
-    ) -> Result<(), EndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let current_clock = self
             .banks_client
             .get_sysvar::<Clock>()
             .await
-            .map_err(EndpointError::BanksClient)?;
+            .map_err(ToolboxEndpointError::BanksClient)?;
         let mut forwarded_clock = current_clock;
         forwarded_clock.epoch += 1;
         forwarded_clock.slot += slot_delta;

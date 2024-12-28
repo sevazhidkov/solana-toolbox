@@ -5,17 +5,17 @@ use solana_sdk::signer::Signer;
 use spl_token::state::Account;
 use spl_token::state::Mint;
 
-use crate::Endpoint;
-use crate::EndpointError;
+use crate::toolbox_endpoint::ToolboxEndpoint;
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
-impl Endpoint {
+impl ToolboxEndpoint {
     pub async fn process_spl_token_mint_init(
         &mut self,
         payer: &Keypair,
         mint: &Keypair,
         mint_authority: &Pubkey,
         decimals: u8,
-    ) -> Result<(), EndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let rent_space = Mint::LEN;
         let rent_minimum_lamports =
             self.get_rent_minimum_balance(rent_space).await?;
@@ -33,7 +33,7 @@ impl Endpoint {
             Some(mint_authority),
             decimals,
         )
-        .map_err(EndpointError::Program)?;
+        .map_err(ToolboxEndpointError::Program)?;
         self.process_instructions_with_signers(
             &[instruction_create, instruction_init],
             payer,
@@ -50,7 +50,7 @@ impl Endpoint {
         mint_authority: &Keypair,
         destination_token_account: &Pubkey,
         amount: u64,
-    ) -> Result<(), EndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction = spl_token::instruction::mint_to(
             &spl_token::ID,
             mint,
@@ -59,7 +59,7 @@ impl Endpoint {
             &[],
             amount,
         )
-        .map_err(EndpointError::Program)?;
+        .map_err(ToolboxEndpointError::Program)?;
         self.process_instruction_with_signers(
             instruction,
             payer,
@@ -76,7 +76,7 @@ impl Endpoint {
         authority_token_account: &Pubkey,
         destination_token_account: &Pubkey,
         amount: u64,
-    ) -> Result<(), EndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction = spl_token::instruction::transfer(
             &spl_token::ID,
             authority_token_account,
@@ -85,7 +85,7 @@ impl Endpoint {
             &[],
             amount,
         )
-        .map_err(EndpointError::Program)?;
+        .map_err(ToolboxEndpointError::Program)?;
         self.process_instruction_with_signers(instruction, payer, &[authority])
             .await?;
         Ok(())
@@ -96,7 +96,7 @@ impl Endpoint {
         payer: &Keypair,
         authority: &Pubkey,
         mint: &Pubkey,
-    ) -> Result<Pubkey, EndpointError> {
+    ) -> Result<Pubkey, ToolboxEndpointError> {
         let token_account =
             spl_associated_token_account::get_associated_token_address(
                 authority, mint,
@@ -118,14 +118,14 @@ impl Endpoint {
     pub async fn get_spl_token_mint(
         &mut self,
         mint: &Pubkey,
-    ) -> Result<Option<Mint>, EndpointError> {
+    ) -> Result<Option<Mint>, ToolboxEndpointError> {
         self.get_account_data_unpacked::<Mint>(mint).await
     }
 
     pub async fn get_spl_token_account(
         &mut self,
         token_account: &Pubkey,
-    ) -> Result<Option<Account>, EndpointError> {
+    ) -> Result<Option<Account>, ToolboxEndpointError> {
         self.get_account_data_unpacked::<Account>(token_account).await
     }
 }

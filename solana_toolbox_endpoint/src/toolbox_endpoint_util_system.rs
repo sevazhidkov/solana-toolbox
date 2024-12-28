@@ -2,17 +2,17 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::Endpoint;
-use crate::EndpointError;
+use crate::toolbox_endpoint::ToolboxEndpoint;
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
-impl Endpoint {
+impl ToolboxEndpoint {
     pub async fn process_system_transfer(
         &mut self,
         payer: &Keypair,
         authority: &Keypair,
         destination: &Pubkey,
         lamports: u64,
-    ) -> Result<(), EndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction = solana_sdk::system_instruction::transfer(
             &authority.pubkey(),
             destination,
@@ -30,7 +30,7 @@ impl Endpoint {
         lamports: u64,
         space: u64,
         owner: &Pubkey,
-    ) -> Result<(), EndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction = solana_sdk::system_instruction::create_account(
             &payer.pubkey(),
             &account.pubkey(),
