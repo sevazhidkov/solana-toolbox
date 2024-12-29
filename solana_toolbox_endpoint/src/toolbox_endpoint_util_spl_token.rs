@@ -19,7 +19,7 @@ impl ToolboxEndpoint {
     ) -> Result<Signature, ToolboxEndpointError> {
         let rent_space = Mint::LEN;
         let rent_minimum_lamports =
-            self.get_rent_minimum_balance(rent_space).await?;
+            self.get_sysvar_rent().await?.minimum_balance(rent_space);
         let instruction_create = solana_sdk::system_instruction::create_account(
             &payer.pubkey(),
             &mint.pubkey(),

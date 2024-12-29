@@ -20,27 +20,6 @@ impl ToolboxEndpointInner for ProgramTestContext {
         Ok(self.last_blockhash)
     }
 
-    async fn get_rent_minimum_balance(
-        &mut self,
-        space: usize,
-    ) -> Result<u64, ToolboxEndpointError> {
-        let rent = self
-            .banks_client
-            .get_rent()
-            .await
-            .map_err(ToolboxEndpointError::BanksClient)?;
-        Ok(rent.minimum_balance(space))
-    }
-
-    async fn get_clock(&mut self) -> Result<Clock, ToolboxEndpointError> {
-        let clock = self
-            .banks_client
-            .get_sysvar::<Clock>()
-            .await
-            .map_err(ToolboxEndpointError::BanksClient)?;
-        Ok(clock)
-    }
-
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],

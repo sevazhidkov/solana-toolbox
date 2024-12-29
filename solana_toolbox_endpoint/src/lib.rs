@@ -8,6 +8,7 @@ mod toolbox_endpoint_util_factory;
 mod toolbox_endpoint_util_instruction;
 mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
+mod toolbox_endpoint_util_sysvar;
 
 pub use toolbox_endpoint::ToolboxEndpoint;
 pub use toolbox_endpoint_error::ToolboxEndpointError;

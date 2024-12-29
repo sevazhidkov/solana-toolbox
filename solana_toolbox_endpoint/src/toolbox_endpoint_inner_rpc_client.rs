@@ -3,11 +3,9 @@ use std::time::Instant;
 
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::account::Account;
-use solana_sdk::clock::Clock;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
-use solana_sdk::sysvar::clock;
 use solana_sdk::transaction::Transaction;
 use tokio::time::sleep;
 
@@ -22,24 +20,6 @@ impl ToolboxEndpointInner for RpcClient {
         RpcClient::get_latest_blockhash(self)
             .await
             .map_err(ToolboxEndpointError::Client)
-    }
-
-    async fn get_rent_minimum_balance(
-        &mut self,
-        space: usize,
-    ) -> Result<u64, ToolboxEndpointError> {
-        self.get_minimum_balance_for_rent_exemption(space)
-            .await
-            .map_err(ToolboxEndpointError::Client)
-    }
-
-    async fn get_clock(&mut self) -> Result<Clock, ToolboxEndpointError> {
-        let accounts = self.get_accounts(&[clock::ID]).await?;
-        match &accounts[0] {
-            Some(account) => Ok(bincode::deserialize(&account.data)
-                .map_err(ToolboxEndpointError::Bincode)?),
-            None => Err(ToolboxEndpointError::Custom("sysvar clock not found")),
-        }
     }
 
     async fn get_accounts(

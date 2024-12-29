@@ -1,5 +1,6 @@
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::{Keypair, Signature};
+use solana_sdk::signature::Keypair;
+use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
