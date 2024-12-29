@@ -1,6 +1,7 @@
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
+use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
 use spl_token::state::Mint;
@@ -15,7 +16,7 @@ impl ToolboxEndpoint {
         mint: &Keypair,
         mint_authority: &Pubkey,
         decimals: u8,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let rent_space = Mint::LEN;
         let rent_minimum_lamports =
             self.get_rent_minimum_balance(rent_space).await?;
@@ -39,8 +40,7 @@ impl ToolboxEndpoint {
             payer,
             &[mint],
         )
-        .await?;
-        Ok(())
+        .await
     }
 
     pub async fn process_spl_token_mint_to(
@@ -50,7 +50,7 @@ impl ToolboxEndpoint {
         mint_authority: &Keypair,
         destination_token_account: &Pubkey,
         amount: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = spl_token::instruction::mint_to(
             &spl_token::ID,
             mint,
@@ -65,8 +65,7 @@ impl ToolboxEndpoint {
             payer,
             &[mint_authority],
         )
-        .await?;
-        Ok(())
+        .await
     }
 
     pub async fn process_spl_token_transfer(
@@ -76,7 +75,7 @@ impl ToolboxEndpoint {
         authority_token_account: &Pubkey,
         destination_token_account: &Pubkey,
         amount: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = spl_token::instruction::transfer(
             &spl_token::ID,
             authority_token_account,
@@ -87,8 +86,7 @@ impl ToolboxEndpoint {
         )
         .map_err(ToolboxEndpointError::Program)?;
         self.process_instruction_with_signers(instruction, payer, &[authority])
-            .await?;
-        Ok(())
+            .await
     }
 
     pub async fn process_spl_associated_token_account_get_or_init(

@@ -1,4 +1,3 @@
-use borsh::BorshDeserialize;
 use solana_sdk::account::Account;
 use solana_sdk::program_pack::IsInitialized;
 use solana_sdk::program_pack::Pack;
@@ -66,7 +65,22 @@ impl ToolboxEndpoint {
             .map_err(ToolboxEndpointError::Program)
     }
 
-    pub async fn get_account_data_borsh_deserialized<T: BorshDeserialize>(
+    pub async fn get_account_data_bincode_deserialized<
+        T: for<'a> serde::Deserialize<'a>,
+    >(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Option<T>, ToolboxEndpointError> {
+        self.get_account(address)
+            .await?
+            .map(|account| bincode::deserialize::<T>(&account.data))
+            .transpose()
+            .map_err(ToolboxEndpointError::Bincode)
+    }
+
+    pub async fn get_account_data_borsh_deserialized<
+        T: borsh::BorshDeserialize,
+    >(
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {

@@ -4729,11 +4729,12 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.1.7-solana-1.18.26"
+version = "0.1.8-solana-1.18.26"
 dependencies = [
  "async-trait",
  "bincode",
  "borsh 1.5.3",
+ "serde",
  "solana-client",
  "solana-program-test",
  "solana-sdk",

@@ -1,7 +1,6 @@
 use std::time::Duration;
 use std::time::Instant;
 
-use async_trait::async_trait;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::account::Account;
 use solana_sdk::clock::Clock;
@@ -15,7 +14,7 @@ use tokio::time::sleep;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
 
-#[async_trait]
+#[async_trait::async_trait]
 impl ToolboxEndpointInner for RpcClient {
     async fn get_latest_blockhash(
         &mut self
@@ -37,13 +36,8 @@ impl ToolboxEndpointInner for RpcClient {
     async fn get_clock(&mut self) -> Result<Clock, ToolboxEndpointError> {
         let accounts = self.get_accounts(&[clock::ID]).await?;
         match &accounts[0] {
-            Some(account) => {
-                Ok(bincode::deserialize(&account.data).ok().ok_or(
-                    ToolboxEndpointError::Custom(
-                        "sysvar clock failed to deserialize",
-                    ),
-                )?)
-            },
+            Some(account) => Ok(bincode::deserialize(&account.data)
+                .map_err(ToolboxEndpointError::Bincode)?),
             None => Err(ToolboxEndpointError::Custom("sysvar clock not found")),
         }
     }

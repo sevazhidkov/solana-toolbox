@@ -1,5 +1,5 @@
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
+use solana_sdk::signature::{Keypair, Signature};
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
@@ -12,15 +12,14 @@ impl ToolboxEndpoint {
         authority: &Keypair,
         destination: &Pubkey,
         lamports: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = solana_sdk::system_instruction::transfer(
             &authority.pubkey(),
             destination,
             lamports,
         );
         self.process_instruction_with_signers(instruction, payer, &[authority])
-            .await?;
-        Ok(())
+            .await
     }
 
     pub async fn process_system_create(
@@ -30,7 +29,7 @@ impl ToolboxEndpoint {
         lamports: u64,
         space: u64,
         owner: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = solana_sdk::system_instruction::create_account(
             &payer.pubkey(),
             &account.pubkey(),
@@ -39,7 +38,6 @@ impl ToolboxEndpoint {
             owner,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])
-            .await?;
-        Ok(())
+            .await
     }
 }

@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
@@ -8,7 +7,7 @@ use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
-#[async_trait]
+#[async_trait::async_trait]
 pub trait ToolboxEndpointInner {
     async fn get_latest_blockhash(
         &mut self
