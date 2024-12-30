@@ -10,16 +10,16 @@ impl ToolboxEndpoint {
     pub async fn process_system_transfer(
         &mut self,
         payer: &Keypair,
-        authority: &Keypair,
+        source: &Keypair,
         destination: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = solana_sdk::system_instruction::transfer(
-            &authority.pubkey(),
+            &source.pubkey(),
             destination,
             lamports,
         );
-        self.process_instruction_with_signers(instruction, payer, &[authority])
+        self.process_instruction_with_signers(instruction, payer, &[source])
             .await
     }
 
