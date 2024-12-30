@@ -15,7 +15,8 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         mint: &Keypair,
         mint_authority: &Pubkey,
-        decimals: u8,
+        mint_freeze_authority: Option<&Pubkey>,
+        mint_decimals: u8,
     ) -> Result<Signature, ToolboxEndpointError> {
         let rent_space = Mint::LEN;
         let rent_minimum_lamports =
@@ -31,14 +32,38 @@ impl ToolboxEndpoint {
             &spl_token::ID,
             &mint.pubkey(),
             mint_authority,
-            Some(mint_authority),
-            decimals,
+            mint_freeze_authority,
+            mint_decimals,
         )
         .map_err(ToolboxEndpointError::Program)?;
         self.process_instructions_with_signers(
             &[instruction_create, instruction_init],
             payer,
             &[mint],
+        )
+        .await
+    }
+
+    pub async fn process_spl_token_mint_set_authority(
+        &mut self,
+        payer: &Keypair,
+        mint: &Pubkey,
+        source_mint_authority: &Keypair,
+        destination_mint_authority: Option<&Pubkey>,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction = spl_token::instruction::set_authority(
+            &spl_token::ID,
+            mint,
+            destination_mint_authority,
+            spl_token::instruction::AuthorityType::MintTokens,
+            &source_mint_authority.pubkey(),
+            &[],
+        )
+        .map_err(ToolboxEndpointError::Program)?;
+        self.process_instruction_with_signers(
+            instruction,
+            payer,
+            &[source_mint_authority],
         )
         .await
     }
@@ -68,18 +93,109 @@ impl ToolboxEndpoint {
         .await
     }
 
+    pub async fn process_spl_token_mint_set_freeze_authority(
+        &mut self,
+        payer: &Keypair,
+        mint: &Pubkey,
+        source_mint_freeze_authority: &Keypair,
+        destination_mint_freeze_authority: Option<&Pubkey>,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction = spl_token::instruction::set_authority(
+            &spl_token::ID,
+            mint,
+            destination_mint_freeze_authority,
+            spl_token::instruction::AuthorityType::FreezeAccount,
+            &source_mint_freeze_authority.pubkey(),
+            &[],
+        )
+        .map_err(ToolboxEndpointError::Program)?;
+        self.process_instruction_with_signers(
+            instruction,
+            payer,
+            &[source_mint_freeze_authority],
+        )
+        .await
+    }
+
+    pub async fn process_spl_token_freeze(
+        &mut self,
+        payer: &Keypair,
+        mint: &Pubkey,
+        mint_freeze_authority: &Keypair,
+        token_account: &Pubkey,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction = spl_token::instruction::freeze_account(
+            &spl_token::ID,
+            token_account,
+            mint,
+            &mint_freeze_authority.pubkey(),
+            &[],
+        )
+        .map_err(ToolboxEndpointError::Program)?;
+        self.process_instruction_with_signers(
+            instruction,
+            payer,
+            &[mint_freeze_authority],
+        )
+        .await
+    }
+
+    pub async fn process_spl_token_thaw(
+        &mut self,
+        payer: &Keypair,
+        mint: &Pubkey,
+        mint_freeze_authority: &Keypair,
+        token_account: &Pubkey,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction = spl_token::instruction::thaw_account(
+            &spl_token::ID,
+            token_account,
+            mint,
+            &mint_freeze_authority.pubkey(),
+            &[],
+        )
+        .map_err(ToolboxEndpointError::Program)?;
+        self.process_instruction_with_signers(
+            instruction,
+            payer,
+            &[mint_freeze_authority],
+        )
+        .await
+    }
+
     pub async fn process_spl_token_transfer(
         &mut self,
         payer: &Keypair,
         authority: &Keypair,
-        authority_token_account: &Pubkey,
+        source_token_account: &Pubkey,
         destination_token_account: &Pubkey,
         amount: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = spl_token::instruction::transfer(
             &spl_token::ID,
-            authority_token_account,
+            source_token_account,
             destination_token_account,
+            &authority.pubkey(),
+            &[],
+            amount,
+        )
+        .map_err(ToolboxEndpointError::Program)?;
+        self.process_instruction_with_signers(instruction, payer, &[authority])
+            .await
+    }
+
+    pub async fn process_spl_token_burn(
+        &mut self,
+        payer: &Keypair,
+        authority: &Keypair,
+        source_token_account: &Pubkey,
+        mint: &Pubkey,
+        amount: u64,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction = spl_token::instruction::burn(
+            &spl_token::ID,
+            source_token_account,
+            mint,
             &authority.pubkey(),
             &[],
             amount,
