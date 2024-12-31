@@ -7,7 +7,6 @@ use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
-use tokio::time::sleep;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
@@ -51,10 +50,9 @@ impl ToolboxEndpointInner for RpcClient {
             let duration = start.elapsed();
             if duration > Duration::from_secs(5) {
                 return Err(ToolboxEndpointError::Custom(
-                    "Timeout on awaiting confirmation",
+                    "Timeout on awaiting transaction confirmation",
                 ));
             }
-            sleep(Duration::from_secs(1)).await;
         }
         Ok(signature)
     }

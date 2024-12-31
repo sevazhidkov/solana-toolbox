@@ -4729,7 +4729,7 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.1.12-solana-1.18.26"
+version = "0.1.13-solana-1.18.26"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4740,7 +4740,6 @@ dependencies = [
  "solana-sdk",
  "spl-associated-token-account",
  "spl-token",
- "tokio",
 ]
 
 [[package]]

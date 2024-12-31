@@ -10,18 +10,18 @@ use crate::toolbox_anchor_error::ToolboxAnchorError;
 
 pub async fn process_anchor_instruction<
     Accounts: ToAccountMetas,
-    Params: InstructionData,
+    Payload: InstructionData,
 >(
     toolbox_endpoint: &mut ToolboxEndpoint,
     program_id: Pubkey,
     accounts: Accounts,
-    params: Params,
+    payload: Payload,
     payer: &Keypair,
 ) -> Result<Signature, ToolboxAnchorError> {
     let instruction = Instruction {
         program_id,
         accounts: accounts.to_account_metas(None),
-        data: params.data(),
+        data: payload.data(),
     };
     toolbox_endpoint
         .process_instruction(instruction, payer)
@@ -31,19 +31,19 @@ pub async fn process_anchor_instruction<
 
 pub async fn process_anchor_instruction_with_signers<
     Accounts: ToAccountMetas,
-    Params: InstructionData,
+    Payload: InstructionData,
 >(
     toolbox_endpoint: &mut ToolboxEndpoint,
     program_id: Pubkey,
     accounts: Accounts,
-    params: Params,
+    payload: Payload,
     payer: &Keypair,
     signers: &[&Keypair],
 ) -> Result<Signature, ToolboxAnchorError> {
     let instruction = Instruction {
         program_id,
         accounts: accounts.to_account_metas(None),
-        data: params.data(),
+        data: payload.data(),
     };
     toolbox_endpoint
         .process_instruction_with_signers(instruction, payer, signers)
