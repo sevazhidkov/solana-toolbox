@@ -52,14 +52,33 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         account: &Keypair,
         lamports: u64,
-        space: u64,
+        space: usize,
         owner: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = solana_sdk::system_instruction::create_account(
             &payer.pubkey(),
             &account.pubkey(),
             lamports,
-            space,
+            space as u64,
+            owner,
+        );
+        self.process_instruction_with_signers(instruction, payer, &[account])
+            .await
+    }
+
+    pub async fn process_system_create_exempt(
+        &mut self,
+        payer: &Keypair,
+        account: &Keypair,
+        space: usize,
+        owner: &Pubkey,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let lamports = self.get_sysvar_rent().await?.minimum_balance(space);
+        let instruction = solana_sdk::system_instruction::create_account(
+            &payer.pubkey(),
+            &account.pubkey(),
+            lamports,
+            space as u64,
             owner,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])
