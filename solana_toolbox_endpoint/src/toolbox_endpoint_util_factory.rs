@@ -25,7 +25,7 @@ impl From<RpcClient> for ToolboxEndpoint {
 
 impl ToolboxEndpoint {
     pub async fn new_program_test_with_preloaded_programs(
-        preloaded_programs: &[(Pubkey, &str)]
+        preloaded_programs: &[(Pubkey, &'static str)]
     ) -> ToolboxEndpoint {
         let mut program_test = ProgramTest::default();
         program_test.prefer_bpf(true);
