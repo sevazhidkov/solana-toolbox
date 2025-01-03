@@ -1,4 +1,5 @@
 use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -25,7 +26,11 @@ impl From<RpcClient> for ToolboxEndpoint {
 
 impl ToolboxEndpoint {
     pub async fn new_program_test_with_preloaded_programs(
-        preloaded_programs: &[(Pubkey, &'static str)]
+        preloaded_programs: &[(
+            Pubkey,
+            &'static str,
+            Option<BuiltinFunctionWithContext>,
+        )]
     ) -> ToolboxEndpoint {
         let mut program_test = ProgramTest::default();
         program_test.prefer_bpf(true);
@@ -33,7 +38,7 @@ impl ToolboxEndpoint {
             program_test.add_program(
                 preloaded_program.1,
                 preloaded_program.0,
-                None,
+                preloaded_program.2,
             );
         }
         program_test.start_with_context().await.into()
