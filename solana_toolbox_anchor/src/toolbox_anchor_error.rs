@@ -8,7 +8,7 @@ pub enum ToolboxAnchorError {
 }
 
 impl From<ToolboxEndpointError> for ToolboxAnchorError {
-    fn from(content: ToolboxEndpointError) -> Self {
-        ToolboxAnchorError::ToolboxEndpoint(content)
+    fn from(source: ToolboxEndpointError) -> Self {
+        ToolboxAnchorError::ToolboxEndpoint(source)
     }
 }

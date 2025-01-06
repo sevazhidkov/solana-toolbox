@@ -11,10 +11,8 @@ mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
 mod toolbox_endpoint_util_sysvar;
 
+pub use solana_program_test::processor as solana_program_test_processor;
 pub use toolbox_endpoint::ToolboxEndpoint;
 pub use toolbox_endpoint_error::ToolboxEndpointError;
-
 pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestBuiltinProgram;
 pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestPreloadedProgram;
-
-pub use solana_program_test::processor as solana_program_test_processor;
