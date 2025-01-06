@@ -18,9 +18,7 @@ macro_rules! toolbox_endpoint_program_test_builtin_program {
         solana_toolbox_endpoint::ToolboxEndpointProgramTestBuiltinProgram {
             id: $builtin_id,
             name: "",
-            function: $crate::toolbox_endpoint_program_test_builtin_processor!(
-                $builtin_function
-            ),
+            function: $crate::solana_program_test_processor!($builtin_function),
         }
     };
 }

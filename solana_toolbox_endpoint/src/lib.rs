@@ -17,4 +17,4 @@ pub use toolbox_endpoint_error::ToolboxEndpointError;
 pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestBuiltinProgram;
 pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestPreloadedProgram;
 
-pub use solana_program_test::processor as toolbox_endpoint_program_test_builtin_processor;
+pub use solana_program_test::processor as solana_program_test_processor;
