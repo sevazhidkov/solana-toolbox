@@ -3,8 +3,9 @@ mod toolbox_endpoint_error;
 mod toolbox_endpoint_inner;
 mod toolbox_endpoint_inner_program_test_context;
 mod toolbox_endpoint_inner_rpc_client;
+mod toolbox_endpoint_new_program_test;
+mod toolbox_endpoint_new_rpc_client;
 mod toolbox_endpoint_util_account;
-mod toolbox_endpoint_util_factory;
 mod toolbox_endpoint_util_instruction;
 mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
@@ -12,3 +13,8 @@ mod toolbox_endpoint_util_sysvar;
 
 pub use toolbox_endpoint::ToolboxEndpoint;
 pub use toolbox_endpoint_error::ToolboxEndpointError;
+
+pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestBuiltinProgram;
+pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestPreloadedProgram;
+
+pub use solana_program_test::processor as toolbox_endpoint_program_test_builtin_processor;

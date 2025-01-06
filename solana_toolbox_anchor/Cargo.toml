@@ -11,4 +11,4 @@ solana-sdk = "=2.0.18"
 anchor-lang = "=0.30.1"
 anchor-spl = "=0.30.1"
 
-solana_toolbox_endpoint = "=0.1.14-solana-2.0.18"
+solana_toolbox_endpoint = "=0.1.17-solana-2.0.18"
