@@ -4,8 +4,8 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
+use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
 use crate::toolbox_anchor_error::ToolboxAnchorError;
 
 impl ToolboxAnchorEndpoint {
@@ -24,8 +24,7 @@ impl ToolboxAnchorEndpoint {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        toolbox_endpoint
-            .process_instruction(instruction, payer)
+        self.process_instruction(instruction, payer)
             .await
             .map_err(ToolboxAnchorError::ToolboxEndpoint)
     }
@@ -46,8 +45,7 @@ impl ToolboxAnchorEndpoint {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        toolbox_endpoint
-            .process_instruction_with_signers(instruction, payer, signers)
+        self.process_instruction_with_signers(instruction, payer, signers)
             .await
             .map_err(ToolboxAnchorError::ToolboxEndpoint)
     }

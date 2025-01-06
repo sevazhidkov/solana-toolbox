@@ -1,10 +1,15 @@
+use std::ops::Deref;
+use std::ops::DerefMut;
+
+use solana_toolbox_endpoint::ToolboxEndpoint;
+
 pub struct ToolboxAnchorEndpoint {
-    toolbox_endpoint: ToolboxEndpoint,
+    inner: ToolboxEndpoint,
 }
 
 impl From<ToolboxEndpoint> for ToolboxAnchorEndpoint {
-    fn from(toolbox_endpoint: ToolboxEndpoint) -> Self {
-        Self { toolbox_endpoint }
+    fn from(inner: ToolboxEndpoint) -> Self {
+        Self { inner }
     }
 }
 

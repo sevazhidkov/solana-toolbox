@@ -1,10 +1,7 @@
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::{
-    toolbox_anchor_endpoint::ToolboxAnchorEndpoint,
-    toolbox_anchor_error::ToolboxAnchorError,
-};
+use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
+use crate::toolbox_anchor_error::ToolboxAnchorError;
 
 impl ToolboxAnchorEndpoint {
     pub async fn get_account_data_anchor_deserialized<
@@ -13,7 +10,7 @@ impl ToolboxAnchorEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<T, ToolboxAnchorError> {
-        let account_data = toolbox_endpoint
+        let account_data = self
             .get_account_data(address)
             .await
             .map_err(ToolboxAnchorError::ToolboxEndpoint)?;
