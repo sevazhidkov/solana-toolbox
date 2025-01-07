@@ -1,1 +1,2 @@
 pub mod program_test_airdrop_transfer_get;
+pub mod program_test_builtin_program;

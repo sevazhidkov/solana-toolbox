@@ -4729,7 +4729,7 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.1.19-solana-1.18.26"
+version = "0.1.20-solana-1.18.26"
 dependencies = [
  "async-trait",
  "bincode",
