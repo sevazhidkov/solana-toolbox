@@ -30,7 +30,7 @@ impl DerefMut for ToolboxAnchorEndpoint {
 #[macro_export]
 macro_rules! toolbox_endpoint_program_test_builtin_program_anchor {
     ($program_id:expr, $program_entry:expr) => {
-        solana_toolbox_endpoint::ToolboxEndpointProgramTestBuiltinProgram {
+        $crate::ToolboxEndpointProgramTestBuiltinProgram {
             id: $program_id,
             name: "",
             processor: $crate::solana_program_test_processor!(
