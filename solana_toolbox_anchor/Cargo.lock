@@ -4951,9 +4951,9 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.1.18-solana-1.18.26"
+version = "0.1.19-solana-1.18.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7815ff2bc6754318d298448a1a4c2ce62bc6a3ac6fcd998aa00fdf2af22dbed9"
+checksum = "e8c5e7fe0356c337bc7014e37b8818fd8b20b6431e89f38a84e47ebd2f37151c"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4963,7 +4963,7 @@ dependencies = [
  "solana-program-runtime",
  "solana-program-test",
  "solana-sdk",
- "spl-associated-token-account 2.3.0",
+ "spl-associated-token-account 3.0.4",
  "spl-token",
 ]
 
