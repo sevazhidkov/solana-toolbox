@@ -4946,6 +4946,7 @@ dependencies = [
  "anchor-spl",
  "solana-sdk",
  "solana_toolbox_endpoint",
+ "tokio",
 ]
 
 [[package]]

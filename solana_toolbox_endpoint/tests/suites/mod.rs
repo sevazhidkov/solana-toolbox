@@ -1,1 +1,1 @@
-pub mod toolbox_endpoint_program_test_builtin_programs;
+pub mod program_test_builtin_programs;

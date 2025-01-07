@@ -8,7 +8,7 @@ use solana_toolbox_endpoint::toolbox_endpoint_program_test_builtin_program;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
-pub async fn toolbox_endpoint_program_test_builtin_programs() {
+pub async fn program_test_builtin_programs() {
     // Define dummy builtin program #1
     let builtin1_program_id = Keypair::new();
     fn builtin1_program_entry(
@@ -29,19 +29,16 @@ pub async fn toolbox_endpoint_program_test_builtin_programs() {
     }
     // Initialize the endpoint
     let mut toolbox_endpoint =
-        ToolboxEndpoint::new_program_test_with_builtin_and_preloaded_programs(
-            &[
-                toolbox_endpoint_program_test_builtin_program!(
-                    builtin1_program_id.pubkey(),
-                    builtin1_program_entry
-                ),
-                toolbox_endpoint_program_test_builtin_program!(
-                    builtin2_program_id.pubkey(),
-                    builtin2_program_entry
-                ),
-            ],
-            &[],
-        )
+        ToolboxEndpoint::new_program_test_with_builtin_programs(&[
+            toolbox_endpoint_program_test_builtin_program!(
+                builtin1_program_id.pubkey(),
+                builtin1_program_entry
+            ),
+            toolbox_endpoint_program_test_builtin_program!(
+                builtin2_program_id.pubkey(),
+                builtin2_program_entry
+            ),
+        ])
         .await;
     // Prepare a payer
     let payer = Keypair::new();
