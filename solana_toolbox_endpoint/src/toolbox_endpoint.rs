@@ -52,18 +52,21 @@ impl ToolboxEndpoint {
         &mut self,
         transaction: Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let payer = transaction.message.account_keys[0];
+        let message = &transaction.message;
+        let payer = message.account_keys[0];
+        let mut signers = vec![];
+        for account_index in 0..message.header.num_required_signatures {
+            signers.push(message.account_keys[usize::from(account_index)]);
+        }
         let mut instructions = vec![];
-        for instruction in &transaction.message.instructions {
+        for instruction in &message.instructions {
             let mut accounts = vec![];
             for account_index in &instruction.accounts {
-                accounts.push(
-                    transaction.message.account_keys
-                        [usize::from(*account_index)],
-                );
+                accounts
+                    .push(message.account_keys[usize::from(*account_index)]);
             }
             instructions.push(ToolboxEndpointLoggerInstruction {
-                program_id: transaction.message.account_keys
+                program_id: message.account_keys
                     [usize::from(instruction.program_id_index)],
                 accounts,
                 data: instruction.data.clone(),
@@ -74,6 +77,7 @@ impl ToolboxEndpoint {
             logger.on_transaction(
                 &ToolboxEndpointLoggerTransaction {
                     payer,
+                    signers: signers.clone(),
                     instructions: instructions.clone(),
                 },
                 &result,

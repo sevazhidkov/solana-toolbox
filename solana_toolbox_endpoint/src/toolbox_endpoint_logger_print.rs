@@ -20,18 +20,35 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         transaction: &ToolboxEndpointLoggerTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
-        println!("-------- PROCESSED TRANSACTION --------");
+        println!(
+            "---------------------------- TRANSACTION PROCESSED -----------------------------"
+        );
+        println!("----");
         println!("transaction.payer: {:?}", transaction.payer);
-        for instruction in &transaction.instructions {
-            println!("> instruction");
-            println!("> instruction.program_id: {:?}", instruction.program_id);
-            let mut index = 1;
-            for account in &instruction.accounts {
-                println!("> instruction.account: #{:03?} {:?}", index, account);
-                index += 1;
-            }
-            println!("> instruction.data: {:?}", instruction.data);
+        println!("----");
+        for signer_index in 0..transaction.signers.len() {
+            println!(
+                "transaction.signers: #{:?} {:?}",
+                signer_index + 1,
+                transaction.signers[signer_index]
+            );
         }
+        for instruction in &transaction.instructions {
+            println!("----");
+            println!("> instruction.program_id: {:?}", instruction.program_id);
+            for account_index in 0..instruction.accounts.len() {
+                println!(
+                    "> instruction.accounts: #{:03?} {:?}",
+                    account_index + 1,
+                    instruction.accounts[account_index]
+                );
+            }
+            self.print_bytes(
+                "> instruction.data".to_string(),
+                &instruction.data,
+            );
+        }
+        println!("----");
         match result {
             Ok(signature) => {
                 println!("transaction.result: OK");
@@ -44,7 +61,8 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
                 println!("transaction.error: {:?}", error)
             },
         };
-        self.print_backtrace();
+        println!("----");
+        self.print_backtrace("from".to_string());
         println!("");
     }
 
@@ -53,27 +71,65 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         address: &Pubkey,
         account: &Option<Account>,
     ) {
-        println!("-------- READ ACCOUNT --------");
+        println!("--------------------------------- READ ACCOUNT ---------------------------------");
+        println!("----");
         println!("address.key: {:?}", address);
+        println!("----");
         let account = account.clone().unwrap_or_default();
         println!("> account.lamports: {:?}", account.lamports);
         println!("> account.owner: {:?}", account.owner);
         println!("> account.executable: {:?}", account.executable);
-        println!("> account.data: {:?}", account.data);
-        self.print_backtrace();
+        self.print_bytes("> account.data".to_string(), &account.data);
+        println!("----");
+        self.print_backtrace("from".to_string());
         println!("");
     }
 }
 
 impl ToolboxEndpointLoggerPrint {
-    fn print_backtrace(&self) {
+    fn print_backtrace(
+        &self,
+        prefix: String,
+    ) {
         let backtrace_data = std::backtrace::Backtrace::force_capture();
         let backtrace_formatted = std::format!("{}", backtrace_data);
         let backtrace_lines = backtrace_formatted.lines();
         for backtrace_line in backtrace_lines {
             if backtrace_line.contains("at ./") {
-                println!("from: {}", backtrace_line.trim());
+                println!("{}: {}", prefix, backtrace_line.trim());
             }
+        }
+    }
+
+    fn print_bytes(
+        &self,
+        prefix: String,
+        data: &[u8],
+    ) {
+        let data_len = data.len();
+        println!("{}.len: {:?}", prefix, data_len);
+        let data_blob = 16;
+        let data_lines = (data_len + data_blob - 1) / data_blob;
+        for data_line in 0..data_lines {
+            let data_start = data_line * data_blob;
+            let mut data_bytes = vec![];
+            for data_offset in 0..data_blob {
+                let data_index = data_start + data_offset;
+                if data_index >= data_len {
+                    data_bytes.push("  ".to_string());
+                } else {
+                    data_bytes.push(format!(
+                        "{:02X}",
+                        data[data_start + data_offset]
+                    ));
+                }
+            }
+            println!(
+                "{}: #{:04} | {}",
+                prefix,
+                data_start,
+                data_bytes.join(" "),
+            );
         }
     }
 }

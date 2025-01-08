@@ -32,4 +32,26 @@ pub async fn program_test_logger_print() {
             - 5_000, // Transaction fees
         endpoint.get_account_lamports(&payer.pubkey()).await.unwrap()
     );
+    // Create a dummy mint
+    let mint = Keypair::new();
+    endpoint
+        .process_spl_token_mint_init(
+            &payer,
+            &mint,
+            &destination.pubkey(),
+            None,
+            6,
+        )
+        .await
+        .unwrap();
+    // Dummy check that it was created properly
+    assert_eq!(
+        6,
+        endpoint
+            .get_spl_token_mint(&mint.pubkey())
+            .await
+            .unwrap()
+            .unwrap()
+            .decimals,
+    );
 }

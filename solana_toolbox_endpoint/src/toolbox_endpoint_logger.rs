@@ -7,6 +7,7 @@ use crate::ToolboxEndpointError;
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerTransaction {
     pub payer: Pubkey,
+    pub signers: Vec<Pubkey>,
     pub instructions: Vec<ToolboxEndpointLoggerInstruction>,
 }
 
