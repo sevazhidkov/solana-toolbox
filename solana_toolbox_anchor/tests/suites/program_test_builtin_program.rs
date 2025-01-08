@@ -5,6 +5,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_toolbox_anchor::toolbox_endpoint_program_test_builtin_program_anchor;
+use solana_toolbox_anchor::ToolboxAnchorEndpoint;
 use solana_toolbox_anchor::ToolboxEndpoint;
 
 #[tokio::test]

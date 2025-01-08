@@ -1,12 +1,13 @@
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+use solana_toolbox_anchor::ToolboxAnchorEndpoint;
 use solana_toolbox_anchor::ToolboxEndpoint;
 use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
 
 #[tokio::test]
 pub async fn program_test_logger_print() {
     // Initialize the endpoint
-    let mut endpoint = ToolboxEndpointAnchor::from(
+    let mut endpoint = ToolboxAnchorEndpoint::from(
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[]).await,
     );
     // Create a print logger
