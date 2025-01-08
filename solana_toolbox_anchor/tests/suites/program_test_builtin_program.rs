@@ -19,22 +19,20 @@ pub async fn program_test_builtin_programs() {
         Ok(())
     }
     // Initialize the endpoint
-    let mut toolbox_endpoint =
+    let mut endpoint = ToolboxAnchorEndpoint::from(
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[
             toolbox_endpoint_program_test_builtin_program_anchor!(
                 builtin_program_id.pubkey(),
                 builtin_program_entry
             ),
         ])
-        .await;
+        .await,
+    );
     // Prepare a payer
     let payer = Keypair::new();
-    toolbox_endpoint
-        .process_airdrop(&payer.pubkey(), 1_000_000_000)
-        .await
-        .unwrap();
+    endpoint.process_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
     // Check that the builtin program works
-    toolbox_endpoint
+    endpoint
         .process_instruction(
             Instruction {
                 program_id: builtin_program_id.pubkey(),

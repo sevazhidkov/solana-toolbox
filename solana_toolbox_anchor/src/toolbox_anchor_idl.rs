@@ -1,13 +1,13 @@
 /*
 pub async fn get_account_data_anchor_idl(
-    toolbox_endpoint: &mut ToolboxEndpoint,
+    endpoint: &mut ToolboxEndpoint,
     program_id: &Pubkey,
 ) -> Result<(), ToolboxAnchorError> {
     let base = Pubkey::find_program_address(&[], program_id).0;
     let address =
         Pubkey::create_with_seed(&base, "anchor:idl", program_id).unwrap();
 
-    let raw_account_data = toolbox_endpoint
+    let raw_account_data = endpoint
         .get_account_data(&address)
         .await
         .map_err(ToolboxAnchorError::ToolboxEndpoint)?;

@@ -28,7 +28,7 @@ pub async fn program_test_builtin_programs() {
         Ok(())
     }
     // Initialize the endpoint
-    let mut toolbox_endpoint =
+    let mut endpoint =
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[
             toolbox_endpoint_program_test_builtin_program!(
                 builtin1_program_id.pubkey(),
@@ -42,12 +42,9 @@ pub async fn program_test_builtin_programs() {
         .await;
     // Prepare a payer
     let payer = Keypair::new();
-    toolbox_endpoint
-        .process_airdrop(&payer.pubkey(), 1_000_000_000)
-        .await
-        .unwrap();
+    endpoint.process_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
     // Check that the builtin program #1 works
-    toolbox_endpoint
+    endpoint
         .process_instruction(
             Instruction {
                 program_id: builtin1_program_id.pubkey(),
@@ -59,7 +56,7 @@ pub async fn program_test_builtin_programs() {
         .await
         .unwrap();
     // Check that the builtin program #2 works
-    toolbox_endpoint
+    endpoint
         .process_instruction(
             Instruction {
                 program_id: builtin2_program_id.pubkey(),
