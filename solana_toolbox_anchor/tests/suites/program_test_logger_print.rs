@@ -34,5 +34,4 @@ pub async fn program_test_logger_print() {
             - 5_000, // Transaction fees
         endpoint.get_account_lamports(&payer.pubkey()).await.unwrap()
     );
-    assert!(false);
 }

@@ -4940,7 +4940,7 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_anchor"
-version = "0.1.22-solana-1.18.26-anchor-0.30.1"
+version = "0.1.23-solana-1.18.26-anchor-0.30.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -4951,9 +4951,9 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.1.22-solana-1.18.26"
+version = "0.1.23-solana-1.18.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4aeb67eca5d2a38d4f9951f4670c390d965d77073d8ff1276db6b06310709fc5"
+checksum = "a6947e82249afefa3cc18db236859230ea1e6dd46e5f2b9c248fa9232d648ae7"
 dependencies = [
  "async-trait",
  "bincode",
