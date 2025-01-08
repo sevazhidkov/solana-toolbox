@@ -18,7 +18,7 @@ solana-program-runtime = "=1.18.26"
 solana-sdk = "=1.18.26"
 
 spl-token = { version = "4.0", features = ["no-entrypoint"] }
-spl-associated-token-account = { version = "3.0.0", features = [
+spl-associated-token-account = { version = "2.0.0", features = [
     "no-entrypoint",
 ] }
 

@@ -5,6 +5,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::toolbox_endpoint_program_test_builtin_program;
+use solana_toolbox_endpoint::toolbox_endpoint_program_test_builtin_program_anchor;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
@@ -20,9 +21,9 @@ pub async fn program_test_builtin_programs() {
     }
     // Define dummy builtin program #2
     let builtin2_program_id = Keypair::new();
-    fn builtin2_program_entry(
+    fn builtin2_program_entry<'info>(
         _program_id: &Pubkey,
-        _accounts: &[AccountInfo],
+        _accounts: &'info [AccountInfo<'info>],
         _data: &[u8],
     ) -> Result<(), ProgramError> {
         Ok(())
@@ -34,7 +35,7 @@ pub async fn program_test_builtin_programs() {
                 builtin1_program_id.pubkey(),
                 builtin1_program_entry
             ),
-            toolbox_endpoint_program_test_builtin_program!(
+            toolbox_endpoint_program_test_builtin_program_anchor!(
                 builtin2_program_id.pubkey(),
                 builtin2_program_entry
             ),

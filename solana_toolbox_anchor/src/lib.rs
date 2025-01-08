@@ -6,6 +6,7 @@ mod toolbox_anchor_instruction;
 
 pub use solana_toolbox_endpoint::solana_program_test_processor;
 pub use solana_toolbox_endpoint::toolbox_endpoint_program_test_builtin_program;
+pub use solana_toolbox_endpoint::toolbox_endpoint_program_test_builtin_program_anchor;
 pub use solana_toolbox_endpoint::ToolboxEndpoint;
 pub use solana_toolbox_endpoint::ToolboxEndpointError;
 pub use solana_toolbox_endpoint::ToolboxEndpointLogger;
@@ -14,5 +15,6 @@ pub use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
 pub use solana_toolbox_endpoint::ToolboxEndpointLoggerTransaction;
 pub use solana_toolbox_endpoint::ToolboxEndpointProgramTestBuiltinProgram;
 pub use solana_toolbox_endpoint::ToolboxEndpointProgramTestPreloadedProgram;
+
 pub use toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
 pub use toolbox_anchor_error::ToolboxAnchorError;

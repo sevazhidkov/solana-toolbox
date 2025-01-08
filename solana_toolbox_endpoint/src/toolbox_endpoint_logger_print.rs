@@ -117,7 +117,8 @@ impl ToolboxEndpointLoggerPrint {
                 let data_index = data_start + data_offset;
                 if data_index >= data_len {
                     data_bytes.push("  ".to_string());
-                } else {
+                }
+                else {
                     data_bytes.push(format!(
                         "{:02X}",
                         data[data_start + data_offset]
