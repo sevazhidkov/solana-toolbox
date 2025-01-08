@@ -32,10 +32,12 @@ pub async fn program_test_builtin_programs() {
     let mut endpoint =
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[
             toolbox_endpoint_program_test_builtin_program!(
+                "builtin1",
                 builtin1_program_id.pubkey(),
                 builtin1_program_entry
             ),
             toolbox_endpoint_program_test_builtin_program_anchor!(
+                "builtin2",
                 builtin2_program_id.pubkey(),
                 builtin2_program_entry
             ),

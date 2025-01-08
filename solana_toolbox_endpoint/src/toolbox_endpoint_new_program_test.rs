@@ -14,10 +14,10 @@ pub struct ToolboxEndpointProgramTestBuiltinProgram {
 
 #[macro_export]
 macro_rules! toolbox_endpoint_program_test_builtin_program {
-    ($program_id:expr, $program_entry:expr) => {
+    ($program_name:expr, $program_id:expr, $program_entry:expr) => {
         $crate::ToolboxEndpointProgramTestBuiltinProgram {
             id: $program_id,
-            name: "",
+            name: $program_name,
             processor: $crate::solana_program_test_processor!($program_entry),
         }
     };
@@ -25,10 +25,10 @@ macro_rules! toolbox_endpoint_program_test_builtin_program {
 
 #[macro_export]
 macro_rules! toolbox_endpoint_program_test_builtin_program_anchor {
-    ($program_id:expr, $program_entry:expr) => {
+    ($program_name:expr, $program_id:expr, $program_entry:expr) => {
         $crate::ToolboxEndpointProgramTestBuiltinProgram {
             id: $program_id,
-            name: "",
+            name: $program_name,
             processor: $crate::solana_program_test_processor!(
                 |program_id, accounts, data| {
                     let accounts = Box::leak(Box::new(accounts.to_vec()));

@@ -28,7 +28,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         println!("----");
         for signer_index in 0..transaction.signers.len() {
             println!(
-                "transaction.signers: #{:?} {:?}",
+                "transaction.signers: #{:?}: {:?}",
                 signer_index + 1,
                 transaction.signers[signer_index]
             );
@@ -38,7 +38,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
             println!("> instruction.program_id: {:?}", instruction.program_id);
             for account_index in 0..instruction.accounts.len() {
                 println!(
-                    "> instruction.accounts: #{:03?} {:?}",
+                    "> instruction.accounts: #{:03?}: {:?}",
                     account_index + 1,
                     instruction.accounts[account_index]
                 );
@@ -95,8 +95,9 @@ impl ToolboxEndpointLoggerPrint {
         let backtrace_formatted = std::format!("{}", backtrace_data);
         let backtrace_lines = backtrace_formatted.lines();
         for backtrace_line in backtrace_lines {
-            if backtrace_line.contains("at ./") {
-                println!("{}: {}", prefix, backtrace_line.trim());
+            let backtrace_line_trimmed = backtrace_line.trim();
+            if backtrace_line_trimmed.starts_with("at ./") {
+                println!("{}: &{}", prefix, backtrace_line_trimmed);
             }
         }
     }
@@ -108,17 +109,17 @@ impl ToolboxEndpointLoggerPrint {
     ) {
         let data_len = data.len();
         println!("{}.len: {:?}", prefix, data_len);
-        let data_blob = 16;
-        let data_lines = (data_len + data_blob - 1) / data_blob;
+        let data_packing = 16;
+        let data_lines = (data_len + data_packing - 1) / data_packing;
         for data_line in 0..data_lines {
-            let data_start = data_line * data_blob;
+            let data_start = data_line * data_packing;
             let mut data_bytes = vec![];
-            for data_offset in 0..data_blob {
+            for data_offset in 0..data_packing {
                 let data_index = data_start + data_offset;
-                if data_index >= data_len {
-                    data_bytes.push("  ".to_string());
-                }
-                else {
+                if data_index < data_len {
+                    if data_offset == 8 {
+                        data_bytes.push("".to_string());
+                    }
                     data_bytes.push(format!(
                         "{:02X}",
                         data[data_start + data_offset]
@@ -126,7 +127,7 @@ impl ToolboxEndpointLoggerPrint {
                 }
             }
             println!(
-                "{}: #{:04} | {}",
+                "{}: #{:08}: {}",
                 prefix,
                 data_start,
                 data_bytes.join(" "),
