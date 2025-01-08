@@ -23,19 +23,21 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         println!("-------- PROCESSED TRANSACTION --------");
         println!("transaction.payer: {:?}", transaction.payer);
         for instruction in &transaction.instructions {
-            println!(" > instruction");
-            println!(" > instruction.program_id: {:?}", instruction.program_id);
+            println!("> instruction");
+            println!("> instruction.program_id: {:?}", instruction.program_id);
             let mut index = 1;
             for account in &instruction.accounts {
-                println!(" > instruction.account: #{:?} {:?}", index, account);
+                println!("> instruction.account: #{:03?} {:?}", index, account);
                 index += 1;
             }
-            println!(" > instruction.data: {:?}", instruction.data);
+            println!("> instruction.data: {:?}", instruction.data);
         }
         match result {
             Ok(signature) => {
                 println!("transaction.result: OK");
-                println!("transaction.signature: {:?}", signature)
+                if *signature != Signature::default() {
+                    println!("transaction.signature: {:?}", signature)
+                }
             },
             Err(error) => {
                 println!("transaction.result: FAIL");
@@ -52,12 +54,12 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         account: &Option<Account>,
     ) {
         println!("-------- READ ACCOUNT --------");
-        println!("address: {:?}", address);
+        println!("address.key: {:?}", address);
         let account = account.clone().unwrap_or_default();
-        println!(" > account.lamports: {:?}", account.lamports);
-        println!(" > account.owner: {:?}", account.owner);
-        println!(" > account.data: {:?}", account.data);
-        println!(" > account.executable: {:?}", account.executable);
+        println!("> account.lamports: {:?}", account.lamports);
+        println!("> account.owner: {:?}", account.owner);
+        println!("> account.executable: {:?}", account.executable);
+        println!("> account.data: {:?}", account.data);
         self.print_backtrace();
         println!("");
     }
