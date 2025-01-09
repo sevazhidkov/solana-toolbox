@@ -5471,11 +5471,12 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.1.25-solana-2.1.4"
+version = "0.1.26-solana-2.1.4"
 dependencies = [
  "async-trait",
  "bincode",
  "borsh 1.5.3",
+ "bytemuck",
  "serde",
  "solana-client",
  "solana-program-runtime",

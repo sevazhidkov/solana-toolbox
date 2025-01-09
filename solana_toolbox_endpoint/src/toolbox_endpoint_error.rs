@@ -5,5 +5,6 @@ pub enum ToolboxEndpointError {
     Program(solana_sdk::program_error::ProgramError),
     Bincode(bincode::Error),
     Io(std::io::Error),
+    PodCastError(bytemuck::PodCastError),
     Custom(&'static str),
 }

@@ -90,4 +90,38 @@ impl ToolboxEndpoint {
             .transpose()
             .map_err(ToolboxEndpointError::Io)
     }
+
+    pub async fn get_account_data_bytemuck_mapped<
+        T: bytemuck::AnyBitPattern,
+    >(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Option<T>, ToolboxEndpointError> {
+        self.get_account(address)
+            .await?
+            .map(|account| {
+                bytemuck::try_from_bytes::<T>(&account.data).cloned()
+            })
+            .transpose()
+            .map_err(ToolboxEndpointError::PodCastError)
+    }
+
+    pub async fn get_account_data_bytemuck_mapped_at<
+        T: bytemuck::AnyBitPattern,
+    >(
+        &mut self,
+        address: &Pubkey,
+        offset: usize,
+    ) -> Result<Option<T>, ToolboxEndpointError> {
+        self.get_account(address)
+            .await?
+            .map(|account| {
+                bytemuck::try_from_bytes::<T>(
+                    &account.data[offset..(offset + size_of::<T>())],
+                )
+                .cloned()
+            })
+            .transpose()
+            .map_err(ToolboxEndpointError::PodCastError)
+    }
 }
