@@ -2,9 +2,9 @@ use solana_sdk::account::Account;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
-use crate::ToolboxEndpointError;
-use crate::ToolboxEndpointLogger;
 
 pub struct ToolboxEndpointLoggerPrint {}
 
@@ -14,8 +14,9 @@ impl ToolboxEndpointLoggerPrint {
     }
 }
 
+#[async_trait::async_trait]
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
-    fn on_transaction(
+    async fn on_transaction(
         &self,
         transaction: &ToolboxEndpointLoggerTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
@@ -66,7 +67,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         println!("");
     }
 
-    fn on_account(
+    async fn on_account(
         &self,
         address: &Pubkey,
         account: &Option<Account>,
@@ -108,7 +109,7 @@ impl ToolboxEndpointLoggerPrint {
         data: &[u8],
     ) {
         let data_len = data.len();
-        println!("{}.len: {:?}", prefix, data_len);
+        println!("{}.len: {:?} bytes", prefix, data_len);
         let data_packing = 16;
         let data_lines = (data_len + data_packing - 1) / data_packing;
         for data_line in 0..data_lines {

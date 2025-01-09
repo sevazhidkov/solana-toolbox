@@ -2,7 +2,7 @@ use solana_sdk::account::Account;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 
-use crate::ToolboxEndpointError;
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerTransaction {
@@ -18,14 +18,15 @@ pub struct ToolboxEndpointLoggerInstruction {
     pub data: Vec<u8>,
 }
 
+#[async_trait::async_trait]
 pub trait ToolboxEndpointLogger {
-    fn on_transaction(
+    async fn on_transaction(
         &self,
         transaction: &ToolboxEndpointLoggerTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     );
 
-    fn on_account(
+    async fn on_account(
         &self,
         address: &Pubkey,
         account: &Option<Account>,

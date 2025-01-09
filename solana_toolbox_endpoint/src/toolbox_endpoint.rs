@@ -4,11 +4,11 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
+use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerInstruction;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
-use crate::ToolboxEndpointError;
-use crate::ToolboxEndpointLoggerInstruction;
 
 pub struct ToolboxEndpoint {
     inner: Box<dyn ToolboxEndpointInner>,
@@ -42,7 +42,7 @@ impl ToolboxEndpoint {
         let accounts = self.inner.get_accounts(addresses).await?;
         for logger in &self.loggers {
             for index in 0..accounts.len() {
-                logger.on_account(&addresses[index], &accounts[index]);
+                logger.on_account(&addresses[index], &accounts[index]).await;
             }
         }
         Ok(accounts)
@@ -74,14 +74,16 @@ impl ToolboxEndpoint {
         }
         let result = self.inner.process_transaction(transaction).await;
         for logger in &self.loggers {
-            logger.on_transaction(
-                &ToolboxEndpointLoggerTransaction {
-                    payer,
-                    signers: signers.clone(),
-                    instructions: instructions.clone(),
-                },
-                &result,
-            );
+            logger
+                .on_transaction(
+                    &ToolboxEndpointLoggerTransaction {
+                        payer,
+                        signers: signers.clone(),
+                        instructions: instructions.clone(),
+                    },
+                    &result,
+                )
+                .await;
         }
         result
     }
