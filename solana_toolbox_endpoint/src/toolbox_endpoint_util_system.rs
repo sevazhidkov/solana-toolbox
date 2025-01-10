@@ -2,6 +2,10 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
+use solana_sdk::system_instruction::allocate;
+use solana_sdk::system_instruction::assign;
+use solana_sdk::system_instruction::create_account;
+use solana_sdk::system_instruction::transfer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
@@ -14,11 +18,7 @@ impl ToolboxEndpoint {
         destination: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let instruction = solana_sdk::system_instruction::transfer(
-            &source.pubkey(),
-            destination,
-            lamports,
-        );
+        let instruction = transfer(&source.pubkey(), destination, lamports);
         self.process_instruction_with_signers(instruction, payer, &[source])
             .await
     }
@@ -27,10 +27,13 @@ impl ToolboxEndpoint {
         &mut self,
         payer: &Keypair,
         account: &Keypair,
-        space: u64,
+        space: usize,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let instruction =
-            solana_sdk::system_instruction::allocate(&account.pubkey(), space);
+        let instruction = allocate(
+            &account.pubkey(),
+            u64::try_from(space)
+                .map_err(ToolboxEndpointError::TryFromIntError)?,
+        );
         self.process_instruction_with_signers(instruction, payer, &[account])
             .await
     }
@@ -41,8 +44,7 @@ impl ToolboxEndpoint {
         account: &Keypair,
         owner: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let instruction =
-            solana_sdk::system_instruction::assign(&account.pubkey(), owner);
+        let instruction = assign(&account.pubkey(), owner);
         self.process_instruction_with_signers(instruction, payer, &[account])
             .await
     }
@@ -55,11 +57,12 @@ impl ToolboxEndpoint {
         space: usize,
         owner: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let instruction = solana_sdk::system_instruction::create_account(
+        let instruction = create_account(
             &payer.pubkey(),
             &account.pubkey(),
             lamports,
-            space as u64,
+            u64::try_from(space)
+                .map_err(ToolboxEndpointError::TryFromIntError)?,
             owner,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])
@@ -74,11 +77,12 @@ impl ToolboxEndpoint {
         owner: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
         let lamports = self.get_sysvar_rent().await?.minimum_balance(space);
-        let instruction = solana_sdk::system_instruction::create_account(
+        let instruction = create_account(
             &payer.pubkey(),
             &account.pubkey(),
             lamports,
-            space as u64,
+            u64::try_from(space)
+                .map_err(ToolboxEndpointError::TryFromIntError)?,
             owner,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])

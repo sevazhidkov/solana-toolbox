@@ -21,9 +21,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         transaction: &ToolboxEndpointLoggerTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
-        println!(
-            "---------------------------- TRANSACTION PROCESSED -----------------------------"
-        );
+        println!("---------------------------- TRANSACTION PROCESSED -----------------------------");
         println!("----");
         println!("transaction.payer: {:?}", transaction.payer);
         println!("----");
@@ -88,21 +86,6 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
 }
 
 impl ToolboxEndpointLoggerPrint {
-    fn print_backtrace(
-        &self,
-        prefix: String,
-    ) {
-        let backtrace_data = std::backtrace::Backtrace::force_capture();
-        let backtrace_formatted = std::format!("{}", backtrace_data);
-        let backtrace_lines = backtrace_formatted.lines();
-        for backtrace_line in backtrace_lines {
-            let backtrace_line_trimmed = backtrace_line.trim();
-            if backtrace_line_trimmed.starts_with("at ./") {
-                println!("{}: &{}", prefix, backtrace_line_trimmed);
-            }
-        }
-    }
-
     fn print_bytes(
         &self,
         prefix: String,
@@ -133,6 +116,21 @@ impl ToolboxEndpointLoggerPrint {
                 data_start,
                 data_bytes.join(" "),
             );
+        }
+    }
+
+    fn print_backtrace(
+        &self,
+        prefix: String,
+    ) {
+        let backtrace_data = std::backtrace::Backtrace::force_capture();
+        let backtrace_formatted = std::format!("{}", backtrace_data);
+        let backtrace_lines = backtrace_formatted.lines();
+        for backtrace_line in backtrace_lines {
+            let backtrace_line_trimmed = backtrace_line.trim();
+            if backtrace_line_trimmed.starts_with("at ./") {
+                println!("{}: &{}", prefix, backtrace_line_trimmed);
+            }
         }
     }
 }

@@ -64,11 +64,11 @@ impl ToolboxEndpoint {
         compute_budget_unit_limit_counter: Option<u32>,
         compute_budget_unit_price_micro_lamports: Option<u64>,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let mut instructions = instructions.to_vec();
+        let mut generated_instructions = vec![];
         if let Some(compute_budget_unit_limit_counter) =
             compute_budget_unit_limit_counter
         {
-            instructions.push(
+            generated_instructions.push(
                 ComputeBudgetInstruction::set_compute_unit_limit(
                     compute_budget_unit_limit_counter,
                 ),
@@ -77,14 +77,17 @@ impl ToolboxEndpoint {
         if let Some(compute_budget_unit_price_micro_lamports) =
             compute_budget_unit_price_micro_lamports
         {
-            instructions.push(
+            generated_instructions.push(
                 ComputeBudgetInstruction::set_compute_unit_price(
                     compute_budget_unit_price_micro_lamports,
                 ),
             );
         }
-        let mut transaction =
-            Transaction::new_with_payer(&instructions, Some(&payer.pubkey()));
+        generated_instructions.extend_from_slice(instructions);
+        let mut transaction = Transaction::new_with_payer(
+            &generated_instructions,
+            Some(&payer.pubkey()),
+        );
         let mut keypairs = signers.to_owned();
         keypairs.push(payer);
         transaction.partial_sign(&keypairs, self.get_latest_blockhash().await?);
