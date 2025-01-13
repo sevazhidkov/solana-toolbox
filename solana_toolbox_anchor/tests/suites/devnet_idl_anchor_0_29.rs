@@ -17,47 +17,46 @@ pub async fn devnet_idl_anchor_0_30() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain
-    let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
+    let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
     let program_idl =
         endpoint.get_program_id_anchor_idl(&program_id).await.unwrap().unwrap();
-    // Find an account we can read from the endpoint
-    let campaign_index = 0u64;
-    let campaign_pda = Pubkey::find_program_address(
-        &[b"Campaign", &campaign_index.to_le_bytes()],
-        &program_id,
-    );
-    let campaign_address = campaign_pda.0;
-    let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
-    let (campaign_data_length, campaign_data_json) = endpoint
+    let realm_pda = Pubkey::find_program_address(&[b"realm"], &program_id);
+    let realm_address = realm_pda.0;
+    let realm_bump = realm_pda.1;
+    let (realm_data_length, realm_data_json) = endpoint
         .get_account_data_anchor_idl_type_deserialized(
             &program_idl,
-            &campaign_address,
-            "Campaign",
+            &realm_address,
+            "Realm",
         )
         .await
         .unwrap()
         .unwrap();
     // Check that the account was parsed properly and values matches
-    assert_eq!(675, campaign_data_length);
+    assert_eq!(795, realm_data_length);
     assert_eq!(
-        u64::from(campaign_bump),
-        campaign_data_json.get("bump").unwrap().as_u64().unwrap()
+        u64::from(realm_bump),
+        realm_data_json.get("bump").unwrap().as_u64().unwrap()
+    );
+    // Related "USDC mint" account checks
+    let usdc_mint_address =
+        pubkey!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
+    assert_eq!(
+        usdc_mint_address.to_string(),
+        realm_data_json.get("usdcMint").unwrap().as_str().unwrap(),
+    );
+    // Related "UCT mint" account checks
+    let uct_mint_pda = Pubkey::find_program_address(
+        &[b"uct_mint", &realm_address.to_bytes()],
+        &program_id,
     );
     assert_eq!(
-        campaign_index,
-        campaign_data_json.get("index").unwrap().as_u64().unwrap()
+        u64::from(uct_mint_pda.1),
+        realm_data_json.get("uctMintBump").unwrap().as_u64().unwrap(),
     );
     assert_eq!(
-        "Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9",
-        campaign_data_json.get("authority").unwrap().as_str().unwrap()
-    );
-    assert_eq!(
-        "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
-        campaign_data_json.get("collateral_mint").unwrap().as_str().unwrap()
-    );
-    assert_eq!(
-        "3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9",
-        campaign_data_json.get("redeemable_mint").unwrap().as_str().unwrap()
+        uct_mint_pda.0.to_string(),
+        realm_data_json.get("uctMint").unwrap().as_str().unwrap(),
     );
 }

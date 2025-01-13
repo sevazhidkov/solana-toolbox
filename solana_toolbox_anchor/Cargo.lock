@@ -4946,6 +4946,7 @@ dependencies = [
  "bytemuck",
  "inflate",
  "serde_json",
+ "sha2 0.10.8",
  "solana-sdk",
  "solana_toolbox_endpoint",
  "tokio",
