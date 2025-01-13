@@ -1,0 +1,44 @@
+use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::pubkey;
+use solana_toolbox_anchor::ToolboxAnchorEndpoint;
+use solana_toolbox_anchor::ToolboxEndpoint;
+use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
+
+#[tokio::test]
+pub async fn mainnet_beta_idl_anchor_0_29() {
+    // Create the mainnet-beta endpoint
+    let mut endpoint = ToolboxAnchorEndpoint::from(
+        ToolboxEndpoint::new_rpc_with_url_and_commitment(
+            "https://api.mainnet-beta.solana.com".to_string(),
+            CommitmentConfig::confirmed(),
+        ),
+    );
+    // Create a print logger
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
+    // Fetch the idl of an anchor program on chain
+    let program_id = pubkey!("UXDReVg1YMckS2eVFh7TyhWDuDPaqF3wW8fX2NKeCGz");
+    let idl =
+        endpoint.get_program_id_anchor_idl(&program_id).await.unwrap().unwrap();
+    // Check the accounts in the IDL
+    let mut account_names = vec![];
+    for account_value in idl.json.get("accounts").unwrap().as_array().unwrap() {
+        account_names
+            .push(account_value.get("name").unwrap().as_str().unwrap());
+    }
+    assert_eq!(2, account_names.len());
+    assert_eq!("ClaimAccount", account_names[0]);
+    assert_eq!("Realm", account_names[1]);
+    // Check the instructions in the IDL
+    let mut instruction_names = vec![];
+    for instruction_value in
+        idl.json.get("instructions").unwrap().as_array().unwrap()
+    {
+        instruction_names
+            .push(instruction_value.get("name").unwrap().as_str().unwrap());
+    }
+    assert_eq!(9, instruction_names.len());
+    assert_eq!("initializeRealm", instruction_names[0]);
+    assert_eq!("convertUxpToUct", instruction_names[1]);
+    assert_eq!("redeemPhaseOne", instruction_names[2]);
+    assert_eq!("redeemPhaseTwo", instruction_names[3]);
+}

@@ -50,7 +50,7 @@ impl ToolboxEndpointInner for RpcClient {
             let duration = start.elapsed();
             if duration > Duration::from_secs(5) {
                 return Err(ToolboxEndpointError::Custom(
-                    "Timeout on awaiting transaction confirmation",
+                    "Timeout on awaiting transaction confirmation".into(),
                 ));
             }
         }
@@ -75,7 +75,7 @@ impl ToolboxEndpointInner for RpcClient {
         _slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
         Err(ToolboxEndpointError::Custom(
-            "Clock forwarding not supported on RPCs",
+            "Clock forwarding not supported on RPCs".into(),
         ))
     }
 }

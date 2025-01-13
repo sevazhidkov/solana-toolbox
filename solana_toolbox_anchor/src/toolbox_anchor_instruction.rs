@@ -24,8 +24,7 @@ impl ToolboxAnchorEndpoint {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        let signature = self.process_instruction(instruction, payer).await?;
-        Ok(signature)
+        Ok(self.process_instruction(instruction, payer).await?)
     }
 
     pub async fn process_anchor_instruction_with_signers<
@@ -44,9 +43,8 @@ impl ToolboxAnchorEndpoint {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        let signature = self
+        Ok(self
             .process_instruction_with_signers(instruction, payer, signers)
-            .await?;
-        Ok(signature)
+            .await?)
     }
 }

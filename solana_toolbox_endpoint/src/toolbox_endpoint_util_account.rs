@@ -91,7 +91,7 @@ impl ToolboxEndpoint {
             .map_err(ToolboxEndpointError::Io)
     }
 
-    pub async fn get_account_data_bytemuck_mapped<
+    pub async fn get_account_data_bytemuck_casted<
         T: bytemuck::AnyBitPattern,
     >(
         &mut self,
@@ -106,7 +106,7 @@ impl ToolboxEndpoint {
             .map_err(ToolboxEndpointError::PodCastError)
     }
 
-    pub async fn get_account_data_bytemuck_mapped_at<
+    pub async fn get_account_data_bytemuck_casted_at<
         T: bytemuck::AnyBitPattern,
     >(
         &mut self,

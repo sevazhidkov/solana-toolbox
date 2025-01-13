@@ -7,5 +7,5 @@ pub enum ToolboxEndpointError {
     Io(std::io::Error),
     PodCastError(bytemuck::PodCastError),
     TryFromIntError(std::num::TryFromIntError),
-    Custom(&'static str),
+    Custom(String),
 }

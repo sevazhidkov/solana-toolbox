@@ -21,6 +21,8 @@ pub use toolbox_endpoint_logger::ToolboxEndpointLogger;
 pub use toolbox_endpoint_logger::ToolboxEndpointLoggerInstruction;
 pub use toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
 pub use toolbox_endpoint_logger_buffer::ToolboxEndpointLoggerBuffer;
+pub use toolbox_endpoint_logger_buffer::ToolboxEndpointLoggerBufferAccount;
+pub use toolbox_endpoint_logger_buffer::ToolboxEndpointLoggerBufferTransaction;
 pub use toolbox_endpoint_logger_print::ToolboxEndpointLoggerPrint;
 pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestBuiltinProgram;
 pub use toolbox_endpoint_new_program_test::ToolboxEndpointProgramTestPreloadedProgram;
