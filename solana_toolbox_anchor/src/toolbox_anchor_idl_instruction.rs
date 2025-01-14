@@ -30,7 +30,7 @@ impl ToolboxAnchorEndpoint {
             .await;
         let data =
             self.generate_anchor_idl_instruction_data(idl, instruction_name);
-        eprintln!("accounts:{:#X?}", accounts); // TODO - cleanup prints
+        eprintln!("accounts:{:#X?}", accounts); // TODO - cleanups
         eprintln!("data:{:#?}", data);
         Ok(Instruction {
             program_id: idl.program_id,
@@ -59,11 +59,9 @@ impl ToolboxAnchorEndpoint {
                 instruction_name
             ))
         })?;
-
         for idl_arg in idl_args {
             println!("idl_arg:{:#?}", idl_arg);
         }
-
         // TODO - helper for generating an instruction's data
         Ok(data)
     }

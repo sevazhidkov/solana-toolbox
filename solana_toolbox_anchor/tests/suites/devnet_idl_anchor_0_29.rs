@@ -6,7 +6,7 @@ use solana_toolbox_anchor::ToolboxEndpoint;
 use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
 
 #[tokio::test]
-pub async fn devnet_idl_anchor_0_30() {
+pub async fn devnet_idl_anchor_0_29() {
     // Create the devnet endpoint
     let mut endpoint = ToolboxAnchorEndpoint::from(
         ToolboxEndpoint::new_rpc_with_url_and_commitment(

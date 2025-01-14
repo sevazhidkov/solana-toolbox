@@ -70,17 +70,20 @@ pub async fn devnet_idl_anchor_0_30() {
         Keypair::from_seed(b"Hello world, this is a dummy payer for devnet...")
             .unwrap();
     let user = Keypair::new();
-    let mut dada = HashMap::new();
-    dada.insert("payer", payer.pubkey());
-    dada.insert("user", user.pubkey());
-    dada.insert("campaign", campaign_address);
-    let lala = endpoint
-        .generate_anchor_idl_instruction(&program_idl, "pledge_create", &dada)
-        .await;
-    eprintln!("result:{:?}", lala);
-    endpoint
-        .process_instruction_with_signers(lala.unwrap(), &payer, &[&user])
+    let mut known_accounts = HashMap::new();
+    known_accounts.insert("payer", payer.pubkey());
+    known_accounts.insert("user", user.pubkey());
+    known_accounts.insert("campaign", campaign_address);
+    let instruction = endpoint
+        .generate_anchor_idl_instruction(
+            &program_idl,
+            "pledge_create",
+            &known_accounts,
+        )
         .await
         .unwrap();
-    panic!(">>>>>");
+    endpoint
+        .process_instruction_with_signers(instruction, &payer, &[&user])
+        .await
+        .unwrap();
 }

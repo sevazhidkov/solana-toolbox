@@ -17,6 +17,7 @@ pub struct ToolboxAnchorIdl {
     pub authority: Pubkey,
     pub accounts: Map<String, Value>,
     pub types: Map<String, Value>,
+    pub errors: Map<String, Value>,
     pub instructions_accounts: Map<String, Value>,
     pub instructions_args: Map<String, Value>,
 }
@@ -79,16 +80,6 @@ impl ToolboxAnchorEndpoint {
         Ok(Some(ToolboxAnchorIdl {
             program_id: *program_id,
             authority: data_header.authority,
-            instructions_accounts: idl_collection_content_mapped_by_name(
-                data_content_object,
-                "instructions",
-                "accounts",
-            )?,
-            instructions_args: idl_collection_content_mapped_by_name(
-                data_content_object,
-                "instructions",
-                "args",
-            )?,
             accounts: idl_collection_content_mapped_by_name(
                 data_content_object,
                 "accounts",
@@ -98,6 +89,21 @@ impl ToolboxAnchorEndpoint {
                 data_content_object,
                 "types",
                 "type",
+            )?,
+            errors: idl_collection_content_mapped_by_name(
+                data_content_object,
+                "errors",
+                "code",
+            )?,
+            instructions_accounts: idl_collection_content_mapped_by_name(
+                data_content_object,
+                "instructions",
+                "accounts",
+            )?,
+            instructions_args: idl_collection_content_mapped_by_name(
+                data_content_object,
+                "instructions",
+                "args",
             )?,
         }))
     }
