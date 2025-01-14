@@ -12,21 +12,21 @@ use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerBufferTransaction {
-    pub index: u32,
+    pub sequencing: u32,
     pub transaction: ToolboxEndpointLoggerTransaction,
     pub signature: Option<Signature>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerBufferAccount {
-    pub index: u32,
+    pub sequencing: u32,
     pub address: Pubkey,
     pub account: Option<Account>,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct ToolboxEndpointLoggerBuffer {
-    index: Arc<AtomicU32>,
+    sequencing: Arc<AtomicU32>,
     pub transactions: Arc<RwLock<Vec<ToolboxEndpointLoggerBufferTransaction>>>,
     pub accounts: Arc<RwLock<Vec<ToolboxEndpointLoggerBufferAccount>>>,
 }
@@ -44,15 +44,15 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerBuffer {
         transaction: &ToolboxEndpointLoggerTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
-        let index =
-            self.index.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let sequencing =
+            self.sequencing.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let signature = match result {
             Ok(signature) => Some(*signature),
             Err(_) => None,
         };
         self.transactions.write().unwrap().push(
             ToolboxEndpointLoggerBufferTransaction {
-                index,
+                sequencing,
                 transaction: transaction.clone(),
                 signature,
             },
@@ -64,11 +64,11 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerBuffer {
         address: &Pubkey,
         account: &Option<Account>,
     ) {
-        let index =
-            self.index.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let sequencing =
+            self.sequencing.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         self.accounts.write().unwrap().push(
             ToolboxEndpointLoggerBufferAccount {
-                index,
+                sequencing,
                 address: *address,
                 account: account.clone(),
             },

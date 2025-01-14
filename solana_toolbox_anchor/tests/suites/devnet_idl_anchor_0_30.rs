@@ -1,6 +1,11 @@
+use std::collections::HashMap;
+
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Keypair;
+use solana_sdk::signer::SeedDerivable;
+use solana_sdk::signer::Signer;
 use solana_toolbox_anchor::ToolboxAnchorEndpoint;
 use solana_toolbox_anchor::ToolboxEndpoint;
 use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
@@ -30,7 +35,7 @@ pub async fn devnet_idl_anchor_0_30() {
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
     let (campaign_data_length, campaign_data_json) = endpoint
-        .get_account_data_anchor_idl_type_deserialized(
+        .get_account_data_anchor_idl_account_deserialized(
             &program_idl,
             &campaign_address,
             "Campaign",
@@ -60,4 +65,22 @@ pub async fn devnet_idl_anchor_0_30() {
         "3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9",
         campaign_data_json.get("redeemable_mint").unwrap().as_str().unwrap()
     );
+    // Try to generate a custom instruction
+    let payer =
+        Keypair::from_seed(b"Hello world, this is a dummy payer for devnet...")
+            .unwrap();
+    let user = Keypair::new();
+    let mut dada = HashMap::new();
+    dada.insert("payer", payer.pubkey());
+    dada.insert("user", user.pubkey());
+    dada.insert("campaign", campaign_address);
+    let lala = endpoint
+        .generate_anchor_idl_instruction(&program_idl, "pledge_create", &dada)
+        .await;
+    eprintln!("result:{:?}", lala);
+    endpoint
+        .process_instruction_with_signers(lala.unwrap(), &payer, &[&user])
+        .await
+        .unwrap();
+    panic!(">>>>>");
 }

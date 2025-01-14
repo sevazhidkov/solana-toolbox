@@ -25,7 +25,7 @@ pub async fn devnet_idl_anchor_0_30() {
     let realm_address = realm_pda.0;
     let realm_bump = realm_pda.1;
     let (realm_data_length, realm_data_json) = endpoint
-        .get_account_data_anchor_idl_type_deserialized(
+        .get_account_data_anchor_idl_account_deserialized(
             &program_idl,
             &realm_address,
             "Realm",

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_toolbox_anchor::ToolboxAnchorEndpoint;
@@ -20,25 +22,21 @@ pub async fn mainnet_beta_idl_anchor_0_29() {
     let idl =
         endpoint.get_program_id_anchor_idl(&program_id).await.unwrap().unwrap();
     // Check the accounts in the IDL
-    let mut account_names = vec![];
-    for account_value in idl.json.get("accounts").unwrap().as_array().unwrap() {
-        account_names
-            .push(account_value.get("name").unwrap().as_str().unwrap());
+    let mut account_names = HashSet::new();
+    for account_item in idl.accounts.iter() {
+        account_names.insert(account_item.0.to_owned());
     }
     assert_eq!(2, account_names.len());
-    assert_eq!("ClaimAccount", account_names[0]);
-    assert_eq!("Realm", account_names[1]);
+    assert!(account_names.contains("ClaimAccount"));
+    assert!(account_names.contains("Realm"));
     // Check the instructions in the IDL
-    let mut instruction_names = vec![];
-    for instruction_value in
-        idl.json.get("instructions").unwrap().as_array().unwrap()
-    {
-        instruction_names
-            .push(instruction_value.get("name").unwrap().as_str().unwrap());
+    let mut instruction_names = HashSet::new();
+    for instruction_item in idl.instructions_accounts {
+        instruction_names.insert(instruction_item.0.to_owned());
     }
     assert_eq!(9, instruction_names.len());
-    assert_eq!("initializeRealm", instruction_names[0]);
-    assert_eq!("convertUxpToUct", instruction_names[1]);
-    assert_eq!("redeemPhaseOne", instruction_names[2]);
-    assert_eq!("redeemPhaseTwo", instruction_names[3]);
+    assert!(instruction_names.contains("initializeRealm"));
+    assert!(instruction_names.contains("convertUxpToUct"));
+    assert!(instruction_names.contains("redeemPhaseOne"));
+    assert!(instruction_names.contains("redeemPhaseTwo"));
 }

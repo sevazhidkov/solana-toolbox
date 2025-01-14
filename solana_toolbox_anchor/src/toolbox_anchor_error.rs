@@ -4,6 +4,7 @@ use solana_toolbox_endpoint::ToolboxEndpointError;
 pub enum ToolboxAnchorError {
     ToolboxEndpoint(ToolboxEndpointError),
     Pubkey(solana_sdk::pubkey::PubkeyError),
+    ParsePubkey(solana_sdk::pubkey::ParsePubkeyError),
     Anchor(anchor_lang::error::Error),
     TryFromInt(std::num::TryFromIntError),
     TryFromSlice(std::array::TryFromSliceError),

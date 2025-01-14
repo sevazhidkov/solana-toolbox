@@ -68,27 +68,27 @@ pub async fn program_test_loggers() {
     assert_eq!(3, accounts.len());
     // First the simple transfer IX happened (system program)
     let tx0 = &transactions[0];
-    assert_eq!(0, tx0.index);
+    assert_eq!(0, tx0.sequencing);
     assert_eq!(1, tx0.transaction.signers.len());
     assert_eq!(1, tx0.transaction.instructions.len());
     assert_eq!(system_program::ID, tx0.transaction.instructions[0].program_id);
     // Then we fetched the payers lamports
     let acc0 = &accounts[0];
-    assert_eq!(1, acc0.index);
+    assert_eq!(1, acc0.sequencing);
     assert_eq!(payer.pubkey(), acc0.address);
     // Then fetched the rent as part of the mint create IX generation
     let acc1 = &accounts[1];
-    assert_eq!(2, acc1.index);
+    assert_eq!(2, acc1.sequencing);
     assert_eq!(rent::ID, acc1.address);
     // Then the create+init of the mint happened (2 IXs, 2 signers)
     let tx1 = &transactions[1];
-    assert_eq!(3, tx1.index);
+    assert_eq!(3, tx1.sequencing);
     assert_eq!(2, tx1.transaction.signers.len());
     assert_eq!(2, tx1.transaction.instructions.len());
     assert_eq!(system_program::ID, tx1.transaction.instructions[0].program_id);
     assert_eq!(spl_token::ID, tx1.transaction.instructions[1].program_id);
     // Then we fetched the created mint account
     let acc2 = &accounts[2];
-    assert_eq!(4, acc2.index);
+    assert_eq!(4, acc2.sequencing);
     assert_eq!(mint.pubkey(), acc2.address);
 }

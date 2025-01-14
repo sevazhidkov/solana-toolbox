@@ -6,34 +6,26 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
 use crate::toolbox_anchor_error::ToolboxAnchorError;
 use crate::toolbox_anchor_idl::ToolboxAnchorIdl;
+use crate::toolbox_anchor_idl_utils::json_object_get_key_as_array;
+use crate::toolbox_anchor_idl_utils::json_object_get_key_as_object;
+use crate::toolbox_anchor_idl_utils::json_object_get_key_as_str;
 
 impl ToolboxAnchorEndpoint {
-    pub async fn get_account_data_anchor_idl_type_deserialized(
+    pub async fn get_account_data_anchor_idl_account_deserialized(
         &mut self,
         idl: &ToolboxAnchorIdl,
         address: &Pubkey,
         account_type: &str,
     ) -> Result<Option<(usize, Value)>, ToolboxAnchorError> {
-        let idl_accounts = json_object_get_key_as_array(&idl.json, "accounts")
+        let idl_account = idl.accounts.get(account_type);
+        let idl_type = idl_account
+            .or_else(|| idl.types.get(account_type))
             .ok_or_else(|| {
-                ToolboxAnchorError::Custom("IDL doesn't have accounts".into())
-            })?;
-        let idl_types = json_object_get_key_as_array(&idl.json, "types")
-            .ok_or_else(|| {
-                ToolboxAnchorError::Custom("IDL doesn't have types".into())
-            })?;
-        let idl_type =
-            json_array_find_object_type_with_name(idl_accounts, account_type)
-                .or(json_array_find_object_type_with_name(
-                    idl_types,
-                    account_type,
+                ToolboxAnchorError::Custom(format!(
+                    "IDL doesn't contain information about type: {}",
+                    account_type
                 ))
-                .ok_or_else(|| {
-                    ToolboxAnchorError::Custom(format!(
-                        "IDL doesn't contain information about type: {}",
-                        account_type
-                    ))
-                })?;
+            })?;
         let data_bytes =
             if let Some(account) = self.get_account(&address).await? {
                 account.data
@@ -57,55 +49,16 @@ impl ToolboxAnchorEndpoint {
         let (data_length, data_json) = idl_type_data_read_into_json(
             &data_bytes[data_offset_discriminator..],
             idl_type,
-            idl_types,
+            &idl.types,
         )?;
         Ok(Some((data_length + data_offset_discriminator, data_json)))
     }
 }
 
-fn json_object_get_key_as_array<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-) -> Option<&'a Vec<Value>> {
-    object.get(key).map(|value| value.as_array()).flatten()
-}
-
-fn json_object_get_key_as_object<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-) -> Option<&'a Map<String, Value>> {
-    object.get(key).map(|value| value.as_object()).flatten()
-}
-
-fn json_object_get_key_as_str<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-) -> Option<&'a str> {
-    object.get(key).map(|value| value.as_str()).flatten()
-}
-
-fn json_array_find_object_type_with_name<'a>(
-    array: &'a Vec<Value>,
-    name: &str,
-) -> Option<&'a Value> {
-    for item in array.iter() {
-        if let Some(item_object) = item.as_object() {
-            if let Some(item_name) =
-                json_object_get_key_as_str(item_object, "name")
-            {
-                if item_name == name {
-                    return item_object.get("type");
-                }
-            }
-        }
-    }
-    None
-}
-
 fn idl_type_data_read_into_json(
     data_bytes: &[u8],
     idl_type: &Value,
-    idl_types: &Vec<Value>,
+    idl_types: &Map<String, Value>,
 ) -> Result<(usize, Value), ToolboxAnchorError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         if let Some(idl_type_kind) =
@@ -119,7 +72,7 @@ fn idl_type_data_read_into_json(
                         .ok_or_else(|| {
                             ToolboxAnchorError::Custom(
                                 "IDL struct doesn't have fields".into(),
-                            )
+                            ) // TODO - this kind of unwrap could be cleaner
                         })?;
                 for idl_field in idl_type_fields {
                     let idl_field_object =
@@ -193,14 +146,12 @@ fn idl_type_data_read_into_json(
                             "IDL type as 'defined' doesnt have a name".into(),
                         )
                     })?;
-            let idl_type =
-                json_array_find_object_type_with_name(idl_types, idl_type_name)
-                    .ok_or_else(|| {
-                        ToolboxAnchorError::Custom(format!(
-                            "IDL type as 'defined' unknown name: {}",
-                            idl_type_name
-                        ))
-                    })?;
+            let idl_type = idl_types.get(idl_type_name).ok_or_else(|| {
+                ToolboxAnchorError::Custom(format!(
+                    "IDL type as 'defined' with unknown name: {}",
+                    idl_type_name
+                ))
+            })?;
             return idl_type_data_read_into_json(
                 data_bytes, idl_type, idl_types,
             );
@@ -354,12 +305,12 @@ fn idl_type_data_read_into_json(
             return Ok((data_length, Value::String(data_pubkey.to_string())));
         }
         return Err(ToolboxAnchorError::Custom(format!(
-            "IDL unknown type code: {}",
+            "IDL unknown type descriptor: {}",
             idl_type_str
         )));
     }
     Err(ToolboxAnchorError::Custom(format!(
-        "IDL type unknown: {:?}",
+        "IDL unknown type value: {:?}",
         idl_type.to_string()
     )))
 }
