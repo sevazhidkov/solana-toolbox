@@ -8,8 +8,9 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
 use crate::toolbox_anchor_error::ToolboxAnchorError;
-use crate::toolbox_anchor_idl_utils::json_object_get_key_as_array;
-use crate::toolbox_anchor_idl_utils::json_object_get_key_as_str;
+use crate::toolbox_anchor_idl_utils::idl_as_object_or_else;
+use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxAnchorIdl {
@@ -40,7 +41,8 @@ impl ToolboxAnchorEndpoint {
         let data_bytes =
             if let Some(account) = self.get_account(&address).await? {
                 account.data
-            } else {
+            }
+            else {
                 return Ok(None);
             };
         #[derive(Debug, Clone, Copy, Pod, Zeroable)]
@@ -74,9 +76,7 @@ impl ToolboxAnchorEndpoint {
         let data_content_json = from_str::<Value>(&data_content_decoded)
             .map_err(ToolboxAnchorError::SerdeJson)?;
         let data_content_object =
-            data_content_json.as_object().ok_or_else(|| {
-                ToolboxAnchorError::Custom("IDL is not a json object".into())
-            })?;
+            idl_as_object_or_else(&data_content_json, "root")?;
         Ok(Some(ToolboxAnchorIdl {
             program_id: *program_id,
             authority: data_header.authority,
@@ -114,21 +114,17 @@ fn idl_collection_content_mapped_by_name(
     collection_key: &str,
     content_key: &str,
 ) -> Result<Map<String, Value>, ToolboxAnchorError> {
-    let array = json_object_get_key_as_array(object, collection_key)
-        .ok_or_else(|| {
-            ToolboxAnchorError::Custom(format!(
-                "IDL has no valid field: {}",
-                collection_key
-            ))
-        })?;
+    let idl_array =
+        idl_object_get_key_as_array_or_else(object, collection_key, "root")?;
     let mut object = Map::new();
-    for item in array {
-        if let Some(item_object) = item.as_object() {
+    for idl_item in idl_array {
+        if let Some(idl_item_object) = idl_item.as_object() {
             if let Some(item_name) =
-                json_object_get_key_as_str(&item_object, "name")
+                idl_object_get_key_as_str(&idl_item_object, "name")
             {
-                if let Some(item_content) = item_object.get(content_key) {
-                    object.insert(item_name.into(), item_content.clone());
+                if let Some(idl_item_content) = idl_item_object.get(content_key)
+                {
+                    object.insert(item_name.into(), idl_item_content.clone());
                 }
             }
         }
