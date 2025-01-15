@@ -4,16 +4,17 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
+use crate::toolbox_anchor::ToolboxAnchor;
 use crate::toolbox_anchor_error::ToolboxAnchorError;
 
-impl ToolboxAnchorEndpoint {
-    pub async fn process_anchor_instruction<
+impl ToolboxAnchor {
+    pub async fn process_instruction<
         Accounts: ToAccountMetas,
         Payload: InstructionData,
     >(
-        &mut self,
+        endpoint: &mut ToolboxEndpoint,
         program_id: Pubkey,
         accounts: Accounts,
         payload: Payload,
@@ -24,14 +25,14 @@ impl ToolboxAnchorEndpoint {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        Ok(self.process_instruction(instruction, payer).await?)
+        Ok(endpoint.process_instruction(instruction, payer).await?)
     }
 
-    pub async fn process_anchor_instruction_with_signers<
+    pub async fn process_instruction_with_signers<
         Accounts: ToAccountMetas,
         Payload: InstructionData,
     >(
-        &mut self,
+        endpoint: &mut ToolboxEndpoint,
         program_id: Pubkey,
         accounts: Accounts,
         payload: Payload,
@@ -43,7 +44,7 @@ impl ToolboxAnchorEndpoint {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        Ok(self
+        Ok(endpoint
             .process_instruction_with_signers(instruction, payer, signers)
             .await?)
     }

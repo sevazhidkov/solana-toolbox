@@ -6,25 +6,26 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
-use solana_toolbox_anchor::ToolboxAnchorEndpoint;
-use solana_toolbox_anchor::ToolboxEndpoint;
-use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
+use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
+use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
 pub async fn devnet_idl_anchor_0_30() {
     // Create the devnet endpoint
-    let mut endpoint = ToolboxAnchorEndpoint::from(
-        ToolboxEndpoint::new_rpc_with_url_and_commitment(
-            "https://api.devnet.solana.com".to_string(),
-            CommitmentConfig::confirmed(),
-        ),
+    let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
+        "https://api.devnet.solana.com".to_string(),
+        CommitmentConfig::confirmed(),
     );
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
     let program_idl =
-        endpoint.get_program_id_anchor_idl(&program_id).await.unwrap().unwrap();
+        ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
+            .await
+            .unwrap()
+            .unwrap();
     // Find an account we can read from the endpoint
     let campaign_index = 0u64;
     let campaign_pda = Pubkey::find_program_address(
@@ -34,12 +35,8 @@ pub async fn devnet_idl_anchor_0_30() {
     let campaign_address = campaign_pda.0;
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
-    let (campaign_data_length, campaign_data_json) = endpoint
-        .get_account_data_anchor_idl_account_deserialized(
-            &program_idl,
-            &campaign_address,
-            "Campaign",
-        )
+    let (campaign_data_length, campaign_data_json) = program_idl
+        .get_account(&mut endpoint, "Campaign", &campaign_address)
         .await
         .unwrap()
         .unwrap();
@@ -74,12 +71,8 @@ pub async fn devnet_idl_anchor_0_30() {
     account_addresses.insert("payer".to_string(), payer.pubkey());
     account_addresses.insert("user".to_string(), user.pubkey());
     account_addresses.insert("campaign".to_string(), campaign_address);
-    let instruction = endpoint
-        .generate_anchor_idl_instruction(
-            &program_idl,
-            "pledge_create",
-            &account_addresses,
-        )
+    let instruction = program_idl
+        .generate_instruction(&program_id, "pledge_create", &account_addresses)
         .unwrap();
     endpoint
         .process_instruction_with_signers(instruction, &payer, &[&user])

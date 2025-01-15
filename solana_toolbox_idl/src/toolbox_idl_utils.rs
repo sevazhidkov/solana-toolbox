@@ -1,34 +1,34 @@
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::ToolboxIdlError;
+use crate::toolbox_idl_error::ToolboxIdlError;
 
 pub(crate) fn idl_object_get_key_as_array<'a>(
     object: &'a Map<String, Value>,
     key: &str,
 ) -> Option<&'a Vec<Value>> {
-    object.get(key).map(|value| value.as_array()).flatten()
+    object.get(key).and_then(|value| value.as_array())
 }
 
 pub(crate) fn idl_object_get_key_as_object<'a>(
     object: &'a Map<String, Value>,
     key: &str,
 ) -> Option<&'a Map<String, Value>> {
-    object.get(key).map(|value| value.as_object()).flatten()
+    object.get(key).and_then(|value| value.as_object())
 }
 
 pub(crate) fn idl_object_get_key_as_str<'a>(
     object: &'a Map<String, Value>,
     key: &str,
 ) -> Option<&'a str> {
-    object.get(key).map(|value| value.as_str()).flatten()
+    object.get(key).and_then(|value| value.as_str())
 }
 
 pub(crate) fn idl_object_get_key_as_bool(
     object: &Map<String, Value>,
     key: &str,
 ) -> Option<bool> {
-    object.get(key).map(|value| value.as_bool()).flatten()
+    object.get(key).and_then(|value| value.as_bool())
 }
 
 pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
@@ -100,8 +100,8 @@ pub(crate) fn idl_as_object_or_else<'a>(
     )
 }
 
-pub(crate) fn idl_as_u64_or_else<'a>(
-    value: &'a Value,
+pub(crate) fn idl_as_u64_or_else(
+    value: &Value,
     context: &str,
 ) -> Result<u64, ToolboxIdlError> {
     idl_ok_or_else(
@@ -129,13 +129,6 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized, P: std::fmt::Debug>(
     })
 }
 
-pub(crate) fn idl_err<T, P: std::fmt::Debug>(
-    context_msg: &str,
-    context_code: &str,
-    param: &P,
-) -> Result<T, ToolboxIdlError> {
-    Err(ToolboxIdlError::Custom(format!(
-        "IDL: {}: {}: {:?}",
-        context_msg, context_code, param
-    )))
+pub(crate) fn idl_err<T>(context: &str) -> Result<T, ToolboxIdlError> {
+    Err(ToolboxIdlError::Custom(format!("IDL: {}", context)))
 }

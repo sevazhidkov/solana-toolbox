@@ -1,35 +1,32 @@
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_anchor::ToolboxAnchorEndpoint;
-use solana_toolbox_anchor::ToolboxEndpoint;
-use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
+use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
+use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
 pub async fn devnet_idl_anchor_0_29() {
     // Create the devnet endpoint
-    let mut endpoint = 
-        ToolboxEndpoint::new_rpc_with_url_and_commitment(
-            "https://api.devnet.solana.com".to_string(),
-            CommitmentConfig::confirmed(),
-        ),
-    ;
+    let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
+        "https://api.devnet.solana.com".to_string(),
+        CommitmentConfig::confirmed(),
+    );
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
     let program_idl =
-        endpoint.get_program_id_anchor_idl(&program_id).await.unwrap().unwrap();
+        ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
+            .await
+            .unwrap()
+            .unwrap();
     // Read an account using the IDL directly
     let realm_pda = Pubkey::find_program_address(&[b"realm"], &program_id);
     let realm_address = realm_pda.0;
     let realm_bump = realm_pda.1;
-    let (realm_data_length, realm_data_json) = endpoint
-        .get_account_data_anchor_idl_account_deserialized(
-            &program_idl,
-            &realm_address,
-            "Realm",
-        )
+    let (realm_data_length, realm_data_json) = program_idl
+        .get_account(&mut endpoint, "Realm", &realm_address)
         .await
         .unwrap()
         .unwrap();

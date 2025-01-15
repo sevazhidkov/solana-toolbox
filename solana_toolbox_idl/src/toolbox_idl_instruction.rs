@@ -7,29 +7,28 @@ use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
-use crate::toolbox_anchor_error::ToolboxAnchorError;
-use crate::toolbox_anchor_idl::ToolboxAnchorIdl;
-use crate::toolbox_anchor_idl_utils::idl_as_object_or_else;
-use crate::toolbox_anchor_idl_utils::idl_as_u64_or_else;
-use crate::toolbox_anchor_idl_utils::idl_err;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_bool;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_object;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str_or_else;
-use crate::toolbox_anchor_idl_utils::idl_ok_or_else;
+use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_as_u64_or_else;
+use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
+use crate::toolbox_idl_utils::idl_object_get_key_as_object;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
+use crate::toolbox_idl_utils::idl_ok_or_else;
 
-impl ToolboxAnchorEndpoint {
-    pub fn generate_anchor_idl_instruction_accounts(
-        &mut self,
-        idl: &ToolboxAnchorIdl,
+impl ToolboxIdl {
+    pub fn find_instruction_accounts(
+        &self,
+        program_id: &Pubkey,
         instruction_name: &str,
         account_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<HashMap<String, Pubkey>, ToolboxAnchorError> {
+    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         let idl_accounts = idl_object_get_key_as_array_or_else(
-            &idl.instructions_accounts,
+            &self.instructions_accounts,
             instruction_name,
             "instruction accounts",
         )?;
@@ -41,42 +40,43 @@ impl ToolboxAnchorEndpoint {
                 idl_account_object_resolve(
                     idl_account_object,
                     &account_addresses,
-                    &idl.program_id,
+                    program_id,
                 )?;
             account_addresses.insert(idl_account_name, idl_account_address);
         }
         Ok(account_addresses)
     }
 
-    pub fn generate_anchor_idl_instruction(
-        &mut self,
-        idl: &ToolboxAnchorIdl,
+    pub fn generate_instruction(
+        &self,
+        program_id: &Pubkey,
         instruction_name: &str,
         account_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<Instruction, ToolboxAnchorError> {
-        let accounts = generate_anchor_idl_instruction_account_metas(
-            idl,
+    ) -> Result<Instruction, ToolboxIdlError> {
+        let accounts = generate_instruction_account_metas(
+            self,
+            program_id,
             instruction_name,
             account_addresses,
         );
-        let data = generate_anchor_idl_instruction_data(
-            idl,
+        let data = generate_instruction_data(
+            self,
             instruction_name,
-            self.compute_anchor_instruction_discriminator(instruction_name),
+            ToolboxIdl::compute_instruction_discriminator(instruction_name),
         );
         Ok(Instruction {
-            program_id: idl.program_id,
+            program_id: *program_id,
             accounts: accounts?,
             data: data?,
         })
     }
 }
 
-fn generate_anchor_idl_instruction_data(
-    idl: &ToolboxAnchorIdl,
+fn generate_instruction_data(
+    idl: &ToolboxIdl,
     instruction_name: &str,
     instruction_discriminator: u64,
-) -> Result<Vec<u8>, ToolboxAnchorError> {
+) -> Result<Vec<u8>, ToolboxIdlError> {
     let mut data = vec![];
     data.extend_from_slice(&instruction_discriminator.to_le_bytes());
     let idl_args = idl_object_get_key_as_array_or_else(
@@ -91,17 +91,18 @@ fn generate_anchor_idl_instruction_data(
     Ok(data)
 }
 
-fn generate_anchor_idl_instruction_account_metas(
-    idl: &ToolboxAnchorIdl,
+fn generate_instruction_account_metas(
+    idl: &ToolboxIdl,
+    program_id: &Pubkey,
     instruction_name: &str,
     account_addresses: &HashMap<String, Pubkey>,
-) -> Result<Vec<AccountMeta>, ToolboxAnchorError> {
+) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
     let idl_accounts = idl_object_get_key_as_array_or_else(
         &idl.instructions_accounts,
         instruction_name,
         "instruction accounts",
     )?;
-    let mut account_addresses = account_addresses.clone();
+    let mut account_addresses = account_addresses.clone(); // TODO - remove this
     let mut account_metas = vec![];
     for idl_account in idl_accounts {
         let idl_account_object =
@@ -110,7 +111,7 @@ fn generate_anchor_idl_instruction_account_metas(
             idl_account_object_resolve(
                 idl_account_object,
                 &account_addresses,
-                &idl.program_id,
+                program_id,
             )?;
         let idl_account_is_signer =
             idl_object_get_key_as_bool(idl_account_object, "signer")
@@ -141,7 +142,7 @@ fn idl_account_object_resolve(
     idl_account_object: &Map<String, Value>,
     account_addresses: &HashMap<String, Pubkey>,
     program_id: &Pubkey,
-) -> Result<(String, Pubkey), ToolboxAnchorError> {
+) -> Result<(String, Pubkey), ToolboxIdlError> {
     let idl_account_name = idl_object_get_key_as_str_or_else(
         idl_account_object,
         "name",
@@ -154,7 +155,7 @@ fn idl_account_object_resolve(
         {
             account_address = Some(
                 Pubkey::from_str(idl_account_address)
-                    .map_err(ToolboxAnchorError::ParsePubkey)?,
+                    .map_err(ToolboxIdlError::ParsePubkey)?,
             );
         }
     }
@@ -169,7 +170,7 @@ fn idl_account_object_resolve(
                 for idl_account_seed in idl_account_seeds {
                     let account_seed = idl_account_seed_serialized(
                         idl_account_seed,
-                        &account_addresses,
+                        account_addresses,
                     )?;
                     account_seeds.push(account_seed);
                 }
@@ -180,7 +181,7 @@ fn idl_account_object_resolve(
                 account_address = Some(
                     Pubkey::find_program_address(
                         &account_seeds_slices,
-                        &program_id,
+                        program_id,
                     )
                     .0,
                 )
@@ -202,7 +203,7 @@ fn idl_account_object_resolve(
 fn idl_account_seed_serialized(
     idl_account_seed: &Value,
     account_addresses: &HashMap<String, Pubkey>,
-) -> Result<Vec<u8>, ToolboxAnchorError> {
+) -> Result<Vec<u8>, ToolboxIdlError> {
     let idl_account_seed_object =
         idl_as_object_or_else(idl_account_seed, "account seed")?;
     let idl_account_seed_kind = idl_object_get_key_as_str_or_else(
@@ -224,7 +225,7 @@ fn idl_account_seed_serialized(
                         idl_account_seed_byte,
                         "account seed 'kind:const' byte",
                     )?)
-                    .map_err(ToolboxAnchorError::TryFromInt)?,
+                    .map_err(ToolboxIdlError::TryFromInt)?,
                 );
             }
             Ok(account_seed)
@@ -245,11 +246,10 @@ fn idl_account_seed_serialized(
             Ok(account_address.to_bytes().into())
         },
         _ => {
-            return idl_err(
-                "account seed kind unknown",
-                idl_account_seed_kind,
-                idl_account_seed_object,
-            );
+            idl_err(&format!(
+                "account seed kind unknown: {}",
+                idl_account_seed_kind
+            ))
         },
     }
 }

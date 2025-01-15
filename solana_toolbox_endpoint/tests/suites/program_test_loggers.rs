@@ -12,7 +12,7 @@ pub async fn program_test_loggers() {
     let mut endpoint =
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[]).await;
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
     // Create a logger buffer
     let logger_buffer = ToolboxEndpointLoggerBuffer::new();
     endpoint.add_logger(Box::new(logger_buffer.clone()));

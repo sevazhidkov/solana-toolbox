@@ -4,6 +4,8 @@ use sha2::Sha256;
 use crate::toolbox_idl::ToolboxIdl;
 
 impl ToolboxIdl {
+    pub const DISCRIMINATOR: u64 = 0x9E7B903ABF624618;
+
     pub fn compute_account_discriminator(account_type: &str) -> u64 {
         let mut hasher = Sha256::new();
         hasher.update(format!("account:{}", account_type));

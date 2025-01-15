@@ -10,7 +10,7 @@ pub async fn devnet_sysvars() {
         CommitmentConfig::confirmed(),
     );
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
     // Fetch the sysvars
     let clock = endpoint.get_sysvar_clock().await;
     let rent = endpoint.get_sysvar_rent().await;

@@ -6,13 +6,8 @@ use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
 
+#[derive(Default)]
 pub struct ToolboxEndpointLoggerPrint {}
-
-impl ToolboxEndpointLoggerPrint {
-    pub fn new() -> ToolboxEndpointLoggerPrint {
-        ToolboxEndpointLoggerPrint {}
-    }
-}
 
 #[async_trait::async_trait]
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
@@ -62,7 +57,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         };
         println!("----");
         self.print_backtrace("from".to_string());
-        println!("");
+        println!();
     }
 
     async fn on_account(
@@ -81,7 +76,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         self.print_bytes("> account.data".to_string(), &account.data);
         println!("----");
         self.print_backtrace("from".to_string());
-        println!("");
+        println!();
     }
 }
 
@@ -94,7 +89,7 @@ impl ToolboxEndpointLoggerPrint {
         let data_len = data.len();
         println!("{}.len: {:?} bytes", prefix, data_len);
         let data_packing = 16;
-        let data_lines = (data_len + data_packing - 1) / data_packing;
+        let data_lines = data_len.div_ceil(data_packing);
         for data_line in 0..data_lines {
             let data_start = data_line * data_packing;
             let mut data_bytes = vec![];

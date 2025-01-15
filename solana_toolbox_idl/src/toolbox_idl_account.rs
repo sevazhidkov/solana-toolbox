@@ -2,73 +2,73 @@ use serde_json::Map;
 use serde_json::Number;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
-use crate::toolbox_anchor_error::ToolboxAnchorError;
-use crate::toolbox_anchor_idl::ToolboxAnchorIdl;
-use crate::toolbox_anchor_idl_utils::idl_as_object_or_else;
-use crate::toolbox_anchor_idl_utils::idl_as_u64_or_else;
-use crate::toolbox_anchor_idl_utils::idl_err;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_object;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str_or_else;
-use crate::toolbox_anchor_idl_utils::idl_object_get_key_or_else;
-use crate::toolbox_anchor_idl_utils::idl_ok_or_else;
+use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_as_u64_or_else;
+use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_object;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdl {
-    pub async fn get_account<Value>(
+    pub async fn get_account(
         &self,
         endpoint: &mut ToolboxEndpoint,
-        name: &str,
-        address: Pubkey,
-    ) -> Result<Option<(usize, Value)>, ToolboxAnchorError> {
-        let data =
-            if let Some(account) = endpoint.get_account(&address).await? {
-                account.data
-            }
-            else {
-                return Ok(None);
-            };
-        self.read_account(name, data)
+        account_name: &str,
+        account_address: &Pubkey,
+    ) -> Result<Option<(usize, Value)>, ToolboxIdlError> {
+        let account_data = if let Some(account) =
+            endpoint.get_account(account_address).await?
+        {
+            account.data
+        }
+        else {
+            return Ok(None);
+        };
+        Ok(Some(self.read_account(account_name, &account_data)?))
     }
 
     pub fn read_account(
         &self,
-        name: &str,
-        data: &[u8],
-    ) -> Result<Option<(usize, Value)>, ToolboxAnchorError> {
+        account_name: &str,
+        account_data: &[u8],
+    ) -> Result<(usize, Value), ToolboxIdlError> {
         let idl_type = idl_ok_or_else(
             self.accounts
-                .get(name)
-                .or_else(|| self.types.get(name)),
+                .get(account_name)
+                .or_else(|| self.types.get(account_name)),
             "account type",
             "is unknown",
-            name,
+            account_name,
             &self.types,
         )?;
         let expected_discriminator =
-        ToolboxIdl::compute_account_discriminator(name);
+            ToolboxIdl::compute_account_discriminator(account_name);
         let data_offset_discriminator = size_of_val(&expected_discriminator);
         let data_discriminator = u64::from_le_bytes(
-            data_bytes[..data_offset_discriminator]
+            account_data[..data_offset_discriminator]
                 .try_into()
-                .map_err(ToolboxAnchorError::TryFromSlice)?,
+                .map_err(ToolboxIdlError::TryFromSlice)?,
         );
         if data_discriminator != expected_discriminator {
-            return idl_err(
-                "discriminator not as expected",
-                &format!("{:16X}", data_discriminator),
-                &format!("{:16X}", expected_discriminator),
-            );
+            return idl_err(&format!(
+                "invalid discriminator: found {:016X}, expected {:016X}",
+                data_discriminator, expected_discriminator
+            ));
         }
         let (data_length, data_json) = idl_type_data_read(
-            &data_bytes[data_offset_discriminator..],
+            &account_data[data_offset_discriminator..],
             idl_type,
             &self.types,
         )?;
-        Ok(Some((data_length + data_offset_discriminator, data_json)))
+        Ok((data_length + data_offset_discriminator, data_json))
     }
 }
 
@@ -76,7 +76,7 @@ fn idl_type_data_read(
     data_bytes: &[u8],
     idl_type: &Value,
     idl_types: &Map<String, Value>,
-) -> Result<(usize, Value), ToolboxAnchorError> {
+) -> Result<(usize, Value), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         if let Some(idl_type_kind) =
             idl_object_get_key_as_str(idl_type_object, "kind")
@@ -121,7 +121,10 @@ fn idl_type_data_read(
             idl_object_get_key_as_array(idl_type_object, "array")
         {
             if idl_type_array.len() != 2 {
-                return idl_err("type array", "is malformed", idl_type_array);
+                return idl_err(&format!(
+                    "type array is malformed: {:?}",
+                    idl_type_array
+                ));
             }
             let idl_item_type = &idl_type_array[0];
             let idl_item_length =
@@ -154,7 +157,10 @@ fn idl_type_data_read(
             )?;
             return idl_type_data_read(data_bytes, idl_type, idl_types);
         }
-        return idl_err("type object", "is unknown", idl_type_object);
+        return idl_err(&format!(
+            "type object is unknown: {:?}",
+            idl_type_object
+        ));
     }
     if let Some(idl_type_str) = idl_type.as_str() {
         macro_rules! return_from_integer_bytes {
@@ -163,7 +169,7 @@ fn idl_type_data_read(
                 let data_integer = $type::from_le_bytes(
                     $data_bytes[..data_length]
                         .try_into()
-                        .map_err(ToolboxAnchorError::TryFromSlice)?,
+                        .map_err(ToolboxIdlError::TryFromSlice)?,
                 );
                 return Ok((
                     data_length,
@@ -201,13 +207,13 @@ fn idl_type_data_read(
                 let data_integer = $type::from_le_bytes(
                     $data_bytes[..data_length]
                         .try_into()
-                        .map_err(ToolboxAnchorError::TryFromSlice)?,
+                        .map_err(ToolboxIdlError::TryFromSlice)?,
                 );
                 return Ok((
                     data_length,
                     Value::Number($conversion(data_integer).ok_or_else(
                         || {
-                            ToolboxAnchorError::Custom(format!(
+                            ToolboxIdlError::Custom(format!(
                                 "JSON Invalid number: {}",
                                 data_integer
                             ))
@@ -233,15 +239,14 @@ fn idl_type_data_read(
             let data_pubkey = Pubkey::new_from_array(
                 data_bytes[..data_length]
                     .try_into()
-                    .map_err(ToolboxAnchorError::TryFromSlice)?,
+                    .map_err(ToolboxIdlError::TryFromSlice)?,
             );
             return Ok((data_length, Value::String(data_pubkey.to_string())));
         }
-        return idl_err(
-            "type string",
-            "unknown type descriptor",
-            &idl_type_str,
-        );
+        return idl_err(&format!(
+            "type 'string': unknown type descriptor: {}",
+            idl_type_str,
+        ));
     }
-    idl_err("type value", "is unknown", idl_type)
+    idl_err(&format!("type is unsupported: {:?}", idl_type))
 }

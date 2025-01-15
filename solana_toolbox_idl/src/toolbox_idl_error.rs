@@ -13,3 +13,9 @@ pub enum ToolboxIdlError {
     Overflow(),
     Custom(String), // TODO - use special error type
 }
+
+impl From<ToolboxEndpointError> for ToolboxIdlError {
+    fn from(source: ToolboxEndpointError) -> Self {
+        ToolboxIdlError::ToolboxEndpoint(source)
+    }
+}
