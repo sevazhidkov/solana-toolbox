@@ -18,29 +18,38 @@ use crate::toolbox_anchor_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_anchor_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdl {
-    pub async fn deserialize_account(
+    pub async fn get_account<Value>(
         &self,
-        account_data: &[u8],
-        account_type: &str,
+        endpoint: &mut ToolboxEndpoint,
+        name: &str,
+        address: Pubkey,
     ) -> Result<Option<(usize, Value)>, ToolboxAnchorError> {
-        let idl_type = idl_ok_or_else(
-            self.accounts
-                .get(account_type)
-                .or_else(|| self.types.get(account_type)),
-            "account type",
-            "is unknown",
-            account_type,
-            &self.types,
-        )?;
-        let data_bytes =
+        let data =
             if let Some(account) = endpoint.get_account(&address).await? {
                 account.data
             }
             else {
                 return Ok(None);
             };
+        self.read_account(name, data)
+    }
+
+    pub fn read_account(
+        &self,
+        name: &str,
+        data: &[u8],
+    ) -> Result<Option<(usize, Value)>, ToolboxAnchorError> {
+        let idl_type = idl_ok_or_else(
+            self.accounts
+                .get(name)
+                .or_else(|| self.types.get(name)),
+            "account type",
+            "is unknown",
+            name,
+            &self.types,
+        )?;
         let expected_discriminator =
-            self.compute_account_discriminator(account_type);
+        ToolboxIdl::compute_account_discriminator(name);
         let data_offset_discriminator = size_of_val(&expected_discriminator);
         let data_discriminator = u64::from_le_bytes(
             data_bytes[..data_offset_discriminator]

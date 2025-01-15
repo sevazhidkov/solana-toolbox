@@ -11,5 +11,5 @@ pub enum ToolboxIdlError {
     FromUtf8(std::string::FromUtf8Error),
     SerdeJson(serde_json::Error),
     Overflow(),
-    Custom(String),
+    Custom(String), // TODO - use special error type
 }

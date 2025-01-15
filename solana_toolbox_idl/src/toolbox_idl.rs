@@ -7,7 +7,7 @@ use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
-use crate::toolbox_anchor_error::ToolboxAnchorError;
+use crate::toolbox_anchor_error::ToolboxIdlError;
 use crate::toolbox_anchor_idl_utils::idl_as_object_or_else;
 use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str;
@@ -24,27 +24,34 @@ pub struct ToolboxIdl {
 }
 
 impl ToolboxIdl {
-    pub fn find_idl_for_program_id(
-        &mut self,
-        program_id: &Pubkey,
-    ) -> Result<Pubkey, ToolboxAnchorError> {
-        let base = Pubkey::find_program_address(&[], program_id).0;
-        Pubkey::create_with_seed(&base, "anchor:idl", program_id)
-            .map_err(ToolboxAnchorError::Pubkey)
-    }
+    pub const DISCRIMINATOR: u64 = 42;
 
-    pub async fn get_idl_for_program_id(
-        &mut self,
+    pub async fn get_for_program_id(
+        endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
-    ) -> Result<Option<ToolboxIdl>, ToolboxAnchorError> {
-        let address = self.find_idl_for_program_id(program_id)?;
-        let data_bytes =
-            if let Some(account) = self.get_account(&address).await? {
+    ) -> Result<Option<ToolboxIdl>, ToolboxIdlError> {
+        let program_idl_address = ToolboxIdl::find_for_program_id(program_id)?;
+        let program_idl_data =
+            if let Some(account) = endpoint.get_account(&program_idl_address).await? {
                 account.data
             }
             else {
                 return Ok(None);
             };
+        ToolboxAnchorIdl::try_from_bytes(program_idl_data)
+    }
+
+    pub fn find_for_program_id(
+        program_id: &Pubkey,
+    ) -> Result<Pubkey, ToolboxIdlError> {
+        let base = Pubkey::find_program_address(&[], program_id).0;
+        Pubkey::create_with_seed(&base, "anchor:idl", program_id)
+            .map_err(ToolboxIdlError::Pubkey)
+    }
+
+    pub fn try_from_bytes(
+        program_idl_data: &[u8],
+    ) -> Result<ToolboxIdl, ToolboxIdlError> {
         #[derive(Debug, Clone, Copy, Pod, Zeroable)]
         #[repr(C)]
         struct ToolboxIdlHeader {
@@ -54,31 +61,31 @@ impl ToolboxIdl {
         }
         let data_content_offset = size_of::<ToolboxIdlHeader>();
         let data_header = bytemuck::from_bytes::<ToolboxIdlHeader>(
-            &data_bytes[0..data_content_offset],
+            &program_idl_data[0..data_content_offset],
         );
-        if data_header.discriminator != [24, 70, 98, 191, 58, 144, 123, 158] {
-            return Err(ToolboxAnchorError::Custom(format!(
-                "Invalid IDL discriminator: {:?}",
-                data_header.discriminator
-            )));
+        if data_header.discriminator != ToolboxIdl::DISCRIMINATOR {
+            return idl_err(
+                "discriminator is invalid",
+                format!("found:{:16X}", data_header.discriminator),
+                format!("expected:{:16X}", ToolboxIdl::DISCRIMINATOR),
+            );
         }
         let data_content_length = usize::try_from(data_header.length)
-            .map_err(ToolboxAnchorError::TryFromInt)?;
+            .map_err(ToolboxIdlError::TryFromInt)?;
         let data_content_end = data_content_offset
             .checked_add(data_content_length)
-            .ok_or_else(|| ToolboxAnchorError::Overflow())?;
+            .ok_or_else(|| ToolboxIdlError::Overflow())?;
         let data_content_decompressed = inflate_bytes_zlib(
-            &data_bytes[data_content_offset..data_content_end],
+            &program_idl_data[data_content_offset..data_content_end],
         )
-        .map_err(ToolboxAnchorError::Inflate)?;
+        .map_err(ToolboxIdlError::Inflate)?;
         let data_content_decoded = String::from_utf8(data_content_decompressed)
-            .map_err(ToolboxAnchorError::FromUtf8)?;
+            .map_err(ToolboxIdlError::FromUtf8)?;
         let data_content_json = from_str::<Value>(&data_content_decoded)
-            .map_err(ToolboxAnchorError::SerdeJson)?;
+            .map_err(ToolboxIdlError::SerdeJson)?;
         let data_content_object =
             idl_as_object_or_else(&data_content_json, "root")?;
         Ok(Some(ToolboxIdl {
-            program_id: *program_id,
             authority: data_header.authority,
             accounts: idl_collection_content_mapped_by_name(
                 data_content_object,
@@ -113,7 +120,7 @@ fn idl_collection_content_mapped_by_name(
     object: &Map<String, Value>,
     collection_key: &str,
     content_key: &str,
-) -> Result<Map<String, Value>, ToolboxAnchorError> {
+) -> Result<Map<String, Value>, ToolboxIdlError> {
     let idl_array =
         idl_object_get_key_as_array_or_else(object, collection_key, "root")?;
     let mut object = Map::new();
