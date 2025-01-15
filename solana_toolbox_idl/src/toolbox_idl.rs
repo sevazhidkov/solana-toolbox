@@ -13,7 +13,7 @@ use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str;
 
 #[derive(Debug, Clone)]
-pub struct ToolboxAnchorIdl {
+pub struct ToolboxIdl {
     pub program_id: Pubkey,
     pub authority: Pubkey,
     pub accounts: Map<String, Value>,
@@ -23,8 +23,8 @@ pub struct ToolboxAnchorIdl {
     pub instructions_args: Map<String, Value>,
 }
 
-impl ToolboxAnchorEndpoint {
-    pub fn find_program_id_anchor_idl(
+impl ToolboxIdl {
+    pub fn find_idl_for_program_id(
         &mut self,
         program_id: &Pubkey,
     ) -> Result<Pubkey, ToolboxAnchorError> {
@@ -33,11 +33,11 @@ impl ToolboxAnchorEndpoint {
             .map_err(ToolboxAnchorError::Pubkey)
     }
 
-    pub async fn get_program_id_anchor_idl(
+    pub async fn get_idl_for_program_id(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<ToolboxAnchorIdl>, ToolboxAnchorError> {
-        let address = self.find_program_id_anchor_idl(program_id)?;
+    ) -> Result<Option<ToolboxIdl>, ToolboxAnchorError> {
+        let address = self.find_idl_for_program_id(program_id)?;
         let data_bytes =
             if let Some(account) = self.get_account(&address).await? {
                 account.data
@@ -47,13 +47,13 @@ impl ToolboxAnchorEndpoint {
             };
         #[derive(Debug, Clone, Copy, Pod, Zeroable)]
         #[repr(C)]
-        struct ToolboxAnchorIdlHeader {
+        struct ToolboxIdlHeader {
             discriminator: [u8; 8],
             authority: Pubkey,
             length: u32,
         }
-        let data_content_offset = size_of::<ToolboxAnchorIdlHeader>();
-        let data_header = bytemuck::from_bytes::<ToolboxAnchorIdlHeader>(
+        let data_content_offset = size_of::<ToolboxIdlHeader>();
+        let data_header = bytemuck::from_bytes::<ToolboxIdlHeader>(
             &data_bytes[0..data_content_offset],
         );
         if data_header.discriminator != [24, 70, 98, 191, 58, 144, 123, 158] {
@@ -77,7 +77,7 @@ impl ToolboxAnchorEndpoint {
             .map_err(ToolboxAnchorError::SerdeJson)?;
         let data_content_object =
             idl_as_object_or_else(&data_content_json, "root")?;
-        Ok(Some(ToolboxAnchorIdl {
+        Ok(Some(ToolboxIdl {
             program_id: *program_id,
             authority: data_header.authority,
             accounts: idl_collection_content_mapped_by_name(

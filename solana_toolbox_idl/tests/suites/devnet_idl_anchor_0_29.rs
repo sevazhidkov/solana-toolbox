@@ -8,12 +8,12 @@ use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
 #[tokio::test]
 pub async fn devnet_idl_anchor_0_29() {
     // Create the devnet endpoint
-    let mut endpoint = ToolboxAnchorEndpoint::from(
+    let mut endpoint = 
         ToolboxEndpoint::new_rpc_with_url_and_commitment(
             "https://api.devnet.solana.com".to_string(),
             CommitmentConfig::confirmed(),
         ),
-    );
+    ;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain

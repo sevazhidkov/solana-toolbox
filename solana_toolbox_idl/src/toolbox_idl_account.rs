@@ -17,31 +17,30 @@ use crate::toolbox_anchor_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_anchor_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_anchor_idl_utils::idl_ok_or_else;
 
-impl ToolboxAnchorEndpoint {
-    pub async fn get_account_data_anchor_idl_account_deserialized(
-        &mut self,
-        idl: &ToolboxAnchorIdl,
-        address: &Pubkey,
+impl ToolboxIdl {
+    pub async fn deserialize_account(
+        &self,
+        account_data: &[u8],
         account_type: &str,
     ) -> Result<Option<(usize, Value)>, ToolboxAnchorError> {
         let idl_type = idl_ok_or_else(
-            idl.accounts
+            self.accounts
                 .get(account_type)
-                .or_else(|| idl.types.get(account_type)),
+                .or_else(|| self.types.get(account_type)),
             "account type",
             "is unknown",
             account_type,
-            &idl.types,
+            &self.types,
         )?;
         let data_bytes =
-            if let Some(account) = self.get_account(&address).await? {
+            if let Some(account) = endpoint.get_account(&address).await? {
                 account.data
             }
             else {
                 return Ok(None);
             };
         let expected_discriminator =
-            self.compute_anchor_account_discriminator(account_type);
+            self.compute_account_discriminator(account_type);
         let data_offset_discriminator = size_of_val(&expected_discriminator);
         let data_discriminator = u64::from_le_bytes(
             data_bytes[..data_offset_discriminator]
@@ -58,7 +57,7 @@ impl ToolboxAnchorEndpoint {
         let (data_length, data_json) = idl_type_data_read(
             &data_bytes[data_offset_discriminator..],
             idl_type,
-            &idl.types,
+            &self.types,
         )?;
         Ok(Some((data_length + data_offset_discriminator, data_json)))
     }

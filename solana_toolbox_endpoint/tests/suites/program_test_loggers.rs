@@ -36,7 +36,7 @@ pub async fn program_test_loggers() {
         2_000_000_000 // Original payer airdrop
             - 1_000_000_000 // Transfered lamports
             - 5_000, // Transaction fees
-        endpoint.get_account_lamports(&payer.pubkey()).await.unwrap()
+        endpoint.get_account_lamports(&payer.pubkey()).await.unwrap().unwrap()
     );
     // Create a dummy mint
     let mint = Keypair::new();

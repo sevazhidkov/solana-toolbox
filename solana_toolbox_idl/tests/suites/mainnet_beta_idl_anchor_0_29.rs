@@ -9,11 +9,11 @@ use solana_toolbox_anchor::ToolboxEndpointLoggerPrint;
 #[tokio::test]
 pub async fn mainnet_beta_idl_anchor_0_29() {
     // Create the mainnet-beta endpoint
-    let mut endpoint = ToolboxAnchorEndpoint::from(
+    let mut endpoint = 
         ToolboxEndpoint::new_rpc_with_url_and_commitment(
             "https://api.mainnet-beta.solana.com".to_string(),
             CommitmentConfig::confirmed(),
-        ),
+        ,
     );
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));

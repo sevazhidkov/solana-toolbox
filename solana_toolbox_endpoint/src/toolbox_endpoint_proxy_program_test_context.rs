@@ -10,10 +10,10 @@ use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
+use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
 #[async_trait::async_trait]
-impl ToolboxEndpointInner for ProgramTestContext {
+impl ToolboxEndpointProxy for ProgramTestContext {
     async fn get_latest_blockhash(
         &mut self
     ) -> Result<Hash, ToolboxEndpointError> {

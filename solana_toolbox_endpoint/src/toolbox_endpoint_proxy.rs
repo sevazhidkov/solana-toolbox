@@ -7,7 +7,7 @@ use solana_sdk::transaction::Transaction;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 #[async_trait::async_trait]
-pub trait ToolboxEndpointInner {
+pub trait ToolboxEndpointProxy {
     async fn get_latest_blockhash(
         &mut self
     ) -> Result<Hash, ToolboxEndpointError>;

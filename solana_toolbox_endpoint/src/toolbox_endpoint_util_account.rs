@@ -7,6 +7,13 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub async fn get_account_or_default(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Account, ToolboxEndpointError> {
+        Ok(self.get_account(address).await?.unwrap_or_default())
+    }
+
     pub async fn get_account(
         &mut self,
         address: &Pubkey,
@@ -14,44 +21,32 @@ impl ToolboxEndpoint {
         Ok(self.get_accounts(&[*address]).await?.pop().flatten())
     }
 
-    pub async fn get_account_exists(
-        &mut self,
-        address: &Pubkey,
-    ) -> Result<bool, ToolboxEndpointError> {
-        Ok(self.get_account(address).await?.is_some())
-    }
-
     pub async fn get_account_lamports(
         &mut self,
         address: &Pubkey,
-    ) -> Result<u64, ToolboxEndpointError> {
-        Ok(self
-            .get_account(address)
-            .await?
-            .map(|account| account.lamports)
-            .unwrap_or_default())
+    ) -> Result<Option<u64>, ToolboxEndpointError> {
+        Ok(self.get_account(address).await?.map(|account| account.lamports))
     }
 
     pub async fn get_account_owner(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Pubkey, ToolboxEndpointError> {
-        Ok(self
-            .get_account(address)
-            .await?
-            .map(|account| account.owner)
-            .unwrap_or_default())
+    ) -> Result<Option<Pubkey>, ToolboxEndpointError> {
+        Ok(self.get_account(address).await?.map(|account| account.owner))
     }
 
     pub async fn get_account_data(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Vec<u8>, ToolboxEndpointError> {
-        Ok(self
-            .get_account(address)
-            .await?
-            .map(|account| account.data)
-            .unwrap_or_default())
+    ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
+        Ok(self.get_account(address).await?.map(|account| account.data))
+    }
+
+    pub async fn get_account_executable(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Option<bool>, ToolboxEndpointError> {
+        Ok(self.get_account(address).await?.map(|account| account.executable))
     }
 
     pub async fn get_account_data_unpacked<T: Pack + IsInitialized>(

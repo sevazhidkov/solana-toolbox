@@ -32,6 +32,6 @@ pub async fn program_test_builtin_programs() {
             - 1_000_000_000 // Transfered lamports
             - 5_000 // Transaction fees
             - 42_000_000, // 1_000_000 units * 42 lamports price/per unit
-        endpoint.get_account_lamports(&payer.pubkey()).await.unwrap()
+        endpoint.get_account_lamports(&payer.pubkey()).await.unwrap().unwrap()
     );
 }

@@ -225,7 +225,7 @@ impl ToolboxEndpoint {
             spl_associated_token_account::get_associated_token_address(
                 authority, mint,
             );
-        if self.get_account_exists(&token_account).await? {
+        if self.get_spl_token_account(&token_account).await?.is_some() {
             return Ok(token_account);
         }
         let instruction =

@@ -1,7 +1,7 @@
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::ToolboxAnchorError;
+use crate::ToolboxIdlError;
 
 pub(crate) fn idl_object_get_key_as_array<'a>(
     object: &'a Map<String, Value>,
@@ -35,7 +35,7 @@ pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
     context: &str,
-) -> Result<&'a Vec<Value>, ToolboxAnchorError> {
+) -> Result<&'a Vec<Value>, ToolboxIdlError> {
     idl_ok_or_else(
         idl_object_get_key_as_array(object, key),
         context,
@@ -49,7 +49,7 @@ pub(crate) fn idl_object_get_key_as_object_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
     context: &str,
-) -> Result<&'a Map<String, Value>, ToolboxAnchorError> {
+) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
     idl_ok_or_else(
         idl_object_get_key_as_object(object, key),
         context,
@@ -63,7 +63,7 @@ pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
     context: &str,
-) -> Result<&'a str, ToolboxAnchorError> {
+) -> Result<&'a str, ToolboxIdlError> {
     idl_ok_or_else(
         idl_object_get_key_as_str(object, key),
         context,
@@ -77,7 +77,7 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
     context: &str,
-) -> Result<&'a Value, ToolboxAnchorError> {
+) -> Result<&'a Value, ToolboxIdlError> {
     idl_ok_or_else(
         object.get(key),
         context,
@@ -90,7 +90,7 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
 pub(crate) fn idl_as_object_or_else<'a>(
     value: &'a Value,
     context: &str,
-) -> Result<&'a Map<String, Value>, ToolboxAnchorError> {
+) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
     idl_ok_or_else(
         value.as_object(),
         context,
@@ -103,7 +103,7 @@ pub(crate) fn idl_as_object_or_else<'a>(
 pub(crate) fn idl_as_u64_or_else<'a>(
     value: &'a Value,
     context: &str,
-) -> Result<u64, ToolboxAnchorError> {
+) -> Result<u64, ToolboxIdlError> {
     idl_ok_or_else(
         value.as_u64().as_ref(),
         context,
@@ -120,9 +120,9 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized, P: std::fmt::Debug>(
     context_msg: &str,
     context_code: &str,
     param: &P,
-) -> Result<&'a T, ToolboxAnchorError> {
+) -> Result<&'a T, ToolboxIdlError> {
     option.ok_or_else(|| {
-        ToolboxAnchorError::Custom(format!(
+        ToolboxIdlError::Custom(format!(
             "IDL: {}: {}: {}: {:?}",
             context_kind, context_msg, context_code, param
         ))
@@ -133,8 +133,8 @@ pub(crate) fn idl_err<T, P: std::fmt::Debug>(
     context_msg: &str,
     context_code: &str,
     param: &P,
-) -> Result<T, ToolboxAnchorError> {
-    Err(ToolboxAnchorError::Custom(format!(
+) -> Result<T, ToolboxIdlError> {
+    Err(ToolboxIdlError::Custom(format!(
         "IDL: {}: {}: {:?}",
         context_msg, context_code, param
     )))

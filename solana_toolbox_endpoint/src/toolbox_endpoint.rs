@@ -5,19 +5,19 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_inner::ToolboxEndpointInner;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerInstruction;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
+use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
 pub struct ToolboxEndpoint {
-    inner: Box<dyn ToolboxEndpointInner>,
+    proxy: Box<dyn ToolboxEndpointProxy>,
     loggers: Vec<Box<dyn ToolboxEndpointLogger>>,
 }
 
-impl From<Box<dyn ToolboxEndpointInner>> for ToolboxEndpoint {
-    fn from(inner: Box<dyn ToolboxEndpointInner>) -> Self {
-        Self { inner, loggers: vec![] }
+impl From<Box<dyn ToolboxEndpointProxy>> for ToolboxEndpoint {
+    fn from(proxy: Box<dyn ToolboxEndpointProxy>) -> Self {
+        Self { proxy, loggers: vec![] }
     }
 }
 
@@ -32,14 +32,14 @@ impl ToolboxEndpoint {
     pub async fn get_latest_blockhash(
         &mut self
     ) -> Result<Hash, ToolboxEndpointError> {
-        self.inner.get_latest_blockhash().await
+        self.proxy.get_latest_blockhash().await
     }
 
     pub async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
-        let accounts = self.inner.get_accounts(addresses).await?;
+        let accounts = self.proxy.get_accounts(addresses).await?;
         for logger in &self.loggers {
             for index in 0..accounts.len() {
                 logger.on_account(&addresses[index], &accounts[index]).await;
@@ -72,7 +72,7 @@ impl ToolboxEndpoint {
                 data: instruction.data.clone(),
             });
         }
-        let result = self.inner.process_transaction(transaction).await;
+        let result = self.proxy.process_transaction(transaction).await;
         for logger in &self.loggers {
             logger
                 .on_transaction(
@@ -93,7 +93,7 @@ impl ToolboxEndpoint {
         to: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.inner.process_airdrop(to, lamports).await
+        self.proxy.process_airdrop(to, lamports).await
     }
 
     pub async fn move_clock_forward(
@@ -101,6 +101,6 @@ impl ToolboxEndpoint {
         unix_timestamp_delta: u64,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        self.inner.move_clock_forward(unix_timestamp_delta, slot_delta).await
+        self.proxy.move_clock_forward(unix_timestamp_delta, slot_delta).await
     }
 }

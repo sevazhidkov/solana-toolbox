@@ -1,10 +1,10 @@
 use sha2::Digest;
 use sha2::Sha256;
 
-use crate::toolbox_anchor_endpoint::ToolboxAnchorEndpoint;
+use crate::toolbox_idl::ToolboxIdl;
 
-impl ToolboxAnchorEndpoint {
-    pub fn compute_anchor_account_discriminator(
+impl ToolboxIdl {
+    pub fn compute_account_discriminator(
         &self,
         account_type: &str,
     ) -> u64 {
@@ -14,7 +14,7 @@ impl ToolboxAnchorEndpoint {
         u64::from_le_bytes(hash[..8].try_into().unwrap())
     }
 
-    pub fn compute_anchor_instruction_discriminator(
+    pub fn compute_instruction_discriminator(
         &self,
         instruction_name: &str,
     ) -> u64 {
