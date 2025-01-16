@@ -16,16 +16,15 @@ pub async fn devnet_idl_anchor_0_29() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
-    let program_idl =
-        ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
-            .await
-            .unwrap()
-            .unwrap();
+    let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
+        .await
+        .unwrap()
+        .unwrap();
     // Read an account using the IDL directly
     let realm_pda = Pubkey::find_program_address(&[b"realm"], &program_id);
     let realm_address = realm_pda.0;
     let realm_bump = realm_pda.1;
-    let (realm_data_length, realm_data_json) = program_idl
+    let (realm_data_length, realm_data_json) = idl
         .get_account(&mut endpoint, "Realm", &realm_address)
         .await
         .unwrap()

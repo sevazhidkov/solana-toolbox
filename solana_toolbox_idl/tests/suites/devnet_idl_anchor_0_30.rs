@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde_json::Map;
+use serde_json::Value;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
@@ -22,11 +23,10 @@ pub async fn devnet_idl_anchor_0_30() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
-    let program_idl =
-        ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
-            .await
-            .unwrap()
-            .unwrap();
+    let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
+        .await
+        .unwrap()
+        .unwrap();
     // Find an account we can read from the endpoint
     let campaign_index = 0u64;
     let campaign_pda = Pubkey::find_program_address(
@@ -36,7 +36,7 @@ pub async fn devnet_idl_anchor_0_30() {
     let campaign_address = campaign_pda.0;
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
-    let (campaign_data_length, campaign_data_json) = program_idl
+    let (campaign_data_length, campaign_data_json) = idl
         .get_account(&mut endpoint, "Campaign", &campaign_address)
         .await
         .unwrap()
@@ -65,16 +65,19 @@ pub async fn devnet_idl_anchor_0_30() {
     );
     // Try to generate a custom instruction
     let payer =
-        Keypair::from_seed(b"Hello world, this is a dummy payer for devnet...")
+        Keypair::from_seed(b"Hello world, this is a dummy payer for devnet")
             .unwrap();
     let user = Keypair::new();
+    // Prepare the accounts necessary for the instruction
     let mut instruction_accounts = HashMap::new();
-    let mut instruction_args = Map::new();
-
     instruction_accounts.insert("payer".to_string(), payer.pubkey());
     instruction_accounts.insert("user".to_string(), user.pubkey());
     instruction_accounts.insert("campaign".to_string(), campaign_address);
-    let instruction = program_idl
+    // Prepare the arguments necessary for the instruction
+    let mut instruction_args = Map::new();
+    instruction_args.insert("params".into(), Value::Object(Map::new()));
+    // Generate the actual instruction
+    let instruction = idl
         .generate_instruction(
             &program_id,
             "pledge_create",
@@ -82,6 +85,7 @@ pub async fn devnet_idl_anchor_0_30() {
             &instruction_args,
         )
         .unwrap();
+    // Process the instruction to check if it works
     endpoint
         .process_instruction_with_signers(instruction, &payer, &[&user])
         .await

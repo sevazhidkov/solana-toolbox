@@ -11,11 +11,12 @@ use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
+use crate::toolbox_idl_utils::idl_read_from_bytes_at;
+use crate::toolbox_idl_utils::idl_slice_from_bytes;
 
 impl ToolboxIdl {
     pub async fn get_account(
@@ -45,26 +46,23 @@ impl ToolboxIdl {
             account_type,
             &self.types,
         )?;
+        let data_discriminator =
+            *idl_read_from_bytes_at::<u64>(account_data, 0)?;
         let expected_discriminator =
             ToolboxIdl::compute_account_discriminator(account_type);
-        let data_offset_discriminator = size_of_val(&expected_discriminator);
-        let data_discriminator = u64::from_le_bytes(
-            account_data[..data_offset_discriminator]
-                .try_into()
-                .map_err(ToolboxIdlError::TryFromSlice)?,
-        );
         if data_discriminator != expected_discriminator {
             return idl_err(&format!(
                 "invalid discriminator: found {:016X}, expected {:016X}",
                 data_discriminator, expected_discriminator
             ));
         }
+        let data_offset = size_of_val(&data_discriminator);
         let (data_length, data_json) = idl_type_data_read_value(
-            &account_data[data_offset_discriminator..],
+            &account_data[data_offset..],
             idl_type,
             &self.types,
         )?;
-        Ok((data_length + data_offset_discriminator, data_json))
+        Ok((data_offset + data_length, data_json))
     }
 }
 
@@ -74,9 +72,7 @@ fn idl_type_data_read_value(
     idl_types: &Map<String, Value>,
 ) -> Result<(usize, Value), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
-        if let Some(idl_type_defined) =
-            idl_object_get_key_as_object(idl_type_object, "defined")
-        {
+        if let Some(idl_type_defined) = idl_type_object.get("defined") {
             return idl_type_data_read_value_defined(
                 data,
                 idl_type_defined,
@@ -116,14 +112,21 @@ fn idl_type_data_read_value(
 
 fn idl_type_data_read_value_defined(
     data: &[u8],
-    idl_type_defined: &Map<String, Value>,
+    idl_type_defined: &Value,
     idl_types: &Map<String, Value>,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    let idl_type_name = idl_object_get_key_as_str_or_else(
-        idl_type_defined,
-        "name",
-        "type reference as 'defined'",
-    )?;
+    let idl_type_name = match idl_type_defined.as_str() {
+        Some(idl_type_name) => idl_type_name,
+        None => {
+            let idl_type_defined_object =
+                idl_as_object_or_else(idl_type_defined, "type defined")?;
+            idl_object_get_key_as_str_or_else(
+                idl_type_defined_object,
+                "name",
+                "type defined name",
+            )?
+        },
+    };
     let idl_type = idl_object_get_key_or_else(
         idl_types,
         idl_type_name,
@@ -204,7 +207,7 @@ fn idl_type_data_read_value_leaf(
         ($type:ident) => {
             let data_length = size_of::<$type>();
             let data_integer = $type::from_le_bytes(
-                data[..data_length]
+                idl_slice_from_bytes(data, 0, data_length)?
                     .try_into()
                     .map_err(ToolboxIdlError::TryFromSlice)?,
             );
@@ -236,10 +239,10 @@ fn idl_type_data_read_value_leaf(
         return_from_integer_bytes!(i64);
     }
     macro_rules! return_from_converted_bytes {
-        ($data_bytes:expr, $type:ident, $conversion:ident) => {
+        ($type:ident, $conversion:ident) => {
             let data_length = size_of::<$type>();
             let data_integer = $type::from_le_bytes(
-                $data_bytes[..data_length]
+                idl_slice_from_bytes(data, 0, data_length)?
                     .try_into()
                     .map_err(ToolboxIdlError::TryFromSlice)?,
             );
@@ -258,18 +261,18 @@ fn idl_type_data_read_value_leaf(
         fn number_u128(data_integer: u128) -> Option<Number> {
             Number::from_u128(data_integer)
         }
-        return_from_converted_bytes!(data, u128, number_u128);
+        return_from_converted_bytes!(u128, number_u128);
     }
     if idl_type_str == "i128" {
         fn number_i128(data_integer: i128) -> Option<Number> {
             Number::from_i128(data_integer)
         }
-        return_from_converted_bytes!(data, i128, number_i128);
+        return_from_converted_bytes!(i128, number_i128);
     }
     if idl_type_str == "pubkey" || idl_type_str == "publicKey" {
         let data_length = size_of::<Pubkey>();
         let data_pubkey = Pubkey::new_from_array(
-            data[..data_length]
+            idl_slice_from_bytes(data, 0, data_length)?
                 .try_into()
                 .map_err(ToolboxIdlError::TryFromSlice)?,
         );

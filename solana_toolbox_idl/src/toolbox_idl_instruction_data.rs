@@ -14,7 +14,6 @@ use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -37,7 +36,6 @@ impl ToolboxIdl {
             "instructions args",
         )?;
         for idl_instruction_arg in idl_instruction_args {
-            println!("idl_instruction_arg:{:#?}", idl_instruction_arg);
             let idl_instruction_arg_object =
                 idl_as_object_or_else(idl_instruction_arg, "instruction arg")?;
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
@@ -73,9 +71,7 @@ fn idl_type_value_write_data(
     idl_types: &Map<String, Value>,
 ) -> Result<(), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
-        if let Some(idl_type_defined) =
-            idl_object_get_key_as_object(idl_type_object, "defined")
-        {
+        if let Some(idl_type_defined) = idl_type_object.get("defined") {
             return idl_type_value_write_data_defined(
                 data,
                 value,
@@ -119,14 +115,21 @@ fn idl_type_value_write_data(
 fn idl_type_value_write_data_defined(
     data: &mut Vec<u8>,
     value: &Value,
-    idl_type_defined: &Map<String, Value>,
+    idl_type_defined: &Value,
     idl_types: &Map<String, Value>,
 ) -> Result<(), ToolboxIdlError> {
-    let idl_type_name = idl_object_get_key_as_str_or_else(
-        idl_type_defined,
-        "name",
-        "type reference as 'defined'",
-    )?;
+    let idl_type_name = match idl_type_defined.as_str() {
+        Some(idl_type_name) => idl_type_name,
+        None => {
+            let idl_type_defined_object =
+                idl_as_object_or_else(idl_type_defined, "type defined")?;
+            idl_object_get_key_as_str_or_else(
+                idl_type_defined_object,
+                "name",
+                "type defined name",
+            )?
+        },
+    };
     let idl_type = idl_object_get_key_or_else(
         idl_types,
         idl_type_name,

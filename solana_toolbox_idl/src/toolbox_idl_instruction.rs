@@ -20,6 +20,7 @@ impl ToolboxIdl {
             program_id,
             instruction_name,
             instruction_accounts,
+            instruction_args,
         );
         let data =
             self.generate_instruction_data(instruction_name, instruction_args);

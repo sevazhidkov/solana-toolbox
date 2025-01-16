@@ -4,6 +4,8 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
+use spl_associated_token_account::get_associated_token_address;
+use spl_associated_token_account::instruction::create_associated_token_account_idempotent;
 use spl_token::instruction::burn;
 use spl_token::instruction::freeze_account;
 use spl_token::instruction::initialize_mint;
@@ -222,19 +224,16 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
     ) -> Result<Pubkey, ToolboxEndpointError> {
         let token_account =
-            spl_associated_token_account::get_associated_token_address(
-                authority, mint,
-            );
+            ToolboxEndpoint::find_spl_associated_token_account(authority, mint);
         if self.get_spl_token_account(&token_account).await?.is_some() {
             return Ok(token_account);
         }
-        let instruction =
-            spl_associated_token_account::instruction::create_associated_token_account_idempotent(
-                &payer.pubkey(),
-                authority,
-                mint,
-                &spl_token::id(),
-            );
+        let instruction = create_associated_token_account_idempotent(
+            &payer.pubkey(),
+            authority,
+            mint,
+            &spl_token::id(),
+        );
         self.process_instruction(instruction, payer).await?;
         Ok(token_account)
     }
@@ -251,5 +250,12 @@ impl ToolboxEndpoint {
         token_account: &Pubkey,
     ) -> Result<Option<Account>, ToolboxEndpointError> {
         self.get_account_data_unpacked::<Account>(token_account).await
+    }
+
+    pub fn find_spl_associated_token_account(
+        authority: &Pubkey,
+        mint: &Pubkey,
+    ) -> Pubkey {
+        get_associated_token_address(authority, mint)
     }
 }

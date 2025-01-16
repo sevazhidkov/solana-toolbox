@@ -1,4 +1,3 @@
-use bytemuck::AnyBitPattern;
 use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
@@ -11,6 +10,8 @@ use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_read_from_bytes_at;
+use crate::toolbox_idl_utils::idl_slice_from_bytes;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
@@ -43,7 +44,7 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
-        let disciminator = read_from_bytes_at::<u64>(&data, 0)?;
+        let disciminator = idl_read_from_bytes_at::<u64>(&data, 0)?;
         if *disciminator != ToolboxIdl::DISCRIMINATOR {
             return idl_err(&format!(
                 "discriminator is invalid: found {:016X}, expected {:016X}",
@@ -52,16 +53,16 @@ impl ToolboxIdl {
             ));
         }
         let authority_offset = size_of_val(disciminator);
-        let authority = read_from_bytes_at::<Pubkey>(&data, authority_offset)?;
+        let authority =
+            idl_read_from_bytes_at::<Pubkey>(&data, authority_offset)?;
         let length_offset = authority_offset + size_of_val(authority);
-        let length =
-            usize::try_from(*read_from_bytes_at::<u32>(&data, length_offset)?)
-                .map_err(ToolboxIdlError::TryFromInt)?;
-        let content_offset = length_offset + size_of_val(&length);
-        let content = &data[content_offset
-            ..content_offset
-                .checked_add(length)
-                .ok_or_else(ToolboxIdlError::Overflow)?];
+        let length = idl_read_from_bytes_at::<u32>(&data, length_offset)?;
+        let content_offset = length_offset + size_of_val(length);
+        let content = idl_slice_from_bytes(
+            data,
+            content_offset,
+            usize::try_from(*length).map_err(ToolboxIdlError::TryFromInt)?,
+        )?;
         let decompressed =
             inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
         let decoded = String::from_utf8(decompressed)
@@ -101,18 +102,6 @@ impl ToolboxIdl {
             )?,
         })
     }
-}
-
-fn read_from_bytes_at<'a, T: AnyBitPattern>(
-    bytes: &'a [u8],
-    offset: usize,
-) -> Result<&'a T, ToolboxIdlError> {
-    Ok(bytemuck::from_bytes::<T>(
-        &bytes[offset
-            ..offset
-                .checked_add(size_of::<T>())
-                .ok_or_else(ToolboxIdlError::Overflow)?],
-    ))
 }
 
 fn idl_collection_content_mapped_by_name(

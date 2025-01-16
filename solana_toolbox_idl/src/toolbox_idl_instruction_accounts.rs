@@ -25,12 +25,14 @@ impl ToolboxIdl {
         program_id: &Pubkey,
         instruction_name: &str,
         instruction_accounts: &HashMap<String, Pubkey>,
+        instruction_args: &Map<String, Value>,
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         generate_instruction_account_metas(
             self,
             program_id,
             instruction_name,
             instruction_accounts,
+            instruction_args,
         )
     }
 }
@@ -40,6 +42,7 @@ fn generate_instruction_account_metas(
     program_id: &Pubkey,
     instruction_name: &str,
     instruction_accounts: &HashMap<String, Pubkey>, // TODO - this needs to be iteratively resolved
+    _instruction_args: &Map<String, Value>,
 ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
     let idl_accounts = idl_object_get_key_as_array_or_else(
         &idl.instructions_accounts,
@@ -195,9 +198,11 @@ fn idl_account_seed_serialized(
                 idl_account_seed_object
             ))
         },
-        _ => idl_err(&format!(
-            "account seed kind unknown: {}",
-            idl_account_seed_kind
-        )),
+        _ => {
+            idl_err(&format!(
+                "account seed kind unknown: {}",
+                idl_account_seed_kind
+            ))
+        },
     }
 }

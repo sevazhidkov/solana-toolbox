@@ -1,3 +1,4 @@
+use bytemuck::AnyBitPattern;
 use serde_json::Map;
 use serde_json::Value;
 
@@ -40,20 +41,6 @@ pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
         idl_object_get_key_as_array(object, key),
         context,
         "missing array at key",
-        key,
-        object,
-    )
-}
-
-pub(crate) fn idl_object_get_key_as_object_or_else<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-    context: &str,
-) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
-    idl_ok_or_else(
-        idl_object_get_key_as_object(object, key),
-        context,
-        "missing object at key",
         key,
         object,
     )
@@ -169,4 +156,31 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized, P: std::fmt::Debug>(
 
 pub(crate) fn idl_err<T>(context: &str) -> Result<T, ToolboxIdlError> {
     Err(ToolboxIdlError::Custom(format!("IDL: {}", context)))
+}
+
+pub(crate) fn idl_read_from_bytes_at<'a, T: AnyBitPattern>(
+    bytes: &'a [u8],
+    offset: usize,
+) -> Result<&'a T, ToolboxIdlError> {
+    let length = size_of::<T>();
+    let slice = idl_slice_from_bytes(bytes, offset, length)?;
+    bytemuck::try_from_bytes::<T>(slice).map_err(ToolboxIdlError::PodCastError)
+}
+
+pub(crate) fn idl_slice_from_bytes<'a>(
+    bytes: &'a [u8],
+    offset: usize,
+    length: usize,
+) -> Result<&'a [u8], ToolboxIdlError> {
+    let end =
+        offset.checked_add(length).ok_or_else(ToolboxIdlError::Overflow)?;
+    if bytes.len() < end {
+        return idl_err(&format!(
+            "Unable to read bytes {} at offset {} (on byte slice of lenght {})",
+            length,
+            offset,
+            bytes.len()
+        ));
+    }
+    Ok(&bytes[offset..end])
 }

@@ -4,11 +4,13 @@ use std::fs::read_to_string;
 use serde_json::Map;
 use serde_json::Number;
 use serde_json::Value;
+use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
 pub async fn file_idl_anchor_0_30() {
+    // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
         &read_to_string(
             "./tests/fixtures/dummy_crowd_funding_anchor_0_30.json",
@@ -16,62 +18,64 @@ pub async fn file_idl_anchor_0_30() {
         .unwrap(),
     )
     .unwrap();
-
+    // Important account addresses
     let program_id =
         Pubkey::from_str_const("UC2cQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
-
     let payer = Pubkey::new_unique();
     let authority = Pubkey::new_unique();
     let campaign = Pubkey::new_unique();
     let collateral_mint = Pubkey::new_unique();
     let redeemable_mint = Pubkey::new_unique();
-
+    // Prepare instruction accounts
     let mut instruction_accounts = HashMap::new();
     instruction_accounts.insert("payer".into(), payer);
     instruction_accounts.insert("authority".into(), authority);
     instruction_accounts.insert("campaign".into(), campaign); // TODO - this should be auto-resolved from params
     instruction_accounts.insert("collateral_mint".into(), collateral_mint);
     instruction_accounts.insert("redeemable_mint".into(), redeemable_mint);
-
-    let mut instruction_args_params_metadata_bytes = vec![];
-    for _index in 0..512 {
-        instruction_args_params_metadata_bytes
-            .push(Value::Number(Number::from(7)));
-    }
-
-    let mut instruction_args_params_metadata = Map::new();
-    instruction_args_params_metadata
-        .insert("length".into(), Value::Number(Number::from(2)));
-    instruction_args_params_metadata.insert(
-        "bytes".into(),
-        Value::Array(instruction_args_params_metadata_bytes),
-    );
-
-    let mut instruction_args_params = Map::new();
-    instruction_args_params
-        .insert("index".into(), Value::Number(Number::from(42u64)));
-    instruction_args_params.insert(
-        "funding_goal_collateral_amount".into(),
-        Value::Number(Number::from(42)),
-    );
-    instruction_args_params.insert(
-        "funding_phase_duration_seconds".into(),
-        Value::Number(Number::from(42)),
-    );
-    instruction_args_params.insert(
-        "funding_goal_collateral_amount".into(),
-        Value::Number(Number::from(42)),
-    );
-    instruction_args_params.insert(
-        "metadata".into(),
-        Value::Object(instruction_args_params_metadata),
-    );
-
+    // Prepare instruction args
     let mut instruction_args = Map::new();
-    instruction_args
-        .insert("params".into(), Value::Object(instruction_args_params));
-
-    let dada = idl
+    instruction_args.insert(
+        "params".into(),
+        Value::Object({
+            let mut params = Map::new();
+            params.insert("index".into(), Value::Number(Number::from(11)));
+            params.insert(
+                "funding_goal_collateral_amount".into(),
+                Value::Number(Number::from(41)),
+            );
+            params.insert(
+                "funding_phase_duration_seconds".into(),
+                Value::Number(Number::from(42)),
+            );
+            params.insert(
+                "metadata".into(),
+                Value::Object({
+                    let mut metadata = Map::new();
+                    metadata.insert(
+                        "length".into(),
+                        Value::Number(Number::from(20)),
+                    );
+                    metadata.insert(
+                        "bytes".into(),
+                        Value::Array({
+                            let mut bytes = vec![];
+                            for index in 0..512 {
+                                bytes.push(Value::Number(Number::from(
+                                    index % 100,
+                                )));
+                            }
+                            bytes
+                        }),
+                    );
+                    metadata
+                }),
+            );
+            params
+        }),
+    );
+    // Actually generate the instruction
+    let instruction = idl
         .generate_instruction(
             &program_id,
             "campaign_create",
@@ -79,7 +83,49 @@ pub async fn file_idl_anchor_0_30() {
             &instruction_args,
         )
         .unwrap();
-    eprintln!("dada:{:?}", dada);
+    // Generate expected accounts
+    //let campaign_collateral = Pubkey::new_unique();
+    let a_token_program =
+        Pubkey::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+    let token_program =
+        Pubkey::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+    let system_program =
+        Pubkey::from_str_const("11111111111111111111111111111111");
+    // Check instruction content
+    assert_eq!(program_id, instruction.program_id);
+    // Check instruction data
+    assert_eq!(8 + 8 + 8 + 4 + 2 + 512, instruction.data.len());
+    assert_eq!(bytemuck::bytes_of::<u64>(&11), &instruction.data[8..16]);
+    assert_eq!(bytemuck::bytes_of::<u64>(&41), &instruction.data[16..24]);
+    assert_eq!(bytemuck::bytes_of::<u32>(&42), &instruction.data[24..28]);
+    assert_eq!(bytemuck::bytes_of::<u16>(&20), &instruction.data[28..30]);
+    // Check instruction accounts
+    assert_eq!(9, instruction.accounts.len());
+    assert_account(payer, true, true, instruction.accounts.get(0));
+    assert_account(authority, false, true, instruction.accounts.get(1));
+    assert_account(campaign, true, false, instruction.accounts.get(2));
+    /* // TODO - check campaign_collateral
+    assert_account(
+        campaign_collateral,
+        true,
+        false,
+        instruction.accounts.get(2),
+    ); */
+    assert_account(collateral_mint, false, false, instruction.accounts.get(4));
+    assert_account(redeemable_mint, true, true, instruction.accounts.get(5));
+    assert_account(a_token_program, false, false, instruction.accounts.get(6));
+    assert_account(token_program, false, false, instruction.accounts.get(7));
+    assert_account(system_program, false, false, instruction.accounts.get(8));
+}
 
-    panic!("YESSSS :ok:");
+fn assert_account(
+    address: Pubkey,
+    writable: bool,
+    signer: bool,
+    account: Option<&AccountMeta>,
+) {
+    let account = account.unwrap();
+    assert_eq!(address, account.pubkey);
+    assert_eq!(writable, account.is_writable);
+    assert_eq!(signer, account.is_signer);
 }

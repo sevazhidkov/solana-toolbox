@@ -7,6 +7,7 @@ pub enum ToolboxIdlError {
     ParsePubkey(solana_sdk::pubkey::ParsePubkeyError),
     TryFromInt(std::num::TryFromIntError),
     TryFromSlice(std::array::TryFromSliceError),
+    PodCastError(bytemuck::PodCastError),
     Inflate(String),
     FromUtf8(std::string::FromUtf8Error),
     SerdeJson(serde_json::Error),
