@@ -17,17 +17,17 @@ use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_type_from_bytes_at;
 
 impl ToolboxIdl {
-    pub fn type_deserialize(
+    pub fn type_reader(
         &self,
         idl_type: &Value,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        idl_type_deserialize(&self.types, idl_type, data, data_offset)
+        idl_type_reader(&self.types, idl_type, data, data_offset)
     }
 }
 
-fn idl_type_deserialize(
+fn idl_type_reader(
     idl_types: &Map<String, Value>,
     idl_type: &Value,
     data: &[u8],
@@ -35,7 +35,7 @@ fn idl_type_deserialize(
 ) -> Result<(usize, Value), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         if let Some(idl_type_defined) = idl_type_object.get("defined") {
-            return idl_type_deserialize_defined(
+            return idl_type_reader_defined(
                 idl_types,
                 idl_type_defined,
                 data,
@@ -43,7 +43,7 @@ fn idl_type_deserialize(
             );
         }
         if let Some(idl_type_option) = idl_type_object.get("option") {
-            return idl_type_deserialize_option(
+            return idl_type_reader_option(
                 idl_types,
                 idl_type_option,
                 data,
@@ -54,7 +54,7 @@ fn idl_type_deserialize(
             idl_object_get_key_as_str(idl_type_object, "kind")
         {
             if idl_type_kind == "struct" {
-                return idl_type_deserialize_struct(
+                return idl_type_reader_struct(
                     idl_types,
                     idl_type_object,
                     data,
@@ -65,7 +65,7 @@ fn idl_type_deserialize(
         if let Some(idl_type_array) =
             idl_object_get_key_as_array(idl_type_object, "array")
         {
-            return idl_type_deserialize_array(
+            return idl_type_reader_array(
                 idl_types,
                 idl_type_array,
                 data,
@@ -73,7 +73,7 @@ fn idl_type_deserialize(
             );
         }
         if let Some(idl_type_vec) = idl_type_object.get("vec") {
-            return idl_type_deserialize_vec(
+            return idl_type_reader_vec(
                 idl_types,
                 idl_type_vec,
                 data,
@@ -86,12 +86,12 @@ fn idl_type_deserialize(
         ));
     }
     if let Some(idl_type_str) = idl_type.as_str() {
-        return idl_type_deserialize_leaf(idl_type_str, data, data_offset);
+        return idl_type_reader_leaf(idl_type_str, data, data_offset);
     }
     idl_err(&format!("type is unsupported: {:?}", idl_type))
 }
 
-fn idl_type_deserialize_defined(
+fn idl_type_reader_defined(
     idl_types: &Map<String, Value>,
     idl_type_defined: &Value,
     data: &[u8],
@@ -114,10 +114,10 @@ fn idl_type_deserialize_defined(
         idl_type_name,
         "type definitions",
     )?;
-    return idl_type_deserialize(idl_types, idl_type, data, data_offset);
+    return idl_type_reader(idl_types, idl_type, data, data_offset);
 }
 
-fn idl_type_deserialize_option(
+fn idl_type_reader_option(
     idl_types: &Map<String, Value>,
     idl_type_option: &Value,
     data: &[u8],
@@ -126,12 +126,8 @@ fn idl_type_deserialize_option(
     let data_flag = *idl_type_from_bytes_at::<u8>(data, data_offset)?;
     let mut data_size = size_of_val(&data_flag);
     if data_flag > 0 {
-        let (data_content_size, data_content_value) = idl_type_deserialize(
-            idl_types,
-            idl_type_option,
-            data,
-            data_offset + 1,
-        )?;
+        let (data_content_size, data_content_value) =
+            idl_type_reader(idl_types, idl_type_option, data, data_offset + 1)?;
         data_size += data_content_size;
         Ok((data_size, data_content_value))
     } else {
@@ -139,7 +135,7 @@ fn idl_type_deserialize_option(
     }
 }
 
-fn idl_type_deserialize_struct(
+fn idl_type_reader_struct(
     idl_types: &Map<String, Value>,
     idl_type_struct: &Map<String, Value>,
     data: &[u8],
@@ -165,7 +161,7 @@ fn idl_type_deserialize_struct(
             "type",
             "type 'struct' field",
         )?;
-        let (data_field_size, data_field_value) = idl_type_deserialize(
+        let (data_field_size, data_field_value) = idl_type_reader(
             idl_types,
             idl_field_type,
             data,
@@ -177,7 +173,7 @@ fn idl_type_deserialize_struct(
     return Ok((data_size, Value::Object(data_fields)));
 }
 
-fn idl_type_deserialize_array(
+fn idl_type_reader_array(
     idl_types: &Map<String, Value>,
     idl_type_array: &Vec<Value>,
     data: &[u8],
@@ -195,7 +191,7 @@ fn idl_type_deserialize_array(
     let mut data_size = 0;
     let mut data_items = vec![];
     for _index in 0..idl_item_length {
-        let (data_item_size, data_item_value) = idl_type_deserialize(
+        let (data_item_size, data_item_value) = idl_type_reader(
             idl_types,
             idl_item_type,
             data,
@@ -208,7 +204,7 @@ fn idl_type_deserialize_array(
 }
 
 // TODO - this needs to be tested on on-chain accounts
-fn idl_type_deserialize_vec(
+fn idl_type_reader_vec(
     idl_types: &Map<String, Value>,
     idl_type_vec: &Value,
     data: &[u8],
@@ -220,7 +216,7 @@ fn idl_type_deserialize_vec(
     for _index in
         0..usize::try_from(data_count).map_err(ToolboxIdlError::TryFromInt)?
     {
-        let (data_item_size, data_item_value) = idl_type_deserialize(
+        let (data_item_size, data_item_value) = idl_type_reader(
             idl_types,
             idl_type_vec,
             data,
@@ -232,7 +228,7 @@ fn idl_type_deserialize_vec(
     return Ok((data_size, Value::Array(data_items)));
 }
 
-fn idl_type_deserialize_leaf(
+fn idl_type_reader_leaf(
     idl_type_str: &str,
     data: &[u8],
     data_offset: usize,

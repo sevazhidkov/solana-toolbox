@@ -14,8 +14,8 @@ impl ToolboxIdl {
         instruction_name: &str,
         instruction_args: &Map<String, Value>,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
-        let mut data: Vec<u8> = vec![];
-        data.extend_from_slice(
+        let mut instruction_data: Vec<u8> = vec![];
+        instruction_data.extend_from_slice(
             &ToolboxIdl::compute_instruction_discriminator(instruction_name)
                 .to_le_bytes(),
         );
@@ -42,12 +42,12 @@ impl ToolboxIdl {
                 idl_instruction_arg_name,
                 "instruction params",
             )?;
-            self.type_serialize(
+            self.type_writer(
                 idl_instruction_arg_type,
                 instruction_arg,
-                &mut data,
+                &mut instruction_data,
             )?;
         }
-        Ok(data)
+        Ok(instruction_data)
     }
 }

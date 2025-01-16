@@ -159,6 +159,7 @@ fn idl_account_seed_serialized(
                 "value",
                 "account seed 'kind:const'",
             )?;
+            // TODO - supported typed consts
             let mut account_seed = vec![];
             for idl_account_seed_byte in idl_account_seed_value {
                 account_seed.push(
@@ -177,6 +178,7 @@ fn idl_account_seed_serialized(
                 "path",
                 "account seed 'kind:account'",
             )?;
+            // TODO - Support typed accounts
             let account_address = idl_ok_or_else(
                 account_addresses.get(idl_account_seed_path),
                 "account seed 'kind:account'",
@@ -198,11 +200,9 @@ fn idl_account_seed_serialized(
                 idl_account_seed_object
             ))
         },
-        _ => {
-            idl_err(&format!(
-                "account seed kind unknown: {}",
-                idl_account_seed_kind
-            ))
-        },
+        _ => idl_err(&format!(
+            "account seed kind unknown: {}",
+            idl_account_seed_kind
+        )),
     }
 }

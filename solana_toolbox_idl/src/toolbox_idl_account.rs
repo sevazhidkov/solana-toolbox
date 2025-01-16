@@ -45,7 +45,7 @@ impl ToolboxIdl {
         }
         let data_header_size = size_of_val(&data_discriminator);
         let (data_content_size, data_content_value) =
-            self.type_deserialize(idl_type, account_data, data_header_size)?;
+            self.type_reader(idl_type, account_data, data_header_size)?;
         Ok((data_header_size + data_content_size, data_content_value))
     }
 }

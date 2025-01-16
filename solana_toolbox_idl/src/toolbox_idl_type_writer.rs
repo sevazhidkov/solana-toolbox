@@ -20,17 +20,17 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
 impl ToolboxIdl {
-    pub fn type_serialize(
+    pub fn type_writer(
         &self,
         idl_type: &Value,
         value: &Value,
         data: &mut Vec<u8>,
     ) -> Result<(), ToolboxIdlError> {
-        idl_type_serialize(&self.types, idl_type, value, data)
+        idl_type_writer(&self.types, idl_type, value, data)
     }
 }
 
-pub fn idl_type_serialize(
+pub fn idl_type_writer(
     idl_types: &Map<String, Value>,
     idl_type: &Value,
     value: &Value,
@@ -38,7 +38,7 @@ pub fn idl_type_serialize(
 ) -> Result<(), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         if let Some(idl_type_defined) = idl_type_object.get("defined") {
-            return idl_type_serialize_defined(
+            return idl_type_writer_defined(
                 idl_types,
                 idl_type_defined,
                 value,
@@ -46,7 +46,7 @@ pub fn idl_type_serialize(
             );
         }
         if let Some(idl_type_option) = idl_type_object.get("option") {
-            return idl_type_serialize_option(
+            return idl_type_writer_option(
                 idl_types,
                 idl_type_option,
                 value,
@@ -57,7 +57,7 @@ pub fn idl_type_serialize(
             idl_object_get_key_as_str(idl_type_object, "kind")
         {
             if idl_type_kind == "struct" {
-                return idl_type_serialize_struct(
+                return idl_type_writer_struct(
                     idl_types,
                     idl_type_object,
                     value,
@@ -68,7 +68,7 @@ pub fn idl_type_serialize(
         if let Some(idl_type_array) =
             idl_object_get_key_as_array(idl_type_object, "array")
         {
-            return idl_type_serialize_array(
+            return idl_type_writer_array(
                 idl_types,
                 idl_type_array,
                 value,
@@ -76,12 +76,7 @@ pub fn idl_type_serialize(
             );
         }
         if let Some(idl_type_vec) = idl_type_object.get("vec") {
-            return idl_type_serialize_vec(
-                idl_types,
-                idl_type_vec,
-                value,
-                data,
-            );
+            return idl_type_writer_vec(idl_types, idl_type_vec, value, data);
         }
         return idl_err(&format!(
             "type object is unknown: {:?}",
@@ -89,12 +84,12 @@ pub fn idl_type_serialize(
         ));
     }
     if let Some(idl_type_str) = idl_type.as_str() {
-        return idl_type_serialize_leaf(idl_type_str, value, data);
+        return idl_type_writer_leaf(idl_type_str, value, data);
     }
     idl_err(&format!("type is unsupported: {:?}", idl_type))
 }
 
-pub fn idl_type_serialize_defined(
+pub fn idl_type_writer_defined(
     idl_types: &Map<String, Value>,
     idl_type_defined: &Value,
     value: &Value,
@@ -117,10 +112,10 @@ pub fn idl_type_serialize_defined(
         idl_type_name,
         "type definitions",
     )?;
-    return idl_type_serialize(idl_types, idl_type, value, data);
+    return idl_type_writer(idl_types, idl_type, value, data);
 }
 
-pub fn idl_type_serialize_option(
+pub fn idl_type_writer_option(
     idl_types: &Map<String, Value>,
     idl_type_option: &Value,
     value: &Value,
@@ -131,11 +126,11 @@ pub fn idl_type_serialize_option(
         Ok(())
     } else {
         data.extend_from_slice(bytemuck::bytes_of::<u8>(&1));
-        idl_type_serialize(idl_types, idl_type_option, value, data)
+        idl_type_writer(idl_types, idl_type_option, value, data)
     }
 }
 
-pub fn idl_type_serialize_struct(
+pub fn idl_type_writer_struct(
     idl_types: &Map<String, Value>,
     idl_type_struct: &Map<String, Value>,
     value: &Value,
@@ -165,12 +160,12 @@ pub fn idl_type_serialize_struct(
             idl_field_name,
             "value", // TODO - better error message
         )?;
-        idl_type_serialize(idl_types, idl_field_type, value_field, data)?;
+        idl_type_writer(idl_types, idl_field_type, value_field, data)?;
     }
     Ok(())
 }
 
-pub fn idl_type_serialize_array(
+pub fn idl_type_writer_array(
     idl_types: &Map<String, Value>,
     idl_type_array: &Vec<Value>,
     value: &Value,
@@ -197,12 +192,12 @@ pub fn idl_type_serialize_array(
     }
     for index in 0..value_array.len() {
         let value_item = value_array.get(index).unwrap();
-        idl_type_serialize(idl_types, idl_item_type, value_item, data)?;
+        idl_type_writer(idl_types, idl_item_type, value_item, data)?;
     }
     Ok(())
 }
 
-pub fn idl_type_serialize_vec(
+pub fn idl_type_writer_vec(
     idl_types: &Map<String, Value>,
     idl_type_vec: &Value,
     value: &Value,
@@ -214,12 +209,12 @@ pub fn idl_type_serialize_vec(
     data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_count));
     for index in 0..value_array.len() {
         let value_item = value_array.get(index).unwrap();
-        idl_type_serialize(idl_types, idl_type_vec, value_item, data)?;
+        idl_type_writer(idl_types, idl_type_vec, value_item, data)?;
     }
     return Ok(());
 }
 
-pub fn idl_type_serialize_leaf(
+pub fn idl_type_writer_leaf(
     idl_type_str: &str,
     value: &Value,
     data: &mut Vec<u8>,

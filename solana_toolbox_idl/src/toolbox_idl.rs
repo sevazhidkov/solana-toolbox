@@ -15,9 +15,9 @@ use crate::toolbox_idl_utils::idl_type_from_bytes_at;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
-    pub account_types: Map<String, Value>,
     pub types: Map<String, Value>,
-    pub errors: Map<String, Value>,
+    pub account_types: Map<String, Value>,
+    pub errors_codes: Map<String, Value>,
     pub instructions_accounts: Map<String, Value>,
     pub instructions_args: Map<String, Value>,
 }
@@ -75,17 +75,17 @@ impl ToolboxIdl {
             from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
         let idl_root_object = idl_as_object_or_else(&idl_root_value, "root")?;
         Ok(ToolboxIdl {
-            account_types: idl_collection_content_mapped_by_name(
-                idl_root_object,
-                "accounts",
-                "type",
-            )?,
             types: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "types",
                 "type",
             )?,
-            errors: idl_collection_content_mapped_by_name(
+            account_types: idl_collection_content_mapped_by_name(
+                idl_root_object,
+                "accounts",
+                "type",
+            )?,
+            errors_codes: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "errors",
                 "code",
