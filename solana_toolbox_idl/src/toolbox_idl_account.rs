@@ -14,9 +14,8 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::toolbox_idl_utils::idl_ok_or_else;
-use crate::toolbox_idl_utils::idl_read_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
+use crate::toolbox_idl_utils::idl_type_from_bytes_at;
 
 impl ToolboxIdl {
     pub async fn get_account(
@@ -37,17 +36,14 @@ impl ToolboxIdl {
         account_type: &str,
         account_data: &[u8],
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        let idl_type = idl_ok_or_else(
-            self.accounts
-                .get(account_type)
-                .or_else(|| self.types.get(account_type)),
-            "account type",
-            "is unknown",
-            account_type,
-            &self.types,
-        )?;
+        let idl_type = match self.account_types.get(account_type) {
+            Some(idl_account_type) => idl_account_type,
+            None => {
+                idl_object_get_key_or_else(&self.types, account_type, "types")?
+            },
+        };
         let data_discriminator =
-            *idl_read_from_bytes_at::<u64>(account_data, 0)?;
+            *idl_type_from_bytes_at::<u64>(account_data, 0)?;
         let expected_discriminator =
             ToolboxIdl::compute_account_discriminator(account_type);
         if data_discriminator != expected_discriminator {
@@ -79,6 +75,13 @@ fn idl_type_data_read_value(
                 idl_types,
             );
         }
+        if let Some(idl_type_option) = idl_type_object.get("option") {
+            return idl_type_data_read_value_option(
+                data,
+                idl_type_option,
+                idl_types,
+            );
+        }
         if let Some(idl_type_kind) =
             idl_object_get_key_as_str(idl_type_object, "kind")
         {
@@ -98,6 +101,9 @@ fn idl_type_data_read_value(
                 idl_type_array,
                 idl_types,
             );
+        }
+        if let Some(idl_type_vec) = idl_type_object.get("vec") {
+            return idl_type_data_read_value_vec(data, idl_type_vec, idl_types);
         }
         return idl_err(&format!(
             "type object is unknown: {:?}",
@@ -133,6 +139,21 @@ fn idl_type_data_read_value_defined(
         "type definitions",
     )?;
     return idl_type_data_read_value(data, idl_type, idl_types);
+}
+
+fn idl_type_data_read_value_option(
+    data: &[u8],
+    idl_type_option: &Value,
+    idl_types: &Map<String, Value>,
+) -> Result<(usize, Value), ToolboxIdlError> {
+    let flag = *idl_type_from_bytes_at::<u8>(data, 0)?;
+    if flag > 0 {
+        let (data_content_length, data_content_value) =
+            idl_type_data_read_value(&data[1..], idl_type_option, idl_types)?;
+        Ok((1 + data_content_length, data_content_value))
+    } else {
+        Ok((1, Value::Null))
+    }
 }
 
 fn idl_type_data_read_value_struct(
@@ -199,84 +220,115 @@ fn idl_type_data_read_value_array(
     return Ok((data_length, Value::Array(data_items)));
 }
 
+// TODO - this needs to be tested on on-chain accounts
+fn idl_type_data_read_value_vec(
+    data: &[u8],
+    idl_type_vec: &Value,
+    idl_types: &Map<String, Value>,
+) -> Result<(usize, Value), ToolboxIdlError> {
+    let data_count = *idl_type_from_bytes_at::<u32>(data, 0)?;
+    let mut data_length = 4;
+    let mut data_items = vec![];
+    for _index in
+        0..usize::try_from(data_count).map_err(ToolboxIdlError::TryFromInt)?
+    {
+        let (data_item_length, data_item_value) = idl_type_data_read_value(
+            &data[data_length..],
+            idl_type_vec,
+            idl_types,
+        )?;
+        data_length += data_item_length;
+        data_items.push(data_item_value);
+    }
+    return Ok((data_length, Value::Array(data_items)));
+}
+
 fn idl_type_data_read_value_leaf(
     data: &[u8],
     idl_type_str: &str,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    macro_rules! return_from_integer_bytes {
-        ($type:ident) => {
-            let data_length = size_of::<$type>();
-            let data_integer = $type::from_le_bytes(
-                idl_slice_from_bytes(data, 0, data_length)?
-                    .try_into()
-                    .map_err(ToolboxIdlError::TryFromSlice)?,
-            );
-            return Ok((data_length, Value::Number(Number::from(data_integer))));
-        };
+    macro_rules! number_from_data_as_integer {
+        ($type:ident) => {{
+            let integer = *idl_type_from_bytes_at::<$type>(data, 0)?;
+            Ok((size_of::<$type>(), Value::Number(Number::from(integer))))
+        }};
     }
     if idl_type_str == "u8" {
-        return_from_integer_bytes!(u8);
+        return number_from_data_as_integer!(u8);
     }
     if idl_type_str == "i8" {
-        return_from_integer_bytes!(i8);
+        return number_from_data_as_integer!(i8);
     }
     if idl_type_str == "u16" {
-        return_from_integer_bytes!(u16);
+        return number_from_data_as_integer!(u16);
     }
     if idl_type_str == "i16" {
-        return_from_integer_bytes!(i16);
+        return number_from_data_as_integer!(i16);
     }
     if idl_type_str == "u32" {
-        return_from_integer_bytes!(u32);
+        return number_from_data_as_integer!(u32);
     }
     if idl_type_str == "i32" {
-        return_from_integer_bytes!(i32);
+        return number_from_data_as_integer!(i32);
     }
     if idl_type_str == "u64" {
-        return_from_integer_bytes!(u64);
+        return number_from_data_as_integer!(u64);
     }
     if idl_type_str == "i64" {
-        return_from_integer_bytes!(i64);
+        return number_from_data_as_integer!(i64);
     }
-    macro_rules! return_from_converted_bytes {
-        ($type:ident, $conversion:ident) => {
-            let data_length = size_of::<$type>();
-            let data_integer = $type::from_le_bytes(
-                idl_slice_from_bytes(data, 0, data_length)?
-                    .try_into()
-                    .map_err(ToolboxIdlError::TryFromSlice)?,
-            );
-            return Ok((
-                data_length,
-                Value::Number($conversion(data_integer).ok_or_else(|| {
+    macro_rules! number_from_converted_data_integer {
+        ($type:ident, $conversion:ident) => {{
+            let integer = *idl_type_from_bytes_at::<$type>(data, 0)?;
+            Ok((
+                size_of::<$type>(),
+                Value::Number($conversion(integer).ok_or_else(|| {
                     ToolboxIdlError::Custom(format!(
                         "JSON Invalid number: {}",
-                        data_integer
+                        integer
                     ))
                 })?),
-            ));
-        };
+            ))
+        }};
     }
     if idl_type_str == "u128" {
-        fn number_u128(data_integer: u128) -> Option<Number> {
-            Number::from_u128(data_integer)
+        fn number_from_u128(integer: u128) -> Option<Number> {
+            Number::from_u128(integer)
         }
-        return_from_converted_bytes!(u128, number_u128);
+        return number_from_converted_data_integer!(u128, number_from_u128);
     }
     if idl_type_str == "i128" {
-        fn number_i128(data_integer: i128) -> Option<Number> {
-            Number::from_i128(data_integer)
+        fn number_from_i128(integer: i128) -> Option<Number> {
+            Number::from_i128(integer)
         }
-        return_from_converted_bytes!(i128, number_i128);
+        return number_from_converted_data_integer!(i128, number_from_i128);
+    }
+    if idl_type_str == "bool" {
+        let flag = *idl_type_from_bytes_at::<u8>(data, 0)?;
+        return Ok((
+            size_of_val(&flag),
+            Value::Bool(if flag == 0 { false } else { true }),
+        ));
+    }
+    // TODO - this needs to be tested with on-chain accounts
+    if idl_type_str == "string" {
+        let length = *idl_type_from_bytes_at::<u32>(data, 0)?;
+        let utf8_encoded = idl_slice_from_bytes(
+            data,
+            4,
+            usize::try_from(length).map_err(ToolboxIdlError::TryFromInt)?,
+        )?;
+        return Ok((
+            size_of_val(&length) + size_of_val(utf8_encoded),
+            Value::String(
+                String::from_utf8(utf8_encoded.to_vec())
+                    .map_err(ToolboxIdlError::FromUtf8)?,
+            ),
+        ));
     }
     if idl_type_str == "pubkey" || idl_type_str == "publicKey" {
-        let data_length = size_of::<Pubkey>();
-        let data_pubkey = Pubkey::new_from_array(
-            idl_slice_from_bytes(data, 0, data_length)?
-                .try_into()
-                .map_err(ToolboxIdlError::TryFromSlice)?,
-        );
-        return Ok((data_length, Value::String(data_pubkey.to_string())));
+        let pubkey = *idl_type_from_bytes_at::<Pubkey>(data, 0)?;
+        return Ok((size_of_val(&pubkey), Value::String(pubkey.to_string())));
     }
     return idl_err(&format!(
         "type 'string': unknown type descriptor: {}",

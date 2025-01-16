@@ -139,6 +139,19 @@ pub(crate) fn idl_as_i128_or_else(
     )?))
 }
 
+pub(crate) fn idl_as_bool_or_else(
+    value: &Value,
+    context: &str,
+) -> Result<bool, ToolboxIdlError> {
+    Ok(*idl_ok_or_else(
+        value.as_bool().as_ref(),
+        context,
+        "was expected to be of type",
+        "i128",
+        value,
+    )?)
+}
+
 pub(crate) fn idl_ok_or_else<'a, T: ?Sized, P: std::fmt::Debug>(
     option: Option<&'a T>,
     message_context: &str,
@@ -158,7 +171,7 @@ pub(crate) fn idl_err<T>(context: &str) -> Result<T, ToolboxIdlError> {
     Err(ToolboxIdlError::Custom(format!("IDL: {}", context)))
 }
 
-pub(crate) fn idl_read_from_bytes_at<'a, T: AnyBitPattern>(
+pub(crate) fn idl_type_from_bytes_at<'a, T: AnyBitPattern>(
     bytes: &'a [u8],
     offset: usize,
 ) -> Result<&'a T, ToolboxIdlError> {

@@ -10,12 +10,12 @@ use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_idl_utils::idl_read_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
+use crate::toolbox_idl_utils::idl_type_from_bytes_at;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
-    pub accounts: Map<String, Value>,
+    pub account_types: Map<String, Value>,
     pub types: Map<String, Value>,
     pub errors: Map<String, Value>,
     pub instructions_accounts: Map<String, Value>,
@@ -44,7 +44,7 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
-        let disciminator = idl_read_from_bytes_at::<u64>(&data, 0)?;
+        let disciminator = idl_type_from_bytes_at::<u64>(&data, 0)?;
         if *disciminator != ToolboxIdl::DISCRIMINATOR {
             return idl_err(&format!(
                 "discriminator is invalid: found {:016X}, expected {:016X}",
@@ -54,9 +54,9 @@ impl ToolboxIdl {
         }
         let authority_offset = size_of_val(disciminator);
         let authority =
-            idl_read_from_bytes_at::<Pubkey>(&data, authority_offset)?;
+            idl_type_from_bytes_at::<Pubkey>(&data, authority_offset)?;
         let length_offset = authority_offset + size_of_val(authority);
-        let length = idl_read_from_bytes_at::<u32>(&data, length_offset)?;
+        let length = idl_type_from_bytes_at::<u32>(&data, length_offset)?;
         let content_offset = length_offset + size_of_val(length);
         let content = idl_slice_from_bytes(
             data,
@@ -75,7 +75,7 @@ impl ToolboxIdl {
             from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
         let idl_root_object = idl_as_object_or_else(&idl_root_value, "root")?;
         Ok(ToolboxIdl {
-            accounts: idl_collection_content_mapped_by_name(
+            account_types: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "accounts",
                 "type",

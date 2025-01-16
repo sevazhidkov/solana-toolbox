@@ -23,7 +23,7 @@ pub async fn mainnet_beta_idl_anchor_0_29() {
         .unwrap();
     // Check the accounts in the IDL
     let mut account_names = HashSet::new();
-    for account_item in idl.accounts.iter() {
+    for account_item in idl.account_types.iter() {
         account_names.insert(account_item.0.to_owned());
     }
     assert_eq!(2, account_names.len());

@@ -7,6 +7,7 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
+use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_i128_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_str_or_else;
@@ -17,7 +18,6 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdl {
     pub fn generate_instruction_data(
@@ -79,6 +79,14 @@ fn idl_type_value_write_data(
                 idl_types,
             );
         }
+        if let Some(idl_type_option) = idl_type_object.get("option") {
+            return idl_type_value_write_data_option(
+                data,
+                value,
+                idl_type_option,
+                idl_types,
+            );
+        }
         if let Some(idl_type_kind) =
             idl_object_get_key_as_str(idl_type_object, "kind")
         {
@@ -98,6 +106,14 @@ fn idl_type_value_write_data(
                 data,
                 value,
                 idl_type_array,
+                idl_types,
+            );
+        }
+        if let Some(idl_type_vec) = idl_type_object.get("vec") {
+            return idl_type_value_write_data_vec(
+                data,
+                value,
+                idl_type_vec,
                 idl_types,
             );
         }
@@ -138,6 +154,21 @@ fn idl_type_value_write_data_defined(
     return idl_type_value_write_data(data, value, idl_type, idl_types);
 }
 
+fn idl_type_value_write_data_option(
+    data: &mut Vec<u8>,
+    value: &Value,
+    idl_type_option: &Value,
+    idl_types: &Map<String, Value>,
+) -> Result<(), ToolboxIdlError> {
+    if value.is_null() {
+        data.extend_from_slice(bytemuck::bytes_of::<u8>(&0));
+        Ok(())
+    } else {
+        data.extend_from_slice(bytemuck::bytes_of::<u8>(&1));
+        idl_type_value_write_data(data, value, idl_type_option, idl_types)
+    }
+}
+
 fn idl_type_value_write_data_struct(
     data: &mut Vec<u8>,
     value: &Value,
@@ -175,7 +206,7 @@ fn idl_type_value_write_data_struct(
             idl_types,
         )?;
     }
-    return Ok(());
+    Ok(())
 }
 
 fn idl_type_value_write_data_array(
@@ -203,15 +234,26 @@ fn idl_type_value_write_data_array(
             value_array.len()
         ));
     }
-    for index in 0..idl_item_length {
-        let value_item = idl_ok_or_else(
-            value_array.get(index),
-            "value array",
-            "has no item at index",
-            &index.to_string(),
-            value_array, // TODO - better error message
-        )?;
+    for index in 0..value_array.len() {
+        let value_item = value_array.get(index).unwrap();
         idl_type_value_write_data(data, value_item, idl_item_type, idl_types)?;
+    }
+    Ok(())
+}
+
+fn idl_type_value_write_data_vec(
+    data: &mut Vec<u8>,
+    value: &Value,
+    idl_type_vec: &Value,
+    idl_types: &Map<String, Value>,
+) -> Result<(), ToolboxIdlError> {
+    let value_array = idl_as_array_or_else(value, "value?")?; // TODO - better context string recursive handling
+    let value_count = u32::try_from(value_array.len())
+        .map_err(ToolboxIdlError::TryFromInt)?;
+    data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_count));
+    for index in 0..value_array.len() {
+        let value_item = value_array.get(index).unwrap();
+        idl_type_value_write_data(data, value_item, idl_type_vec, idl_types)?;
     }
     return Ok(());
 }
@@ -221,62 +263,84 @@ fn idl_type_value_write_data_leaf(
     value: &Value,
     idl_type_str: &str,
 ) -> Result<(), ToolboxIdlError> {
-    macro_rules! return_with_unsigned_integer {
+    macro_rules! write_data_using_u_number {
         ($type:ident) => {
-            let value_u128 = idl_as_u128_or_else(value, "value")?; // TODO - better error
-            let value_casted = $type::try_from(value_u128)
+            let value_integer = idl_as_u128_or_else(value, "value")?; // TODO - better error
+            let value_typed = $type::try_from(value_integer)
                 .map_err(ToolboxIdlError::TryFromInt)?;
-            data.extend_from_slice(bytemuck::bytes_of(&value_casted));
-            return Ok(());
+            data.extend_from_slice(bytemuck::bytes_of::<$type>(&value_typed));
+        }
+    }
+    macro_rules! write_data_using_i_number {
+        ($type:ident) => {
+            let value_integer = idl_as_i128_or_else(value, "value")?; // TODO - better error
+            let value_typed = $type::try_from(value_integer)
+                .map_err(ToolboxIdlError::TryFromInt)?;
+            data.extend_from_slice(bytemuck::bytes_of::<$type>(&value_typed));
         }
     }
     if idl_type_str == "u8" {
-        return_with_unsigned_integer!(u8);
-    }
-    if idl_type_str == "u16" {
-        return_with_unsigned_integer!(u16);
-    }
-    if idl_type_str == "u32" {
-        return_with_unsigned_integer!(u32);
-    }
-    if idl_type_str == "u64" {
-        return_with_unsigned_integer!(u64);
-    }
-    if idl_type_str == "u128" {
-        let value_u128 = idl_as_u128_or_else(value, "value")?; // TODO - better error
-        data.extend_from_slice(bytemuck::bytes_of(&value_u128));
-    }
-    macro_rules! return_with_signed_integer {
-        ($type:ident) => {
-            let value_i128 = idl_as_i128_or_else(value, "value")?; // TODO - better error
-            let value_casted = $type::try_from(value_i128)
-                .map_err(ToolboxIdlError::TryFromInt)?;
-            data.extend_from_slice(bytemuck::bytes_of(&value_casted));
-            return Ok(());
-        }
+        write_data_using_u_number!(u8);
+        return Ok(());
     }
     if idl_type_str == "i8" {
-        return_with_signed_integer!(i8);
+        write_data_using_i_number!(i8);
+        return Ok(());
+    }
+    if idl_type_str == "u16" {
+        write_data_using_u_number!(u16);
+        return Ok(());
     }
     if idl_type_str == "i16" {
-        return_with_signed_integer!(i16);
+        write_data_using_i_number!(i16);
+        return Ok(());
+    }
+    if idl_type_str == "u32" {
+        write_data_using_u_number!(u32);
+        return Ok(());
     }
     if idl_type_str == "i32" {
-        return_with_signed_integer!(i32);
+        write_data_using_i_number!(i32);
+        return Ok(());
+    }
+    if idl_type_str == "u64" {
+        write_data_using_u_number!(u64);
+        return Ok(());
     }
     if idl_type_str == "i64" {
-        return_with_signed_integer!(i64);
+        write_data_using_i_number!(i64);
+        return Ok(());
+    }
+    if idl_type_str == "u128" {
+        let value_integer = idl_as_u128_or_else(value, "value")?; // TODO - better error
+        data.extend_from_slice(bytemuck::bytes_of::<u128>(&value_integer));
+        return Ok(());
     }
     if idl_type_str == "i128" {
-        let value_i128 = idl_as_i128_or_else(value, "value")?; // TODO - better error
-        data.extend_from_slice(bytemuck::bytes_of(&value_i128));
+        let value_integer = idl_as_i128_or_else(value, "value")?; // TODO - better error
+        data.extend_from_slice(bytemuck::bytes_of::<i128>(&value_integer));
+        return Ok(());
+    }
+    if idl_type_str == "bool" {
+        // TODO - better error
+        let value_flag =
+            if idl_as_bool_or_else(value, "value")? { 1 } else { 0 };
+        data.extend_from_slice(bytemuck::bytes_of::<u8>(&value_flag));
+        return Ok(());
+    }
+    if idl_type_str == "string" {
+        let value_str = idl_as_str_or_else(value, "value")?; // TODO - better error
+        let value_length = u32::try_from(value_str.len())
+            .map_err(ToolboxIdlError::TryFromInt)?;
+        data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_length));
+        data.extend_from_slice(value_str.as_bytes());
         return Ok(());
     }
     if idl_type_str == "pubkey" || idl_type_str == "publicKey" {
         let value_str = idl_as_str_or_else(value, "value")?; // TODO - better error handling
         let value_pubkey = Pubkey::from_str(value_str)
             .map_err(ToolboxIdlError::ParsePubkey)?;
-        data.extend_from_slice(bytemuck::bytes_of(&value_pubkey));
+        data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(&value_pubkey));
         return Ok(());
     }
     return idl_err(&format!(

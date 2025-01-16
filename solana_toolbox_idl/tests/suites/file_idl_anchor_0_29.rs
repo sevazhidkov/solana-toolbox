@@ -12,13 +12,11 @@ use solana_toolbox_idl::ToolboxIdl;
 pub async fn file_idl_anchor_0_29() {
     // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
-        &read_to_string("./tests/fixtures/dummy_redemption_anchor_0_29.json")
-            .unwrap(),
+        &read_to_string("./tests/fixtures/dummy_idl_anchor_0_29.json").unwrap(),
     )
     .unwrap();
     // Important account addresses
-    let program_id =
-        Pubkey::from_str_const("UC2cQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
+    let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
     let funding = Pubkey::new_unique();
     let placeholder = Pubkey::new_unique();
