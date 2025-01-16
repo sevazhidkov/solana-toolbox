@@ -16,18 +16,18 @@ impl ToolboxIdl {
         instruction_accounts: &HashMap<String, Pubkey>,
         instruction_args: &Map<String, Value>,
     ) -> Result<Instruction, ToolboxIdlError> {
-        let accounts = self.generate_instruction_accounts(
+        let instruction_accounts = self.generate_instruction_accounts(
             program_id,
             instruction_name,
             instruction_accounts,
             instruction_args,
-        );
-        let data =
-            self.generate_instruction_data(instruction_name, instruction_args);
+        )?;
+        let instruction_data =
+            self.generate_instruction_data(instruction_name, instruction_args)?;
         Ok(Instruction {
             program_id: *program_id,
-            accounts: accounts?,
-            data: data?,
+            accounts: instruction_accounts,
+            data: instruction_data,
         })
     }
 }

@@ -15,8 +15,8 @@ pub async fn file_idl_anchor_0_26() {
     .unwrap();
     // Generate a custom dummy key
     let placeholder = Pubkey::new_from_array([
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+        77, 77, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 77, 77,
     ]);
     // Prepare instruction args
     let mut instruction_args = Map::new();
@@ -77,7 +77,9 @@ pub async fn file_idl_anchor_0_26() {
         Value::Number(Number::from(24)),
     );
     // Generate an instruction
-    let _instruction = idl
+    let instruction = idl
         .generate_instruction_data("initializeMarket", &instruction_args)
         .unwrap();
+    eprintln!("instruction:{:?}", instruction);
+    panic!("lol");
 }
