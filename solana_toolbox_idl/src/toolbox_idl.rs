@@ -1,5 +1,4 @@
-use bytemuck::Pod;
-use bytemuck::Zeroable;
+use bytemuck::AnyBitPattern;
 use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
@@ -15,7 +14,6 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
-    pub authority: Pubkey,
     pub accounts: Map<String, Value>,
     pub types: Map<String, Value>,
     pub errors: Map<String, Value>,
@@ -28,16 +26,12 @@ impl ToolboxIdl {
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
     ) -> Result<Option<ToolboxIdl>, ToolboxIdlError> {
-        let program_idl_address = ToolboxIdl::find_for_program_id(program_id)?;
-        let program_idl_data = if let Some(account) =
-            endpoint.get_account(&program_idl_address).await?
-        {
-            account.data
-        }
-        else {
-            return Ok(None);
+        let address = &ToolboxIdl::find_for_program_id(program_id)?;
+        let data = match endpoint.get_account(address).await? {
+            Some(account) => account.data,
+            None => return Ok(None),
         };
-        Ok(Some(ToolboxIdl::try_from_bytes(&program_idl_data)?))
+        Ok(Some(ToolboxIdl::try_from_bytes(&data)?))
     }
 
     pub fn find_for_program_id(
@@ -48,73 +42,77 @@ impl ToolboxIdl {
             .map_err(ToolboxIdlError::Pubkey)
     }
 
-    pub fn try_from_bytes(
-        program_idl_data: &[u8]
-    ) -> Result<ToolboxIdl, ToolboxIdlError> {
-        #[derive(Debug, Clone, Copy, Pod, Zeroable)]
-        #[repr(C)]
-        struct ToolboxIdlHeader {
-            discriminator: [u8; 8],
-            authority: Pubkey,
-            length: u32,
-        }
-        let data_content_offset = size_of::<ToolboxIdlHeader>();
-        let data_header = bytemuck::from_bytes::<ToolboxIdlHeader>(
-            &program_idl_data[0..data_content_offset],
-        );
-        // TODO - better discriminator/header parsing
-        let dada = u64::from_le_bytes(data_header.discriminator);
-        if dada != ToolboxIdl::DISCRIMINATOR {
+    pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
+        let disciminator = read_from_bytes_at::<u64>(&data, 0)?;
+        if *disciminator != ToolboxIdl::DISCRIMINATOR {
             return idl_err(&format!(
                 "discriminator is invalid: found {:016X}, expected {:016X}",
-                dada,
+                disciminator,
                 ToolboxIdl::DISCRIMINATOR
             ));
         }
-        let data_content_length = usize::try_from(data_header.length)
-            .map_err(ToolboxIdlError::TryFromInt)?;
-        let data_content_end = data_content_offset
-            .checked_add(data_content_length)
-            .ok_or_else(ToolboxIdlError::Overflow)?;
-        let data_content_decompressed = inflate_bytes_zlib(
-            &program_idl_data[data_content_offset..data_content_end],
-        )
-        .map_err(ToolboxIdlError::Inflate)?;
-        let data_content_decoded = String::from_utf8(data_content_decompressed)
+        let authority_offset = size_of_val(disciminator);
+        let authority = read_from_bytes_at::<Pubkey>(&data, authority_offset)?;
+        let length_offset = authority_offset + size_of_val(authority);
+        let length =
+            usize::try_from(*read_from_bytes_at::<u32>(&data, length_offset)?)
+                .map_err(ToolboxIdlError::TryFromInt)?;
+        let content_offset = length_offset + size_of_val(&length);
+        let content = &data[content_offset
+            ..content_offset
+                .checked_add(length)
+                .ok_or_else(ToolboxIdlError::Overflow)?];
+        let decompressed =
+            inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
+        let decoded = String::from_utf8(decompressed)
             .map_err(ToolboxIdlError::FromUtf8)?;
-        let data_content_json = from_str::<Value>(&data_content_decoded)
-            .map_err(ToolboxIdlError::SerdeJson)?;
-        let data_content_object =
-            idl_as_object_or_else(&data_content_json, "root")?;
+        ToolboxIdl::try_from_str(&decoded)
+    }
+
+    pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
+        let idl_root_value =
+            from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
+        let idl_root_object = idl_as_object_or_else(&idl_root_value, "root")?;
         Ok(ToolboxIdl {
-            authority: data_header.authority,
             accounts: idl_collection_content_mapped_by_name(
-                data_content_object,
+                idl_root_object,
                 "accounts",
                 "type",
             )?,
             types: idl_collection_content_mapped_by_name(
-                data_content_object,
+                idl_root_object,
                 "types",
                 "type",
             )?,
             errors: idl_collection_content_mapped_by_name(
-                data_content_object,
+                idl_root_object,
                 "errors",
                 "code",
             )?,
             instructions_accounts: idl_collection_content_mapped_by_name(
-                data_content_object,
+                idl_root_object,
                 "instructions",
                 "accounts",
             )?,
             instructions_args: idl_collection_content_mapped_by_name(
-                data_content_object,
+                idl_root_object,
                 "instructions",
                 "args",
             )?,
         })
     }
+}
+
+fn read_from_bytes_at<'a, T: AnyBitPattern>(
+    bytes: &'a [u8],
+    offset: usize,
+) -> Result<&'a T, ToolboxIdlError> {
+    Ok(bytemuck::from_bytes::<T>(
+        &bytes[offset
+            ..offset
+                .checked_add(size_of::<T>())
+                .ok_or_else(ToolboxIdlError::Overflow)?],
+    ))
 }
 
 fn idl_collection_content_mapped_by_name(

@@ -87,6 +87,19 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     )
 }
 
+pub(crate) fn idl_as_array_or_else<'a>(
+    value: &'a Value,
+    context: &str,
+) -> Result<&'a Vec<Value>, ToolboxIdlError> {
+    idl_ok_or_else(
+        value.as_array(),
+        context,
+        "was expected to be of type",
+        "array",
+        value,
+    )
+}
+
 pub(crate) fn idl_as_object_or_else<'a>(
     value: &'a Value,
     context: &str,
@@ -100,31 +113,56 @@ pub(crate) fn idl_as_object_or_else<'a>(
     )
 }
 
-pub(crate) fn idl_as_u64_or_else(
+pub(crate) fn idl_as_str_or_else<'a>(
+    value: &'a Value,
+    context: &str,
+) -> Result<&'a str, ToolboxIdlError> {
+    idl_ok_or_else(
+        value.as_str(),
+        context,
+        "was expected to be of type",
+        "string",
+        value,
+    )
+}
+
+pub(crate) fn idl_as_u128_or_else(
     value: &Value,
     context: &str,
-) -> Result<u64, ToolboxIdlError> {
-    idl_ok_or_else(
+) -> Result<u128, ToolboxIdlError> {
+    Ok(u128::from(*idl_ok_or_else(
         value.as_u64().as_ref(),
         context,
         "was expected to be of type",
-        "object",
+        "u128",
         value,
-    )
-    .cloned()
+    )?))
+}
+
+pub(crate) fn idl_as_i128_or_else(
+    value: &Value,
+    context: &str,
+) -> Result<i128, ToolboxIdlError> {
+    Ok(i128::from(*idl_ok_or_else(
+        value.as_i64().as_ref(),
+        context,
+        "was expected to be of type",
+        "i128",
+        value,
+    )?))
 }
 
 pub(crate) fn idl_ok_or_else<'a, T: ?Sized, P: std::fmt::Debug>(
     option: Option<&'a T>,
-    context_kind: &str,
-    context_msg: &str,
-    context_code: &str,
+    message_context: &str,
+    message_error: &str,
+    message_key: &str,
     param: &P,
 ) -> Result<&'a T, ToolboxIdlError> {
     option.ok_or_else(|| {
         ToolboxIdlError::Custom(format!(
             "IDL: {}: {}: {}: {:?}",
-            context_kind, context_msg, context_code, param
+            message_context, message_error, message_key, param
         ))
     })
 }

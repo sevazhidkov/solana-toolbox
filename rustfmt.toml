@@ -6,11 +6,11 @@ reorder_imports = true
 reorder_impl_items = true
 reorder_modules = true
 
-wrap_comments = true
-comment_width = 80
+wrap_comments = false
+comment_width = 0
 max_width = 80
 
-control_brace_style = "ClosingNextLine"
+control_brace_style = "AlwaysSameLine"
 empty_item_single_line = false
 
 fn_params_layout = "Vertical"

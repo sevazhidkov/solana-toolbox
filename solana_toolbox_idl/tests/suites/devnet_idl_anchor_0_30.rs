@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use serde_json::Map;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
@@ -67,12 +68,19 @@ pub async fn devnet_idl_anchor_0_30() {
         Keypair::from_seed(b"Hello world, this is a dummy payer for devnet...")
             .unwrap();
     let user = Keypair::new();
-    let mut account_addresses = HashMap::new();
-    account_addresses.insert("payer".to_string(), payer.pubkey());
-    account_addresses.insert("user".to_string(), user.pubkey());
-    account_addresses.insert("campaign".to_string(), campaign_address);
+    let mut instruction_accounts = HashMap::new();
+    let mut instruction_args = Map::new();
+
+    instruction_accounts.insert("payer".to_string(), payer.pubkey());
+    instruction_accounts.insert("user".to_string(), user.pubkey());
+    instruction_accounts.insert("campaign".to_string(), campaign_address);
     let instruction = program_idl
-        .generate_instruction(&program_id, "pledge_create", &account_addresses)
+        .generate_instruction(
+            &program_id,
+            "pledge_create",
+            &instruction_accounts,
+            &instruction_args,
+        )
         .unwrap();
     endpoint
         .process_instruction_with_signers(instruction, &payer, &[&user])
