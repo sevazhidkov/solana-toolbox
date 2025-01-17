@@ -23,7 +23,7 @@ impl ToolboxIdl {
             instruction_args,
         )?;
         let instruction_data =
-            self.generate_instruction_data(instruction_name, instruction_args)?;
+            self.compile_instruction_data(instruction_name, instruction_args)?;
         Ok(Instruction {
             program_id: *program_id,
             accounts: instruction_accounts,

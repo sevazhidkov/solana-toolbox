@@ -64,6 +64,9 @@ pub fn idl_type_writer(
                     data,
                 );
             }
+            if idl_type_kind == "enum" {
+                return idl_type_writer_enum(idl_type_object, value, data);
+            }
         }
         if let Some(idl_type_array) =
             idl_object_get_key_as_array(idl_type_object, "array")
@@ -165,6 +168,36 @@ pub fn idl_type_writer_struct(
     Ok(())
 }
 
+pub fn idl_type_writer_enum(
+    idl_type_enum: &Map<String, Value>,
+    value: &Value,
+    data: &mut Vec<u8>,
+) -> Result<(), ToolboxIdlError> {
+    let idl_type_variants = idl_object_get_key_as_array_or_else(
+        idl_type_enum,
+        "variants",
+        "enum variants",
+    )?;
+    let value_string = idl_as_str_or_else(value, "enum value")?;
+    for index in 0..idl_type_variants.len() {
+        let idl_type_variant = idl_type_variants.get(index).unwrap();
+        let idl_type_variant_object =
+            idl_as_object_or_else(idl_type_variant, "enum variant")?;
+        let idl_type_variant_name = idl_object_get_key_as_str_or_else(
+            idl_type_variant_object,
+            "name",
+            "enum variant name",
+        )?;
+        if idl_type_variant_name == value_string {
+            let data_enum =
+                u8::try_from(index).map_err(ToolboxIdlError::TryFromInt)?;
+            data.extend_from_slice(bytemuck::bytes_of::<u8>(&data_enum));
+            return Ok(());
+        }
+    }
+    idl_err(&format!("Could not find enum value for: {}", value_string))
+}
+
 pub fn idl_type_writer_array(
     idl_types: &Map<String, Value>,
     idl_type_array: &Vec<Value>,
@@ -204,9 +237,9 @@ pub fn idl_type_writer_vec(
     data: &mut Vec<u8>,
 ) -> Result<(), ToolboxIdlError> {
     let value_array = idl_as_array_or_else(value, "value?")?; // TODO - better context string recursive handling
-    let value_count = u32::try_from(value_array.len())
+    let value_length = u32::try_from(value_array.len())
         .map_err(ToolboxIdlError::TryFromInt)?;
-    data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_count));
+    data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_length));
     for index in 0..value_array.len() {
         let value_item = value_array.get(index).unwrap();
         idl_type_writer(idl_types, idl_type_vec, value_item, data)?;

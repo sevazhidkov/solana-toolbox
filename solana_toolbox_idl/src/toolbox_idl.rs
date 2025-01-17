@@ -10,8 +10,10 @@ use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
-use crate::toolbox_idl_utils::idl_type_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
@@ -44,30 +46,30 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
-        let disciminator = idl_type_from_bytes_at::<u64>(&data, 0)?;
-        if *disciminator != ToolboxIdl::DISCRIMINATOR {
+        let discriminator_offset = 0;
+        let disciminator = idl_u64_from_bytes_at(&data, discriminator_offset)?;
+        if disciminator != ToolboxIdl::DISCRIMINATOR {
             return idl_err(&format!(
                 "discriminator is invalid: found {:016X}, expected {:016X}",
                 disciminator,
                 ToolboxIdl::DISCRIMINATOR
             ));
         }
-        let authority_offset = size_of_val(disciminator);
-        let authority =
-            idl_type_from_bytes_at::<Pubkey>(&data, authority_offset)?;
-        let length_offset = authority_offset + size_of_val(authority);
-        let length = idl_type_from_bytes_at::<u32>(&data, length_offset)?;
-        let content_offset = length_offset + size_of_val(length);
+        let authority_offset = size_of_val(&disciminator);
+        let authority = idl_pubkey_from_bytes_at(&data, authority_offset)?;
+        let length_offset = authority_offset + size_of_val(&authority);
+        let length = idl_u32_from_bytes_at(&data, length_offset)?;
+        let content_offset = length_offset + size_of_val(&length);
         let content = idl_slice_from_bytes(
             data,
             content_offset,
-            usize::try_from(*length).map_err(ToolboxIdlError::TryFromInt)?,
+            usize::try_from(length).map_err(ToolboxIdlError::TryFromInt)?,
         )?;
-        let decompressed =
+        let content_encoded =
             inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
-        let decoded = String::from_utf8(decompressed)
+        let content_decoded = String::from_utf8(content_encoded)
             .map_err(ToolboxIdlError::FromUtf8)?;
-        ToolboxIdl::try_from_str(&decoded)
+        ToolboxIdl::try_from_str(&content_decoded)
     }
 
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {

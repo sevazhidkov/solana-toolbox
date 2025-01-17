@@ -1,6 +1,6 @@
-use bytemuck::AnyBitPattern;
 use serde_json::Map;
 use serde_json::Value;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_error::ToolboxIdlError;
 
@@ -171,15 +171,6 @@ pub(crate) fn idl_err<T>(context: &str) -> Result<T, ToolboxIdlError> {
     Err(ToolboxIdlError::Custom(format!("IDL: {}", context)))
 }
 
-pub(crate) fn idl_type_from_bytes_at<'a, T: AnyBitPattern>(
-    bytes: &'a [u8],
-    offset: usize,
-) -> Result<&'a T, ToolboxIdlError> {
-    let length = size_of::<T>();
-    let slice = idl_slice_from_bytes(bytes, offset, length)?;
-    bytemuck::try_from_bytes::<T>(slice).map_err(ToolboxIdlError::PodCastError)
-}
-
 pub(crate) fn idl_slice_from_bytes<'a>(
     bytes: &'a [u8],
     offset: usize,
@@ -196,4 +187,103 @@ pub(crate) fn idl_slice_from_bytes<'a>(
         ));
     }
     Ok(&bytes[offset..end])
+}
+
+pub(crate) fn idl_u8_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<u8, ToolboxIdlError> {
+    let size = size_of::<u8>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(u8::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_u16_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<u16, ToolboxIdlError> {
+    let size = size_of::<u16>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(u16::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_u32_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<u32, ToolboxIdlError> {
+    let size = size_of::<u32>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(u32::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_u64_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<u64, ToolboxIdlError> {
+    let size = size_of::<u64>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(u64::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_u128_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<u128, ToolboxIdlError> {
+    let size = size_of::<u128>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(u128::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_i8_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<i8, ToolboxIdlError> {
+    let size = size_of::<i8>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(i8::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_i16_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<i16, ToolboxIdlError> {
+    let size = size_of::<i16>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(i16::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_i32_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<i32, ToolboxIdlError> {
+    let size = size_of::<i32>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(i32::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_i64_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<i64, ToolboxIdlError> {
+    let size = size_of::<i64>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(i64::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_i128_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<i128, ToolboxIdlError> {
+    let size = size_of::<i128>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(i128::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_pubkey_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<Pubkey, ToolboxIdlError> {
+    let size = size_of::<Pubkey>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
 }

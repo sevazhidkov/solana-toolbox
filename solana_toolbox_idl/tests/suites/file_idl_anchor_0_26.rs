@@ -77,9 +77,13 @@ pub async fn file_idl_anchor_0_26() {
         Value::Number(Number::from(24)),
     );
     // Generate an instruction
-    let instruction = idl
-        .generate_instruction_data("initializeMarket", &instruction_args)
+    let instruction_data = idl
+        .compile_instruction_data("initializeMarket", &instruction_args)
         .unwrap();
-    eprintln!("instruction:{:?}", instruction);
-    panic!("lol");
+    // Decompile the instruction args and check that they match the original
+    assert_eq!(
+        instruction_args,
+        idl.decompile_instruction_data("initializeMarket", &instruction_data)
+            .unwrap()
+    );
 }

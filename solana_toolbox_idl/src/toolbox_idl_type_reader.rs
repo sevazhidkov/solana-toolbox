@@ -1,20 +1,29 @@
 use serde_json::Map;
 use serde_json::Number;
 use serde_json::Value;
-use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_i128_from_bytes_at;
+use crate::toolbox_idl_utils::idl_i16_from_bytes_at;
+use crate::toolbox_idl_utils::idl_i32_from_bytes_at;
+use crate::toolbox_idl_utils::idl_i64_from_bytes_at;
+use crate::toolbox_idl_utils::idl_i8_from_bytes_at;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
-use crate::toolbox_idl_utils::idl_type_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u128_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u16_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
+use crate::toolbox_idl_utils::idl_u8_from_bytes_at;
 
 impl ToolboxIdl {
     pub fn type_reader(
@@ -56,6 +65,13 @@ fn idl_type_reader(
             if idl_type_kind == "struct" {
                 return idl_type_reader_struct(
                     idl_types,
+                    idl_type_object,
+                    data,
+                    data_offset,
+                );
+            }
+            if idl_type_kind == "enum" {
+                return idl_type_reader_enum(
                     idl_type_object,
                     data,
                     data_offset,
@@ -123,7 +139,7 @@ fn idl_type_reader_option(
     data: &[u8],
     data_offset: usize,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    let data_flag = *idl_type_from_bytes_at::<u8>(data, data_offset)?;
+    let data_flag = idl_u8_from_bytes_at(data, data_offset)?;
     let mut data_size = size_of_val(&data_flag);
     if data_flag > 0 {
         let (data_content_size, data_content_value) =
@@ -173,6 +189,36 @@ fn idl_type_reader_struct(
     return Ok((data_size, Value::Object(data_fields)));
 }
 
+fn idl_type_reader_enum(
+    idl_type_enum: &Map<String, Value>,
+    data: &[u8],
+    data_offset: usize,
+) -> Result<(usize, Value), ToolboxIdlError> {
+    let idl_type_variants = idl_object_get_key_as_array_or_else(
+        idl_type_enum,
+        "variants",
+        "enum variants",
+    )?;
+    let data_enum = idl_u8_from_bytes_at(data, data_offset)?;
+    let data_index = usize::from(data_enum);
+    if data_index >= idl_type_variants.len() {
+        return idl_err(&format!(
+            "Invalid enum value: {}: {:?}",
+            data_index, idl_type_variants
+        ));
+    }
+    let idl_type_variant_object = idl_as_object_or_else(
+        idl_type_variants.get(data_index).unwrap(),
+        "enum variant",
+    )?;
+    let idl_type_variant_name = idl_object_get_key_as_str_or_else(
+        idl_type_variant_object,
+        "name",
+        "enum variant name",
+    )?;
+    Ok((size_of_val(&data_enum), Value::String(idl_type_variant_name.into())))
+}
+
 fn idl_type_reader_array(
     idl_types: &Map<String, Value>,
     idl_type_array: &Vec<Value>,
@@ -210,11 +256,11 @@ fn idl_type_reader_vec(
     data: &[u8],
     data_offset: usize,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    let data_count = *idl_type_from_bytes_at::<u32>(data, data_offset)?;
-    let mut data_size = size_of_val(&data_count);
+    let data_length = idl_u32_from_bytes_at(data, data_offset)?;
+    let mut data_size = size_of_val(&data_length);
     let mut data_items = vec![];
     for _index in
-        0..usize::try_from(data_count).map_err(ToolboxIdlError::TryFromInt)?
+        0..usize::try_from(data_length).map_err(ToolboxIdlError::TryFromInt)?
     {
         let (data_item_size, data_item_value) = idl_type_reader(
             idl_types,
@@ -233,66 +279,54 @@ fn idl_type_reader_leaf(
     data: &[u8],
     data_offset: usize,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    macro_rules! number_from_data_as_integer {
-        ($type:ident) => {{
-            let data_int = *idl_type_from_bytes_at::<$type>(data, data_offset)?;
-            let data_size = size_of_val(&data_int);
-            Ok((data_size, Value::Number(Number::from(data_int))))
-        }};
-    }
     if idl_type_str == "u8" {
-        return number_from_data_as_integer!(u8);
+        let int = idl_u8_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "i8" {
-        return number_from_data_as_integer!(i8);
+        let int = idl_i8_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "u16" {
-        return number_from_data_as_integer!(u16);
+        let int = idl_u16_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "i16" {
-        return number_from_data_as_integer!(i16);
+        let int = idl_i16_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "u32" {
-        return number_from_data_as_integer!(u32);
+        let int = idl_u32_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "i32" {
-        return number_from_data_as_integer!(i32);
+        let int = idl_i32_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "u64" {
-        return number_from_data_as_integer!(u64);
+        let int = idl_u64_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "i64" {
-        return number_from_data_as_integer!(i64);
-    }
-    macro_rules! number_from_converted_data_integer {
-        ($type:ident, $conversion:ident) => {{
-            let data_int = *idl_type_from_bytes_at::<$type>(data, data_offset)?;
-            let data_size = size_of_val(&data_int);
-            Ok((
-                data_size,
-                Value::Number($conversion(data_int).ok_or_else(|| {
-                    ToolboxIdlError::Custom(format!(
-                        "JSON Invalid number: {}",
-                        data_int
-                    ))
-                })?),
-            ))
-        }};
+        let int = idl_i64_from_bytes_at(data, data_offset)?;
+        return Ok((size_of_val(&int), Value::Number(Number::from(int))));
     }
     if idl_type_str == "u128" {
-        fn number_from_u128(integer: u128) -> Option<Number> {
-            Number::from_u128(integer)
-        }
-        return number_from_converted_data_integer!(u128, number_from_u128);
+        let int = idl_u128_from_bytes_at(data, data_offset)?;
+        return Ok((
+            size_of_val(&int),
+            Value::Number(Number::from_u128(int).unwrap_or(Number::from(0))),
+        ));
     }
     if idl_type_str == "i128" {
-        fn number_from_i128(integer: i128) -> Option<Number> {
-            Number::from_i128(integer)
-        }
-        return number_from_converted_data_integer!(i128, number_from_i128);
+        let int = idl_i128_from_bytes_at(data, data_offset)?;
+        return Ok((
+            size_of_val(&int),
+            Value::Number(Number::from_i128(int).unwrap_or(Number::from(0))),
+        ));
     }
     if idl_type_str == "bool" {
-        let data_flag = *idl_type_from_bytes_at::<u8>(data, data_offset)?;
+        let data_flag = idl_u8_from_bytes_at(data, data_offset)?;
         let data_size = size_of_val(&data_flag);
         return Ok((
             data_size,
@@ -301,7 +335,7 @@ fn idl_type_reader_leaf(
     }
     // TODO - this needs to be tested with on-chain accounts
     if idl_type_str == "string" {
-        let data_length = *idl_type_from_bytes_at::<u32>(data, data_offset)?;
+        let data_length = idl_u32_from_bytes_at(data, data_offset)?;
         let mut data_size = size_of_val(&data_length);
         let data_string = String::from_utf8(
             idl_slice_from_bytes(
@@ -317,7 +351,7 @@ fn idl_type_reader_leaf(
         return Ok((data_size, Value::String(data_string)));
     }
     if idl_type_str == "pubkey" || idl_type_str == "publicKey" {
-        let data_pubkey = *idl_type_from_bytes_at::<Pubkey>(data, data_offset)?;
+        let data_pubkey = idl_pubkey_from_bytes_at(data, data_offset)?;
         let data_size = size_of_val(&data_pubkey);
         return Ok((data_size, Value::String(data_pubkey.to_string())));
     }
