@@ -89,5 +89,30 @@ pub async fn run() {
         (account_data.len(), account_value),
         idl.decompile_account("GlobalMarketState", account_data).unwrap()
     );
-    panic!("lol");
+
+    // Prepare an account contents
+    let account_value = json!({
+        "credixMultisigKey": Pubkey::new_unique().to_string(),
+        "credixManagers": [
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+        ],
+        "credixTreasury": Pubkey::new_unique().to_string(),
+    });
+    // Compile the account data
+    let account_data =
+        &idl.compile_account("ProgramState", &account_value).unwrap()[..];
+    // Decompile the account content and check that it matches the original
+    assert_eq!(
+        (account_data.len(), account_value),
+        idl.decompile_account("ProgramState", account_data).unwrap()
+    );
 }

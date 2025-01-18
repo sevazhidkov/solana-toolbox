@@ -71,4 +71,18 @@ pub async fn run() {
         (account_data.len(), account_value),
         idl.decompile_account("Campaign", account_data).unwrap()
     );
+    // Prepare an account contents
+    let account_value = json!({
+        "bump": 44,
+        "deposited_collateral_amount": 999,
+        "claimed_redeemable_amount": 22,
+    });
+    // Compile the account data
+    let account_data =
+        &idl.compile_account("Pledge", &account_value).unwrap()[..];
+    // Decompile the account content and check that it matches the original
+    assert_eq!(
+        (account_data.len(), account_value),
+        idl.decompile_account("Pledge", account_data).unwrap()
+    );
 }
