@@ -3,8 +3,7 @@ use std::num::TryFromIntError;
 use solana_sdk::pubkey::ParsePubkeyError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
 
-use crate::toolbox_idl::ToolboxIdl;
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
+use crate::toolbox_idl_context::ToolboxIdlContext;
 
 #[derive(Debug)]
 pub enum ToolboxIdlError {
@@ -27,48 +26,32 @@ pub enum ToolboxIdlError {
         offset: usize,
         length: usize,
         bytes: usize,
-        breadcrumbs: ToolboxIdlBreadcrumbs,
+        context: ToolboxIdlContext,
     },
     InvalidSliceLength {
         offset: usize,
         length: usize,
-        breadcrumbs: ToolboxIdlBreadcrumbs,
+        context: ToolboxIdlContext,
     },
     InvalidTypeObject {
-        breadcrumbs: ToolboxIdlBreadcrumbs,
+        context: ToolboxIdlContext,
     },
     InvalidPubkey {
         parsing: ParsePubkeyError,
-        breadcrumbs: ToolboxIdlBreadcrumbs,
+        context: ToolboxIdlContext,
     },
     InvalidConversionInteger {
         conversion: TryFromIntError,
-        breadcrumbs: ToolboxIdlBreadcrumbs,
+        context: ToolboxIdlContext,
     },
     Custom {
         failure: String,
-        breadcrumbs: ToolboxIdlBreadcrumbs,
+        context: ToolboxIdlContext,
     },
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {
     fn from(source: ToolboxEndpointError) -> Self {
         ToolboxIdlError::ToolboxEndpoint(source)
-    }
-}
-
-impl ToolboxIdl {
-    pub fn get_error_name(
-        &self,
-        error_code: u64,
-    ) -> Option<&String> {
-        for (idl_error_name, idl_error_code) in self.errors_codes.iter() {
-            if let Some(code) = idl_error_code.as_u64() {
-                if error_code == code {
-                    return Some(idl_error_name);
-                }
-            }
-        }
-        None
     }
 }

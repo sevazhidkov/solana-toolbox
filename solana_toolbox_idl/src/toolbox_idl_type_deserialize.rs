@@ -291,7 +291,7 @@ fn idl_type_deserialize_vec(
     for _index in 0..usize::try_from(data_length).map_err(|err| {
         ToolboxIdlError::InvalidConversionInteger {
             conversion: err,
-            breadcrumbs: *breadcrumbs,
+            breadcrumbs: breadcrumbs.clone(),
         }
     })? {
         let (data_item_size, data_item_value) = idl_type_deserialize(
@@ -378,7 +378,7 @@ fn idl_type_deserialize_leaf(
                 usize::try_from(data_length).map_err(|err| {
                     ToolboxIdlError::InvalidConversionInteger {
                         conversion: err,
-                        breadcrumbs: *breadcrumbs,
+                        breadcrumbs: breadcrumbs.clone(),
                     }
                 })?,
                 breadcrumbs,

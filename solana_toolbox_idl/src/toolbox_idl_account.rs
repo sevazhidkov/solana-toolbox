@@ -28,16 +28,11 @@ impl ToolboxIdl {
         account_data: &[u8],
     ) -> Result<(usize, Value), ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let idl_type = match self.account_types.get(account_type) {
-            Some(idl_account_type) => idl_account_type,
-            None => idl_object_get_key_or_else(
-                &self.types,
-                account_type,
-                breadcrumbs,
-            )?,
-        };
-        let data_discriminator =
-            idl_u64_from_bytes_at(account_data, 0, breadcrumbs)?;
+        let data_discriminator = idl_u64_from_bytes_at(
+            account_data,
+            0,
+            breadcrumbs.context("discriminator"),
+        )?;
         let expected_discriminator =
             ToolboxIdl::compute_account_discriminator(account_type);
         if data_discriminator != expected_discriminator {
@@ -46,12 +41,20 @@ impl ToolboxIdl {
                 expected: expected_discriminator,
             });
         }
+        let idl_type = match self.account_types.get(account_type) {
+            Some(idl_account_type) => idl_account_type,
+            None => idl_object_get_key_or_else(
+                &self.types,
+                account_type,
+                breadcrumbs,
+            )?,
+        };
         let data_header_size = size_of_val(&data_discriminator);
         let (data_content_size, data_content_value) = self.type_deserialize(
             idl_type,
             account_data,
             data_header_size,
-            breadcrumbs,
+            &breadcrumbs.kind(account_type),
         )?;
         Ok((data_header_size + data_content_size, data_content_value))
     }
@@ -78,7 +81,7 @@ impl ToolboxIdl {
             idl_type,
             account_value,
             &mut account_data,
-            breadcrumbs,
+            &breadcrumbs.kind(account_type),
         )?;
         Ok(account_data)
     }

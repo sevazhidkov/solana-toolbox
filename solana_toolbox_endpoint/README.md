@@ -42,7 +42,7 @@ let mut endpoint = ToolboxEndpoint::new_program_test_with_builtin_programs(&[
 .await;
 // We can also create the endpoint to point to devnet instead for example
 let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
-    "https://api.devnet.solana.com".to_string(),
+    "https://api.devnet.solana.com",
     CommitmentConfig::confirmed(),
 );
 // Optionally make the endpoint print all transaction/fetching

@@ -6,10 +6,11 @@ use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
 impl ToolboxEndpoint {
     pub fn new_rpc_with_url_and_commitment(
-        url: String,
+        url: &str,
         commitment_config: CommitmentConfig,
     ) -> ToolboxEndpoint {
-        RpcClient::new_with_commitment(url, commitment_config).into()
+        RpcClient::new_with_commitment(url.to_string(), commitment_config)
+            .into()
     }
 }
 

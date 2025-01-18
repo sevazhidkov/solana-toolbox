@@ -24,15 +24,19 @@ impl ToolboxIdl {
         let idl_instruction_args = idl_object_get_key_as_array_or_else(
             &self.instructions_args,
             instruction_name,
-            breadcrumbs,
+            breadcrumbs.context("instruction_args"),
         )?;
-        for idl_instruction_arg in idl_instruction_args {
-            let idl_instruction_arg_object =
-                idl_as_object_or_else(idl_instruction_arg, breadcrumbs)?;
+        for index in 0..idl_instruction_args.len() {
+            let idl_instruction_arg = idl_instruction_args.get(index).unwrap();
+            let breadcrumbs = &breadcrumbs.node(&format!("arg[{}]", index));
+            let idl_instruction_arg_object = idl_as_object_or_else(
+                idl_instruction_arg,
+                breadcrumbs.leaf("description"),
+            )?;
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                breadcrumbs,
+                breadcrumbs.leaf("description"),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,

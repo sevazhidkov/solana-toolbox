@@ -48,8 +48,11 @@ impl ToolboxIdl {
     pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let discriminator_offset = 0;
-        let disciminator =
-            idl_u64_from_bytes_at(&data, discriminator_offset, breadcrumbs)?;
+        let disciminator = idl_u64_from_bytes_at(
+            &data,
+            discriminator_offset,
+            breadcrumbs.context("discriminator"),
+        )?;
         if disciminator != ToolboxIdl::DISCRIMINATOR {
             return Err(ToolboxIdlError::InvalidDiscriminator {
                 found: disciminator,
@@ -57,16 +60,23 @@ impl ToolboxIdl {
             });
         }
         let authority_offset = size_of_val(&disciminator);
-        let authority =
-            idl_pubkey_from_bytes_at(&data, authority_offset, breadcrumbs)?;
+        let authority = idl_pubkey_from_bytes_at(
+            &data,
+            authority_offset,
+            breadcrumbs.context("authority"),
+        )?;
         let length_offset = authority_offset + size_of_val(&authority);
-        let length = idl_u32_from_bytes_at(&data, length_offset, breadcrumbs)?;
+        let length = idl_u32_from_bytes_at(
+            &data,
+            length_offset,
+            breadcrumbs.context("length"),
+        )?;
         let content_offset = length_offset + size_of_val(&length);
         let content = idl_slice_from_bytes(
             data,
             content_offset,
-            usize::try_from(length).map_err(ToolboxIdlError::TryFromInt)?,
-            breadcrumbs,
+            usize::try_from(length).map_err(ToolboxIdlError::TryFromInt)?, // TODO - this kind of error could be breadcrumb'd
+            breadcrumbs.context("content"),
         )?;
         let content_encoded =
             inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
@@ -79,8 +89,10 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_value =
             from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
-        let idl_root_object =
-            idl_as_object_or_else(&idl_root_value, breadcrumbs)?;
+        let idl_root_object = idl_as_object_or_else(
+            &idl_root_value,
+            breadcrumbs.context("root"),
+        )?;
         Ok(ToolboxIdl {
             types: idl_collection_content_mapped_by_name(
                 idl_root_object,

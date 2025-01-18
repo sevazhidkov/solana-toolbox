@@ -37,10 +37,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
                     instruction.accounts[account_index]
                 );
             }
-            self.print_bytes(
-                "> instruction.data".to_string(),
-                &instruction.data,
-            );
+            self.print_bytes("> instruction.data", &instruction.data);
         }
         println!("----");
         match result {
@@ -56,7 +53,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
             },
         };
         println!("----");
-        self.print_backtrace("from".to_string());
+        self.print_backtrace("from");
         println!();
     }
 
@@ -73,9 +70,9 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         println!("> account.lamports: {:?}", account.lamports);
         println!("> account.owner: {:?}", account.owner);
         println!("> account.executable: {:?}", account.executable);
-        self.print_bytes("> account.data".to_string(), &account.data);
+        self.print_bytes("> account.data", &account.data);
         println!("----");
-        self.print_backtrace("from".to_string());
+        self.print_backtrace("from");
         println!();
     }
 }
@@ -83,7 +80,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
 impl ToolboxEndpointLoggerPrint {
     fn print_bytes(
         &self,
-        prefix: String,
+        prefix: &str,
         data: &[u8],
     ) {
         let data_len = data.len();
@@ -116,7 +113,7 @@ impl ToolboxEndpointLoggerPrint {
 
     fn print_backtrace(
         &self,
-        prefix: String,
+        prefix: &str,
     ) {
         let backtrace_data = std::backtrace::Backtrace::force_capture();
         let backtrace_formatted = std::format!("{}", backtrace_data);
