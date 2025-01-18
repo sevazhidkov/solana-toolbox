@@ -29,18 +29,18 @@ pub async fn run() {
     instruction_accounts.insert("collateral_mint".into(), collateral_mint);
     instruction_accounts.insert("redeemable_mint".into(), redeemable_mint);
     // Prepare instruction args
-    let mut instruction_args_bytes = vec![];
+    let mut instruction_args_metadata_bytes = vec![];
     for index in 0..512 {
-        instruction_args_bytes.push(Value::from(index % 100));
+        instruction_args_metadata_bytes.push(Value::from(index % 100));
     }
-    let instruction_args = json!({
+    let instruction_args_value = json!({
         "params": {
             "index": 11,
             "funding_goal_collateral_amount": 41,
             "funding_phase_duration_seconds": 42,
             "metadata": {
                 "length": 22,
-                "bytes": instruction_args_bytes,
+                "bytes": instruction_args_metadata_bytes,
             }
         },
     });
@@ -50,7 +50,7 @@ pub async fn run() {
             &program_id,
             "campaign_create",
             &instruction_accounts,
-            instruction_args.as_object().unwrap(),
+            instruction_args_value.as_object().unwrap(),
         )
         .unwrap();
     // Generate expected accounts

@@ -12,7 +12,7 @@ pub async fn run() {
     )
     .unwrap();
     // Prepare instruction args
-    let instruction_args = json!({
+    let instruction_args_value = json!({
         "globalMarketSeed": "SEED",
         "withdrawalFee": {
             "numerator": 41,
@@ -40,12 +40,12 @@ pub async fn run() {
     let instruction_data = &idl
         .compile_instruction_data(
             "initializeMarket",
-            instruction_args.as_object().unwrap(),
+            instruction_args_value.as_object().unwrap(),
         )
         .unwrap()[..];
     // Decompile the instruction args and check that they match the original
     assert_eq!(
-        instruction_args.as_object().unwrap(),
+        instruction_args_value.as_object().unwrap(),
         &idl.decompile_instruction_data("initializeMarket", &instruction_data)
             .unwrap()
     );
@@ -89,4 +89,5 @@ pub async fn run() {
         (account_data.len(), account_value),
         idl.decompile_account("GlobalMarketState", &account_data).unwrap()
     );
+    panic!("lol");
 }

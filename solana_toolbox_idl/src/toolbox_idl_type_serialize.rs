@@ -50,7 +50,12 @@ fn idl_type_serialize(
         );
     }
     if let Some(idl_type_str) = idl_type.as_str() {
-        return idl_type_serialize_leaf(idl_type_str, value, data, breadcrumbs);
+        return idl_type_serialize_leaf(
+            idl_type_str,
+            value,
+            data,
+            &breadcrumbs.with_idl(idl_type_str),
+        );
     }
     idl_err("Expected object or string", &breadcrumbs.as_idl("typedef"))
 }
@@ -77,7 +82,7 @@ fn idl_type_serialize_node(
             idl_type_option,
             value,
             data,
-            breadcrumbs,
+            &breadcrumbs.with_idl("Option"),
         );
     }
     if let Some(idl_type_kind) =
@@ -97,7 +102,7 @@ fn idl_type_serialize_node(
                 idl_type_object,
                 value,
                 data,
-                breadcrumbs,
+                &breadcrumbs.with_idl("Enum"),
             );
         }
     }
@@ -109,7 +114,7 @@ fn idl_type_serialize_node(
             idl_type_array,
             value,
             data,
-            breadcrumbs,
+            &breadcrumbs.with_idl("Array"),
         );
     }
     if let Some(idl_type_vec) = idl_type_object.get("vec") {
@@ -118,7 +123,7 @@ fn idl_type_serialize_node(
             idl_type_vec,
             value,
             data,
-            breadcrumbs,
+            &breadcrumbs.with_idl("Vec"),
         );
     }
     idl_err(
@@ -164,13 +169,7 @@ fn idl_type_serialize_option(
         Ok(())
     } else {
         data.extend_from_slice(bytemuck::bytes_of::<u8>(&1));
-        idl_type_serialize(
-            idl_types,
-            idl_type_option,
-            value,
-            data,
-            &breadcrumbs.with_idl("option"),
-        )
+        idl_type_serialize(idl_types, idl_type_option, value, data, breadcrumbs)
     }
 }
 
@@ -203,7 +202,7 @@ fn idl_type_serialize_struct(
         let value_field = idl_object_get_key_or_else(
             value_object,
             idl_field_name,
-            &breadcrumbs.as_val("_"),
+            &breadcrumbs.as_val("&"),
         )?;
         idl_type_serialize(
             idl_types,
@@ -320,7 +319,7 @@ fn idl_type_serialize_leaf(
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
-    let context = &breadcrumbs.as_idl(idl_type_str);
+    let context = &breadcrumbs.as_val("_");
     macro_rules! write_data_using_u_number {
         ($type:ident) => {
             let value_integer = idl_as_u128_or_else(value, context)?;

@@ -42,7 +42,7 @@ impl ToolboxIdl {
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
                 idl_instruction_arg_name,
-                &breadcrumbs.as_val("$"),
+                &breadcrumbs.as_val("&"),
             )?;
             self.type_serialize(
                 idl_instruction_arg_type,

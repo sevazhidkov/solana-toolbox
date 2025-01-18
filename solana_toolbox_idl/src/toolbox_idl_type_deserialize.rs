@@ -66,7 +66,7 @@ fn idl_type_deserialize(
             idl_type_str,
             data,
             data_offset,
-            breadcrumbs,
+            &breadcrumbs.with_idl(idl_type_str),
         );
     }
     idl_err("Expected object or string", &breadcrumbs.as_idl("typedef"))
@@ -94,7 +94,7 @@ fn idl_type_deserialize_node(
             idl_type_option,
             data,
             data_offset,
-            breadcrumbs,
+            &breadcrumbs.with_idl("Option"),
         );
     }
     if let Some(idl_type_kind) =
@@ -114,7 +114,7 @@ fn idl_type_deserialize_node(
                 idl_type_object,
                 data,
                 data_offset,
-                breadcrumbs,
+                &breadcrumbs.with_idl("Enum"),
             );
         }
     }
@@ -126,7 +126,7 @@ fn idl_type_deserialize_node(
             idl_type_array,
             data,
             data_offset,
-            breadcrumbs,
+            &breadcrumbs.with_idl("Array"),
         );
     }
     if let Some(idl_type_vec) = idl_type_object.get("vec") {
@@ -135,7 +135,7 @@ fn idl_type_deserialize_node(
             idl_type_vec,
             data,
             data_offset,
-            breadcrumbs,
+            &breadcrumbs.with_idl("Vec"),
         );
     }
     idl_err(
@@ -185,7 +185,7 @@ fn idl_type_deserialize_option(
             idl_type_option,
             data,
             data_offset + 1,
-            &breadcrumbs.with_idl("option"),
+            breadcrumbs,
         )?;
         data_size += data_content_size;
         Ok((data_size, data_content_value))
@@ -332,7 +332,7 @@ fn idl_type_deserialize_leaf(
     data_offset: usize,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    let context = &breadcrumbs.as_idl(idl_type_str);
+    let context = &breadcrumbs.as_val("_");
     if idl_type_str == "u8" {
         let int = idl_u8_from_bytes_at(data, data_offset, context)?;
         return Ok((size_of_val(&int), Value::Number(Number::from(int))));

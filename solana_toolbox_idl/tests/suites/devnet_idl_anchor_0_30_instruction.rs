@@ -44,7 +44,7 @@ pub async fn run() {
     instruction_accounts.insert("user".to_string(), user.pubkey());
     instruction_accounts.insert("campaign".to_string(), campaign_address);
     // Prepare the arguments necessary for the instruction
-    let instruction_args = json!({
+    let instruction_args_value = json!({
         "params": {},
     });
     // Generate the actual instruction
@@ -53,7 +53,7 @@ pub async fn run() {
             &program_id,
             "pledge_create",
             &instruction_accounts,
-            instruction_args.as_object().unwrap(),
+            instruction_args_value.as_object().unwrap(),
         )
         .unwrap();
     // Process the instruction to check if it works

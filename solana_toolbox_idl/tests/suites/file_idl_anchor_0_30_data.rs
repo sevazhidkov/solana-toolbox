@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-use serde_json::json;
+use serde_json::{json, Value};
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
 
@@ -12,84 +12,62 @@ pub async fn run() {
     )
     .unwrap();
     // Prepare instruction args
-    let instruction_args = json!({
+    let mut instruction_args_metadata_bytes = vec![];
+    for index in 0..512 {
+        instruction_args_metadata_bytes.push(Value::from(index % 100));
+    }
+    let instruction_args_value = json!({
         "params": {
-            "index": "hello",
+            "index": 42,
+            "funding_goal_collateral_amount": 41,
+            "funding_phase_duration_seconds": 99,
+            "metadata": {
+                "length": 22,
+                "bytes": instruction_args_metadata_bytes,
+            },
         },
-        "globalMarketSeed": "SEED",
-        "withdrawalFee": {
-            "numerator": 41,
-            "denominator": 42,
-        },
-        "credixFeePercentage": {
-            "numerator": 51,
-            "denominator": 52,
-        },
-        "multisig": Pubkey::new_unique().to_string(),
-        "managers": [
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-        ],
-        "passIssuers": [
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-        ],
-        "withdrawEpochRequestSeconds": 22,
-        "withdrawEpochRedeemSeconds": 23,
-        "withdrawEpochAvailableLiquiditySeconds": 24,
     });
     // Compile the instruction data
     let instruction_data = &idl
         .compile_instruction_data(
             "campaign_create",
-            instruction_args.as_object().unwrap(),
+            instruction_args_value.as_object().unwrap(),
         )
         .unwrap()[..];
     // Decompile the instruction args and check that they match the original
     assert_eq!(
-        instruction_args.as_object().unwrap(),
-        &idl.decompile_instruction_data("initializeMarket", &instruction_data)
+        instruction_args_value.as_object().unwrap(),
+        &idl.decompile_instruction_data("campaign_create", &instruction_data)
             .unwrap()
     );
     // Prepare an account contents
+    let mut account_metadata_bytes = vec![];
+    for index in 0..512 {
+        account_metadata_bytes.push(Value::from(index % 100));
+    }
     let account_value = json!({
-        "baseTokenMint": Pubkey::new_unique().to_string(),
-        "lpTokenMint": Pubkey::new_unique().to_string(),
-        "poolOutstandingCredit": 5_000_000_000u64,
-        "treasuryPoolTokenAccount": Pubkey::new_unique().to_string(),
-        "signingAuthorityBump": 4,
-        "bump": 5,
-        "credixFeePercentage": {
-            "numerator": 51,
-            "denominator": 52,
-        },
-        "withdrawalFee": {
-            "numerator": 41,
-            "denominator": 42,
-        },
-        "frozen": true,
-        "seed": "Hello World !",
-        "poolSizeLimitPercentage": {
-            "numerator": 61,
-            "denominator": 62,
-        },
-        "withdrawEpochRequestSeconds": 424242_01,
-        "withdrawEpochRedeemSeconds": 424242_02,
-        "withdrawEpochAvailableLiquiditySeconds": 424242_03,
-        "latestWithdrawEpochIdx": 424242_04,
-        "latestWithdrawEpochEnd": -42,
-        "lockedLiquidity": 777_777,
-        "totalRedeemedBaseAmount": 888_888,
-        "hasWithdrawEpochs": true,
-        "redeemAuthorityBump": 9,
+        "index": 77,
+        "bump": 99,
+        "authority": Pubkey::new_unique().to_string(),
+        "collateral_mint": Pubkey::new_unique().to_string(),
+        "redeemable_mint": Pubkey::new_unique().to_string(),
+        "funding_goal_collateral_amount": 11,
+        "total_deposited_collateral_amount": 22,
+        "total_claimed_redeemable_amount": 33,
+        "funding_phase_start_unix_timestamp": -44,
+        "funding_phase_end_unix_timestamp": -55,
+        "extracted_collateral_amount": 66,
+        "metadata": {
+            "length": 99,
+            "bytes": account_metadata_bytes,
+        }
     });
     // Compile the account data
     let account_data =
-        &idl.compile_account("GlobalMarketState", &account_value).unwrap()[..];
+        &idl.compile_account("Campaign", &account_value).unwrap()[..];
     // Decompile the account content and check that it matches the original
     assert_eq!(
         (account_data.len(), account_value),
-        idl.decompile_account("GlobalMarketState", &account_data).unwrap()
+        idl.decompile_account("Campaign", &account_data).unwrap()
     );
 }

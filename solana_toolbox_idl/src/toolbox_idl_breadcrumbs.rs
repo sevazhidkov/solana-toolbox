@@ -31,13 +31,13 @@ impl ToolboxIdlBreadcrumbs {
         &self,
         value: &str,
     ) -> ToolboxIdlContext {
-        ToolboxIdlContext::new(&format!("{}.{}.$", self.idl, value), &self.val)
+        ToolboxIdlContext::new(&format!("{}.{}.!", self.idl, value), &self.val)
     }
 
     pub fn as_val(
         &self,
         value: &str,
     ) -> ToolboxIdlContext {
-        ToolboxIdlContext::new(&self.idl, &format!("{}.{}.$", self.val, value))
+        ToolboxIdlContext::new(&self.idl, &format!("{}.{}.!", self.val, value))
     }
 }

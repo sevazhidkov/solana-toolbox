@@ -33,7 +33,7 @@ pub async fn run() {
     instruction_accounts.insert("systemProgram".into(), placeholder);
     instruction_accounts.insert("tokenProgram".into(), placeholder);
     // Prepare instruction args
-    let instruction_args = json!({
+    let instruction_args_value = json!({
         "params": {
             "liquidInsuranceFundUsdcAmount": 41,
             "phaseOneDurationSeconds": 42,
@@ -46,7 +46,7 @@ pub async fn run() {
             &program_id,
             "initializeRealm",
             &instruction_accounts,
-            instruction_args.as_object().unwrap(),
+            instruction_args_value.as_object().unwrap(),
         )
         .unwrap();
     // Check instruction content
