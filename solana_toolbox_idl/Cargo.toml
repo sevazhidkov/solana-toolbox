@@ -1,6 +1,6 @@
 [package]
 name = "solana_toolbox_idl"
-description = "Toolbox for interacting with an programs using IDLs"
+description = "Toolbox for interacting with programs using only IDLs"
 version = "0.1.30-solana-2.1.4"
 edition = "2021"
 license = "MIT"
