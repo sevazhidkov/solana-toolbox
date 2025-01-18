@@ -41,7 +41,7 @@ pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
 ) -> Result<&'a Vec<Value>, ToolboxIdlError> {
     idl_ok_or_else(
         idl_object_get_key_as_array(object, key),
-        "expected an array".to_string(),
+        "expected an array",
         breadcrumbs.context(key),
     )
 }
@@ -53,7 +53,7 @@ pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
 ) -> Result<&'a str, ToolboxIdlError> {
     idl_ok_or_else(
         idl_object_get_key_as_str(object, key),
-        "expected a string".to_string(),
+        "expected a string",
         breadcrumbs.context(key),
     )
 }
@@ -65,7 +65,7 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
 ) -> Result<&'a Value, ToolboxIdlError> {
     idl_ok_or_else(
         object.get(key),
-        "missing value at key".to_string(),
+        "missing value at key",
         breadcrumbs.context(key),
     )
 }
@@ -74,21 +74,21 @@ pub(crate) fn idl_as_array_or_else<'a>(
     value: &'a Value,
     context: ToolboxIdlContext,
 ) -> Result<&'a Vec<Value>, ToolboxIdlError> {
-    idl_ok_or_else(value.as_array(), "expected an array".to_string(), context)
+    idl_ok_or_else(value.as_array(), "expected an array", context)
 }
 
 pub(crate) fn idl_as_object_or_else<'a>(
     value: &'a Value,
     context: ToolboxIdlContext,
 ) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
-    idl_ok_or_else(value.as_object(), "expected an object".to_string(), context)
+    idl_ok_or_else(value.as_object(), "expected an object", context)
 }
 
 pub(crate) fn idl_as_str_or_else<'a>(
     value: &'a Value,
     context: ToolboxIdlContext,
 ) -> Result<&'a str, ToolboxIdlError> {
-    idl_ok_or_else(value.as_str(), "expected a string".to_string(), context)
+    idl_ok_or_else(value.as_str(), "expected a string", context)
 }
 
 pub(crate) fn idl_as_u128_or_else(
@@ -97,7 +97,7 @@ pub(crate) fn idl_as_u128_or_else(
 ) -> Result<u128, ToolboxIdlError> {
     Ok(u128::from(*idl_ok_or_else(
         value.as_u64().as_ref(),
-        "expected an unsigned number".to_string(),
+        "expected an unsigned number",
         context,
     )?))
 }
@@ -108,7 +108,7 @@ pub(crate) fn idl_as_i128_or_else(
 ) -> Result<i128, ToolboxIdlError> {
     Ok(i128::from(*idl_ok_or_else(
         value.as_i64().as_ref(),
-        "expected a signed number".to_string(),
+        "expected a signed number",
         context,
     )?))
 }
@@ -119,7 +119,7 @@ pub(crate) fn idl_as_bool_or_else(
 ) -> Result<bool, ToolboxIdlError> {
     Ok(*idl_ok_or_else(
         value.as_bool().as_ref(),
-        "expected a boolean".to_string(),
+        "expected a boolean",
         context,
     )?)
 }

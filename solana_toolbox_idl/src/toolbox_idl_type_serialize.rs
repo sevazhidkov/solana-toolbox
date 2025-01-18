@@ -21,7 +21,7 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
 impl ToolboxIdl {
-    pub fn type_serialize(
+    pub(crate) fn type_serialize(
         &self,
         idl_type: &Value,
         value: &Value,
@@ -32,7 +32,7 @@ impl ToolboxIdl {
     }
 }
 
-pub fn idl_type_serialize(
+fn idl_type_serialize(
     idl_types: &Map<String, Value>,
     idl_type: &Value,
     value: &Value,
@@ -40,77 +40,93 @@ pub fn idl_type_serialize(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
-        if let Some(idl_type_defined) = idl_type_object.get("defined") {
-            return idl_type_serialize_defined(
-                idl_types,
-                idl_type_defined,
-                value,
-                data,
-                breadcrumbs,
-            );
-        }
-        if let Some(idl_type_option) = idl_type_object.get("option") {
-            return idl_type_serialize_option(
-                idl_types,
-                idl_type_option,
-                value,
-                data,
-                breadcrumbs,
-            );
-        }
-        if let Some(idl_type_kind) =
-            idl_object_get_key_as_str(idl_type_object, "kind")
-        {
-            if idl_type_kind == "struct" {
-                return idl_type_serialize_struct(
-                    idl_types,
-                    idl_type_object,
-                    value,
-                    data,
-                    breadcrumbs,
-                );
-            }
-            if idl_type_kind == "enum" {
-                return idl_type_serialize_enum(
-                    idl_type_object,
-                    value,
-                    data,
-                    breadcrumbs,
-                );
-            }
-        }
-        if let Some(idl_type_array) =
-            idl_object_get_key_as_array(idl_type_object, "array")
-        {
-            return idl_type_serialize_array(
-                idl_types,
-                idl_type_array,
-                value,
-                data,
-                breadcrumbs,
-            );
-        }
-        if let Some(idl_type_vec) = idl_type_object.get("vec") {
-            return idl_type_serialize_vec(
-                idl_types,
-                idl_type_vec,
-                value,
-                data,
-                breadcrumbs,
-            );
-        }
-        return idl_err(
-            "Missing key: defined/option/kind/array/vec",
-            breadcrumbs.context("type object parsing"),
+        return idl_type_serialize_node(
+            &self.types,
+            idl_type_object,
+            value,
+            data,
+            breadcrumbs,
         );
     }
     if let Some(idl_type_str) = idl_type.as_str() {
         return idl_type_serialize_leaf(idl_type_str, value, data, breadcrumbs);
     }
-    idl_err("Expected object or string", breadcrumbs.context("type parsing"))
+    idl_err("Expected object or string", breadcrumbs.context("type"))
 }
 
-pub fn idl_type_serialize_defined(
+fn idl_type_serialize_node(
+    idl_types: &Map<String, Value>,
+    idl_type_object: &Map<String, Value>,
+    value: &Value,
+    data: &mut Vec<u8>,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<(), ToolboxIdlError> {
+    if let Some(idl_type_defined) = idl_type_object.get("defined") {
+        return idl_type_serialize_defined(
+            idl_types,
+            idl_type_defined,
+            value,
+            data,
+            breadcrumbs,
+        );
+    }
+    if let Some(idl_type_option) = idl_type_object.get("option") {
+        return idl_type_serialize_option(
+            idl_types,
+            idl_type_option,
+            value,
+            data,
+            breadcrumbs,
+        );
+    }
+    if let Some(idl_type_kind) =
+        idl_object_get_key_as_str(idl_type_object, "kind")
+    {
+        if idl_type_kind == "struct" {
+            return idl_type_serialize_struct(
+                idl_types,
+                idl_type_object,
+                value,
+                data,
+                breadcrumbs,
+            );
+        }
+        if idl_type_kind == "enum" {
+            return idl_type_serialize_enum(
+                idl_type_object,
+                value,
+                data,
+                breadcrumbs,
+            );
+        }
+    }
+    if let Some(idl_type_array) =
+        idl_object_get_key_as_array(idl_type_object, "array")
+    {
+        return idl_type_serialize_array(
+            idl_types,
+            idl_type_array,
+            value,
+            data,
+            breadcrumbs,
+        );
+    }
+    if let Some(idl_type_vec) = idl_type_object.get("vec") {
+        return idl_type_serialize_vec(
+            idl_types,
+            idl_type_vec,
+            value,
+            data,
+            breadcrumbs,
+        );
+    }
+    idl_err(
+        "Missing key: defined/option/kind/array/vec",
+        breadcrumbs.context("type object"),
+    )
+}
+
+fn idl_type_serialize_defined(
     idl_types: &Map<String, Value>,
     idl_type_defined: &Value,
     value: &Value,
@@ -135,7 +151,7 @@ pub fn idl_type_serialize_defined(
     let idl_type = idl_object_get_key_or_else(
         idl_types,
         idl_type_name,
-        &breadcrumbs.name("$idl_types"),
+        &breadcrumbs.kind("$idl_types"),
     )?;
     return idl_type_serialize(
         idl_types,
@@ -146,7 +162,7 @@ pub fn idl_type_serialize_defined(
     );
 }
 
-pub fn idl_type_serialize_option(
+fn idl_type_serialize_option(
     idl_types: &Map<String, Value>,
     idl_type_option: &Value,
     value: &Value,
@@ -168,7 +184,7 @@ pub fn idl_type_serialize_option(
     }
 }
 
-pub fn idl_type_serialize_struct(
+fn idl_type_serialize_struct(
     idl_types: &Map<String, Value>,
     idl_type_struct: &Map<String, Value>,
     value: &Value,
@@ -215,7 +231,7 @@ pub fn idl_type_serialize_struct(
     Ok(())
 }
 
-pub fn idl_type_serialize_enum(
+fn idl_type_serialize_enum(
     idl_type_enum: &Map<String, Value>,
     value: &Value,
     data: &mut Vec<u8>,
@@ -245,13 +261,10 @@ pub fn idl_type_serialize_enum(
             return Ok(());
         }
     }
-    idl_err(
-        format!("could not find matching enum"),
-        breadcrumbs.context(value_string),
-    )
+    idl_err("could not find matching enum", breadcrumbs.context(value_string))
 }
 
-pub fn idl_type_serialize_array(
+fn idl_type_serialize_array(
     idl_types: &Map<String, Value>,
     idl_type_array: &Vec<Value>,
     value: &Value,
@@ -262,18 +275,22 @@ pub fn idl_type_serialize_array(
         idl_as_array_or_else(value, breadcrumbs.context("array"))?;
     if idl_type_array.len() != 2 {
         return idl_err(
-            format!("expected 2 items: type and length"),
+            "expected 2 items: type and length",
             breadcrumbs.context("[]"),
         );
     }
     let idl_item_type = &idl_type_array[0];
     let idl_item_length =
         idl_as_u128_or_else(&idl_type_array[1], breadcrumbs.context("length"))?;
-    let idl_item_length = usize::try_from(idl_item_length)
-        .map_err(ToolboxIdlError::TryFromInt)?;
+    let idl_item_length = usize::try_from(idl_item_length).map_err(|err| {
+        ToolboxIdlError::InvalidInteger {
+            conversion: err,
+            context: breadcrumbs.context("length"),
+        }
+    })?;
     if value_array.len() != idl_item_length {
         return idl_err(
-            format!(
+            &format!(
             "value array is not the correct size: expected {} items, found {} items",
             idl_item_length,
             value_array.len()
@@ -294,7 +311,7 @@ pub fn idl_type_serialize_array(
     Ok(())
 }
 
-pub fn idl_type_serialize_vec(
+fn idl_type_serialize_vec(
     idl_types: &Map<String, Value>,
     idl_type_vec: &Value,
     value: &Value,
@@ -302,8 +319,7 @@ pub fn idl_type_serialize_vec(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     let value_array = idl_as_array_or_else(value, breadcrumbs.context("vec"))?;
-    let value_length = u32::try_from(value_array.len())
-        .map_err(ToolboxIdlError::TryFromInt)?;
+    let value_length = u32::try_from(value_array.len()).unwrap();
     data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_length));
     for index in 0..value_array.len() {
         let value_item = value_array.get(index).unwrap();
@@ -312,18 +328,19 @@ pub fn idl_type_serialize_vec(
             idl_type_vec,
             value_item,
             data,
-            breadcrumbs,
+            &breadcrumbs.name(&format!("[{}]", index)),
         )?;
     }
     return Ok(());
 }
 
-pub fn idl_type_serialize_leaf(
+fn idl_type_serialize_leaf(
     idl_type_str: &str,
     value: &Value,
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
+    let context = breadcrumbs.context(idl_type_str);
     macro_rules! write_data_using_u_number {
         ($type:ident) => {
             let value_integer = idl_as_u128_or_else(value, breadcrumbs)?;
@@ -331,7 +348,7 @@ pub fn idl_type_serialize_leaf(
                 $type::try_from(value_integer).map_err(|err| {
                     ToolboxIdlError::InvalidConversionInteger {
                         conversion: err,
-                        breadcrumbs: breadcrumbs.clone(),
+                        context,
                     }
                 })?;
             data.extend_from_slice(bytemuck::bytes_of::<$type>(&value_typed));
@@ -344,7 +361,7 @@ pub fn idl_type_serialize_leaf(
                 $type::try_from(value_integer).map_err(|err| {
                     ToolboxIdlError::InvalidConversionInteger {
                         conversion: err,
-                        breadcrumbs: breadcrumbs.clone(),
+                        context,
                     }
                 })?;
             data.extend_from_slice(bytemuck::bytes_of::<$type>(&value_typed));
@@ -408,15 +425,10 @@ pub fn idl_type_serialize_leaf(
     if idl_type_str == "pubkey" || idl_type_str == "publicKey" {
         let value_str = idl_as_str_or_else(value, breadcrumbs)?;
         let value_pubkey = Pubkey::from_str(value_str).map_err(|err| {
-            ToolboxIdlError::InvalidPubkey {
-                parsing: err,
-                breadcrumbs: breadcrumbs.clone(),
-            }
+            ToolboxIdlError::InvalidPubkey { parsing: err, context }
         })?;
         data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(&value_pubkey));
         return Ok(());
     }
-    return Err(ToolboxIdlError::InvalidTypeObject {
-        breadcrumbs: breadcrumbs.clone(),
-    });
+    Err(ToolboxIdlError::InvalidTypeLeaf { context })
 }

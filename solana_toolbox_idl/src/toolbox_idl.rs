@@ -72,16 +72,27 @@ impl ToolboxIdl {
             breadcrumbs.context("length"),
         )?;
         let content_offset = length_offset + size_of_val(&length);
+        let content_context = breadcrumbs.context("content");
         let content = idl_slice_from_bytes(
             data,
             content_offset,
-            usize::try_from(length).map_err(ToolboxIdlError::TryFromInt)?, // TODO - this kind of error could be breadcrumb'd
-            breadcrumbs.context("content"),
+            usize::try_from(length).map_err(|err| {
+                ToolboxIdlError::InvalidInteger {
+                    conversion: err,
+                    context: breadcrumbs.context("length"),
+                }
+            })?,
+            content_context,
         )?;
         let content_encoded =
             inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
-        let content_decoded = String::from_utf8(content_encoded)
-            .map_err(ToolboxIdlError::FromUtf8)?;
+        let content_decoded =
+            String::from_utf8(content_encoded).map_err(|err| {
+                ToolboxIdlError::InvalidString {
+                    parsing: err,
+                    context: content_context,
+                }
+            })?;
         ToolboxIdl::try_from_str(&content_decoded)
     }
 

@@ -1,4 +1,4 @@
-use std::num::TryFromIntError;
+use std::{num::TryFromIntError, string::FromUtf8Error};
 
 use solana_sdk::pubkey::ParsePubkeyError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
@@ -9,10 +9,7 @@ use crate::toolbox_idl_context::ToolboxIdlContext;
 pub enum ToolboxIdlError {
     ToolboxEndpoint(ToolboxEndpointError),
     Pubkey(solana_sdk::pubkey::PubkeyError),
-    ParsePubkey(solana_sdk::pubkey::ParsePubkeyError),
-    TryFromInt(std::num::TryFromIntError),
     Inflate(String),
-    FromUtf8(std::string::FromUtf8Error),
     SerdeJson(serde_json::Error),
     InvalidDiscriminator {
         found: u64,
@@ -33,15 +30,19 @@ pub enum ToolboxIdlError {
         length: usize,
         context: ToolboxIdlContext,
     },
-    InvalidTypeObject {
-        context: ToolboxIdlContext,
-    },
     InvalidPubkey {
         parsing: ParsePubkeyError,
         context: ToolboxIdlContext,
     },
-    InvalidConversionInteger {
+    InvalidString {
+        parsing: FromUtf8Error,
+        context: ToolboxIdlContext,
+    },
+    InvalidInteger {
         conversion: TryFromIntError,
+        context: ToolboxIdlContext,
+    },
+    InvalidTypeLeaf {
         context: ToolboxIdlContext,
     },
     Custom {

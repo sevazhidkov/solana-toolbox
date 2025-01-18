@@ -55,7 +55,8 @@ fn generate_instruction_account_metas(
     )?;
     let mut account_addresses = instruction_accounts.clone(); // TODO - remove this
     let mut account_metas = vec![];
-    for idl_account in idl_accounts {
+    for index in 0..idl_accounts.len() {
+        let idl_account = idl_accounts.get(index).unwrap();
         let idl_account_object =
             idl_as_object_or_else(idl_account, breadcrumbs)?;
         let (account_name, account_address) = idl_account_object_resolve(
@@ -66,9 +67,8 @@ fn generate_instruction_account_metas(
         )?;
         let account_address = *idl_ok_or_else(
             account_address.as_ref(),
-            "could not be resolved",
-            &account_name,
-            breadcrumbs,
+            "unresolved account",
+            breadcrumbs.context(&account_name),
         )?;
         account_addresses.insert(account_name, account_address);
         let idl_account_is_signer =
@@ -108,10 +108,13 @@ fn idl_account_object_resolve(
         if let Some(idl_account_address) =
             idl_object_get_key_as_str(idl_account_object, "address")
         {
-            account_address = Some(
-                Pubkey::from_str(idl_account_address)
-                    .map_err(ToolboxIdlError::ParsePubkey)?,
-            );
+            account_address =
+                Some(Pubkey::from_str(idl_account_address).map_err(|err| {
+                    ToolboxIdlError::InvalidPubkey {
+                        parsing: err,
+                        context: breadcrumbs.context("address"),
+                    }
+                })?);
         }
     }
     if account_address.is_none() {
@@ -161,20 +164,28 @@ fn idl_account_seed_serialized(
     )?;
     match idl_account_seed_kind {
         "const" => {
-            let idl_account_seed_value = idl_object_get_key_as_array_or_else(
+            let idl_account_seed_array = idl_object_get_key_as_array_or_else(
                 idl_account_seed_object,
                 "value",
                 breadcrumbs,
             )?;
             // TODO - supported typed consts
             let mut account_seed = vec![];
-            for idl_account_seed_byte in idl_account_seed_value {
+            for index in 0..idl_account_seed_array.len() {
+                let idl_account_seed_byte =
+                    idl_account_seed_array.get(index).unwrap();
                 account_seed.push(
                     u8::try_from(idl_as_u128_or_else(
                         idl_account_seed_byte,
                         breadcrumbs,
                     )?)
-                    .map_err(ToolboxIdlError::TryFromInt)?,
+                    .map_err(|err| {
+                        ToolboxIdlError::InvalidInteger {
+                            conversion: err,
+                            context: breadcrumbs
+                                .context(&format!("[{}]", index)),
+                        }
+                    })?,
                 );
             }
             Ok(account_seed)
@@ -189,9 +200,8 @@ fn idl_account_seed_serialized(
             // TODO - don't use this utility function
             let account_address = idl_ok_or_else(
                 account_addresses.get(idl_account_seed_path),
-                "path could not be looked up",
-                idl_account_seed_path,
-                breadcrumbs,
+                "address not found",
+                breadcrumbs.context(idl_account_seed_path),
             )?;
             Ok(account_address.to_bytes().into())
         },
@@ -203,16 +213,13 @@ fn idl_account_seed_serialized(
             )?;
             // TODO - proper arg parsing
             idl_err(
-                format!(
-                    "arg account seed not implemented yet: {:?}",
-                    idl_account_seed_object,
-                ),
-                breadcrumbs,
+                "account seed arg not implemented yet",
+                breadcrumbs.context(idl_account_seed_path),
             )
         },
         _ => idl_err(
-            format!("account seed kind unknown: {}", idl_account_seed_kind),
-            breadcrumbs,
+            "unknown seed kind",
+            breadcrumbs.context(idl_account_seed_kind),
         ),
     }
 }
