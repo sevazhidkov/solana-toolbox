@@ -11,11 +11,6 @@ pub async fn run() {
         &read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap(),
     )
     .unwrap();
-    // Generate a custom dummy key
-    let placeholder = Pubkey::new_from_array([
-        77, 77, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 77, 77,
-    ]);
     // Prepare instruction args
     let instruction_args = json!({
         "globalMarketSeed": "SEED",
@@ -27,15 +22,15 @@ pub async fn run() {
             "numerator": 51,
             "denominator": 52,
         },
-        "multisig": placeholder.to_string(),
+        "multisig": Pubkey::new_unique().to_string(),
         "managers": [
-            placeholder.to_string(),
-            placeholder.to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
         ],
         "passIssuers": [
-            placeholder.to_string(),
-            placeholder.to_string(),
-            placeholder.to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
+            Pubkey::new_unique().to_string(),
         ],
         "withdrawEpochRequestSeconds": 22,
         "withdrawEpochRedeemSeconds": 23,
@@ -56,10 +51,10 @@ pub async fn run() {
     );
     // Prepare an account contents
     let account_value = json!({
-        "baseTokenMint": placeholder.to_string(),
-        "lpTokenMint": placeholder.to_string(),
+        "baseTokenMint": Pubkey::new_unique().to_string(),
+        "lpTokenMint": Pubkey::new_unique().to_string(),
         "poolOutstandingCredit": 5_000_000_000u64,
-        "treasuryPoolTokenAccount": placeholder.to_string(),
+        "treasuryPoolTokenAccount": Pubkey::new_unique().to_string(),
         "signingAuthorityBump": 4,
         "bump": 5,
         "credixFeePercentage": {
