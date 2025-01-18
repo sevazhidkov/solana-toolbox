@@ -31,7 +31,7 @@ impl ToolboxIdl {
         let data_discriminator = idl_u64_from_bytes_at(
             account_data,
             0,
-            breadcrumbs.context("discriminator"),
+            &breadcrumbs.context("discriminator"),
         )?;
         let expected_discriminator =
             ToolboxIdl::compute_account_discriminator(account_type);

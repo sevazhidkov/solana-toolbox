@@ -53,7 +53,7 @@ fn idl_type_deserialize(
 ) -> Result<(usize, Value), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         return idl_type_deserialize_node(
-            &self.types,
+            idl_types,
             idl_type_object,
             data,
             data_offset,
@@ -68,7 +68,7 @@ fn idl_type_deserialize(
             breadcrumbs,
         );
     }
-    idl_err("Expected object or string", breadcrumbs.context("type"))
+    idl_err("Expected object or string", &breadcrumbs.context("type"))
 }
 
 fn idl_type_deserialize_node(
@@ -139,7 +139,7 @@ fn idl_type_deserialize_node(
     }
     idl_err(
         "Missing key: defined/option/kind/array/vec",
-        breadcrumbs.context("type object"),
+        &breadcrumbs.context("type object"),
     )
 }
 
@@ -156,7 +156,7 @@ fn idl_type_deserialize_defined(
             let idl_type_defined_tag = "defined";
             let idl_type_defined_object = idl_as_object_or_else(
                 idl_type_defined,
-                breadcrumbs.context(idl_type_defined_tag),
+                &breadcrumbs.context(idl_type_defined_tag),
             )?;
             idl_object_get_key_as_str_or_else(
                 idl_type_defined_object,
@@ -187,7 +187,7 @@ fn idl_type_deserialize_option(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(usize, Value), ToolboxIdlError> {
     let data_flag =
-        idl_u8_from_bytes_at(data, data_offset, breadcrumbs.context("flag"))?;
+        idl_u8_from_bytes_at(data, data_offset, &breadcrumbs.context("flag"))?;
     let mut data_size = size_of_val(&data_flag);
     if data_flag > 0 {
         let (data_content_size, data_content_value) = idl_type_deserialize(
@@ -223,7 +223,7 @@ fn idl_type_deserialize_struct(
         let idl_field_tag = &format!("fields[{}]", index);
         let idl_field_object = idl_as_object_or_else(
             idl_field,
-            breadcrumbs.context(idl_field_tag),
+            &breadcrumbs.context(idl_field_tag),
         )?;
         let idl_field_name = idl_object_get_key_as_str_or_else(
             idl_field_object,
@@ -259,24 +259,26 @@ fn idl_type_deserialize_enum(
         "variants",
         breadcrumbs,
     )?;
-    let data_enum = idl_u8_from_bytes_at(data, data_offset, breadcrumbs)?;
+    let data_enum =
+        idl_u8_from_bytes_at(data, data_offset, &breadcrumbs.context("enum"))?;
     let data_index = usize::from(data_enum);
+    let idl_variant_tag = &format!("variants[{}]", data_index);
     if data_index >= idl_type_variants.len() {
         return idl_err(
-            &format!("Invalid enum value"),
-            breadcrumbs.context(&format!("{}", data_index)),
+            "Invalid enum value",
+            &breadcrumbs.context(idl_variant_tag),
         );
     }
-    let idl_type_variant_object = idl_as_object_or_else(
+    let idl_variant_object = idl_as_object_or_else(
         idl_type_variants.get(data_index).unwrap(),
-        breadcrumbs,
+        &breadcrumbs.context(idl_variant_tag),
     )?;
-    let idl_type_variant_name = idl_object_get_key_as_str_or_else(
-        idl_type_variant_object,
+    let idl_variant_name = idl_object_get_key_as_str_or_else(
+        idl_variant_object,
         "name",
-        breadcrumbs,
+        &breadcrumbs.kind(idl_variant_tag),
     )?;
-    Ok((size_of_val(&data_enum), Value::String(idl_type_variant_name.into())))
+    Ok((size_of_val(&data_enum), Value::String(idl_variant_name.into())))
 }
 
 fn idl_type_deserialize_array(
@@ -289,12 +291,14 @@ fn idl_type_deserialize_array(
     if idl_type_array.len() != 2 {
         return idl_err(
             "expected 2 items: type and length",
-            breadcrumbs.context("[]"),
+            &breadcrumbs.context("[]"),
         );
     }
     let idl_item_type = &idl_type_array[0];
-    let idl_item_length =
-        idl_as_u128_or_else(&idl_type_array[1], breadcrumbs.context("length"))?;
+    let idl_item_length = idl_as_u128_or_else(
+        &idl_type_array[1],
+        &breadcrumbs.context("length"),
+    )?;
     let mut data_size = 0;
     let mut data_items = vec![];
     for index in 0..idl_item_length {
@@ -321,11 +325,11 @@ fn idl_type_deserialize_vec(
     let data_length = idl_u32_from_bytes_at(
         data,
         data_offset,
-        breadcrumbs.context("length"),
+        &breadcrumbs.context("length"),
     )?;
     let mut data_size = size_of_val(&data_length);
     let mut data_items = vec![];
-    for _index in 0..usize::try_from(data_length).map_err(|err| {
+    for index in 0..usize::try_from(data_length).map_err(|err| {
         ToolboxIdlError::InvalidInteger {
             conversion: err,
             context: breadcrumbs.context("length"),
@@ -350,7 +354,7 @@ fn idl_type_deserialize_leaf(
     data_offset: usize,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(usize, Value), ToolboxIdlError> {
-    let context = breadcrumbs.context(idl_type_str);
+    let context = &breadcrumbs.context(idl_type_str);
     if idl_type_str == "u8" {
         let int = idl_u8_from_bytes_at(data, data_offset, context)?;
         return Ok((size_of_val(&int), Value::Number(Number::from(int))));
@@ -412,14 +416,20 @@ fn idl_type_deserialize_leaf(
             data,
             data_offset + data_size,
             usize::try_from(data_length).map_err(|err| {
-                ToolboxIdlError::InvalidInteger { conversion: err, context }
+                ToolboxIdlError::InvalidInteger {
+                    conversion: err,
+                    context: context.clone(),
+                }
             })?,
             context,
         )?;
         data_size += data_bytes.len();
         let data_string =
             String::from_utf8(data_bytes.to_vec()).map_err(|err| {
-                ToolboxIdlError::InvalidString { parsing: err, context }
+                ToolboxIdlError::InvalidString {
+                    parsing: err,
+                    context: context.clone(),
+                }
             })?;
         return Ok((data_size, Value::String(data_string)));
     }
@@ -428,5 +438,5 @@ fn idl_type_deserialize_leaf(
         let data_size = size_of_val(&data_pubkey);
         return Ok((data_size, Value::String(data_pubkey.to_string())));
     }
-    Err(ToolboxIdlError::InvalidTypeLeaf { context })
+    Err(ToolboxIdlError::InvalidTypeLeaf { context: context.clone() })
 }

@@ -16,6 +16,7 @@ impl ToolboxIdlBreadcrumbs {
             kind: self.kind.clone(),
         }
     }
+
     pub fn kind(
         &self,
         value: &str,
@@ -25,6 +26,7 @@ impl ToolboxIdlBreadcrumbs {
             kind: format!("{}.{}", self.kind, value),
         }
     }
+
     pub fn context(
         &self,
         stage: &str,

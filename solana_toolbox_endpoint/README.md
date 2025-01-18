@@ -46,7 +46,7 @@ let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
     CommitmentConfig::confirmed(),
 );
 // Optionally make the endpoint print all transaction/fetching
-endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
+endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
 // The endpoint object provides a lot of useful boilerplate utility functions
 endpoint
     .process_system_transfer(

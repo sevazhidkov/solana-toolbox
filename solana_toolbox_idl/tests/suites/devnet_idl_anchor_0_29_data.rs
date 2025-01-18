@@ -12,7 +12,7 @@ pub async fn run() {
         CommitmentConfig::confirmed(),
     );
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
     // Fetch the idl of an anchor program on chain
     let program_id =
         Pubkey::from_str_const("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");

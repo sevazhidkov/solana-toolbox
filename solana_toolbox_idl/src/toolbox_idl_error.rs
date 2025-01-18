@@ -1,4 +1,5 @@
-use std::{num::TryFromIntError, string::FromUtf8Error};
+use std::num::TryFromIntError;
+use std::string::FromUtf8Error;
 
 use solana_sdk::pubkey::ParsePubkeyError;
 use solana_toolbox_endpoint::ToolboxEndpointError;

@@ -16,32 +16,32 @@ impl ToolboxIdl {
         instruction_name: &str,
         instruction_args: &Map<String, Value>,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(bytemuck::bytes_of(
             &ToolboxIdl::compute_instruction_discriminator(instruction_name),
         ));
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_instruction_args = idl_object_get_key_as_array_or_else(
             &self.instructions_args,
             instruction_name,
-            breadcrumbs.context("instruction_args"),
+            breadcrumbs,
         )?;
         for index in 0..idl_instruction_args.len() {
             let idl_instruction_arg = idl_instruction_args.get(index).unwrap();
-            let breadcrumbs = &breadcrumbs.node(&format!("arg[{}]", index));
+            let idl_instruction_arg_tag = &format!("arg[{}]", index);
             let idl_instruction_arg_object = idl_as_object_or_else(
                 idl_instruction_arg,
-                breadcrumbs.leaf("description"),
+                &breadcrumbs.context(idl_instruction_arg_tag),
             )?;
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                breadcrumbs.leaf("description"),
+                &breadcrumbs.kind(idl_instruction_arg_tag),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,
                 "type",
-                breadcrumbs,
+                &breadcrumbs.kind(idl_instruction_arg_tag),
             )?;
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
@@ -52,7 +52,7 @@ impl ToolboxIdl {
                 idl_instruction_arg_type,
                 instruction_arg,
                 &mut instruction_data,
-                breadcrumbs,
+                &breadcrumbs.name(idl_instruction_arg_tag),
             )?;
         }
         Ok(instruction_data)
@@ -69,8 +69,11 @@ impl ToolboxIdl {
             instruction_name,
             breadcrumbs,
         )?;
-        let data_discriminator =
-            idl_u64_from_bytes_at(instruction_data, 0, breadcrumbs)?;
+        let data_discriminator = idl_u64_from_bytes_at(
+            instruction_data,
+            0,
+            &breadcrumbs.context("discriminator"),
+        )?;
         let expected_discriminator =
             ToolboxIdl::compute_instruction_discriminator(instruction_name);
         if data_discriminator != expected_discriminator {
@@ -81,18 +84,22 @@ impl ToolboxIdl {
         }
         let mut instruction_args = Map::new();
         let mut data_offset = size_of_val(&data_discriminator);
-        for idl_instruction_arg in idl_instruction_args {
-            let idl_instruction_arg_object =
-                idl_as_object_or_else(idl_instruction_arg, breadcrumbs)?;
+        for index in 0..idl_instruction_args.len() {
+            let idl_instruction_arg = idl_instruction_args.get(0).unwrap();
+            let idl_instruction_arg_tag = &format!("arg[{}]", index);
+            let idl_instruction_arg_object = idl_as_object_or_else(
+                idl_instruction_arg,
+                &breadcrumbs.context(idl_instruction_arg_tag),
+            )?;
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                breadcrumbs,
+                &breadcrumbs.kind(idl_instruction_arg_tag),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,
                 "type",
-                breadcrumbs,
+                &breadcrumbs.kind(idl_instruction_arg_tag),
             )?;
             let (data_arg_size, data_arg_value) = self.type_deserialize(
                 idl_instruction_arg_type,

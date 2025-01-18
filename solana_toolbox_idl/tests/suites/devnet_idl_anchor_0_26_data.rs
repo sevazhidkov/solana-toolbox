@@ -14,7 +14,7 @@ pub async fn run() {
         CommitmentConfig::confirmed(),
     );
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
     // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
         &read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap(),
