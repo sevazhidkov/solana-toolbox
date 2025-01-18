@@ -46,7 +46,7 @@ pub async fn run() {
     // Decompile the instruction args and check that they match the original
     assert_eq!(
         instruction_args_value.as_object().unwrap(),
-        &idl.decompile_instruction_data("initializeMarket", &instruction_data)
+        &idl.decompile_instruction_data("initializeMarket", instruction_data)
             .unwrap()
     );
     // Prepare an account contents
@@ -87,7 +87,7 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         (account_data.len(), account_value),
-        idl.decompile_account("GlobalMarketState", &account_data).unwrap()
+        idl.decompile_account("GlobalMarketState", account_data).unwrap()
     );
     panic!("lol");
 }

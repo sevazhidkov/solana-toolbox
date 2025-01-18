@@ -1,6 +1,7 @@
 use std::fs::read_to_string;
 
-use serde_json::{json, Value};
+use serde_json::json;
+use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
 
@@ -37,7 +38,7 @@ pub async fn run() {
     // Decompile the instruction args and check that they match the original
     assert_eq!(
         instruction_args_value.as_object().unwrap(),
-        &idl.decompile_instruction_data("campaign_create", &instruction_data)
+        &idl.decompile_instruction_data("campaign_create", instruction_data)
             .unwrap()
     );
     // Prepare an account contents
@@ -68,6 +69,6 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         (account_data.len(), account_value),
-        idl.decompile_account("Campaign", &account_data).unwrap()
+        idl.decompile_account("Campaign", account_data).unwrap()
     );
 }

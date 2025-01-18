@@ -160,13 +160,13 @@ fn idl_type_deserialize_defined(
         idl_type_name,
         &breadcrumbs.as_idl("$idl_types"),
     )?;
-    return idl_type_deserialize(
+    idl_type_deserialize(
         idl_types,
         idl_type,
         data,
         data_offset,
         &breadcrumbs.with_idl(idl_type_name),
-    );
+    )
 }
 
 fn idl_type_deserialize_option(
@@ -230,7 +230,7 @@ fn idl_type_deserialize_struct(
         data_size += data_field_size;
         data_fields.insert(idl_field_name.to_string(), data_field_value);
     }
-    return Ok((data_size, Value::Object(data_fields)));
+    Ok((data_size, Value::Object(data_fields)))
 }
 
 fn idl_type_deserialize_enum(
@@ -263,7 +263,7 @@ fn idl_type_deserialize_enum(
 
 fn idl_type_deserialize_array(
     idl_types: &Map<String, Value>,
-    idl_type_array: &Vec<Value>,
+    idl_type_array: &[Value],
     data: &[u8],
     data_offset: usize,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -290,7 +290,7 @@ fn idl_type_deserialize_array(
         data_size += data_item_size;
         data_items.push(data_item_value);
     }
-    return Ok((data_size, Value::Array(data_items)));
+    Ok((data_size, Value::Array(data_items)))
 }
 
 fn idl_type_deserialize_vec(
@@ -323,7 +323,7 @@ fn idl_type_deserialize_vec(
         data_size += data_item_size;
         data_items.push(data_item_value);
     }
-    return Ok((data_size, Value::Array(data_items)));
+    Ok((data_size, Value::Array(data_items)))
 }
 
 fn idl_type_deserialize_leaf(
@@ -382,10 +382,7 @@ fn idl_type_deserialize_leaf(
     if idl_type_str == "bool" {
         let data_flag = idl_u8_from_bytes_at(data, data_offset, context)?;
         let data_size = size_of_val(&data_flag);
-        return Ok((
-            data_size,
-            Value::Bool(if data_flag == 0 { false } else { true }),
-        ));
+        return Ok((data_size, Value::Bool(data_flag != 0)));
     }
     if idl_type_str == "string" {
         let data_length = idl_u32_from_bytes_at(data, data_offset, context)?;

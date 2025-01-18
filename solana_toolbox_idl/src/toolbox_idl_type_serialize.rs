@@ -148,13 +148,13 @@ fn idl_type_serialize_defined(
         idl_type_name,
         &breadcrumbs.as_idl("$idl_types"),
     )?;
-    return idl_type_serialize(
+    idl_type_serialize(
         idl_types,
         idl_type,
         value,
         data,
         &breadcrumbs.with_idl(idl_type_name),
-    );
+    )
 }
 
 fn idl_type_serialize_option(
@@ -245,7 +245,7 @@ fn idl_type_serialize_enum(
 
 fn idl_type_serialize_array(
     idl_types: &Map<String, Value>,
-    idl_type_array: &Vec<Value>,
+    idl_type_array: &[Value],
     value: &Value,
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -310,7 +310,7 @@ fn idl_type_serialize_vec(
             &breadcrumbs.with_val(&format!("[{}]", index)),
         )?;
     }
-    return Ok(());
+    Ok(())
 }
 
 fn idl_type_serialize_leaf(

@@ -9,7 +9,10 @@ impl ToolboxIdlContext {
         idl: &str,
         val: &str,
     ) -> ToolboxIdlContext {
-        eprintln!("context: idl({}) val({})", idl, val);
         ToolboxIdlContext { idl: idl.to_string(), val: val.to_string() }
+    }
+
+    pub fn describe(&self) -> String {
+        format!("idl({}) val({})", self.idl, self.val)
     }
 }

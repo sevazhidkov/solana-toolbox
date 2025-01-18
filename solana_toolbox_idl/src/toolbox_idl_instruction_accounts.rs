@@ -46,7 +46,7 @@ fn generate_instruction_account_metas(
     program_id: &Pubkey,
     instruction_name: &str,
     instruction_accounts: &HashMap<String, Pubkey>, // TODO - this needs to be iteratively resolved
-    instruction_args: &Map<String, Value>,
+    _instruction_args: &Map<String, Value>, // TODO - need to support args lookup
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
     let mut account_addresses = instruction_accounts.clone(); // TODO - remove this
@@ -177,7 +177,7 @@ fn idl_account_seed_serialized(
                 account_seed.push(
                     u8::try_from(idl_as_u128_or_else(
                         idl_account_seed_byte,
-                        &&breadcrumbs.as_idl(idl_account_seed_tag),
+                        &breadcrumbs.as_idl(idl_account_seed_tag),
                     )?)
                     .map_err(|err| {
                         ToolboxIdlError::InvalidInteger {

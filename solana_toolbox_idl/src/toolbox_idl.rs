@@ -49,7 +49,7 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let discriminator_offset = 0;
         let disciminator = idl_u64_from_bytes_at(
-            &data,
+            data,
             discriminator_offset,
             &breadcrumbs.as_val("discriminator"),
         )?;
@@ -61,13 +61,13 @@ impl ToolboxIdl {
         }
         let authority_offset = size_of_val(&disciminator);
         let authority = idl_pubkey_from_bytes_at(
-            &data,
+            data,
             authority_offset,
             &breadcrumbs.as_val("authority"),
         )?;
         let length_offset = authority_offset + size_of_val(&authority);
         let length = idl_u32_from_bytes_at(
-            &data,
+            data,
             length_offset,
             &breadcrumbs.as_val("length"),
         )?;
@@ -98,7 +98,7 @@ impl ToolboxIdl {
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_value =
-            from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
+            from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?;
         let idl_root_object =
             idl_as_object_or_else(&idl_root_value, &breadcrumbs.as_idl("$"))?;
         Ok(ToolboxIdl {
