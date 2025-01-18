@@ -2,13 +2,13 @@ use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_array_get_index_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
-use crate::ToolboxIdlBreadcrumbs;
 
 impl ToolboxIdl {
     pub fn compile_instruction_data(
@@ -27,21 +27,21 @@ impl ToolboxIdl {
             breadcrumbs,
         )?;
         for index in 0..idl_instruction_args.len() {
-            let idl_instruction_arg = idl_instruction_args.get(index).unwrap();
-            let idl_instruction_arg_tag = &format!("arg[{}]", index);
-            let idl_instruction_arg_object = idl_as_object_or_else(
-                idl_instruction_arg,
-                &breadcrumbs.context(idl_instruction_arg_tag),
-            )?;
+            let idl_instruction_arg_object =
+                idl_array_get_index_as_object_or_else(
+                    idl_instruction_args,
+                    index,
+                    breadcrumbs,
+                )?;
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                &breadcrumbs.kind(idl_instruction_arg_tag),
+                &breadcrumbs.kind(&format!("arg[{}]", index)),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,
                 "type",
-                &breadcrumbs.kind(idl_instruction_arg_tag),
+                &breadcrumbs.kind(idl_instruction_arg_name),
             )?;
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
@@ -52,7 +52,7 @@ impl ToolboxIdl {
                 idl_instruction_arg_type,
                 instruction_arg,
                 &mut instruction_data,
-                &breadcrumbs.name(idl_instruction_arg_tag),
+                &breadcrumbs.name(idl_instruction_arg_name),
             )?;
         }
         Ok(instruction_data)
@@ -85,27 +85,27 @@ impl ToolboxIdl {
         let mut instruction_args = Map::new();
         let mut data_offset = size_of_val(&data_discriminator);
         for index in 0..idl_instruction_args.len() {
-            let idl_instruction_arg = idl_instruction_args.get(0).unwrap();
-            let idl_instruction_arg_tag = &format!("arg[{}]", index);
-            let idl_instruction_arg_object = idl_as_object_or_else(
-                idl_instruction_arg,
-                &breadcrumbs.context(idl_instruction_arg_tag),
-            )?;
+            let idl_instruction_arg_object =
+                idl_array_get_index_as_object_or_else(
+                    idl_instruction_args,
+                    index,
+                    breadcrumbs,
+                )?;
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                &breadcrumbs.kind(idl_instruction_arg_tag),
+                &breadcrumbs.kind(&format!("arg[{}]", index)),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,
                 "type",
-                &breadcrumbs.kind(idl_instruction_arg_tag),
+                &breadcrumbs.kind(idl_instruction_arg_name),
             )?;
             let (data_arg_size, data_arg_value) = self.type_deserialize(
                 idl_instruction_arg_type,
                 instruction_data,
                 data_offset,
-                breadcrumbs,
+                &breadcrumbs.name(idl_instruction_arg_name),
             )?;
             data_offset += data_arg_size;
             instruction_args

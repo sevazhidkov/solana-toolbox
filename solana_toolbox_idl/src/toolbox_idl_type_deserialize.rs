@@ -5,6 +5,7 @@ use serde_json::Value;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_array_get_index_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
@@ -219,21 +220,20 @@ fn idl_type_deserialize_struct(
     let mut data_size = 0;
     let mut data_fields = Map::new();
     for index in 0..idl_type_fields.len() {
-        let idl_field = idl_type_fields.get(index).unwrap();
-        let idl_field_tag = &format!("fields[{}]", index);
-        let idl_field_object = idl_as_object_or_else(
-            idl_field,
-            &breadcrumbs.context(idl_field_tag),
+        let idl_field_object = idl_array_get_index_as_object_or_else(
+            idl_type_fields,
+            index,
+            breadcrumbs,
         )?;
         let idl_field_name = idl_object_get_key_as_str_or_else(
             idl_field_object,
             "name",
-            &breadcrumbs.kind(idl_field_tag),
+            &breadcrumbs.kind(&format!("fields[{}]", index)),
         )?;
         let idl_field_type = idl_object_get_key_or_else(
             idl_field_object,
             "type",
-            &breadcrumbs.kind(idl_field_tag),
+            &breadcrumbs.kind(idl_field_name),
         )?;
         let (data_field_size, data_field_value) = idl_type_deserialize(
             idl_types,

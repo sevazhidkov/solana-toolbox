@@ -2,9 +2,9 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_context::ToolboxIdlContext;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::ToolboxIdlBreadcrumbs;
 
 pub(crate) fn idl_object_get_key_as_array<'a>(
     object: &'a Map<String, Value>,
@@ -67,6 +67,18 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
         object.get(key),
         "missing value at key",
         &breadcrumbs.context(key),
+    )
+}
+
+pub(crate) fn idl_array_get_index_as_object_or_else<'a>(
+    array: &'a Vec<Value>,
+    index: usize,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
+    idl_ok_or_else(
+        array.get(index).and_then(|value| value.as_object()),
+        "expected an object",
+        &breadcrumbs.context(&format!("[{}]", index)),
     )
 }
 

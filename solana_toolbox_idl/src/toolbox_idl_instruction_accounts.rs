@@ -9,6 +9,7 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_array_get_index_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
@@ -56,10 +57,10 @@ fn generate_instruction_account_metas(
     let mut account_addresses = instruction_accounts.clone(); // TODO - remove this
     let mut account_metas = vec![];
     for index in 0..idl_accounts.len() {
-        let idl_account = idl_accounts.get(index).unwrap();
-        let idl_account_object = idl_as_object_or_else(
-            idl_account,
-            &breadcrumbs.context(&format!("[{}]", index)),
+        let idl_account_object = idl_array_get_index_as_object_or_else(
+            idl_accounts,
+            index,
+            breadcrumbs,
         )?;
         let (account_name, account_address) = idl_account_object_resolve(
             idl_account_object,

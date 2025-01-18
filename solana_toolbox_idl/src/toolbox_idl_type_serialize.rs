@@ -7,6 +7,7 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_array_get_index_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_i128_or_else;
@@ -199,21 +200,20 @@ fn idl_type_serialize_struct(
         breadcrumbs,
     )?;
     for index in 0..idl_type_fields.len() {
-        let idl_field = idl_type_fields.get(index).unwrap();
-        let idl_field_tag = &format!("fields[{}]", index);
-        let idl_field_object = idl_as_object_or_else(
-            idl_field,
-            &breadcrumbs.context(idl_field_tag),
+        let idl_field_object = idl_array_get_index_as_object_or_else(
+            idl_type_fields,
+            index,
+            &breadcrumbs.kind("fields"),
         )?;
         let idl_field_name = idl_object_get_key_as_str_or_else(
             idl_field_object,
             "name",
-            &breadcrumbs.kind(idl_field_tag),
+            &breadcrumbs.kind(&format!("fields[{}]", index)),
         )?;
         let idl_field_type = idl_object_get_key_or_else(
             idl_field_object,
             "type",
-            &breadcrumbs.kind(idl_field_tag),
+            &breadcrumbs.kind(idl_field_name),
         )?;
         let value_field = idl_object_get_key_or_else(
             value_object,
@@ -244,16 +244,15 @@ fn idl_type_serialize_enum(
     )?;
     let value_string = idl_as_str_or_else(value, &breadcrumbs.context("enum"))?;
     for index in 0..idl_type_variants.len() {
-        let idl_variant = idl_type_variants.get(index).unwrap();
-        let idl_variant_tag = &format!("variants[{}]", index);
-        let idl_variant_object = idl_as_object_or_else(
-            idl_variant,
-            &breadcrumbs.context(&idl_variant_tag),
+        let idl_variant_object = idl_array_get_index_as_object_or_else(
+            idl_type_variants,
+            index,
+            breadcrumbs,
         )?;
         let idl_variant_name = idl_object_get_key_as_str_or_else(
             idl_variant_object,
             "name",
-            &breadcrumbs.kind(idl_variant_tag),
+            &breadcrumbs.kind(&format!("variants[{}]", index)),
         )?;
         if idl_variant_name == value_string {
             let data_enum = u8::try_from(index).unwrap();

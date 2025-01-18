@@ -72,7 +72,6 @@ impl ToolboxIdl {
             &breadcrumbs.context("length"),
         )?;
         let content_offset = length_offset + size_of_val(&length);
-        let content_context = &breadcrumbs.context("content");
         let content = idl_slice_from_bytes(
             data,
             content_offset,
