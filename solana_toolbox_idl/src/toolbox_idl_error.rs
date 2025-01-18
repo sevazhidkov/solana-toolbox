@@ -16,10 +16,6 @@ pub enum ToolboxIdlError {
         found: u64,
         expected: u64,
     },
-    InvalidDataSize {
-        found: usize,
-        expected: usize,
-    },
     InvalidSliceReadAt {
         offset: usize,
         length: usize,

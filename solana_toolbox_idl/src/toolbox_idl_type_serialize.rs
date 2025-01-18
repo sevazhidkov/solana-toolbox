@@ -7,7 +7,6 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_array_get_index_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_i128_or_else;
@@ -16,10 +15,11 @@ use crate::toolbox_idl_utils::idl_as_str_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
-use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
 impl ToolboxIdl {
     pub(crate) fn type_serialize(
@@ -52,7 +52,7 @@ fn idl_type_serialize(
     if let Some(idl_type_str) = idl_type.as_str() {
         return idl_type_serialize_leaf(idl_type_str, value, data, breadcrumbs);
     }
-    idl_err("Expected object or string", &breadcrumbs.context("type"))
+    idl_err("Expected object or string", &breadcrumbs.as_idl("typedef"))
 }
 
 fn idl_type_serialize_node(
@@ -123,7 +123,7 @@ fn idl_type_serialize_node(
     }
     idl_err(
         "Missing key: defined/option/kind/array/vec",
-        &breadcrumbs.context("type object"),
+        &breadcrumbs.as_idl("typedef(object)"),
     )
 }
 
@@ -134,32 +134,21 @@ fn idl_type_serialize_defined(
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
-    let idl_type_name = match idl_type_defined.as_str() {
-        Some(idl_type_name) => idl_type_name,
-        None => {
-            let idl_type_defined_tag = "defined";
-            let idl_type_defined_object = idl_as_object_or_else(
-                idl_type_defined,
-                &breadcrumbs.context(idl_type_defined_tag),
-            )?;
-            idl_object_get_key_as_str_or_else(
-                idl_type_defined_object,
-                "name",
-                &breadcrumbs.kind(idl_type_defined_tag),
-            )?
-        },
-    };
+    let idl_type_name = idl_value_as_str_or_object_with_name_as_str_or_else(
+        idl_type_defined,
+        &breadcrumbs.as_idl("defined"),
+    )?;
     let idl_type = idl_object_get_key_or_else(
         idl_types,
         idl_type_name,
-        &breadcrumbs.kind("$idl_types"),
+        &breadcrumbs.as_idl("$idl_types"),
     )?;
     return idl_type_serialize(
         idl_types,
         idl_type,
         value,
         data,
-        &breadcrumbs.kind(idl_type_name),
+        &breadcrumbs.with_idl(idl_type_name),
     );
 }
 
@@ -180,7 +169,7 @@ fn idl_type_serialize_option(
             idl_type_option,
             value,
             data,
-            &breadcrumbs.kind("option"),
+            &breadcrumbs.with_idl("option"),
         )
     }
 }
@@ -193,39 +182,35 @@ fn idl_type_serialize_struct(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     let value_object =
-        idl_as_object_or_else(value, &breadcrumbs.context("struct"))?;
-    let idl_type_fields = idl_object_get_key_as_array_or_else(
+        idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
+    let idl_type_fields_objects = idl_object_get_key_as_object_array_or_else(
         idl_type_struct,
         "fields",
-        breadcrumbs,
+        &breadcrumbs.as_idl("fields"),
     )?;
-    for index in 0..idl_type_fields.len() {
-        let idl_field_object = idl_array_get_index_as_object_or_else(
-            idl_type_fields,
-            index,
-            &breadcrumbs.kind("fields"),
-        )?;
+    for index in 0..idl_type_fields_objects.len() {
+        let idl_field_object = idl_type_fields_objects.get(index).unwrap();
         let idl_field_name = idl_object_get_key_as_str_or_else(
             idl_field_object,
             "name",
-            &breadcrumbs.kind(&format!("fields[{}]", index)),
+            &breadcrumbs.as_idl(&format!("fields[{}]", index)),
         )?;
         let idl_field_type = idl_object_get_key_or_else(
             idl_field_object,
             "type",
-            &breadcrumbs.kind(idl_field_name),
+            &breadcrumbs.as_idl(idl_field_name),
         )?;
         let value_field = idl_object_get_key_or_else(
             value_object,
             idl_field_name,
-            breadcrumbs,
+            &breadcrumbs.as_val("_"),
         )?;
         idl_type_serialize(
             idl_types,
             idl_field_type,
             value_field,
             data,
-            &breadcrumbs.name(idl_field_name),
+            &breadcrumbs.with_val(idl_field_name),
         )?;
     }
     Ok(())
@@ -237,22 +222,18 @@ fn idl_type_serialize_enum(
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
-    let idl_type_variants = idl_object_get_key_as_array_or_else(
+    let value_string = idl_as_str_or_else(value, &breadcrumbs.as_val("enum"))?;
+    let idl_type_variants_objects = idl_object_get_key_as_object_array_or_else(
         idl_type_enum,
         "variants",
-        breadcrumbs,
+        &breadcrumbs.as_idl("enum"),
     )?;
-    let value_string = idl_as_str_or_else(value, &breadcrumbs.context("enum"))?;
-    for index in 0..idl_type_variants.len() {
-        let idl_variant_object = idl_array_get_index_as_object_or_else(
-            idl_type_variants,
-            index,
-            breadcrumbs,
-        )?;
+    for index in 0..idl_type_variants_objects.len() {
+        let idl_variant_object = idl_type_variants_objects.get(index).unwrap();
         let idl_variant_name = idl_object_get_key_as_str_or_else(
             idl_variant_object,
             "name",
-            &breadcrumbs.kind(&format!("variants[{}]", index)),
+            &breadcrumbs.as_idl(&format!("variants[{}]", index)),
         )?;
         if idl_variant_name == value_string {
             let data_enum = u8::try_from(index).unwrap();
@@ -260,7 +241,7 @@ fn idl_type_serialize_enum(
             return Ok(());
         }
     }
-    idl_err("could not find matching enum", &breadcrumbs.context(value_string))
+    idl_err("could not find matching enum", &breadcrumbs.as_val(value_string))
 }
 
 fn idl_type_serialize_array(
@@ -271,22 +252,20 @@ fn idl_type_serialize_array(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     let value_array =
-        idl_as_array_or_else(value, &breadcrumbs.context("array"))?;
+        idl_as_array_or_else(value, &breadcrumbs.as_val("array"))?;
     if idl_type_array.len() != 2 {
         return idl_err(
             "expected 2 items: type and length",
-            &breadcrumbs.context("[]"),
+            &breadcrumbs.as_idl("[]"),
         );
     }
     let idl_item_type = &idl_type_array[0];
-    let idl_item_length = idl_as_u128_or_else(
-        &idl_type_array[1],
-        &breadcrumbs.context("length"),
-    )?;
+    let idl_item_length =
+        idl_as_u128_or_else(&idl_type_array[1], &breadcrumbs.as_idl("length"))?;
     let idl_item_length = usize::try_from(idl_item_length).map_err(|err| {
         ToolboxIdlError::InvalidInteger {
             conversion: err,
-            context: breadcrumbs.context("length"),
+            context: breadcrumbs.as_idl("length"),
         }
     })?;
     if value_array.len() != idl_item_length {
@@ -296,7 +275,7 @@ fn idl_type_serialize_array(
             idl_item_length,
             value_array.len()
         ),
-            &breadcrumbs.context("value array"),
+            &breadcrumbs.as_idl("value array"),
         );
     }
     for index in 0..value_array.len() {
@@ -306,7 +285,7 @@ fn idl_type_serialize_array(
             idl_item_type,
             value_item,
             data,
-            &breadcrumbs.name(&format!("[{}]", index)),
+            &breadcrumbs.with_val(&format!("[{}]", index)),
         )?;
     }
     Ok(())
@@ -319,7 +298,7 @@ fn idl_type_serialize_vec(
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
-    let value_array = idl_as_array_or_else(value, &breadcrumbs.context("vec"))?;
+    let value_array = idl_as_array_or_else(value, &breadcrumbs.as_val("vec"))?;
     let value_length = u32::try_from(value_array.len()).unwrap();
     data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_length));
     for index in 0..value_array.len() {
@@ -329,7 +308,7 @@ fn idl_type_serialize_vec(
             idl_type_vec,
             value_item,
             data,
-            &breadcrumbs.name(&format!("[{}]", index)),
+            &breadcrumbs.with_val(&format!("[{}]", index)),
         )?;
     }
     return Ok(());
@@ -341,7 +320,7 @@ fn idl_type_serialize_leaf(
     data: &mut Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
-    let context = &breadcrumbs.context(idl_type_str);
+    let context = &breadcrumbs.as_idl(idl_type_str);
     macro_rules! write_data_using_u_number {
         ($type:ident) => {
             let value_integer = idl_as_u128_or_else(value, context)?;

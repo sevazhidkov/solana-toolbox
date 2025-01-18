@@ -13,6 +13,9 @@ pub async fn run() {
     .unwrap();
     // Prepare instruction args
     let instruction_args = json!({
+        "params": {
+            "index": "hello",
+        },
         "globalMarketSeed": "SEED",
         "withdrawalFee": {
             "numerator": 41,

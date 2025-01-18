@@ -2,35 +2,42 @@ use crate::toolbox_idl_context::ToolboxIdlContext;
 
 #[derive(Debug, Clone, Default)]
 pub struct ToolboxIdlBreadcrumbs {
-    name: String,
-    kind: String,
+    idl: String,
+    val: String,
 }
 
 impl ToolboxIdlBreadcrumbs {
-    pub fn name(
+    pub fn with_idl(
         &self,
         value: &str,
     ) -> ToolboxIdlBreadcrumbs {
         ToolboxIdlBreadcrumbs {
-            name: format!("{}.{}", self.name, value),
-            kind: self.kind.clone(),
+            idl: format!("{}.{}", self.idl, value),
+            val: self.val.clone(),
         }
     }
 
-    pub fn kind(
+    pub fn with_val(
         &self,
         value: &str,
     ) -> ToolboxIdlBreadcrumbs {
         ToolboxIdlBreadcrumbs {
-            name: self.name.clone(),
-            kind: format!("{}.{}", self.kind, value),
+            idl: self.idl.clone(),
+            val: format!("{}.{}", self.val, value),
         }
     }
 
-    pub fn context(
+    pub fn as_idl(
         &self,
-        stage: &str,
+        value: &str,
     ) -> ToolboxIdlContext {
-        ToolboxIdlContext::new(self, stage)
+        ToolboxIdlContext::new(&format!("{}.{}.$", self.idl, value), &self.val)
+    }
+
+    pub fn as_val(
+        &self,
+        value: &str,
+    ) -> ToolboxIdlContext {
+        ToolboxIdlContext::new(&self.idl, &format!("{}.{}.$", self.val, value))
     }
 }

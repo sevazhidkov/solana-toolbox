@@ -51,7 +51,7 @@ impl ToolboxIdl {
         let disciminator = idl_u64_from_bytes_at(
             &data,
             discriminator_offset,
-            &breadcrumbs.context("discriminator"),
+            &breadcrumbs.as_val("discriminator"),
         )?;
         if disciminator != ToolboxIdl::DISCRIMINATOR {
             return Err(ToolboxIdlError::InvalidDiscriminator {
@@ -63,13 +63,13 @@ impl ToolboxIdl {
         let authority = idl_pubkey_from_bytes_at(
             &data,
             authority_offset,
-            &breadcrumbs.context("authority"),
+            &breadcrumbs.as_val("authority"),
         )?;
         let length_offset = authority_offset + size_of_val(&authority);
         let length = idl_u32_from_bytes_at(
             &data,
             length_offset,
-            &breadcrumbs.context("length"),
+            &breadcrumbs.as_val("length"),
         )?;
         let content_offset = length_offset + size_of_val(&length);
         let content = idl_slice_from_bytes(
@@ -78,10 +78,10 @@ impl ToolboxIdl {
             usize::try_from(length).map_err(|err| {
                 ToolboxIdlError::InvalidInteger {
                     conversion: err,
-                    context: breadcrumbs.context("length"),
+                    context: breadcrumbs.as_val("length"),
                 }
             })?,
-            &breadcrumbs.context("content"),
+            &breadcrumbs.as_val("content"),
         )?;
         let content_encoded =
             inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
@@ -89,7 +89,7 @@ impl ToolboxIdl {
             String::from_utf8(content_encoded).map_err(|err| {
                 ToolboxIdlError::InvalidString {
                     parsing: err,
-                    context: breadcrumbs.context("content"),
+                    context: breadcrumbs.as_val("content"),
                 }
             })?;
         ToolboxIdl::try_from_str(&content_decoded)
@@ -99,10 +99,8 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_value =
             from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
-        let idl_root_object = idl_as_object_or_else(
-            &idl_root_value,
-            &breadcrumbs.context("root"),
-        )?;
+        let idl_root_object =
+            idl_as_object_or_else(&idl_root_value, &breadcrumbs.as_idl("$"))?;
         Ok(ToolboxIdl {
             types: idl_collection_content_mapped_by_name(
                 idl_root_object,
@@ -147,9 +145,9 @@ fn idl_collection_content_mapped_by_name(
     let idl_array = idl_object_get_key_as_array_or_else(
         object,
         collection_key,
-        breadcrumbs,
+        &breadcrumbs.as_idl("root"),
     )?;
-    let mut object = Map::new();
+    let mut idl_collection = Map::new();
     for idl_item in idl_array {
         if let Some(idl_item_object) = idl_item.as_object() {
             if let Some(item_name) =
@@ -157,10 +155,11 @@ fn idl_collection_content_mapped_by_name(
             {
                 if let Some(idl_item_content) = idl_item_object.get(content_key)
                 {
-                    object.insert(item_name.into(), idl_item_content.clone());
+                    idl_collection
+                        .insert(item_name.into(), idl_item_content.clone());
                 }
             }
         }
     }
-    Ok(object)
+    Ok(idl_collection)
 }
