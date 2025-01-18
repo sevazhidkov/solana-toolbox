@@ -1,13 +1,12 @@
 use solana_sdk::commitment_config::CommitmentConfig;
-use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
-pub async fn devnet_idl_anchor_0_29() {
-    // Create the devnet endpoint
+pub async fn run() {
+    // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
         "https://api.devnet.solana.com".to_string(),
         CommitmentConfig::confirmed(),
@@ -15,7 +14,8 @@ pub async fn devnet_idl_anchor_0_29() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::new()));
     // Fetch the idl of an anchor program on chain
-    let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
+    let program_id =
+        Pubkey::from_str_const("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
     let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
         .await
         .unwrap()
@@ -24,20 +24,20 @@ pub async fn devnet_idl_anchor_0_29() {
     let realm_pda = Pubkey::find_program_address(&[b"realm"], &program_id);
     let realm_address = realm_pda.0;
     let realm_bump = realm_pda.1;
-    let (realm_data_size, realm_data_value) = idl
+    let realm_data_value = idl
         .get_account(&mut endpoint, "Realm", &realm_address)
         .await
         .unwrap()
         .unwrap();
+    eprintln!("realm_data_value: {:?}", realm_data_value);
     // Check that the account was parsed properly and values matches
-    assert_eq!(795, realm_data_size);
     assert_eq!(
         u64::from(realm_bump),
         realm_data_value.get("bump").unwrap().as_u64().unwrap()
     );
     // Related "USDC mint" account checks
     let usdc_mint_address =
-        pubkey!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
+        Pubkey::from_str_const("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
     assert_eq!(
         usdc_mint_address.to_string(),
         realm_data_value.get("usdcMint").unwrap().as_str().unwrap(),

@@ -9,7 +9,7 @@ use solana_toolbox_endpoint::toolbox_endpoint_program_test_builtin_program_ancho
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
-pub async fn program_test_builtin_programs() {
+pub async fn run() {
     // Define dummy builtin program #1
     let builtin1_program_id = Keypair::new();
     fn builtin1_program_entry(

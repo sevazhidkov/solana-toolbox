@@ -7,7 +7,7 @@ use solana_toolbox_endpoint::ToolboxEndpointLoggerBuffer;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
 
 #[tokio::test]
-pub async fn program_test_loggers() {
+pub async fn run() {
     // Initialize the endpoint
     let mut endpoint =
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[]).await;

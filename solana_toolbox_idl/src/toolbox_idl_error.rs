@@ -1,6 +1,10 @@
+use std::num::TryFromIntError;
+
+use solana_sdk::pubkey::ParsePubkeyError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
 
 use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 
 #[derive(Debug)]
 pub enum ToolboxIdlError {
@@ -11,8 +15,40 @@ pub enum ToolboxIdlError {
     Inflate(String),
     FromUtf8(std::string::FromUtf8Error),
     SerdeJson(serde_json::Error),
-    Overflow(),
-    Custom(String), // TODO - use special error type
+    InvalidDiscriminator {
+        found: u64,
+        expected: u64,
+    },
+    InvalidDataSize {
+        found: usize,
+        expected: usize,
+    },
+    InvalidSliceReadAt {
+        offset: usize,
+        length: usize,
+        bytes: usize,
+        breadcrumbs: ToolboxIdlBreadcrumbs,
+    },
+    InvalidSliceLength {
+        offset: usize,
+        length: usize,
+        breadcrumbs: ToolboxIdlBreadcrumbs,
+    },
+    InvalidTypeObject {
+        breadcrumbs: ToolboxIdlBreadcrumbs,
+    },
+    InvalidPubkey {
+        parsing: ParsePubkeyError,
+        breadcrumbs: ToolboxIdlBreadcrumbs,
+    },
+    InvalidConversionInteger {
+        conversion: TryFromIntError,
+        breadcrumbs: ToolboxIdlBreadcrumbs,
+    },
+    Custom {
+        failure: String,
+        breadcrumbs: ToolboxIdlBreadcrumbs,
+    },
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {

@@ -5,9 +5,9 @@ use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
@@ -46,24 +46,27 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let discriminator_offset = 0;
-        let disciminator = idl_u64_from_bytes_at(&data, discriminator_offset)?;
+        let disciminator =
+            idl_u64_from_bytes_at(&data, discriminator_offset, breadcrumbs)?;
         if disciminator != ToolboxIdl::DISCRIMINATOR {
-            return idl_err(&format!(
-                "discriminator is invalid: found {:016X}, expected {:016X}",
-                disciminator,
-                ToolboxIdl::DISCRIMINATOR
-            ));
+            return Err(ToolboxIdlError::InvalidDiscriminator {
+                found: disciminator,
+                expected: ToolboxIdl::DISCRIMINATOR,
+            });
         }
         let authority_offset = size_of_val(&disciminator);
-        let authority = idl_pubkey_from_bytes_at(&data, authority_offset)?;
+        let authority =
+            idl_pubkey_from_bytes_at(&data, authority_offset, breadcrumbs)?;
         let length_offset = authority_offset + size_of_val(&authority);
-        let length = idl_u32_from_bytes_at(&data, length_offset)?;
+        let length = idl_u32_from_bytes_at(&data, length_offset, breadcrumbs)?;
         let content_offset = length_offset + size_of_val(&length);
         let content = idl_slice_from_bytes(
             data,
             content_offset,
             usize::try_from(length).map_err(ToolboxIdlError::TryFromInt)?,
+            breadcrumbs,
         )?;
         let content_encoded =
             inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
@@ -73,34 +76,41 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_value =
             from_str::<Value>(&content).map_err(ToolboxIdlError::SerdeJson)?;
-        let idl_root_object = idl_as_object_or_else(&idl_root_value, "root")?;
+        let idl_root_object =
+            idl_as_object_or_else(&idl_root_value, breadcrumbs)?;
         Ok(ToolboxIdl {
             types: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "types",
                 "type",
+                breadcrumbs,
             )?,
             account_types: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "accounts",
                 "type",
+                breadcrumbs,
             )?,
             errors_codes: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "errors",
                 "code",
+                breadcrumbs,
             )?,
             instructions_accounts: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "instructions",
                 "accounts",
+                breadcrumbs,
             )?,
             instructions_args: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "instructions",
                 "args",
+                breadcrumbs,
             )?,
         })
     }
@@ -110,9 +120,13 @@ fn idl_collection_content_mapped_by_name(
     object: &Map<String, Value>,
     collection_key: &str,
     content_key: &str,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Map<String, Value>, ToolboxIdlError> {
-    let idl_array =
-        idl_object_get_key_as_array_or_else(object, collection_key, "root")?;
+    let idl_array = idl_object_get_key_as_array_or_else(
+        object,
+        collection_key,
+        breadcrumbs,
+    )?;
     let mut object = Map::new();
     for idl_item in idl_array {
         if let Some(idl_item_object) = idl_item.as_object() {

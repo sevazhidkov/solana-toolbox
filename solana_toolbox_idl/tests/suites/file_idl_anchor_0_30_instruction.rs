@@ -1,15 +1,14 @@
 use std::collections::HashMap;
 use std::fs::read_to_string;
 
-use serde_json::Map;
-use serde_json::Number;
+use serde_json::json;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
-pub async fn file_idl_anchor_0_30() {
+pub async fn run() {
     // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
         &read_to_string("./tests/fixtures/dummy_idl_anchor_0_30.json").unwrap(),
@@ -30,53 +29,28 @@ pub async fn file_idl_anchor_0_30() {
     instruction_accounts.insert("collateral_mint".into(), collateral_mint);
     instruction_accounts.insert("redeemable_mint".into(), redeemable_mint);
     // Prepare instruction args
-    let mut instruction_args = Map::new();
-    instruction_args.insert(
-        "params".into(),
-        Value::Object({
-            let mut params = Map::new();
-            params.insert("index".into(), Value::Number(Number::from(11)));
-            params.insert(
-                "funding_goal_collateral_amount".into(),
-                Value::Number(Number::from(41)),
-            );
-            params.insert(
-                "funding_phase_duration_seconds".into(),
-                Value::Number(Number::from(42)),
-            );
-            params.insert(
-                "metadata".into(),
-                Value::Object({
-                    let mut metadata = Map::new();
-                    metadata.insert(
-                        "length".into(),
-                        Value::Number(Number::from(20)),
-                    );
-                    metadata.insert(
-                        "bytes".into(),
-                        Value::Array({
-                            let mut bytes = vec![];
-                            for index in 0..512 {
-                                bytes.push(Value::Number(Number::from(
-                                    index % 100,
-                                )));
-                            }
-                            bytes
-                        }),
-                    );
-                    metadata
-                }),
-            );
-            params
-        }),
-    );
+    let mut instruction_args_bytes = vec![];
+    for index in 0..512 {
+        instruction_args_bytes.push(Value::from(index % 100));
+    }
+    let instruction_args = json!({
+        "params": {
+            "index": 11,
+            "funding_goal_collateral_amount": 41,
+            "funding_phase_duration_seconds": 42,
+            "metadata": {
+                "length": 22,
+                "bytes": instruction_args_bytes,
+            }
+        },
+    });
     // Actually generate the instruction
     let instruction = idl
         .generate_instruction(
             &program_id,
             "campaign_create",
             &instruction_accounts,
-            &instruction_args,
+            instruction_args.as_object().unwrap(),
         )
         .unwrap();
     // Generate expected accounts
@@ -94,7 +68,7 @@ pub async fn file_idl_anchor_0_30() {
     assert_eq!(bytemuck::bytes_of::<u64>(&11), &instruction.data[8..16]);
     assert_eq!(bytemuck::bytes_of::<u64>(&41), &instruction.data[16..24]);
     assert_eq!(bytemuck::bytes_of::<u32>(&42), &instruction.data[24..28]);
-    assert_eq!(bytemuck::bytes_of::<u16>(&20), &instruction.data[28..30]);
+    assert_eq!(bytemuck::bytes_of::<u16>(&22), &instruction.data[28..30]);
     // Check instruction accounts
     assert_eq!(9, instruction.accounts.len());
     assert_account(payer, true, true, instruction.accounts.get(0));

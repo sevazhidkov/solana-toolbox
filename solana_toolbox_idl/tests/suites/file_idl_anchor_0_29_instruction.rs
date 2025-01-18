@@ -1,15 +1,13 @@
 use std::collections::HashMap;
 use std::fs::read_to_string;
 
-use serde_json::Map;
-use serde_json::Number;
-use serde_json::Value;
+use serde_json::json;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
-pub async fn file_idl_anchor_0_29() {
+pub async fn run() {
     // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
         &read_to_string("./tests/fixtures/dummy_idl_anchor_0_29.json").unwrap(),
@@ -35,33 +33,20 @@ pub async fn file_idl_anchor_0_29() {
     instruction_accounts.insert("systemProgram".into(), placeholder);
     instruction_accounts.insert("tokenProgram".into(), placeholder);
     // Prepare instruction args
-    let mut instruction_args = Map::new();
-    instruction_args.insert(
-        "params".into(),
-        Value::Object({
-            let mut params = Map::new();
-            params.insert(
-                "liquidInsuranceFundUsdcAmount".into(),
-                Value::Number(Number::from(41)),
-            );
-            params.insert(
-                "phaseOneDurationSeconds".into(),
-                Value::Number(Number::from(42)),
-            );
-            params.insert(
-                "phaseTwoDurationSeconds".into(),
-                Value::Number(Number::from(43)),
-            );
-            params
-        }),
-    );
+    let instruction_args = json!({
+        "params": {
+            "liquidInsuranceFundUsdcAmount": 41,
+            "phaseOneDurationSeconds": 42,
+            "phaseTwoDurationSeconds": 43,
+        },
+    });
     // Actually generate the instruction
     let instruction = idl
         .generate_instruction(
             &program_id,
             "initializeRealm",
             &instruction_accounts,
-            &instruction_args,
+            instruction_args.as_object().unwrap(),
         )
         .unwrap();
     // Check instruction content

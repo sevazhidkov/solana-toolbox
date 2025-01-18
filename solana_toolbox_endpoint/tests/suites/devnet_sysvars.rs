@@ -3,8 +3,8 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
 
 #[tokio::test]
-pub async fn devnet_sysvars() {
-    // Create the devnet endpoint
+pub async fn run() {
+    // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
         "https://api.devnet.solana.com".to_string(),
         CommitmentConfig::confirmed(),

@@ -4,7 +4,7 @@ use solana_sdk::system_instruction::transfer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
-pub async fn program_test_builtin_programs() {
+pub async fn run() {
     // Initialize the endpoint
     let mut endpoint =
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[]).await;
