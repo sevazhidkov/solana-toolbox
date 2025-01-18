@@ -12,7 +12,7 @@ impl ToolboxIdlBreadcrumbs {
         value: &str,
     ) -> ToolboxIdlBreadcrumbs {
         ToolboxIdlBreadcrumbs {
-            idl: format!("{}.{}", self.idl, value),
+            idl: format!("{}:{}", self.idl, value),
             val: self.val.clone(),
         }
     }
@@ -23,7 +23,7 @@ impl ToolboxIdlBreadcrumbs {
     ) -> ToolboxIdlBreadcrumbs {
         ToolboxIdlBreadcrumbs {
             idl: self.idl.clone(),
-            val: format!("{}.{}", self.val, value),
+            val: format!("{}:{}", self.val, value),
         }
     }
 

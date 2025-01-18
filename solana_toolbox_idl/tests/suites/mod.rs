@@ -3,6 +3,7 @@ pub mod devnet_idl_anchor_0_29_data;
 pub mod devnet_idl_anchor_0_30_data;
 pub mod devnet_idl_anchor_0_30_instruction;
 pub mod file_idl_anchor_0_26_data;
+pub mod file_idl_anchor_0_26_instruction;
 pub mod file_idl_anchor_0_29_instruction;
 pub mod file_idl_anchor_0_30_data;
 pub mod file_idl_anchor_0_30_instruction;

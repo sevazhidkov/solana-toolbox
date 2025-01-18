@@ -5,6 +5,7 @@ use serde_json::json;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
@@ -54,7 +55,11 @@ pub async fn run() {
         )
         .unwrap();
     // Generate expected accounts
-    //let campaign_collateral = Pubkey::new_unique();
+    let campaign_collateral =
+        ToolboxEndpoint::find_spl_associated_token_account(
+            &campaign,
+            &collateral_mint,
+        );
     let a_token_program =
         Pubkey::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
     let token_program =
@@ -74,13 +79,12 @@ pub async fn run() {
     assert_account(payer, true, true, instruction.accounts.get(0));
     assert_account(authority, false, true, instruction.accounts.get(1));
     assert_account(campaign, true, false, instruction.accounts.get(2));
-    /* // TODO - check campaign_collateral
     assert_account(
         campaign_collateral,
         true,
         false,
-        instruction.accounts.get(2),
-    ); */
+        instruction.accounts.get(3),
+    );
     assert_account(collateral_mint, false, false, instruction.accounts.get(4));
     assert_account(redeemable_mint, true, true, instruction.accounts.get(5));
     assert_account(a_token_program, false, false, instruction.accounts.get(6));
