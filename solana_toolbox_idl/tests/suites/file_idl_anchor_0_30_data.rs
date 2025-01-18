@@ -39,7 +39,7 @@ pub async fn run() {
     // Compile the instruction data
     let instruction_data = &idl
         .compile_instruction_data(
-            "initializeMarket",
+            "campaign_create",
             instruction_args.as_object().unwrap(),
         )
         .unwrap()[..];
