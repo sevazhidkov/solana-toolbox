@@ -14,4 +14,5 @@ mod toolbox_idl_utils;
 
 pub use toolbox_idl::ToolboxIdl;
 pub use toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
+pub use toolbox_idl_context::ToolboxIdlContext;
 pub use toolbox_idl_error::ToolboxIdlError;
