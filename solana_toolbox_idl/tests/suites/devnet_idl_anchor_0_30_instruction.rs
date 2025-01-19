@@ -60,7 +60,6 @@ pub async fn run() {
     instruction_accounts_addresses.insert("payer".to_string(), payer.pubkey());
     instruction_accounts_addresses.insert("user".to_string(), user.pubkey());
     instruction_accounts_addresses.insert("campaign".to_string(), campaign);
-
     // Prepare the arguments necessary for the instruction
     let instruction_args_value = json!({
         "params": {},
