@@ -13,14 +13,12 @@ impl ToolboxIdl {
         &self,
         program_id: &Pubkey,
         instruction_name: &str,
-        instruction_accounts: &HashMap<String, Pubkey>,
+        instruction_accounts_addresses: &HashMap<String, Pubkey>,
         instruction_args: &Map<String, Value>,
     ) -> Result<Instruction, ToolboxIdlError> {
         let instruction_accounts = self.generate_instruction_accounts(
-            program_id,
             instruction_name,
-            instruction_accounts,
-            instruction_args,
+            instruction_accounts_addresses,
         )?;
         let instruction_data =
             self.compile_instruction_data(instruction_name, instruction_args)?;

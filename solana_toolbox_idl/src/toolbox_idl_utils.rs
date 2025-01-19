@@ -45,6 +45,18 @@ pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
     )
 }
 
+pub(crate) fn idl_object_get_key_as_object_or_else<'a>(
+    object: &'a Map<String, Value>,
+    key: &str,
+    context: &ToolboxIdlContext,
+) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
+    idl_ok_or_else(
+        idl_object_get_key_as_object(object, key),
+        &format!("expected an object at key: {}", key),
+        context,
+    )
+}
+
 pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,

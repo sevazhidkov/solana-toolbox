@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
+use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
@@ -19,16 +20,21 @@ pub async fn run() {
     let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
     let authority = Pubkey::new_unique();
-    let campaign = Pubkey::new_unique();
     let collateral_mint = Pubkey::new_unique();
     let redeemable_mint = Pubkey::new_unique();
+    let campaign = Pubkey::find_program_address(
+        &[b"Campaign", &11u64.to_le_bytes()],
+        &program_id,
+    )
+    .0;
     // Prepare instruction accounts
-    let mut instruction_accounts = HashMap::new();
-    instruction_accounts.insert("payer".into(), payer);
-    instruction_accounts.insert("authority".into(), authority);
-    instruction_accounts.insert("campaign".into(), campaign); // TODO - this should be auto-resolved from params
-    instruction_accounts.insert("collateral_mint".into(), collateral_mint);
-    instruction_accounts.insert("redeemable_mint".into(), redeemable_mint);
+    let mut instruction_accounts_addresses = HashMap::new();
+    instruction_accounts_addresses.insert("payer".into(), payer);
+    instruction_accounts_addresses.insert("authority".into(), authority);
+    instruction_accounts_addresses
+        .insert("collateral_mint".into(), collateral_mint);
+    instruction_accounts_addresses
+        .insert("redeemable_mint".into(), redeemable_mint);
     // Prepare instruction args
     let mut instruction_args_metadata_bytes = vec![];
     for index in 0..512 {
@@ -45,12 +51,22 @@ pub async fn run() {
             }
         },
     });
+    // Resolve missing instruction accounts
+    let instruction_accounts_addresses = idl
+        .fill_instruction_accounts_addresses(
+            &program_id,
+            "campaign_create",
+            &instruction_accounts_addresses,
+            &Map::new(),
+            instruction_args_value.as_object().unwrap(),
+        )
+        .unwrap();
     // Actually generate the instruction
     let instruction = idl
         .generate_instruction(
             &program_id,
             "campaign_create",
-            &instruction_accounts,
+            &instruction_accounts_addresses,
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();

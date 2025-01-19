@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde_json::json;
+use serde_json::Map;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -28,31 +29,58 @@ pub async fn run() {
         .unwrap();
     // Find an account we can read from the endpoint
     let campaign_index = 0u64;
-    let campaign_pda = Pubkey::find_program_address(
-        &[b"Campaign", &campaign_index.to_le_bytes()],
-        &program_id,
+    let campaign = idl
+        .resolve_instruction_account_address(
+            "campaign",
+            &program_id,
+            "campaign_create",
+            &HashMap::new(),
+            &Map::new(),
+            json!({ "params": { "index": campaign_index }})
+                .as_object()
+                .unwrap(),
+        )
+        .unwrap();
+    // Make sure the proper account has been resolved
+    assert_eq!(
+        campaign,
+        Pubkey::find_program_address(
+            &[b"Campaign", &campaign_index.to_le_bytes()],
+            &program_id,
+        )
+        .0
     );
-    let campaign_address = campaign_pda.0;
     // Try to generate a custom instruction
     let payer =
         Keypair::from_seed(b"Hello world, this is a dummy payer for devnet")
             .unwrap();
     let user = Keypair::new();
     // Prepare the accounts necessary for the instruction
-    let mut instruction_accounts = HashMap::new();
-    instruction_accounts.insert("payer".to_string(), payer.pubkey());
-    instruction_accounts.insert("user".to_string(), user.pubkey());
-    instruction_accounts.insert("campaign".to_string(), campaign_address);
+    let mut instruction_accounts_addresses = HashMap::new();
+    instruction_accounts_addresses.insert("payer".to_string(), payer.pubkey());
+    instruction_accounts_addresses.insert("user".to_string(), user.pubkey());
+    instruction_accounts_addresses.insert("campaign".to_string(), campaign);
+
     // Prepare the arguments necessary for the instruction
     let instruction_args_value = json!({
         "params": {},
     });
+    // Resolve missing instruction accounts
+    let instruction_accounts_addresses = idl
+        .fill_instruction_accounts_addresses(
+            &program_id,
+            "pledge_create",
+            &instruction_accounts_addresses,
+            &Map::new(),
+            instruction_args_value.as_object().unwrap(),
+        )
+        .unwrap();
     // Generate the actual instruction
     let instruction = idl
         .generate_instruction(
             &program_id,
             "pledge_create",
-            &instruction_accounts,
+            &instruction_accounts_addresses,
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();

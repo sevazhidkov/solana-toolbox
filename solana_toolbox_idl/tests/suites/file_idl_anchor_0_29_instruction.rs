@@ -19,19 +19,19 @@ pub async fn run() {
     let funding = Pubkey::new_unique();
     let placeholder = Pubkey::new_unique();
     // Prepare instruction accounts
-    let mut instruction_accounts = HashMap::new();
-    instruction_accounts.insert("payer".into(), payer);
-    instruction_accounts.insert("funding".into(), funding);
-    instruction_accounts.insert("fundingUsdc".into(), placeholder);
-    instruction_accounts.insert("realm".into(), placeholder);
-    instruction_accounts.insert("realmUsdc".into(), placeholder);
-    instruction_accounts.insert("uctMint".into(), placeholder);
-    instruction_accounts.insert("uxpMint".into(), placeholder);
-    instruction_accounts.insert("usdcMint".into(), placeholder);
-    instruction_accounts.insert("authority".into(), placeholder);
-    instruction_accounts.insert("spill".into(), placeholder);
-    instruction_accounts.insert("systemProgram".into(), placeholder);
-    instruction_accounts.insert("tokenProgram".into(), placeholder);
+    let mut instruction_accounts_addresses = HashMap::new();
+    instruction_accounts_addresses.insert("payer".into(), payer);
+    instruction_accounts_addresses.insert("funding".into(), funding);
+    instruction_accounts_addresses.insert("fundingUsdc".into(), placeholder);
+    instruction_accounts_addresses.insert("realm".into(), placeholder);
+    instruction_accounts_addresses.insert("realmUsdc".into(), placeholder);
+    instruction_accounts_addresses.insert("uctMint".into(), placeholder);
+    instruction_accounts_addresses.insert("uxpMint".into(), placeholder);
+    instruction_accounts_addresses.insert("usdcMint".into(), placeholder);
+    instruction_accounts_addresses.insert("authority".into(), placeholder);
+    instruction_accounts_addresses.insert("spill".into(), placeholder);
+    instruction_accounts_addresses.insert("systemProgram".into(), placeholder);
+    instruction_accounts_addresses.insert("tokenProgram".into(), placeholder);
     // Prepare instruction args
     let instruction_args_value = json!({
         "params": {
@@ -45,7 +45,7 @@ pub async fn run() {
         .generate_instruction(
             &program_id,
             "initializeRealm",
-            &instruction_accounts,
+            &instruction_accounts_addresses,
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();

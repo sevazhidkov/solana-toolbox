@@ -13,15 +13,21 @@ pub async fn run() {
     .unwrap();
     // Program
     let program_id = Pubkey::new_unique();
-    // Prepare instruction accounts
-    let mut instruction_accounts = HashMap::new();
-    instruction_accounts.insert("owner".into(), Pubkey::new_unique());
-    instruction_accounts.insert("borrower".into(), Pubkey::new_unique());
-    instruction_accounts.insert("systemProgram".into(), Pubkey::new_unique());
-    // TODO - this should not be necessary
-    instruction_accounts
+    // Prepare instruction accounts addresses
+    let mut instruction_accounts_addresses = HashMap::new();
+    instruction_accounts_addresses.insert("owner".into(), Pubkey::new_unique());
+    instruction_accounts_addresses
+        .insert("borrower".into(), Pubkey::new_unique());
+    instruction_accounts_addresses
         .insert("globalMarketState".into(), Pubkey::new_unique());
-    instruction_accounts.insert("deal".into(), Pubkey::new_unique());
+    instruction_accounts_addresses
+        .insert("systemProgram".into(), Pubkey::new_unique());
+    // Prepare instruction accounts values
+    let instruction_accounts_values = json!({
+        "borrowerInfo": {
+            "numOfDeals": 42,
+        }
+    });
     // Prepare instruction args
     let instruction_args_value = json!({
         "maxFundingDuration": 42,
@@ -33,12 +39,22 @@ pub async fn run() {
         },
         "migrated": true,
     });
+    // Resolve missing instruction accounts
+    let instruction_accounts_addresses = idl
+        .fill_instruction_accounts_addresses(
+            &program_id,
+            "createDeal",
+            &instruction_accounts_addresses,
+            &instruction_accounts_values.as_object().unwrap(),
+            instruction_args_value.as_object().unwrap(),
+        )
+        .unwrap();
     // Compile the instruction data
     let instruction_data = &idl
         .generate_instruction(
             &program_id,
             "createDeal",
-            &instruction_accounts,
+            &instruction_accounts_addresses,
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();
