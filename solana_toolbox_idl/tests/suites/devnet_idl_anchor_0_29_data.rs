@@ -1,4 +1,5 @@
 use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
@@ -14,8 +15,7 @@ pub async fn run() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
     // Fetch the idl of an anchor program on chain
-    let program_id =
-        Pubkey::from_str_const("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
+    let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
     let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
         .await
         .unwrap()
@@ -37,7 +37,7 @@ pub async fn run() {
     );
     // Related "USDC mint" account checks
     let usdc_mint_address =
-        Pubkey::from_str_const("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
+        pubkey!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
     assert_eq!(
         usdc_mint_address.to_string(),
         realm_data_value.get("usdcMint").unwrap().as_str().unwrap(),

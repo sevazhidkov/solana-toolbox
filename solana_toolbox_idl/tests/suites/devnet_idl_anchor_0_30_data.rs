@@ -1,4 +1,5 @@
 use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
@@ -14,8 +15,7 @@ pub async fn run() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
     // Fetch the idl of an anchor program on chain
-    let program_id =
-        Pubkey::from_str_const("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
+    let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
     let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
         .await
         .unwrap()

@@ -48,7 +48,7 @@ impl ToolboxIdl {
             let instruction_account_address = *idl_ok_or_else(
                 instruction_accounts_addresses.get(idl_account_name),
                 "missing instruction account address",
-                &breadcrumbs.as_idl(&idl_account_name),
+                &breadcrumbs.as_idl(idl_account_name),
             )?;
             let idl_account_is_signer =
                 idl_object_get_key_as_bool(idl_account_object, "signer")
@@ -100,7 +100,7 @@ impl ToolboxIdl {
                 &breadcrumbs
                     .as_idl(&format!("instruction_accounts[{}]", index)),
             )?;
-            if instruction_accounts_addresses.get(idl_account_name).is_none() {
+            if !instruction_accounts_addresses.contains_key(idl_account_name) {
                 let instruction_account_address = self
                     .resolve_instruction_account_address(
                         idl_account_name,
@@ -174,7 +174,7 @@ fn idl_instruction_account_address_resolve(
             }
             return idl_instruction_account_object_resolve(
                 idl,
-                &idl_account_object,
+                idl_account_object,
                 program_id,
                 instruction_name,
                 instruction_accounts_addresses,
@@ -200,12 +200,12 @@ fn idl_instruction_account_object_resolve(
     if let Some(idl_account_address) =
         idl_object_get_key_as_str(idl_account_object, "address")
     {
-        return Ok(Pubkey::from_str(idl_account_address).map_err(|err| {
+        return Pubkey::from_str(idl_account_address).map_err(|err| {
             ToolboxIdlError::InvalidPubkey {
                 parsing: err,
                 context: breadcrumbs.as_val("address"),
             }
-        })?);
+        });
     }
     if let Some(idl_account_pda) =
         idl_object_get_key_as_object(idl_account_object, "pda")
@@ -424,7 +424,7 @@ fn idl_parts_to_bytes(
             == field_name.to_case(Case::Snake)
         {
             let idl_type = idl_object_get_key_or_else(
-                &idl_field_object,
+                idl_field_object,
                 "type",
                 &breadcrumbs.as_idl("field"),
             )?;
@@ -479,7 +479,7 @@ fn idl_parts_to_bytes_recurse(
             "fields",
             &breadcrumbs.as_idl(idl_type_defined_name),
         )?;
-        let values = idl_as_object_or_else(&value, &breadcrumbs.as_val("@"))?;
+        let values = idl_as_object_or_else(value, &breadcrumbs.as_val("@"))?;
         return idl_parts_to_bytes(
             idl,
             idl_type_inner_fields,
@@ -488,8 +488,8 @@ fn idl_parts_to_bytes_recurse(
             &breadcrumbs.with_idl("*"),
         );
     }
-    return idl_err(
+    idl_err(
         "doesnt support 2+ split path yet",
         &breadcrumbs.as_idl(&parts.join(".")),
-    );
+    )
 }

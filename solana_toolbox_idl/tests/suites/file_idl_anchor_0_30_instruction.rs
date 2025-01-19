@@ -5,6 +5,7 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
+use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
@@ -77,11 +78,9 @@ pub async fn run() {
             &collateral_mint,
         );
     let a_token_program =
-        Pubkey::from_str_const("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-    let token_program =
-        Pubkey::from_str_const("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-    let system_program =
-        Pubkey::from_str_const("11111111111111111111111111111111");
+        pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+    let token_program = pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+    let system_program = pubkey!("11111111111111111111111111111111");
     // Check instruction content
     assert_eq!(program_id, instruction.program_id);
     // Check instruction data

@@ -1,6 +1,7 @@
 use std::fs::read_to_string;
 
 use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
@@ -21,8 +22,7 @@ pub async fn run() {
     )
     .unwrap();
     // Fetch the idl of an anchor program on chain
-    let program_id =
-        Pubkey::from_str_const("crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu");
+    let program_id = pubkey!("crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu");
     // Read the global market state content using the IDL
     let global_market_state_address =
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;

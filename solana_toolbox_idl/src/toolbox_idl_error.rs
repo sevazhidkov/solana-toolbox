@@ -8,7 +8,7 @@ use crate::toolbox_idl_context::ToolboxIdlContext;
 
 #[derive(Debug)]
 pub enum ToolboxIdlError {
-    ToolboxEndpoint(ToolboxEndpointError),
+    ToolboxEndpoint(Box<ToolboxEndpointError>),
     Pubkey(solana_sdk::pubkey::PubkeyError),
     Inflate(String),
     SerdeJson(serde_json::Error),
@@ -50,6 +50,6 @@ pub enum ToolboxIdlError {
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {
     fn from(source: ToolboxEndpointError) -> Self {
-        ToolboxIdlError::ToolboxEndpoint(source)
+        ToolboxIdlError::ToolboxEndpoint(Box::new(source))
     }
 }
