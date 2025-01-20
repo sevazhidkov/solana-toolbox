@@ -14,6 +14,7 @@ pub async fn run() {
     // Important account addresses
     let program_id = Pubkey::new_unique();
     let owner = Pubkey::new_unique();
+    let borrower = Pubkey::new_unique();
     let liquidity_pool_token_account = Pubkey::new_unique();
     let treasury = Pubkey::new_unique();
     let treasury_pool_token_account = Pubkey::new_unique();
@@ -40,6 +41,27 @@ pub async fn run() {
     .0;
     let signing_authority = Pubkey::find_program_address(
         &[global_market_state.as_ref()],
+        &program_id,
+    )
+    .0;
+    let deal_number = 77u16;
+    let deal = Pubkey::find_program_address(
+        &[
+            global_market_state.as_ref(),
+            borrower.as_ref(),
+            &deal_number.to_le_bytes(),
+            b"deal-info",
+        ],
+        &program_id,
+    )
+    .0;
+    let deal_tranches = Pubkey::find_program_address(
+        &[global_market_state.as_ref(), deal.as_ref(), b"tranches"],
+        &program_id,
+    )
+    .0;
+    let repayment_schedule = Pubkey::find_program_address(
+        &[global_market_state.as_ref(), deal.as_ref(), b"repayment-schedule"],
         &program_id,
     )
     .0;
@@ -94,5 +116,38 @@ pub async fn run() {
     assert_eq!(
         lp_token_mint,
         *initialize_market_accounts.get("lpTokenMint").unwrap()
+    );
+    // Generate all missing IX accounts with just the minimum information
+    let open_deal_accounts = idl
+        .fill_instruction_accounts_addresses(
+            &program_id,
+            "openDeal",
+            &HashMap::from([
+                ("owner".to_string(), owner),
+                ("globalMarketState".to_string(), global_market_state),
+            ]),
+            json!({
+                "deal": {
+                    "dealNumber": deal_number,
+                    "borrower": borrower.to_string()
+                },
+            })
+            .as_object()
+            .unwrap(),
+            json!({
+                "globalMarketSeed": global_market_seed.to_string(),
+            })
+            .as_object()
+            .unwrap(),
+        )
+        .unwrap();
+    // Check the outcomes
+    eprintln!("open_deal_accounts: {:#?}", open_deal_accounts);
+    assert_eq!(market_admins, *open_deal_accounts.get("marketAdmins").unwrap());
+    assert_eq!(deal, *open_deal_accounts.get("deal").unwrap());
+    assert_eq!(deal_tranches, *open_deal_accounts.get("dealTranches").unwrap());
+    assert_eq!(
+        repayment_schedule,
+        *open_deal_accounts.get("repaymentSchedule").unwrap()
     );
 }

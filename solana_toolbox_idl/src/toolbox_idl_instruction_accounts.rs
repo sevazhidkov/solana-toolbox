@@ -249,7 +249,7 @@ fn idl_instruction_account_object_resolve(
             pda_program_id =
                 Pubkey::new_from_array(program_id_bytes.try_into().map_err(
                     |err| ToolboxIdlError::Custom {
-                        failure: format!("value:{:?}", err),
+                        failure: format!("value:{:?}", err), // TODO - better error handling and breadcrumbs
                         context: breadcrumbs.as_idl("program_id"),
                     },
                 )?);
@@ -492,7 +492,7 @@ fn idl_parts_to_bytes_recurse(
         );
     }
     idl_err(
-        "doesnt support 2+ split path yet",
+        "doesnt support 2+ split path (unless nested structs)",
         &breadcrumbs.as_idl(&parts.join(".")),
     )
 }
