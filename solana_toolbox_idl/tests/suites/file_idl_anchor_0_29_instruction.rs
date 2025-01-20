@@ -19,19 +19,20 @@ pub async fn run() {
     let funding = Pubkey::new_unique();
     let placeholder = Pubkey::new_unique();
     // Prepare instruction accounts
-    let mut instruction_accounts_addresses = HashMap::new();
-    instruction_accounts_addresses.insert("payer".into(), payer);
-    instruction_accounts_addresses.insert("funding".into(), funding);
-    instruction_accounts_addresses.insert("fundingUsdc".into(), placeholder);
-    instruction_accounts_addresses.insert("realm".into(), placeholder);
-    instruction_accounts_addresses.insert("realmUsdc".into(), placeholder);
-    instruction_accounts_addresses.insert("uctMint".into(), placeholder);
-    instruction_accounts_addresses.insert("uxpMint".into(), placeholder);
-    instruction_accounts_addresses.insert("usdcMint".into(), placeholder);
-    instruction_accounts_addresses.insert("authority".into(), placeholder);
-    instruction_accounts_addresses.insert("spill".into(), placeholder);
-    instruction_accounts_addresses.insert("systemProgram".into(), placeholder);
-    instruction_accounts_addresses.insert("tokenProgram".into(), placeholder);
+    let instruction_accounts_addresses = HashMap::from_iter([
+        ("payer".to_string(), payer),
+        ("funding".to_string(), funding),
+        ("fundingUsdc".to_string(), placeholder),
+        ("realm".to_string(), placeholder),
+        ("realmUsdc".to_string(), placeholder),
+        ("uctMint".to_string(), placeholder),
+        ("uxpMint".to_string(), placeholder),
+        ("usdcMint".to_string(), placeholder),
+        ("authority".to_string(), placeholder),
+        ("spill".to_string(), placeholder),
+        ("systemProgram".to_string(), placeholder),
+        ("tokenProgram".to_string(), placeholder),
+    ]);
     // Prepare instruction args
     let instruction_args_value = json!({
         "params": {

@@ -29,13 +29,12 @@ pub async fn run() {
     )
     .0;
     // Prepare instruction accounts
-    let mut instruction_accounts_addresses = HashMap::new();
-    instruction_accounts_addresses.insert("payer".into(), payer);
-    instruction_accounts_addresses.insert("authority".into(), authority);
-    instruction_accounts_addresses
-        .insert("collateral_mint".into(), collateral_mint);
-    instruction_accounts_addresses
-        .insert("redeemable_mint".into(), redeemable_mint);
+    let instruction_accounts_addresses = HashMap::from_iter([
+        ("payer".to_string(), payer),
+        ("authority".to_string(), authority),
+        ("collateral_mint".to_string(), collateral_mint),
+        ("redeemable_mint".to_string(), redeemable_mint),
+    ]);
     // Prepare instruction args
     let mut instruction_args_metadata_bytes = vec![];
     for index in 0..512 {

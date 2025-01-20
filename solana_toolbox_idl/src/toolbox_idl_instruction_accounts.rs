@@ -441,6 +441,9 @@ fn idl_parts_to_bytes(
                     &mut data,
                     &breadcrumbs.with_val(idl_field_name),
                 )?;
+                if idl_type.as_str() == Some("string") {
+                    data.drain(0..4);
+                }
                 return Ok(data);
             } else {
                 return idl_parts_to_bytes_recurse(

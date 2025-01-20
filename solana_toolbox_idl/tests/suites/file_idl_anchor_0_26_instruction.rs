@@ -14,14 +14,12 @@ pub async fn run() {
     // Program
     let program_id = Pubkey::new_unique();
     // Prepare instruction accounts addresses
-    let mut instruction_accounts_addresses = HashMap::new();
-    instruction_accounts_addresses.insert("owner".into(), Pubkey::new_unique());
-    instruction_accounts_addresses
-        .insert("borrower".into(), Pubkey::new_unique());
-    instruction_accounts_addresses
-        .insert("globalMarketState".into(), Pubkey::new_unique());
-    instruction_accounts_addresses
-        .insert("systemProgram".into(), Pubkey::new_unique());
+    let instruction_accounts_addresses = HashMap::from_iter([
+        ("owner".to_string(), Pubkey::new_unique()),
+        ("borrower".to_string(), Pubkey::new_unique()),
+        ("globalMarketState".to_string(), Pubkey::new_unique()),
+        ("systemProgram".to_string(), Pubkey::new_unique()),
+    ]);
     // Prepare instruction accounts values
     let instruction_accounts_values = json!({
         "borrowerInfo": {

@@ -89,7 +89,6 @@ pub async fn run() {
         (account_data.len(), account_value),
         idl.decompile_account("GlobalMarketState", account_data).unwrap()
     );
-
     // Prepare an account contents
     let account_value = json!({
         "credixMultisigKey": Pubkey::new_unique().to_string(),
