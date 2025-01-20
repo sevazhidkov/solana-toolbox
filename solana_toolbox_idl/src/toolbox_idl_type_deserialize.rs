@@ -7,6 +7,8 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_f32_from_bytes_at;
+use crate::toolbox_idl_utils::idl_f64_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i128_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i16_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i32_from_bytes_at;
@@ -377,6 +379,20 @@ fn idl_type_deserialize_leaf(
         return Ok((
             size_of_val(&int),
             Value::Number(Number::from_i128(int).unwrap_or(Number::from(0))),
+        ));
+    }
+    if idl_type_str == "f32" {
+        let float = idl_f32_from_bytes_at(data, data_offset, context)? as f64;
+        return Ok((
+            size_of_val(&float),
+            Value::Number(Number::from_f64(float).unwrap_or(Number::from(0))),
+        ));
+    }
+    if idl_type_str == "f64" {
+        let float = idl_f64_from_bytes_at(data, data_offset, context)?;
+        return Ok((
+            size_of_val(&float),
+            Value::Number(Number::from_f64(float).unwrap_or(Number::from(0))),
         ));
     }
     if idl_type_str == "bool" {

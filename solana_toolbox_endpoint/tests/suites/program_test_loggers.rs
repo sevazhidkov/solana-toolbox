@@ -1,7 +1,8 @@
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_program;
-use solana_sdk::system_transaction::transfer;
+use solana_sdk::system_transaction::create_account;
 use solana_sdk::sysvar::rent;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerBuffer;
@@ -62,13 +63,18 @@ pub async fn run() {
             .unwrap()
             .decimals,
     );
-    // Custom manual TX printing
+    // Custom manual TX printing (no execution)
     ToolboxEndpointLoggerPrint::print_transaction(
-        &ToolboxEndpointLoggerTransaction::from(&transfer(
+        &ToolboxEndpointLoggerTransaction::from(&create_account(
             &payer,
-            &destination.pubkey(),
-            42_000_000,
+            &Keypair::new(),
             endpoint.get_latest_blockhash().await.unwrap(),
+            42_000_000,
+            420,
+            &Pubkey::new_from_array([
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            ]),
         )),
     );
     // Check the content of the logger's buffer history

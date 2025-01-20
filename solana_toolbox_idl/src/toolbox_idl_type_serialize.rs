@@ -9,6 +9,7 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
+use crate::toolbox_idl_utils::idl_as_f64_or_else;
 use crate::toolbox_idl_utils::idl_as_i128_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_str_or_else;
@@ -215,6 +216,7 @@ fn idl_type_serialize_struct(
     Ok(())
 }
 
+// TODO - support for enums with content ?
 fn idl_type_serialize_enum(
     idl_type_enum: &Map<String, Value>,
     value: &Value,
@@ -386,6 +388,16 @@ fn idl_type_serialize_leaf(
     if idl_type_str == "i128" {
         let value_integer = idl_as_i128_or_else(value, context)?;
         data.extend_from_slice(bytemuck::bytes_of::<i128>(&value_integer));
+        return Ok(());
+    }
+    if idl_type_str == "f32" {
+        let value_floating = idl_as_f64_or_else(value, context)? as f32;
+        data.extend_from_slice(bytemuck::bytes_of::<f32>(&value_floating));
+        return Ok(());
+    }
+    if idl_type_str == "i128" {
+        let value_floating = idl_as_f64_or_else(value, context)?;
+        data.extend_from_slice(bytemuck::bytes_of::<f64>(&value_floating));
         return Ok(());
     }
     if idl_type_str == "bool" {

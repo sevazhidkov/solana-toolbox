@@ -156,6 +156,17 @@ pub(crate) fn idl_as_i128_or_else(
     )?))
 }
 
+pub(crate) fn idl_as_f64_or_else(
+    value: &Value,
+    context: &ToolboxIdlContext,
+) -> Result<f64, ToolboxIdlError> {
+    Ok(*idl_ok_or_else(
+        value.as_f64().as_ref(),
+        "expected a floating number",
+        context,
+    )?)
+}
+
 pub(crate) fn idl_as_bool_or_else(
     value: &Value,
     context: &ToolboxIdlContext,
@@ -172,11 +183,9 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
     failure: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| {
-        ToolboxIdlError::Custom {
-            failure: failure.to_string(),
-            context: context.clone(),
-        }
+    option.ok_or_else(|| ToolboxIdlError::Custom {
+        failure: failure.to_string(),
+        context: context.clone(),
     })
 }
 
@@ -312,6 +321,26 @@ pub(crate) fn idl_i128_from_bytes_at(
     let size = size_of::<i128>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(i128::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_f32_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+    context: &ToolboxIdlContext,
+) -> Result<f32, ToolboxIdlError> {
+    let size = size_of::<f32>();
+    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    Ok(f32::from_le_bytes(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_f64_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+    context: &ToolboxIdlContext,
+) -> Result<f64, ToolboxIdlError> {
+    let size = size_of::<f32>();
+    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    Ok(f64::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_pubkey_from_bytes_at(

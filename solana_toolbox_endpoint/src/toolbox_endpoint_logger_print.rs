@@ -110,24 +110,20 @@ impl ToolboxEndpointLoggerPrint {
         let data_lines = data_len.div_ceil(data_packing);
         for data_line in 0..data_lines {
             let data_start = data_line * data_packing;
-            let mut data_bytes = vec![];
+            let mut data_chunks = vec![];
             for data_offset in 0..data_packing {
+                if data_offset % 1 == 0 {
+                    data_chunks.push(" ".to_string());
+                }
                 let data_index = data_start + data_offset;
                 if data_index < data_len {
-                    data_bytes.push(format!(
-                        "{:02X}",
-                        data[data_start + data_offset]
-                    ));
+                    data_chunks.push(format!("{:02X}", data[data_index]));
                 } else {
-                    data_bytes.push("..".to_string());
+                    data_chunks.push("..".to_string());
                 }
             }
-            println!(
-                "{}: #{:08}: {}",
-                prefix,
-                data_start,
-                data_bytes.join(" "),
-            );
+            let data_decompiled = data_chunks.concat();
+            println!("{}: #{:08}:{}", prefix, data_start, data_decompiled);
         }
     }
 

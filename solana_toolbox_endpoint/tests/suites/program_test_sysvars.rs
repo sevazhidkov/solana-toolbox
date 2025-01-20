@@ -14,4 +14,10 @@ pub async fn run() {
     let rent = endpoint.get_sysvar_rent().await.unwrap();
     assert_eq!(3480, rent.lamports_per_byte_year);
     assert_eq!(2.0, rent.exemption_threshold);
+    assert_eq!(890880, rent.minimum_balance(0));
+    assert_eq!(
+        128, // It costs 128 bytes worth of lamports for account to exist empty
+        ((rent.minimum_balance(0) / rent.lamports_per_byte_year) as f64
+            / rent.exemption_threshold) as u64
+    );
 }
