@@ -84,13 +84,13 @@ tasks:
       - cargo test
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-endpoint-1.18.26"
+      - git commit -m "publish-endpoint-1.18.26" --allow-empty
       - cargo publish
       - cp Cargo-solana-2.1.4.toml Cargo.toml
       - cargo test
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-endpoint-2.1.4"
+      - git commit -m "publish-endpoint-2.1.4" --allow-empty
       - cargo publish
 
   publish_idl:
@@ -100,13 +100,13 @@ tasks:
       - cargo test
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-idl-1.18.26"
+      - git commit -m "publish-idl-1.18.26" --allow-empty
       - cargo publish
       - cp Cargo-solana-2.1.4.toml Cargo.toml
       - cargo test
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-idl-2.1.4"
+      - git commit -m "publish-idl-2.1.4" --allow-empty
       - cargo publish
 
   publish_anchor:
@@ -115,5 +115,5 @@ tasks:
       - cargo test
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-anchor"
+      - git commit -m "publish-anchor" --allow-empty
       - cargo publish
