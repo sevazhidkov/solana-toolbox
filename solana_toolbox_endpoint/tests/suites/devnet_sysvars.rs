@@ -1,6 +1,6 @@
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 
 #[tokio::test]
 pub async fn run() {
@@ -10,7 +10,7 @@ pub async fn run() {
         CommitmentConfig::confirmed(),
     );
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Fetch the sysvars
     let clock = endpoint.get_sysvar_clock().await;
     let rent = endpoint.get_sysvar_rent().await;

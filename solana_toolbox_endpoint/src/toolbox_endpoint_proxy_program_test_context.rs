@@ -26,12 +26,7 @@ impl ToolboxEndpointProxy for ProgramTestContext {
     ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
         let mut accounts = vec![];
         for address in addresses {
-            accounts.push(
-                self.banks_client
-                    .get_account(*address)
-                    .await
-                    .map_err(ToolboxEndpointError::BanksClient)?,
-            )
+            accounts.push(self.banks_client.get_account(*address).await?)
         }
         Ok(accounts)
     }
@@ -45,10 +40,7 @@ impl ToolboxEndpointProxy for ProgramTestContext {
             .get_new_latest_blockhash(&self.last_blockhash)
             .await
             .map_err(ToolboxEndpointError::Io)?;
-        self.banks_client
-            .process_transaction(transaction)
-            .await
-            .map_err(ToolboxEndpointError::BanksClient)?;
+        self.banks_client.process_transaction(transaction).await?;
         Ok(Signature::default())
     }
 
@@ -72,11 +64,7 @@ impl ToolboxEndpointProxy for ProgramTestContext {
         unix_timestamp_delta: u64,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        let current_clock = self
-            .banks_client
-            .get_sysvar::<Clock>()
-            .await
-            .map_err(ToolboxEndpointError::BanksClient)?;
+        let current_clock = self.banks_client.get_sysvar::<Clock>().await?;
         let mut forwarded_clock = current_clock;
         forwarded_clock.epoch += 1;
         forwarded_clock.slot += slot_delta;

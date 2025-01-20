@@ -6,8 +6,9 @@ use solana_sdk::system_transaction::create_account;
 use solana_sdk::sysvar::rent;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerBuffer;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerTransaction;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
+use solana_toolbox_endpoint::ToolboxEndpointPrinter;
+use solana_toolbox_endpoint::ToolboxEndpointTransaction;
 
 #[tokio::test]
 pub async fn run() {
@@ -15,7 +16,7 @@ pub async fn run() {
     let mut endpoint =
         ToolboxEndpoint::new_program_test_with_builtin_programs(&[]).await;
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Create a logger buffer
     let logger_buffer = ToolboxEndpointLoggerBuffer::new();
     endpoint.add_logger(Box::new(logger_buffer.clone()));
@@ -64,8 +65,8 @@ pub async fn run() {
             .decimals,
     );
     // Custom manual TX printing (no execution)
-    ToolboxEndpointLoggerPrint::print_transaction(
-        &ToolboxEndpointLoggerTransaction::from(&create_account(
+    ToolboxEndpointPrinter::print_transaction(
+        &ToolboxEndpointTransaction::from(&create_account(
             &payer,
             &Keypair::new(),
             endpoint.get_latest_blockhash().await.unwrap(),

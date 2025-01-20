@@ -8,7 +8,7 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
@@ -19,7 +19,7 @@ pub async fn run() {
         CommitmentConfig::confirmed(),
     );
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
     let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)

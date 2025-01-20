@@ -46,8 +46,7 @@ impl ToolboxEndpoint {
             mint_authority,
             mint_freeze_authority,
             mint_decimals,
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instructions_with_signers(
             &[instruction_create, instruction_init],
             payer,
@@ -70,8 +69,7 @@ impl ToolboxEndpoint {
             AuthorityType::MintTokens,
             &source_mint_authority.pubkey(),
             &[],
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(
             instruction,
             payer,
@@ -95,8 +93,7 @@ impl ToolboxEndpoint {
             &mint_authority.pubkey(),
             &[],
             amount,
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(
             instruction,
             payer,
@@ -119,8 +116,7 @@ impl ToolboxEndpoint {
             AuthorityType::FreezeAccount,
             &source_mint_freeze_authority.pubkey(),
             &[],
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(
             instruction,
             payer,
@@ -142,8 +138,7 @@ impl ToolboxEndpoint {
             mint,
             &mint_freeze_authority.pubkey(),
             &[],
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(
             instruction,
             payer,
@@ -165,8 +160,7 @@ impl ToolboxEndpoint {
             mint,
             &mint_freeze_authority.pubkey(),
             &[],
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(
             instruction,
             payer,
@@ -190,8 +184,7 @@ impl ToolboxEndpoint {
             &authority.pubkey(),
             &[],
             amount,
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(instruction, payer, &[authority])
             .await
     }
@@ -211,8 +204,7 @@ impl ToolboxEndpoint {
             &authority.pubkey(),
             &[],
             amount,
-        )
-        .map_err(ToolboxEndpointError::Program)?;
+        )?;
         self.process_instruction_with_signers(instruction, payer, &[authority])
             .await
     }

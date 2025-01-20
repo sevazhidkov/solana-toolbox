@@ -9,12 +9,12 @@ use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
-use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
+use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerBufferTransaction {
     pub sequencing: u32,
-    pub transaction: ToolboxEndpointLoggerTransaction,
+    pub transaction: ToolboxEndpointTransaction,
     pub signature: Option<Signature>,
 }
 
@@ -54,7 +54,7 @@ impl ToolboxEndpointLoggerBuffer {
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerBuffer {
     async fn on_transaction(
         &self,
-        transaction: &ToolboxEndpointLoggerTransaction,
+        transaction: &ToolboxEndpointTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
         let sequencing =

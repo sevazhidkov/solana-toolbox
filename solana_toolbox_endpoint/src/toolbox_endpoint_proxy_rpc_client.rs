@@ -16,34 +16,24 @@ impl ToolboxEndpointProxy for RpcClient {
     async fn get_latest_blockhash(
         &mut self
     ) -> Result<Hash, ToolboxEndpointError> {
-        RpcClient::get_latest_blockhash(self)
-            .await
-            .map_err(ToolboxEndpointError::Client)
+        Ok(RpcClient::get_latest_blockhash(self).await?)
     }
 
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
-        self.get_multiple_accounts(addresses)
-            .await
-            .map_err(ToolboxEndpointError::Client)
+        Ok(self.get_multiple_accounts(addresses).await?)
     }
 
     async fn process_transaction(
         &mut self,
         transaction: Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let signature = self
-            .send_transaction(&transaction)
-            .await
-            .map_err(ToolboxEndpointError::Client)?;
+        let signature = self.send_transaction(&transaction).await?;
         let start = Instant::now();
         loop {
-            let confirmed = self
-                .confirm_transaction(&signature)
-                .await
-                .map_err(ToolboxEndpointError::Client)?;
+            let confirmed = self.confirm_transaction(&signature).await?;
             if confirmed {
                 break;
             }
@@ -62,10 +52,7 @@ impl ToolboxEndpointProxy for RpcClient {
         to: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let signature = self
-            .request_airdrop(to, lamports)
-            .await
-            .map_err(ToolboxEndpointError::Client)?;
+        let signature = self.request_airdrop(to, lamports).await?;
         Ok(signature)
     }
 
