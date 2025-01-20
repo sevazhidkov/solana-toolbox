@@ -1,9 +1,8 @@
-version: '3'
+version: "3"
 
 tasks:
-
   test_endpoint:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_endpoint'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
     cmds:
       - cp Cargo-solana-1.18.26.toml Cargo.toml
       - cargo test {{ .CLI_ARGS }}
@@ -11,7 +10,7 @@ tasks:
       - cargo test {{ .CLI_ARGS }}
 
   test_idl:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_idl'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
     cmds:
       - cp Cargo-solana-1.18.26.toml Cargo.toml
       - cargo test {{ .CLI_ARGS }}
@@ -19,7 +18,7 @@ tasks:
       - cargo test {{ .CLI_ARGS }}
 
   test_anchor:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_anchor'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
     cmds:
       - cargo test {{ .CLI_ARGS }}
 
@@ -30,7 +29,7 @@ tasks:
       - task test_anchor -- {{ .CLI_ARGS }}
 
   lint_endpoint:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_endpoint'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
     cmds:
       - cp Cargo-solana-1.18.26.toml Cargo.toml
       - cargo +nightly clippy --all-targets
@@ -38,7 +37,7 @@ tasks:
       - cargo +nightly clippy --all-targets
 
   lint_idl:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_idl'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
     cmds:
       - cp Cargo-solana-1.18.26.toml Cargo.toml
       - cargo +nightly clippy --all-targets
@@ -46,7 +45,7 @@ tasks:
       - cargo +nightly clippy --all-targets
 
   lint_anchor:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_anchor'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
     cmds:
       - cargo +nightly clippy --all-targets
 
@@ -57,17 +56,17 @@ tasks:
       - task lint_anchor
 
   fmt_endpoint:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_endpoint'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
     cmds:
       - cargo +nightly fmt
 
   fmt_idl:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_idl'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
     cmds:
       - cargo +nightly fmt
 
   fmt_anchor:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_anchor'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
     cmds:
       - cargo +nightly fmt
 
@@ -78,7 +77,7 @@ tasks:
       - task fmt_anchor
 
   publish_endpoint:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_endpoint'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
     cmds:
       - cp Cargo-solana-1.18.26.toml Cargo.toml
       - cargo test
@@ -94,7 +93,7 @@ tasks:
       - cargo publish
 
   publish_idl:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_idl'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
     cmds:
       - cp Cargo-solana-1.18.26.toml Cargo.toml
       - cargo test
@@ -110,7 +109,7 @@ tasks:
       - cargo publish
 
   publish_anchor:
-    dir: '{{ .TASKFILE_DIR }}/solana_toolbox_anchor'
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
     cmds:
       - cargo test
       - git add Cargo.toml

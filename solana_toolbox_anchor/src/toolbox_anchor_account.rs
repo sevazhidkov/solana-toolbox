@@ -11,12 +11,10 @@ impl ToolboxAnchor {
         endpoint: &mut ToolboxEndpoint,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxAnchorError> {
-        endpoint
+        Ok(endpoint
             .get_account(address)
-            .await
-            .map_err(ToolboxAnchorError::ToolboxEndpoint)?
+            .await?
             .map(|account| T::try_deserialize(&mut account.data.as_slice()))
-            .transpose()
-            .map_err(ToolboxAnchorError::Anchor)
+            .transpose()?)
     }
 }
