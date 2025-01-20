@@ -9,14 +9,8 @@ use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
 #[derive(Default)]
 pub struct ToolboxEndpointLoggerPrint {}
 
-#[async_trait::async_trait]
-impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
-    async fn on_transaction(
-        &self,
-        transaction: &ToolboxEndpointLoggerTransaction,
-        result: &Result<Signature, ToolboxEndpointError>,
-    ) {
-        println!("---------------------------- TRANSACTION PROCESSED -----------------------------");
+impl ToolboxEndpointLoggerPrint {
+    pub fn print_transaction(transaction: &ToolboxEndpointLoggerTransaction) {
         println!("----");
         println!("transaction.payer: {:?}", transaction.payer);
         println!("----");
@@ -31,14 +25,49 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
             println!("----");
             println!("> instruction.program_id: {:?}", instruction.program_id);
             for account_index in 0..instruction.accounts.len() {
+                let account_meta = &instruction.accounts[account_index];
                 println!(
-                    "> instruction.accounts: #{:03?}: {:?}",
+                    "> instruction.accounts: #{:03?}: ({}{}) {}",
                     account_index + 1,
-                    instruction.accounts[account_index]
+                    if account_meta.is_writable { "W" } else { "R" },
+                    if account_meta.is_signer { "S" } else { "." },
+                    account_meta.pubkey,
                 );
             }
-            self.print_bytes("> instruction.data", &instruction.data);
+            ToolboxEndpointLoggerPrint::print_bytes(
+                "> instruction.data",
+                &instruction.data,
+            );
         }
+    }
+
+    pub fn print_account(
+        address: &Pubkey,
+        account: &Option<Account>,
+    ) {
+        println!("----");
+        println!("address.key: {:?}", address);
+        println!("----");
+        let account = account.clone().unwrap_or_default();
+        println!("> account.lamports: {:?}", account.lamports);
+        println!("> account.owner: {:?}", account.owner);
+        println!("> account.executable: {:?}", account.executable);
+        ToolboxEndpointLoggerPrint::print_bytes(
+            "> account.data",
+            &account.data,
+        );
+    }
+}
+
+#[async_trait::async_trait]
+impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
+    async fn on_transaction(
+        &self,
+        transaction: &ToolboxEndpointLoggerTransaction,
+        result: &Result<Signature, ToolboxEndpointError>,
+    ) {
+        println!("---------------------------- TRANSACTION PROCESSED -----------------------------");
+        ToolboxEndpointLoggerPrint::print_transaction(transaction);
         println!("----");
         match result {
             Ok(signature) => {
@@ -53,7 +82,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
             },
         };
         println!("----");
-        self.print_backtrace("from");
+        ToolboxEndpointLoggerPrint::print_backtrace("from");
         println!();
     }
 
@@ -63,23 +92,15 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         account: &Option<Account>,
     ) {
         println!("--------------------------------- READ ACCOUNT ---------------------------------");
+        ToolboxEndpointLoggerPrint::print_account(&address, &account);
         println!("----");
-        println!("address.key: {:?}", address);
-        println!("----");
-        let account = account.clone().unwrap_or_default();
-        println!("> account.lamports: {:?}", account.lamports);
-        println!("> account.owner: {:?}", account.owner);
-        println!("> account.executable: {:?}", account.executable);
-        self.print_bytes("> account.data", &account.data);
-        println!("----");
-        self.print_backtrace("from");
+        ToolboxEndpointLoggerPrint::print_backtrace("from");
         println!();
     }
 }
 
 impl ToolboxEndpointLoggerPrint {
     fn print_bytes(
-        &self,
         prefix: &str,
         data: &[u8],
     ) {
@@ -93,13 +114,12 @@ impl ToolboxEndpointLoggerPrint {
             for data_offset in 0..data_packing {
                 let data_index = data_start + data_offset;
                 if data_index < data_len {
-                    if data_offset == 8 {
-                        data_bytes.push("".to_string());
-                    }
                     data_bytes.push(format!(
                         "{:02X}",
                         data[data_start + data_offset]
                     ));
+                } else {
+                    data_bytes.push("..".to_string());
                 }
             }
             println!(
@@ -111,10 +131,7 @@ impl ToolboxEndpointLoggerPrint {
         }
     }
 
-    fn print_backtrace(
-        &self,
-        prefix: &str,
-    ) {
+    fn print_backtrace(prefix: &str) {
         let backtrace_data = std::backtrace::Backtrace::force_capture();
         let backtrace_formatted = std::format!("{}", backtrace_data);
         let backtrace_lines = backtrace_formatted.lines();

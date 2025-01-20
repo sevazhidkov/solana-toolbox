@@ -1,10 +1,12 @@
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_program;
+use solana_sdk::system_transaction::transfer;
 use solana_sdk::sysvar::rent;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerBuffer;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerTransaction;
 
 #[tokio::test]
 pub async fn run() {
@@ -60,9 +62,18 @@ pub async fn run() {
             .unwrap()
             .decimals,
     );
+    // Custom manual TX printing
+    ToolboxEndpointLoggerPrint::print_transaction(
+        &ToolboxEndpointLoggerTransaction::from(&transfer(
+            &payer,
+            &destination.pubkey(),
+            42_000_000,
+            endpoint.get_latest_blockhash().await.unwrap(),
+        )),
+    );
     // Check the content of the logger's buffer history
-    let transactions = logger_buffer.transactions.read().unwrap();
-    let accounts = logger_buffer.accounts.read().unwrap();
+    let transactions = logger_buffer.get_transactions();
+    let accounts = logger_buffer.get_accounts();
     // Check the history vectors
     assert_eq!(2, transactions.len());
     assert_eq!(3, accounts.len());

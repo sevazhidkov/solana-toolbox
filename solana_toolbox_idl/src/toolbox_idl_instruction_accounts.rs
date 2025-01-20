@@ -246,13 +246,14 @@ fn idl_instruction_account_object_resolve(
                 instruction_args,
                 &breadcrumbs.with_idl("program"),
             )?;
-            pda_program_id =
-                Pubkey::new_from_array(program_id_bytes.try_into().map_err(
-                    |err| ToolboxIdlError::Custom {
+            pda_program_id = Pubkey::new_from_array(
+                program_id_bytes.try_into().map_err(|err| {
+                    ToolboxIdlError::Custom {
                         failure: format!("value:{:?}", err), // TODO - better error handling and breadcrumbs
                         context: breadcrumbs.as_idl("program_id"),
-                    },
-                )?);
+                    }
+                })?,
+            );
         }
         let mut pda_seeds_slices = vec![];
         for pda_seed_bytes in pda_seeds_bytes.iter() {
@@ -303,9 +304,12 @@ fn idl_blob_bytes(
                     let idl_blob_value_byte_casted = u8::try_from(
                         idl_blob_value_byte_integer,
                     )
-                    .map_err(|err| ToolboxIdlError::InvalidInteger {
-                        conversion: err,
-                        context: breadcrumbs.as_idl(idl_blob_value_byte_tag),
+                    .map_err(|err| {
+                        ToolboxIdlError::InvalidInteger {
+                            conversion: err,
+                            context: breadcrumbs
+                                .as_idl(idl_blob_value_byte_tag),
+                        }
                     })?;
                     bytes.push(idl_blob_value_byte_casted);
                 }
@@ -398,10 +402,12 @@ fn idl_blob_bytes(
                 &breadcrumbs.with_idl("arg"),
             )
         },
-        _ => idl_err(
-            "Expected a 'kind' value of: const/account/arg",
-            &breadcrumbs.as_idl(idl_blob_kind),
-        ),
+        _ => {
+            idl_err(
+                "Expected a 'kind' value of: const/account/arg",
+                &breadcrumbs.as_idl(idl_blob_kind),
+            )
+        },
     }
 }
 

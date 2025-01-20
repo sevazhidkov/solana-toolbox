@@ -1,4 +1,5 @@
-use std::{collections::HashMap, fs::read_to_string};
+use std::collections::HashMap;
+use std::fs::read_to_string;
 
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;

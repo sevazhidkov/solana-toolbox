@@ -1,6 +1,7 @@
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::sync::RwLockReadGuard;
 
 use solana_sdk::account::Account;
 use solana_sdk::pubkey::Pubkey;
@@ -27,13 +28,25 @@ pub struct ToolboxEndpointLoggerBufferAccount {
 #[derive(Debug, Clone, Default)]
 pub struct ToolboxEndpointLoggerBuffer {
     sequencing: Arc<AtomicU32>,
-    pub transactions: Arc<RwLock<Vec<ToolboxEndpointLoggerBufferTransaction>>>,
-    pub accounts: Arc<RwLock<Vec<ToolboxEndpointLoggerBufferAccount>>>,
+    transactions: Arc<RwLock<Vec<ToolboxEndpointLoggerBufferTransaction>>>,
+    accounts: Arc<RwLock<Vec<ToolboxEndpointLoggerBufferAccount>>>,
 }
 
 impl ToolboxEndpointLoggerBuffer {
     pub fn new() -> ToolboxEndpointLoggerBuffer {
         ToolboxEndpointLoggerBuffer { ..Default::default() }
+    }
+
+    pub fn get_transactions(
+        &self
+    ) -> RwLockReadGuard<Vec<ToolboxEndpointLoggerBufferTransaction>> {
+        self.transactions.read().unwrap()
+    }
+
+    pub fn get_accounts(
+        &self
+    ) -> RwLockReadGuard<Vec<ToolboxEndpointLoggerBufferAccount>> {
+        self.accounts.read().unwrap()
     }
 }
 

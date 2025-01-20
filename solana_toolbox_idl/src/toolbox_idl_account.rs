@@ -43,11 +43,13 @@ impl ToolboxIdl {
         }
         let idl_type = match self.account_types.get(account_type) {
             Some(idl_account_type) => idl_account_type,
-            None => idl_object_get_key_or_else(
-                &self.types,
-                account_type,
-                &breadcrumbs.as_idl("types"),
-            )?,
+            None => {
+                idl_object_get_key_or_else(
+                    &self.types,
+                    account_type,
+                    &breadcrumbs.as_idl("types"),
+                )?
+            },
         };
         let data_header_size = size_of_val(&data_discriminator);
         let (data_content_size, data_content_value) = self.type_deserialize(
@@ -71,11 +73,13 @@ impl ToolboxIdl {
         ));
         let idl_type = match self.account_types.get(account_type) {
             Some(idl_account_type) => idl_account_type,
-            None => idl_object_get_key_or_else(
-                &self.types,
-                account_type,
-                &breadcrumbs.as_idl("types"),
-            )?,
+            None => {
+                idl_object_get_key_or_else(
+                    &self.types,
+                    account_type,
+                    &breadcrumbs.as_idl("types"),
+                )?
+            },
         };
         self.type_serialize(
             idl_type,

@@ -1,5 +1,6 @@
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
+use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
@@ -52,38 +53,11 @@ impl ToolboxEndpoint {
         &mut self,
         transaction: Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let message = &transaction.message;
-        let payer = message.account_keys[0];
-        let mut signers = vec![];
-        for account_index in 0..message.header.num_required_signatures {
-            signers.push(message.account_keys[usize::from(account_index)]);
-        }
-        let mut instructions = vec![];
-        for instruction in &message.instructions {
-            let mut accounts = vec![];
-            for account_index in &instruction.accounts {
-                accounts
-                    .push(message.account_keys[usize::from(*account_index)]);
-            }
-            instructions.push(ToolboxEndpointLoggerInstruction {
-                program_id: message.account_keys
-                    [usize::from(instruction.program_id_index)],
-                accounts,
-                data: instruction.data.clone(),
-            });
-        }
+        let logger_transaction =
+            ToolboxEndpointLoggerTransaction::from(&transaction);
         let result = self.proxy.process_transaction(transaction).await;
         for logger in &self.loggers {
-            logger
-                .on_transaction(
-                    &ToolboxEndpointLoggerTransaction {
-                        payer,
-                        signers: signers.clone(),
-                        instructions: instructions.clone(),
-                    },
-                    &result,
-                )
-                .await;
+            logger.on_transaction(&logger_transaction, &result).await;
         }
         result
     }

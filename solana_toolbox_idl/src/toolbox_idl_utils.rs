@@ -172,9 +172,11 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
     failure: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| ToolboxIdlError::Custom {
-        failure: failure.to_string(),
-        context: context.clone(),
+    option.ok_or_else(|| {
+        ToolboxIdlError::Custom {
+            failure: failure.to_string(),
+            context: context.clone(),
+        }
     })
 }
 
