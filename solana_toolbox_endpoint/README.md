@@ -20,9 +20,9 @@ Each solana version may come with a different set of dependency hell, so you can
 in `Cargo.toml`
 ```toml
 # For example when using solana version 1.18.26"
-solana_toolbox_endpoint = "=0.1.31-solana-1.18.26"
+solana_toolbox_endpoint = "=0.1.32-solana-1.18.26"
 # Or when using solana version 2.1.4"
-solana_toolbox_endpoint = "=0.1.31-solana-2.1.4"
+solana_toolbox_endpoint = "=0.1.32-solana-2.1.4"
 ```
 
 ## Examples
