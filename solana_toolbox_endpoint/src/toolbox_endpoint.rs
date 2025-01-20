@@ -1,13 +1,11 @@
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
-use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
-use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerInstruction;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLoggerTransaction;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 

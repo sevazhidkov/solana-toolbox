@@ -91,7 +91,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrint {
         address: &Pubkey,
         account: &Option<Account>,
     ) {
-        println!("--------------------------------- READ ACCOUNT ---------------------------------");
+        println!("-------------------------------- ACCOUNT READ ----------------------------------");
         ToolboxEndpointLoggerPrint::print_account(&address, &account);
         println!("----");
         ToolboxEndpointLoggerPrint::print_backtrace("from");

@@ -26,7 +26,7 @@ pub struct ToolboxEndpointLoggerInstruction {
 pub trait ToolboxEndpointLogger {
     async fn on_transaction(
         &self,
-        transaction: &ToolboxEndpointLoggerTransaction, // TODO - could be printable directly
+        transaction: &ToolboxEndpointLoggerTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     );
 
