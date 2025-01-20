@@ -111,18 +111,16 @@ impl ToolboxEndpoint {
         self.get_account(address)
             .await?
             .map(|account| {
-                let data_size = size_of::<T>();
-                if account.data.len() < offset + data_size {
+                let data_size = offset + size_of::<T>();
+                if account.data.len() < data_size {
                     return Err(ToolboxEndpointError::Custom(
                         "Account is too small".into(),
                     ));
                 }
-                bytemuck::try_from_bytes::<T>(
-                    &account.data[offset..(offset + data_size)],
-                )
-                .cloned().map_err(ToolboxEndpointError::PodCastError)
+                bytemuck::try_from_bytes::<T>(&account.data[offset..data_size])
+                    .cloned()
+                    .map_err(ToolboxEndpointError::PodCastError)
             })
             .transpose()
-            
     }
 }

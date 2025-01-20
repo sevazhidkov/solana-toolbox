@@ -346,7 +346,7 @@ fn idl_blob_bytes(
                 &breadcrumbs.as_idl("datadef(account)"),
             )?;
             let idl_blob_type = idl_ok_or_else(
-                idl.account_types
+                idl.accounts_types
                     .get(idl_blob_account)
                     .or_else(|| idl.types.get(idl_blob_account)),
                 "Unable to locate the account type",
