@@ -70,11 +70,11 @@ tasks:
     cmds:
       - rm Cargo.toml
       - cp Cargo-solana-1.18.26.toml Cargo.toml
-      - git add .
-      - git commit -am "publish-endpoint-1.18.26"
+      - git add Cargo.toml
+      - git commit -m "publish-endpoint-1.18.26"
       - cargo publish
       - rm Cargo.toml
       - cp Cargo-solana-2.1.4.toml Cargo.toml
-      - git add .
-      - git commit -am "publish-endpoint-2.1.4"
+      - git add Cargo.toml
+      - git commit -m "publish-endpoint-2.1.4"
       - cargo publish
