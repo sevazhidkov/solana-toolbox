@@ -107,4 +107,18 @@ impl ToolboxIdl {
         }
         Ok(instruction_args)
     }
+
+    pub fn guess_instruction_name(
+        &self,
+        instruction_data: &[u8],
+    ) -> Option<&str> {
+        for (instruction_name, instruction_discriminator) in
+            &self.instructions_discriminators
+        {
+            if instruction_data.starts_with(instruction_discriminator) {
+                return Some(instruction_name);
+            }
+        }
+        None
+    }
 }

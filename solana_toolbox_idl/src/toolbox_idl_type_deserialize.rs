@@ -423,5 +423,8 @@ fn idl_type_deserialize_leaf(
         let data_size = size_of_val(&data_pubkey);
         return Ok((data_size, Value::String(data_pubkey.to_string())));
     }
-    Err(ToolboxIdlError::InvalidTypeLeaf { context: context.clone() })
+    Err(ToolboxIdlError::InvalidTypeLeaf {
+        found: idl_type_str.to_string(),
+        context: context.clone(),
+    })
 }

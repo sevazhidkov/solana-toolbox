@@ -407,17 +407,17 @@ fn idl_parts_to_bytes(
                 &breadcrumbs.as_val("&"),
             )?;
             if parts.len() == 1 {
-                let mut data = vec![];
+                let mut bytes = vec![];
                 idl.type_serialize(
                     idl_type,
                     value,
-                    &mut data,
+                    &mut bytes,
                     &breadcrumbs.with_val(idl_field_name),
                 )?;
                 if idl_type.as_str() == Some("string") {
-                    data.drain(0..4);
+                    bytes.drain(0..4);
                 }
-                return Ok(data);
+                return Ok(bytes);
             } else {
                 return idl_parts_to_bytes_recurse(
                     idl,

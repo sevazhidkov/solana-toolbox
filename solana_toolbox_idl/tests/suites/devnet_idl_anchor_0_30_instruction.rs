@@ -54,18 +54,16 @@ pub async fn run() {
         Keypair::from_seed(b"Hello world, this is a dummy payer for devnet")
             .unwrap();
     let user = Keypair::new();
-    // Prepare the accounts necessary for the instruction
-    let instruction_accounts_addresses = HashMap::from_iter([
-        ("payer".to_string(), payer.pubkey()),
-        ("user".to_string(), user.pubkey()),
-        ("campaign".to_string(), campaign),
-    ]);
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
         .fill_instruction_accounts_addresses(
             &program_id,
             "pledge_create",
-            &instruction_accounts_addresses,
+            &HashMap::from_iter([
+                ("payer".to_string(), payer.pubkey()),
+                ("user".to_string(), user.pubkey()),
+                ("campaign".to_string(), campaign),
+            ]),
             json!({}).as_object().unwrap(),
             json!({ "params": { "index": campaign_index } })
                 .as_object()

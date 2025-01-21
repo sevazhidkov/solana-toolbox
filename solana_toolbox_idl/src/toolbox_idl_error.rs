@@ -40,6 +40,7 @@ pub enum ToolboxIdlError {
         context: ToolboxIdlContext,
     },
     InvalidTypeLeaf {
+        found: String,
         context: ToolboxIdlContext,
     },
     Custom {

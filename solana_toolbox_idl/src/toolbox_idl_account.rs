@@ -27,20 +27,6 @@ impl ToolboxIdl {
         Ok(Some(self.decompile_account(account_name, &account_data)?.1))
     }
 
-    pub fn guess_account_name(
-        &self,
-        account_data: &[u8],
-    ) -> Option<&str> {
-        for (account_name, account_discriminator) in
-            &self.accounts_discriminators
-        {
-            if account_data.starts_with(account_discriminator) {
-                return Some(account_name);
-            }
-        }
-        None
-    }
-
     pub fn decompile_account(
         &self,
         account_name: &str,
@@ -98,5 +84,19 @@ impl ToolboxIdl {
             &breadcrumbs.with_idl(account_name),
         )?;
         Ok(account_data)
+    }
+
+    pub fn guess_account_name(
+        &self,
+        account_data: &[u8],
+    ) -> Option<&str> {
+        for (account_name, account_discriminator) in
+            &self.accounts_discriminators
+        {
+            if account_data.starts_with(account_discriminator) {
+                return Some(account_name);
+            }
+        }
+        None
     }
 }

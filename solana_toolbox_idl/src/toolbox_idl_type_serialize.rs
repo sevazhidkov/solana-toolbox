@@ -425,5 +425,8 @@ fn idl_type_serialize_leaf(
         data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(&value_pubkey));
         return Ok(());
     }
-    Err(ToolboxIdlError::InvalidTypeLeaf { context: context.clone() })
+    Err(ToolboxIdlError::InvalidTypeLeaf {
+        found: idl_type_str.to_string(),
+        context: context.clone(),
+    })
 }
