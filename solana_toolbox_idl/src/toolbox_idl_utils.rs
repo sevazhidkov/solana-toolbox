@@ -81,6 +81,7 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     )
 }
 
+// TODO - this could be a util with a for-each style function call
 pub(crate) fn idl_object_get_key_as_object_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
