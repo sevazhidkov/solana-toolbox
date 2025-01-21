@@ -16,6 +16,7 @@ use crate::toolbox_idl_utils::idl_as_str_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
@@ -224,18 +225,18 @@ fn idl_type_serialize_enum(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     let value_string = idl_as_str_or_else(value, &breadcrumbs.as_val("enum"))?;
-    let idl_type_variants_objects = idl_object_get_key_as_object_array_or_else(
+    let idl_type_variants = idl_object_get_key_as_array_or_else(
         idl_type_enum,
         "variants",
         &breadcrumbs.as_idl("enum"),
     )?;
-    for index in 0..idl_type_variants_objects.len() {
-        let idl_variant_object = idl_type_variants_objects.get(index).unwrap();
-        let idl_variant_name = idl_object_get_key_as_str_or_else(
-            idl_variant_object,
-            "name",
-            &breadcrumbs.as_idl(&format!("variants[{}]", index)),
-        )?;
+    for index in 0..idl_type_variants.len() {
+        let idl_variant = idl_type_variants.get(index).unwrap();
+        let idl_variant_name =
+            idl_value_as_str_or_object_with_name_as_str_or_else(
+                idl_variant,
+                &breadcrumbs.as_idl(&format!("variants[{}]", index)),
+            )?;
         if idl_variant_name == value_string {
             let data_enum = u8::try_from(index).unwrap();
             data.extend_from_slice(bytemuck::bytes_of::<u8>(&data_enum));

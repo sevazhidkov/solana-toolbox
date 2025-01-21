@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
@@ -196,6 +198,34 @@ pub(crate) fn idl_as_bool_or_else(
         "expected a boolean",
         context,
     )?)
+}
+
+pub(crate) fn idl_as_bytes_or_else(
+    value: &Value,
+    context: &ToolboxIdlContext,
+) -> Result<Vec<u8>, ToolboxIdlError> {
+    let mut bytes = vec![];
+    let array = idl_as_array_or_else(value, context)?;
+    for index in 0..array.len() {
+        let item = array.get(index).unwrap();
+        let integer = idl_as_u128_or_else(item, context)?;
+        let byte = u8::try_from(integer).map_err(|err| {
+            ToolboxIdlError::InvalidInteger {
+                conversion: err,
+                context: context.clone(),
+            }
+        })?;
+        bytes.push(byte);
+    }
+    Ok(bytes)
+}
+
+pub(crate) fn idl_map_get_key_or_else<'a, V>(
+    map: &'a HashMap<String, V>,
+    key: &str,
+    context: &ToolboxIdlContext,
+) -> Result<&'a V, ToolboxIdlError> {
+    idl_ok_or_else(map.get(key), &format!("missing key: {}", key), context)
 }
 
 pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(

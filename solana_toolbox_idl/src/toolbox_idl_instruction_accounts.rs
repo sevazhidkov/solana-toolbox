@@ -11,9 +11,10 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
@@ -45,10 +46,10 @@ impl ToolboxIdl {
                 &breadcrumbs
                     .as_idl(&format!("instruction_accounts[{}]", index)),
             )?;
-            let instruction_account_address = *idl_ok_or_else(
-                instruction_accounts_addresses.get(idl_account_name),
-                "missing instruction account address",
-                &breadcrumbs.as_idl(idl_account_name),
+            let instruction_account_address = *idl_map_get_key_or_else(
+                instruction_accounts_addresses,
+                idl_account_name,
+                &breadcrumbs.as_val("instruction_accounts_addresses"),
             )?;
             let idl_account_is_signer =
                 idl_object_get_key_as_bool(idl_account_object, "signer")
@@ -277,29 +278,11 @@ fn idl_blob_bytes(
             if let Some(idl_blob_value_string) = idl_blob_value.as_str() {
                 return Ok(idl_blob_value_string.as_bytes().to_vec());
             }
-            if let Some(idl_blob_value_array) = idl_blob_value.as_array() {
-                let mut bytes = vec![];
-                for index in 0..idl_blob_value_array.len() {
-                    let idl_blob_value_byte =
-                        idl_blob_value_array.get(index).unwrap();
-                    let idl_blob_value_byte_tag = &format!("value[{}]", index);
-                    let idl_blob_value_byte_integer = idl_as_u128_or_else(
-                        idl_blob_value_byte,
-                        &breadcrumbs.as_idl(idl_blob_value_byte_tag),
-                    )?;
-                    let idl_blob_value_byte_casted = u8::try_from(
-                        idl_blob_value_byte_integer,
-                    )
-                    .map_err(|err| {
-                        ToolboxIdlError::InvalidInteger {
-                            conversion: err,
-                            context: breadcrumbs
-                                .as_idl(idl_blob_value_byte_tag),
-                        }
-                    })?;
-                    bytes.push(idl_blob_value_byte_casted);
-                }
-                return Ok(bytes);
+            if idl_blob_value.is_array() {
+                return idl_as_bytes_or_else(
+                    idl_blob_value,
+                    &breadcrumbs.as_idl("const(bytes)"),
+                );
             }
             idl_err(
                 "Expected an array of string as value",

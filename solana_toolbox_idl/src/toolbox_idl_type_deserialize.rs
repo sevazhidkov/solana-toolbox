@@ -255,9 +255,9 @@ fn idl_type_deserialize_enum(
             &breadcrumbs.as_idl("variants"),
         );
     }
-    let idl_variant_object = idl_type_variants.get(data_index).unwrap();
+    let idl_variant = idl_type_variants.get(data_index).unwrap();
     let idl_variant_name = idl_value_as_str_or_object_with_name_as_str_or_else(
-        idl_variant_object,
+        idl_variant,
         &breadcrumbs.as_idl(&format!("variants[{}]", data_index)),
     )?;
     Ok((size_of_val(&data_enum), Value::String(idl_variant_name.into())))

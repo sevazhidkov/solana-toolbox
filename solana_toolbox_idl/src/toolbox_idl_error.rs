@@ -13,8 +13,8 @@ pub enum ToolboxIdlError {
     Inflate(String),
     SerdeJson(serde_json::Error),
     InvalidDiscriminator {
-        found: u64,
-        expected: u64,
+        expected: Vec<u8>,
+        found: Vec<u8>,
     },
     InvalidSliceReadAt {
         offset: usize,

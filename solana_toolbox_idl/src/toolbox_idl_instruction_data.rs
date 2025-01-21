@@ -4,10 +4,10 @@ use serde_json::Value;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
 
 impl ToolboxIdl {
     pub fn compile_instruction_data(
@@ -16,10 +16,13 @@ impl ToolboxIdl {
         instruction_args: &Map<String, Value>,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let discriminator = idl_map_get_key_or_else(
+            &self.instructions_discriminators,
+            instruction_name,
+            &breadcrumbs.as_idl("instructions_discriminators"),
+        )?;
         let mut instruction_data = vec![];
-        instruction_data.extend_from_slice(bytemuck::bytes_of(
-            &ToolboxIdl::compute_instruction_discriminator(instruction_name),
-        ));
+        instruction_data.extend_from_slice(discriminator);
         let idl_instruction_args_objects =
             idl_object_get_key_as_object_array_or_else(
                 &self.instructions_args,
@@ -60,21 +63,19 @@ impl ToolboxIdl {
         instruction_data: &[u8],
     ) -> Result<Map<String, Value>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let data_discriminator = idl_u64_from_bytes_at(
-            instruction_data,
-            0,
-            &breadcrumbs.as_val("discriminator"),
+        let discriminator = idl_map_get_key_or_else(
+            &self.instructions_discriminators,
+            instruction_name,
+            &breadcrumbs.as_idl("instructions_discriminators"),
         )?;
-        let expected_discriminator =
-            ToolboxIdl::compute_instruction_discriminator(instruction_name);
-        if data_discriminator != expected_discriminator {
+        if !instruction_data.starts_with(discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
-                found: data_discriminator,
-                expected: expected_discriminator,
+                expected: discriminator.to_vec(),
+                found: instruction_data.to_vec(),
             });
         }
         let mut instruction_args = Map::new();
-        let mut data_offset = size_of_val(&data_discriminator);
+        let mut data_offset = discriminator.len();
         let idl_instruction_args_objects =
             idl_object_get_key_as_object_array_or_else(
                 &self.instructions_args,

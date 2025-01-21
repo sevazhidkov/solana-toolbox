@@ -25,7 +25,7 @@ pub async fn run() {
     let realm_address = realm_pda.0;
     let realm_bump = realm_pda.1;
     let realm_data_value = idl
-        .get_account(&mut endpoint, "Realm", &realm_address)
+        .get_account_value(&mut endpoint, &realm_address)
         .await
         .unwrap()
         .unwrap();
