@@ -58,7 +58,7 @@ pub async fn run() {
     assert_eq!(bytemuck::bytes_of::<u64>(&43), &instruction.data[24..32]);
     // Check instruction accounts
     assert_eq!(12, instruction.accounts.len());
-    assert_account(payer, true, true, instruction.accounts.get(0));
+    assert_account(payer, true, true, instruction.accounts.first());
     assert_account(funding, false, true, instruction.accounts.get(1));
     assert_account(placeholder, true, false, instruction.accounts.get(2));
     assert_account(placeholder, true, false, instruction.accounts.get(3));

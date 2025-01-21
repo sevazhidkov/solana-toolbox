@@ -43,7 +43,7 @@ pub async fn run() {
             &program_id,
             "createDeal",
             &instruction_accounts_addresses,
-            &instruction_accounts_values.as_object().unwrap(),
+            instruction_accounts_values.as_object().unwrap(),
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();

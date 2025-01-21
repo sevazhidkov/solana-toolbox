@@ -11,11 +11,11 @@ pub async fn run() {
     // Lookup error by code
     assert_eq!(
         "CampaignFundingPhaseHasEnded",
-        idl.lookup_error_code(6002).unwrap().name,
+        idl.lookup_error_by_code(6002).unwrap().name,
     );
     assert_eq!(
         "The campaign funding phase has ended",
-        idl.lookup_error_code(6002).unwrap().msg,
+        idl.lookup_error_by_code(6002).unwrap().msg,
     );
     // Lookup instructions and print them
     let instructions = idl.lookup_instructions().unwrap();

@@ -88,7 +88,7 @@ impl ToolboxIdl {
         Ok(instructions)
     }
 
-    pub fn lookup_error_code(
+    pub fn lookup_error_by_code(
         &self,
         error_code: u64,
     ) -> Result<ToolboxIdlLookupError, ToolboxIdlError> {
@@ -131,11 +131,11 @@ impl ToolboxIdl {
             "msg",
             &breadcrumbs.as_idl(&format!("error[{}]", error_name)),
         )?;
-        return Ok(ToolboxIdlLookupError {
+        Ok(ToolboxIdlLookupError {
             code: idl_error_code,
             name: error_name.to_string(),
             msg: idl_error_msg.to_string(),
-        });
+        })
     }
 
     pub fn lookup_errors(
