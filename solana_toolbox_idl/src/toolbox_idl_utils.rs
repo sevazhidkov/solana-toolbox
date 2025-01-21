@@ -26,6 +26,13 @@ pub(crate) fn idl_object_get_key_as_str<'a>(
     object.get(key).and_then(|value| value.as_str())
 }
 
+pub(crate) fn idl_object_get_key_as_u64(
+    object: &Map<String, Value>,
+    key: &str,
+) -> Option<u64> {
+    object.get(key).and_then(|value| value.as_u64())
+}
+
 pub(crate) fn idl_object_get_key_as_bool(
     object: &Map<String, Value>,
     key: &str,
@@ -67,6 +74,18 @@ pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
         &format!("expected a string at key: {}", key),
         context,
     )
+}
+
+pub(crate) fn idl_object_get_key_as_u64_or_else(
+    object: &Map<String, Value>,
+    key: &str,
+    context: &ToolboxIdlContext,
+) -> Result<u64, ToolboxIdlError> {
+    Ok(*idl_ok_or_else(
+        idl_object_get_key_as_u64(object, key).as_ref(),
+        &format!("expected a string at key: {}", key),
+        context,
+    )?)
 }
 
 pub(crate) fn idl_object_get_key_or_else<'a>(
@@ -184,9 +203,11 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
     failure: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| ToolboxIdlError::Custom {
-        failure: failure.to_string(),
-        context: context.clone(),
+    option.ok_or_else(|| {
+        ToolboxIdlError::Custom {
+            failure: failure.to_string(),
+            context: context.clone(),
+        }
     })
 }
 

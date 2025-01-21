@@ -8,10 +8,9 @@ use solana_toolbox_idl::ToolboxIdl;
 #[tokio::test]
 pub async fn run() {
     // Parse IDL from file JSON directly
-    let idl = ToolboxIdl::try_from_str(
-        &read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap(),
-    )
-    .unwrap();
+    let idl_string =
+        read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap();
+    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
     // Program
     let program_id = Pubkey::new_unique();
     // Prepare instruction accounts addresses
@@ -44,7 +43,7 @@ pub async fn run() {
             &program_id,
             "createDeal",
             &instruction_accounts_addresses,
-            &instruction_accounts_values.as_object().unwrap(),
+            instruction_accounts_values.as_object().unwrap(),
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();

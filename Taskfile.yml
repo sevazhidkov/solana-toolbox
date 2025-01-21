@@ -1,0 +1,127 @@
+version: "3"
+
+tasks:
+  test_endpoint:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
+    cmds:
+      - cp Cargo-solana-1.18.26.toml Cargo.toml
+      - cargo test {{ .CLI_ARGS }}
+      - cp Cargo-solana-2.1.4.toml Cargo.toml
+      - cargo test {{ .CLI_ARGS }}
+
+  test_idl:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
+    cmds:
+      - cp Cargo-solana-1.18.26.toml Cargo.toml
+      - cargo test {{ .CLI_ARGS }}
+      - cp Cargo-solana-2.1.4.toml Cargo.toml
+      - cargo test {{ .CLI_ARGS }}
+
+  test_anchor:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
+    cmds:
+      - cp Cargo-solana-1.18.26-anchor-0.30.1.toml Cargo.toml
+      - cargo test {{ .CLI_ARGS }}
+
+  test:
+    cmds:
+      - task test_endpoint -- {{ .CLI_ARGS }}
+      - task test_idl -- {{ .CLI_ARGS }}
+      - task test_anchor -- {{ .CLI_ARGS }}
+
+  lint_endpoint:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
+    cmds:
+      - cp Cargo-solana-1.18.26.toml Cargo.toml
+      - cargo +nightly clippy --all-targets --all-features -- -D warnings
+      - cp Cargo-solana-2.1.4.toml Cargo.toml
+      - cargo +nightly clippy --all-targets --all-features -- -D warnings
+
+  lint_idl:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
+    cmds:
+      - cp Cargo-solana-1.18.26.toml Cargo.toml
+      - cargo +nightly clippy --all-targets --all-features -- -D warnings
+      - cp Cargo-solana-2.1.4.toml Cargo.toml
+      - cargo +nightly clippy --all-targets --all-features -- -D warnings
+
+  lint_anchor:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
+    cmds:
+      - cp Cargo-solana-1.18.26-anchor-0.30.1.toml Cargo.toml
+      - cargo +nightly clippy --all-targets --all-features -- -D warnings
+
+  lint:
+    cmds:
+      - task lint_endpoint
+      - task lint_idl
+      - task lint_anchor
+
+  fmt_endpoint:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
+    cmds:
+      - cargo +nightly fmt
+
+  fmt_idl:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
+    cmds:
+      - cargo +nightly fmt
+
+  fmt_anchor:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
+    cmds:
+      - cargo +nightly fmt
+
+  fmt:
+    cmds:
+      - task fmt_endpoint
+      - task fmt_idl
+      - task fmt_anchor
+
+  publish_endpoint:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
+    cmds:
+      - cp Cargo-solana-1.18.26.toml Cargo.toml
+      - cargo test
+      - git add Cargo.toml
+      - git add Cargo.lock
+      - git commit -m "publish-endpoint-1.18.26" --allow-empty
+      - cargo publish
+      - cp Cargo-solana-2.1.4.toml Cargo.toml
+      - cargo test
+      - git add Cargo.toml
+      - git add Cargo.lock
+      - git commit -m "publish-endpoint-2.1.4" --allow-empty
+      - cargo publish
+
+  publish_idl:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
+    cmds:
+      - cp Cargo-solana-1.18.26.toml Cargo.toml
+      - cargo test
+      - git add Cargo.toml
+      - git add Cargo.lock
+      - git commit -m "publish-idl-1.18.26" --allow-empty
+      - cargo publish
+      - cp Cargo-solana-2.1.4.toml Cargo.toml
+      - cargo test
+      - git add Cargo.toml
+      - git add Cargo.lock
+      - git commit -m "publish-idl-2.1.4" --allow-empty
+      - cargo publish
+
+  publish_anchor:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
+    cmds:
+      - cp Cargo-solana-1.18.26-anchor-0.30.1.toml Cargo.toml
+      - cargo test
+      - git add Cargo.toml
+      - git add Cargo.lock
+      - git commit -m "publish-anchor" --allow-empty
+      - cargo publish
+
+  publish:
+    cmds:
+      - task publish_endpoint
+      - task publish_idl
+      - task publish_anchor

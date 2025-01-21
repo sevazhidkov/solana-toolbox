@@ -4,7 +4,7 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
@@ -15,7 +15,7 @@ pub async fn run() {
         CommitmentConfig::confirmed(),
     );
     // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
         &read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap(),

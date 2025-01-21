@@ -7,10 +7,9 @@ use solana_toolbox_idl::ToolboxIdl;
 #[tokio::test]
 pub async fn run() {
     // Parse IDL from file JSON directly
-    let idl = ToolboxIdl::try_from_str(
-        &read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap(),
-    )
-    .unwrap();
+    let idl_string =
+        read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap();
+    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
     // Prepare instruction args
     let instruction_args_value = json!({
         "globalMarketSeed": "SEED",
@@ -71,10 +70,10 @@ pub async fn run() {
             "numerator": 61,
             "denominator": 62,
         },
-        "withdrawEpochRequestSeconds": 424242_01,
-        "withdrawEpochRedeemSeconds": 424242_02,
-        "withdrawEpochAvailableLiquiditySeconds": 424242_03,
-        "latestWithdrawEpochIdx": 424242_04,
+        "withdrawEpochRequestSeconds": 0x42_42_42_01,
+        "withdrawEpochRedeemSeconds": 0x42_42_42_02,
+        "withdrawEpochAvailableLiquiditySeconds": 0x42_42_42_03,
+        "latestWithdrawEpochIdx": 0x42_42_42_04,
         "latestWithdrawEpochEnd": -42,
         "lockedLiquidity": 777_777,
         "totalRedeemedBaseAmount": 888_888,

@@ -17,18 +17,21 @@ The same code can then be run on a different cluster or a different runtime, jus
 Make sure to install the version that matches your solana version.
 Each solana version may come with a different set of dependency hell, so you can specify the solana version you're using directly in the version of this crate.
 
+in `Cargo.toml`
 ```toml
 # For example when using solana version 1.18.26"
-solana_toolbox_endpoint = "=0.1.27-solana-1.18.26"
+solana_toolbox_endpoint = "=0.1.32-solana-1.18.26"
 # Or when using solana version 2.1.4"
-solana_toolbox_endpoint = "=0.1.27-solana-2.1.4"
+solana_toolbox_endpoint = "=0.1.32-solana-2.1.4"
 ```
 
-## Example
+## Examples
 
 The main type that we will be using is the `ToolboxEndpoint` that can be initialized from many different types of runtimes/RPCs.
 
 This `ToolboxEndpoint` type then expose capabilities to fetch accounts, execute transactions and a lot of useful boilerplate utilities.
+
+How to create an endpoint object:
 
 ```rust
 // First we create an endpoint object (here we use "program_test" or "memnet")
@@ -40,13 +43,18 @@ let mut endpoint = ToolboxEndpoint::new_program_test_with_builtin_programs(&[
     ),
 ])
 .await;
-// We can also create the endpoint to point to devnet instead for example
+// Alternatively We can create an endpoint that uses devnet instead
 let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
     "https://api.devnet.solana.com",
     CommitmentConfig::confirmed(),
 );
 // Optionally make the endpoint print all transaction/fetching
-endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrint::default()));
+endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
+```
+
+Then we can use our endpoint previously created:
+
+```rust
 // The endpoint object provides a lot of useful boilerplate utility functions
 endpoint
     .process_system_transfer(

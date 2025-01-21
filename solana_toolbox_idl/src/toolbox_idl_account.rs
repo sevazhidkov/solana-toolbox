@@ -41,7 +41,7 @@ impl ToolboxIdl {
                 expected: expected_discriminator,
             });
         }
-        let idl_type = match self.account_types.get(account_type) {
+        let idl_type = match self.accounts_types.get(account_type) {
             Some(idl_account_type) => idl_account_type,
             None => {
                 idl_object_get_key_or_else(
@@ -71,7 +71,7 @@ impl ToolboxIdl {
         account_data.extend_from_slice(bytemuck::bytes_of(
             &ToolboxIdl::compute_account_discriminator(account_type),
         ));
-        let idl_type = match self.account_types.get(account_type) {
+        let idl_type = match self.accounts_types.get(account_type) {
             Some(idl_account_type) => idl_account_type,
             None => {
                 idl_object_get_key_or_else(

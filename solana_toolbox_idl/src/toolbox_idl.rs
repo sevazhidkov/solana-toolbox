@@ -18,10 +18,10 @@ use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
     pub types: Map<String, Value>,
-    pub account_types: Map<String, Value>,
-    pub errors_codes: Map<String, Value>,
+    pub accounts_types: Map<String, Value>,
     pub instructions_accounts: Map<String, Value>,
     pub instructions_args: Map<String, Value>,
+    pub errors: Map<String, Value>,
 }
 
 impl ToolboxIdl {
@@ -108,16 +108,10 @@ impl ToolboxIdl {
                 "type",
                 breadcrumbs,
             )?,
-            account_types: idl_collection_content_mapped_by_name(
+            accounts_types: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "accounts",
                 "type",
-                breadcrumbs,
-            )?,
-            errors_codes: idl_collection_content_mapped_by_name(
-                idl_root_object,
-                "errors",
-                "code",
                 breadcrumbs,
             )?,
             instructions_accounts: idl_collection_content_mapped_by_name(
@@ -130,6 +124,11 @@ impl ToolboxIdl {
                 idl_root_object,
                 "instructions",
                 "args",
+                breadcrumbs,
+            )?,
+            errors: idl_collection_content_by_name(
+                idl_root_object,
+                "errors",
                 breadcrumbs,
             )?,
         })
@@ -158,6 +157,32 @@ fn idl_collection_content_mapped_by_name(
                     idl_collection
                         .insert(item_name.into(), idl_item_content.clone());
                 }
+            }
+        }
+    }
+    Ok(idl_collection)
+}
+
+fn idl_collection_content_by_name(
+    object: &Map<String, Value>,
+    collection_key: &str,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Map<String, Value>, ToolboxIdlError> {
+    let idl_array = idl_object_get_key_as_array_or_else(
+        object,
+        collection_key,
+        &breadcrumbs.as_idl("root"),
+    )?;
+    let mut idl_collection = Map::new();
+    for idl_item in idl_array {
+        if let Some(idl_item_object) = idl_item.as_object() {
+            if let Some(item_name) =
+                idl_object_get_key_as_str(idl_item_object, "name")
+            {
+                idl_collection.insert(
+                    item_name.into(),
+                    Value::Object(idl_item_object.clone()),
+                );
             }
         }
     }
