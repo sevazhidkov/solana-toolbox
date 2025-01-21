@@ -37,18 +37,12 @@ impl ToolboxIdl {
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        idl_type_deserialize(
-            &self.types,
-            idl_type,
-            data,
-            data_offset,
-            breadcrumbs,
-        )
+        idl_type_deserialize(self, idl_type, data, data_offset, breadcrumbs)
     }
 }
 
 fn idl_type_deserialize(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type: &Value,
     data: &[u8],
     data_offset: usize,
@@ -56,7 +50,7 @@ fn idl_type_deserialize(
 ) -> Result<(usize, Value), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         return idl_type_deserialize_node(
-            idl_types,
+            idl,
             idl_type_object,
             data,
             data_offset,
@@ -75,7 +69,7 @@ fn idl_type_deserialize(
 }
 
 fn idl_type_deserialize_node(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_object: &Map<String, Value>,
     data: &[u8],
     data_offset: usize,
@@ -83,7 +77,7 @@ fn idl_type_deserialize_node(
 ) -> Result<(usize, Value), ToolboxIdlError> {
     if let Some(idl_type_defined) = idl_type_object.get("defined") {
         return idl_type_deserialize_defined(
-            idl_types,
+            idl,
             idl_type_defined,
             data,
             data_offset,
@@ -92,7 +86,7 @@ fn idl_type_deserialize_node(
     }
     if let Some(idl_type_option) = idl_type_object.get("option") {
         return idl_type_deserialize_option(
-            idl_types,
+            idl,
             idl_type_option,
             data,
             data_offset,
@@ -104,7 +98,7 @@ fn idl_type_deserialize_node(
     {
         if idl_type_kind == "struct" {
             return idl_type_deserialize_struct(
-                idl_types,
+                idl,
                 idl_type_object,
                 data,
                 data_offset,
@@ -124,7 +118,7 @@ fn idl_type_deserialize_node(
         idl_object_get_key_as_array(idl_type_object, "array")
     {
         return idl_type_deserialize_array(
-            idl_types,
+            idl,
             idl_type_array,
             data,
             data_offset,
@@ -133,7 +127,7 @@ fn idl_type_deserialize_node(
     }
     if let Some(idl_type_vec) = idl_type_object.get("vec") {
         return idl_type_deserialize_vec(
-            idl_types,
+            idl,
             idl_type_vec,
             data,
             data_offset,
@@ -147,7 +141,7 @@ fn idl_type_deserialize_node(
 }
 
 fn idl_type_deserialize_defined(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_defined: &Value,
     data: &[u8],
     data_offset: usize,
@@ -158,12 +152,12 @@ fn idl_type_deserialize_defined(
         &breadcrumbs.as_idl("defined"),
     )?;
     let idl_type = idl_object_get_key_or_else(
-        idl_types,
+        &idl.types,
         idl_type_name,
         &breadcrumbs.as_idl("$idl_types"),
     )?;
     idl_type_deserialize(
-        idl_types,
+        idl,
         idl_type,
         data,
         data_offset,
@@ -172,7 +166,7 @@ fn idl_type_deserialize_defined(
 }
 
 fn idl_type_deserialize_option(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_option: &Value,
     data: &[u8],
     data_offset: usize,
@@ -183,7 +177,7 @@ fn idl_type_deserialize_option(
     let mut data_size = size_of_val(&data_flag);
     if data_flag > 0 {
         let (data_content_size, data_content_value) = idl_type_deserialize(
-            idl_types,
+            idl,
             idl_type_option,
             data,
             data_offset + 1,
@@ -197,7 +191,7 @@ fn idl_type_deserialize_option(
 }
 
 fn idl_type_deserialize_struct(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_struct: &Map<String, Value>,
     data: &[u8],
     data_offset: usize,
@@ -223,7 +217,7 @@ fn idl_type_deserialize_struct(
             &breadcrumbs.as_idl(idl_field_name),
         )?;
         let (data_field_size, data_field_value) = idl_type_deserialize(
-            idl_types,
+            idl,
             idl_field_type,
             data,
             data_offset + data_size,
@@ -264,7 +258,7 @@ fn idl_type_deserialize_enum(
 }
 
 fn idl_type_deserialize_array(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_array: &[Value],
     data: &[u8],
     data_offset: usize,
@@ -283,7 +277,7 @@ fn idl_type_deserialize_array(
     let mut data_items = vec![];
     for index in 0..idl_item_length {
         let (data_item_size, data_item_value) = idl_type_deserialize(
-            idl_types,
+            idl,
             idl_item_type,
             data,
             data_offset + data_size,
@@ -296,7 +290,7 @@ fn idl_type_deserialize_array(
 }
 
 fn idl_type_deserialize_vec(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_vec: &Value,
     data: &[u8],
     data_offset: usize,
@@ -316,7 +310,7 @@ fn idl_type_deserialize_vec(
         }
     })? {
         let (data_item_size, data_item_value) = idl_type_deserialize(
-            idl_types,
+            idl,
             idl_type_vec,
             data,
             data_offset + data_size,

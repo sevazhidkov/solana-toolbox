@@ -32,6 +32,16 @@ pub struct ToolboxIdlLookupError {
 
 // TODO - add lookups for accounts
 impl ToolboxIdl {
+    pub fn lookup_instructions(
+        &self
+    ) -> Result<Vec<ToolboxIdlLookupInstruction>, ToolboxIdlError> {
+        let mut instructions = vec![];
+        for idl_instruction_name in self.instructions_accounts.keys() {
+            instructions.push(self.lookup_instruction(idl_instruction_name)?);
+        }
+        Ok(instructions)
+    }
+
     pub fn lookup_instruction(
         &self,
         instruction_name: &str,
@@ -78,37 +88,14 @@ impl ToolboxIdl {
         })
     }
 
-    pub fn lookup_instructions(
+    pub fn lookup_errors(
         &self
-    ) -> Result<Vec<ToolboxIdlLookupInstruction>, ToolboxIdlError> {
-        let mut instructions = vec![];
-        for idl_instruction_name in self.instructions_accounts.keys() {
-            instructions.push(self.lookup_instruction(idl_instruction_name)?);
+    ) -> Result<Vec<ToolboxIdlLookupError>, ToolboxIdlError> {
+        let mut errors = vec![];
+        for idl_error_name in self.errors.keys() {
+            errors.push(self.lookup_error(idl_error_name)?);
         }
-        Ok(instructions)
-    }
-
-    pub fn lookup_error_by_code(
-        &self,
-        error_code: u64,
-    ) -> Result<ToolboxIdlLookupError, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        for (idl_error_name, idl_error) in self.errors.iter() {
-            if let Some(idl_error_object) = idl_error.as_object() {
-                if let Some(idl_error_code) = idl_error_object
-                    .get("code")
-                    .and_then(|idl_error_code| idl_error_code.as_u64())
-                {
-                    if idl_error_code == error_code {
-                        return self.lookup_error(idl_error_name);
-                    }
-                }
-            }
-        }
-        idl_err(
-            "Could not find error",
-            &breadcrumbs.as_idl(&format!("error({})", error_code)),
-        )
+        Ok(errors)
     }
 
     pub fn lookup_error(
@@ -138,14 +125,27 @@ impl ToolboxIdl {
         })
     }
 
-    pub fn lookup_errors(
-        &self
-    ) -> Result<Vec<ToolboxIdlLookupError>, ToolboxIdlError> {
-        let mut errors = vec![];
-        for idl_error_name in self.errors.keys() {
-            errors.push(self.lookup_error(idl_error_name)?);
+    pub fn lookup_error_by_code(
+        &self,
+        error_code: u64,
+    ) -> Result<ToolboxIdlLookupError, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        for (idl_error_name, idl_error) in self.errors.iter() {
+            if let Some(idl_error_object) = idl_error.as_object() {
+                if let Some(idl_error_code) = idl_error_object
+                    .get("code")
+                    .and_then(|idl_error_code| idl_error_code.as_u64())
+                {
+                    if idl_error_code == error_code {
+                        return self.lookup_error(idl_error_name);
+                    }
+                }
+            }
         }
-        Ok(errors)
+        idl_err(
+            "Could not find error",
+            &breadcrumbs.as_idl(&format!("error({})", error_code)),
+        )
     }
 }
 

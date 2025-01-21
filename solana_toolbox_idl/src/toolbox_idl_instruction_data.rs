@@ -74,8 +74,8 @@ impl ToolboxIdl {
                 found: instruction_data.to_vec(),
             });
         }
-        let mut instruction_args = Map::new();
         let mut data_offset = discriminator.len();
+        let mut instruction_args = Map::new();
         let idl_instruction_args_objects =
             idl_object_get_key_as_object_array_or_else(
                 &self.instructions_args,

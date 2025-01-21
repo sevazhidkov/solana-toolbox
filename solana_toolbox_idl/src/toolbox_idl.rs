@@ -100,7 +100,7 @@ impl ToolboxIdl {
             from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?;
         let idl_root_object =
             idl_as_object_or_else(&idl_root_value, &breadcrumbs.as_idl("$"))?;
-        Ok(ToolboxIdl {
+        let mut idl = ToolboxIdl {
             accounts_discriminators: idl_collection_discriminators_by_name(
                 idl_root_object,
                 "accounts",
@@ -142,7 +142,14 @@ impl ToolboxIdl {
                 "errors",
                 breadcrumbs,
             )?,
-        })
+        };
+        for account_name in idl.accounts_discriminators.keys() {
+            if let Some(idl_type) = idl.types.remove(account_name) {
+                idl.accounts_types
+                    .insert(account_name.to_string(), idl_type.clone());
+            }
+        }
+        Ok(idl)
     }
 }
 

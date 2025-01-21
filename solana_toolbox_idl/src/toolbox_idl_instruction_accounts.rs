@@ -310,12 +310,10 @@ fn idl_blob_bytes(
                 "account",
                 &breadcrumbs.as_idl("datadef(account)"),
             )?;
-            let idl_blob_type = idl_ok_or_else(
-                idl.accounts_types
-                    .get(idl_blob_account)
-                    .or_else(|| idl.types.get(idl_blob_account)),
-                "Unable to locate the account type",
-                &breadcrumbs.as_idl(idl_blob_account),
+            let idl_blob_type = idl_object_get_key_or_else(
+                &idl.accounts_types,
+                idl_blob_account,
+                &breadcrumbs.as_idl("accounts_types"),
             )?;
             let idl_blob_struct = idl_as_object_or_else(
                 idl_blob_type,
@@ -357,6 +355,7 @@ fn idl_blob_bytes(
                 &breadcrumbs.as_idl("arg"),
             )?;
             let idl_blob_parts = Vec::from_iter(idl_blob_path.split("."));
+            // TODO - this could be inline into "idl_parts_to_bytes"
             let idl_blob_fields = idl_object_get_key_as_object_array_or_else(
                 &idl.instructions_args,
                 scope.instruction_name,

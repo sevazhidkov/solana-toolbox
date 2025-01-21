@@ -31,12 +31,12 @@ impl ToolboxIdl {
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        idl_type_serialize(&self.types, idl_type, value, data, breadcrumbs)
+        idl_type_serialize(self, idl_type, value, data, breadcrumbs)
     }
 }
 
 fn idl_type_serialize(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type: &Value,
     value: &Value,
     data: &mut Vec<u8>,
@@ -44,7 +44,7 @@ fn idl_type_serialize(
 ) -> Result<(), ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type.as_object() {
         return idl_type_serialize_node(
-            idl_types,
+            idl,
             idl_type_object,
             value,
             data,
@@ -63,7 +63,7 @@ fn idl_type_serialize(
 }
 
 fn idl_type_serialize_node(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_object: &Map<String, Value>,
     value: &Value,
     data: &mut Vec<u8>,
@@ -71,7 +71,7 @@ fn idl_type_serialize_node(
 ) -> Result<(), ToolboxIdlError> {
     if let Some(idl_type_defined) = idl_type_object.get("defined") {
         return idl_type_serialize_defined(
-            idl_types,
+            idl,
             idl_type_defined,
             value,
             data,
@@ -80,7 +80,7 @@ fn idl_type_serialize_node(
     }
     if let Some(idl_type_option) = idl_type_object.get("option") {
         return idl_type_serialize_option(
-            idl_types,
+            idl,
             idl_type_option,
             value,
             data,
@@ -92,7 +92,7 @@ fn idl_type_serialize_node(
     {
         if idl_type_kind == "struct" {
             return idl_type_serialize_struct(
-                idl_types,
+                idl,
                 idl_type_object,
                 value,
                 data,
@@ -112,7 +112,7 @@ fn idl_type_serialize_node(
         idl_object_get_key_as_array(idl_type_object, "array")
     {
         return idl_type_serialize_array(
-            idl_types,
+            idl,
             idl_type_array,
             value,
             data,
@@ -121,7 +121,7 @@ fn idl_type_serialize_node(
     }
     if let Some(idl_type_vec) = idl_type_object.get("vec") {
         return idl_type_serialize_vec(
-            idl_types,
+            idl,
             idl_type_vec,
             value,
             data,
@@ -135,7 +135,7 @@ fn idl_type_serialize_node(
 }
 
 fn idl_type_serialize_defined(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_defined: &Value,
     value: &Value,
     data: &mut Vec<u8>,
@@ -146,12 +146,12 @@ fn idl_type_serialize_defined(
         &breadcrumbs.as_idl("defined"),
     )?;
     let idl_type = idl_object_get_key_or_else(
-        idl_types,
+        &idl.types,
         idl_type_name,
         &breadcrumbs.as_idl("$idl_types"),
     )?;
     idl_type_serialize(
-        idl_types,
+        idl,
         idl_type,
         value,
         data,
@@ -160,7 +160,7 @@ fn idl_type_serialize_defined(
 }
 
 fn idl_type_serialize_option(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_option: &Value,
     value: &Value,
     data: &mut Vec<u8>,
@@ -171,12 +171,12 @@ fn idl_type_serialize_option(
         Ok(())
     } else {
         data.extend_from_slice(bytemuck::bytes_of::<u8>(&1));
-        idl_type_serialize(idl_types, idl_type_option, value, data, breadcrumbs)
+        idl_type_serialize(idl, idl_type_option, value, data, breadcrumbs)
     }
 }
 
 fn idl_type_serialize_struct(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_struct: &Map<String, Value>,
     value: &Value,
     data: &mut Vec<u8>,
@@ -207,7 +207,7 @@ fn idl_type_serialize_struct(
             &breadcrumbs.as_val("&"),
         )?;
         idl_type_serialize(
-            idl_types,
+            idl,
             idl_field_type,
             value_field,
             data,
@@ -247,7 +247,7 @@ fn idl_type_serialize_enum(
 }
 
 fn idl_type_serialize_array(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_array: &[Value],
     value: &Value,
     data: &mut Vec<u8>,
@@ -283,7 +283,7 @@ fn idl_type_serialize_array(
     for index in 0..value_array.len() {
         let value_item = value_array.get(index).unwrap();
         idl_type_serialize(
-            idl_types,
+            idl,
             idl_item_type,
             value_item,
             data,
@@ -294,7 +294,7 @@ fn idl_type_serialize_array(
 }
 
 fn idl_type_serialize_vec(
-    idl_types: &Map<String, Value>,
+    idl: &ToolboxIdl,
     idl_type_vec: &Value,
     value: &Value,
     data: &mut Vec<u8>,
@@ -306,7 +306,7 @@ fn idl_type_serialize_vec(
     for index in 0..value_array.len() {
         let value_item = value_array.get(index).unwrap();
         idl_type_serialize(
-            idl_types,
+            idl,
             idl_type_vec,
             value_item,
             data,
