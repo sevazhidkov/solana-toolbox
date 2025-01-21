@@ -165,14 +165,12 @@ fn idl_collection_discriminators_by_name(
             if let Some(idl_item_discriminator) =
                 idl_item_object.get("discriminator")
             {
-                let bytes = idl_as_bytes_or_else(
-                    idl_item_discriminator,
-                    &breadcrumbs.as_val(item_name),
-                )?;
-                eprintln!("bytes: {}, {:?}", item_name, bytes);
                 idl_collection.insert(
                     item_name.to_string(),
-                    bytes,
+                    idl_as_bytes_or_else(
+                        idl_item_discriminator,
+                        &breadcrumbs.as_val(item_name),
+                    )?,
                 );
             } else {
                 idl_collection.insert(
