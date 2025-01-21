@@ -56,7 +56,7 @@ impl ToolboxEndpointProxy for RpcClient {
         Ok(signature)
     }
 
-    async fn move_clock_forward( // TODO - this could be split into 2 different calls (one for time, one for slot)
+    async fn move_clock_forward(
         &mut self,
         _unix_timestamp_delta: u64,
         _slot_delta: u64,
