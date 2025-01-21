@@ -30,7 +30,7 @@ pub async fn run() {
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
     let campaign_data_value = idl
-        .get_account(&mut endpoint, "Campaign", &campaign_address)
+        .get_account_value(&mut endpoint, &campaign_address)
         .await
         .unwrap()
         .unwrap();

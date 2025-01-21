@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
@@ -7,20 +9,22 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
-use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdl {
-    pub types: Map<String, Value>,
+    pub accounts_discriminators: HashMap<String, Vec<u8>>,
     pub accounts_types: Map<String, Value>,
+    pub instructions_discriminators: HashMap<String, Vec<u8>>,
     pub instructions_accounts: Map<String, Value>,
     pub instructions_args: Map<String, Value>,
+    pub types: Map<String, Value>,
     pub errors: Map<String, Value>,
 }
 
@@ -47,19 +51,14 @@ impl ToolboxIdl {
 
     pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let discriminator_offset = 0;
-        let disciminator = idl_u64_from_bytes_at(
-            data,
-            discriminator_offset,
-            &breadcrumbs.as_val("discriminator"),
-        )?;
-        if disciminator != ToolboxIdl::DISCRIMINATOR {
+        let discriminator = ToolboxIdl::DISCRIMINATOR;
+        if !data.starts_with(discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
-                found: disciminator,
-                expected: ToolboxIdl::DISCRIMINATOR,
+                expected: discriminator.to_vec(),
+                found: data.to_vec(),
             });
         }
-        let authority_offset = size_of_val(&disciminator);
+        let authority_offset = discriminator.len();
         let authority = idl_pubkey_from_bytes_at(
             data,
             authority_offset,
@@ -102,16 +101,22 @@ impl ToolboxIdl {
         let idl_root_object =
             idl_as_object_or_else(&idl_root_value, &breadcrumbs.as_idl("$"))?;
         Ok(ToolboxIdl {
-            types: idl_collection_content_mapped_by_name(
+            accounts_discriminators: idl_collection_discriminators_by_name(
                 idl_root_object,
-                "types",
-                "type",
+                "accounts",
+                &ToolboxIdl::compute_account_discriminator,
                 breadcrumbs,
             )?,
             accounts_types: idl_collection_content_mapped_by_name(
                 idl_root_object,
                 "accounts",
                 "type",
+                breadcrumbs,
+            )?,
+            instructions_discriminators: idl_collection_discriminators_by_name(
+                idl_root_object,
+                "instructions",
+                &ToolboxIdl::compute_instruction_discriminator,
                 breadcrumbs,
             )?,
             instructions_accounts: idl_collection_content_mapped_by_name(
@@ -126,7 +131,13 @@ impl ToolboxIdl {
                 "args",
                 breadcrumbs,
             )?,
-            errors: idl_collection_content_by_name(
+            types: idl_collection_content_mapped_by_name(
+                idl_root_object,
+                "types",
+                "type",
+                breadcrumbs,
+            )?,
+            errors: idl_collection_mapped_by_name(
                 idl_root_object,
                 "errors",
                 breadcrumbs,
@@ -135,55 +146,89 @@ impl ToolboxIdl {
     }
 }
 
-fn idl_collection_content_mapped_by_name(
+fn idl_collection_discriminators_by_name(
     object: &Map<String, Value>,
     collection_key: &str,
-    content_key: &str,
+    fallback_generator: &dyn Fn(&str) -> Vec<u8>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Map<String, Value>, ToolboxIdlError> {
-    let idl_array = idl_object_get_key_as_array_or_else(
+) -> Result<HashMap<String, Vec<u8>>, ToolboxIdlError> {
+    let mut idl_collection = HashMap::new();
+    let idl_object_array = idl_object_get_key_as_object_array_or_else(
         object,
         collection_key,
         &breadcrumbs.as_idl("root"),
     )?;
-    let mut idl_collection = Map::new();
-    for idl_item in idl_array {
-        if let Some(idl_item_object) = idl_item.as_object() {
-            if let Some(item_name) =
-                idl_object_get_key_as_str(idl_item_object, "name")
+    for idl_item_object in idl_object_array {
+        if let Some(item_name) =
+            idl_object_get_key_as_str(idl_item_object, "name")
+        {
+            if let Some(idl_item_discriminator) =
+                idl_item_object.get("discriminator")
             {
-                if let Some(idl_item_content) = idl_item_object.get(content_key)
-                {
-                    idl_collection
-                        .insert(item_name.into(), idl_item_content.clone());
-                }
+                let bytes = idl_as_bytes_or_else(
+                    idl_item_discriminator,
+                    &breadcrumbs.as_val(item_name),
+                )?;
+                eprintln!("bytes: {}, {:?}", item_name, bytes);
+                idl_collection.insert(
+                    item_name.to_string(),
+                    bytes,
+                );
+            } else {
+                idl_collection.insert(
+                    item_name.to_string(),
+                    fallback_generator(item_name),
+                );
             }
         }
     }
     Ok(idl_collection)
 }
 
-fn idl_collection_content_by_name(
+fn idl_collection_content_mapped_by_name(
     object: &Map<String, Value>,
     collection_key: &str,
+    content_key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Map<String, Value>, ToolboxIdlError> {
-    let idl_array = idl_object_get_key_as_array_or_else(
+    let mut idl_collection = Map::new();
+    let idl_object_array = idl_object_get_key_as_object_array_or_else(
         object,
         collection_key,
         &breadcrumbs.as_idl("root"),
     )?;
-    let mut idl_collection = Map::new();
-    for idl_item in idl_array {
-        if let Some(idl_item_object) = idl_item.as_object() {
-            if let Some(item_name) =
-                idl_object_get_key_as_str(idl_item_object, "name")
-            {
-                idl_collection.insert(
-                    item_name.into(),
-                    Value::Object(idl_item_object.clone()),
-                );
+    for idl_item_object in idl_object_array {
+        if let Some(item_name) =
+            idl_object_get_key_as_str(idl_item_object, "name")
+        {
+            if let Some(idl_item_content) = idl_item_object.get(content_key) {
+                idl_collection
+                    .insert(item_name.into(), idl_item_content.clone());
             }
+        }
+    }
+    Ok(idl_collection)
+}
+
+fn idl_collection_mapped_by_name(
+    object: &Map<String, Value>,
+    collection_key: &str,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Map<String, Value>, ToolboxIdlError> {
+    let mut idl_collection = Map::new();
+    let idl_object_array = idl_object_get_key_as_object_array_or_else(
+        object,
+        collection_key,
+        &breadcrumbs.as_idl("root"),
+    )?;
+    for idl_item_object in idl_object_array {
+        if let Some(item_name) =
+            idl_object_get_key_as_str(idl_item_object, "name")
+        {
+            idl_collection.insert(
+                item_name.into(),
+                Value::Object(idl_item_object.clone()),
+            );
         }
     }
     Ok(idl_collection)

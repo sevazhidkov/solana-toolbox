@@ -4,19 +4,22 @@ use sha2::Sha256;
 use crate::toolbox_idl::ToolboxIdl;
 
 impl ToolboxIdl {
-    pub const DISCRIMINATOR: u64 = 0x9E7B903ABF624618;
+    pub const DISCRIMINATOR: &[u8] =
+        &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
 
-    pub fn compute_account_discriminator(account_type: &str) -> u64 {
+    pub fn compute_account_discriminator(account_type: &str) -> Vec<u8> {
         let mut hasher = Sha256::new();
         hasher.update(format!("account:{}", account_type));
         let hash = hasher.finalize();
-        u64::from_le_bytes(hash[..8].try_into().unwrap())
+        hash[..8].to_vec()
     }
 
-    pub fn compute_instruction_discriminator(instruction_name: &str) -> u64 {
+    pub fn compute_instruction_discriminator(
+        instruction_name: &str
+    ) -> Vec<u8> {
         let mut hasher = Sha256::new();
         hasher.update(format!("global:{}", instruction_name));
         let hash = hasher.finalize();
-        u64::from_le_bytes(hash[..8].try_into().unwrap())
+        hash[..8].to_vec()
     }
 }

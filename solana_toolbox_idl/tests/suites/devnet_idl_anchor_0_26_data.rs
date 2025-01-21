@@ -28,11 +28,7 @@ pub async fn run() {
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;
     eprintln!("global_market_state_address: {:?}", global_market_state_address);
     let global_market_state_value = idl
-        .get_account(
-            &mut endpoint,
-            "GlobalMarketState",
-            &global_market_state_address,
-        )
+        .get_account_value(&mut endpoint, &global_market_state_address)
         .await
         .unwrap()
         .unwrap();
@@ -45,7 +41,7 @@ pub async fn run() {
     let program_state_address =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
     let program_state_value = idl
-        .get_account(&mut endpoint, "ProgramState", &program_state_address)
+        .get_account_value(&mut endpoint, &program_state_address)
         .await
         .unwrap()
         .unwrap();
@@ -61,7 +57,7 @@ pub async fn run() {
     )
     .0;
     let market_admins_value = idl
-        .get_account(&mut endpoint, "MarketAdmins", &market_admins_address)
+        .get_account_value(&mut endpoint, &market_admins_address)
         .await
         .unwrap()
         .unwrap();
