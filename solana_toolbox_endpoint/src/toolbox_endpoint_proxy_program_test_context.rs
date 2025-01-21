@@ -59,17 +59,28 @@ impl ToolboxEndpointProxy for ProgramTestContext {
         self.process_transaction(transaction).await
     }
 
-    async fn move_clock_forward(
+    async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,
+    ) -> Result<(), ToolboxEndpointError> {
+        let current_clock = self.banks_client.get_sysvar::<Clock>().await?;
+        let mut forwarded_clock = current_clock;
+        forwarded_clock.slot += unix_timestamp_delta * 1_000 / 500;
+        forwarded_clock.unix_timestamp +=
+            i64::try_from(unix_timestamp_delta).unwrap();
+        self.set_sysvar::<Clock>(&forwarded_clock);
+        Ok(())
+    }
+
+    async fn forward_clock_slot(
+        &mut self,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
         let current_clock = self.banks_client.get_sysvar::<Clock>().await?;
         let mut forwarded_clock = current_clock;
-        forwarded_clock.epoch += 1;
         forwarded_clock.slot += slot_delta;
         forwarded_clock.unix_timestamp +=
-            i64::try_from(unix_timestamp_delta).unwrap();
+            i64::try_from(slot_delta * 500 / 1_000).unwrap();
         self.set_sysvar::<Clock>(&forwarded_clock);
         Ok(())
     }

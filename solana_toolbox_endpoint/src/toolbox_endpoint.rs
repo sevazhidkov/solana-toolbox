@@ -67,11 +67,17 @@ impl ToolboxEndpoint {
         self.proxy.process_airdrop(to, lamports).await
     }
 
-    pub async fn move_clock_forward(
+    pub async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,
+    ) -> Result<(), ToolboxEndpointError> {
+        self.proxy.forward_clock_unix_timestamp(unix_timestamp_delta).await
+    }
+
+    pub async fn forward_clock_slot(
+        &mut self,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        self.proxy.move_clock_forward(unix_timestamp_delta, slot_delta).await
+        self.proxy.forward_clock_slot(slot_delta).await
     }
 }

@@ -56,9 +56,17 @@ impl ToolboxEndpointProxy for RpcClient {
         Ok(signature)
     }
 
-    async fn move_clock_forward(
+    async fn forward_clock_unix_timestamp(
         &mut self,
         _unix_timestamp_delta: u64,
+    ) -> Result<(), ToolboxEndpointError> {
+        Err(ToolboxEndpointError::Custom(
+            "Clock forwarding not supported on RPCs".into(),
+        ))
+    }
+
+    async fn forward_clock_slot(
+        &mut self,
         _slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
         Err(ToolboxEndpointError::Custom(

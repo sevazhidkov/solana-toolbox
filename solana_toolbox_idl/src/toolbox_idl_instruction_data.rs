@@ -5,7 +5,7 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
@@ -23,19 +23,17 @@ impl ToolboxIdl {
         )?;
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(discriminator);
-        let idl_instruction_args_objects =
-            idl_object_get_key_as_object_array_or_else(
+        for (idl_instruction_arg_object, breadcrumbs) in
+            idl_object_get_key_as_scoped_object_array_or_else(
                 &self.instructions_args,
                 instruction_name,
-                &breadcrumbs.as_idl("instruction_args"),
-            )?;
-        for index in 0..idl_instruction_args_objects.len() {
-            let idl_instruction_arg_object =
-                idl_instruction_args_objects.get(index).unwrap();
+                &breadcrumbs.with_idl("instruction_args"),
+            )?
+        {
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                &breadcrumbs.as_idl(&format!("[{}]", index)),
+                &breadcrumbs.as_idl("@"),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,
@@ -76,19 +74,17 @@ impl ToolboxIdl {
         }
         let mut data_offset = discriminator.len();
         let mut instruction_args = Map::new();
-        let idl_instruction_args_objects =
-            idl_object_get_key_as_object_array_or_else(
+        for (idl_instruction_arg_object, breadcrumbs) in
+            idl_object_get_key_as_scoped_object_array_or_else(
                 &self.instructions_args,
                 instruction_name,
-                &breadcrumbs.as_idl("instruction_args"),
-            )?;
-        for index in 0..idl_instruction_args_objects.len() {
-            let idl_instruction_arg_object =
-                idl_instruction_args_objects.get(index).unwrap();
+                &breadcrumbs.with_idl("instruction_args"),
+            )?
+        {
             let idl_instruction_arg_name = idl_object_get_key_as_str_or_else(
                 idl_instruction_arg_object,
                 "name",
-                &breadcrumbs.as_idl(&format!("arg[{}]", index)),
+                &breadcrumbs.as_idl("@"),
             )?;
             let idl_instruction_arg_type = idl_object_get_key_or_else(
                 idl_instruction_arg_object,

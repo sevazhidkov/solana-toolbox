@@ -17,7 +17,7 @@ use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_object_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -184,17 +184,17 @@ fn idl_type_serialize_struct(
 ) -> Result<(), ToolboxIdlError> {
     let value_object =
         idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
-    let idl_type_fields_objects = idl_object_get_key_as_object_array_or_else(
-        idl_type_struct,
-        "fields",
-        &breadcrumbs.as_idl("fields"),
-    )?;
-    for index in 0..idl_type_fields_objects.len() {
-        let idl_field_object = idl_type_fields_objects.get(index).unwrap();
+    for (idl_field_object, breadcrumbs) in
+        idl_object_get_key_as_scoped_object_array_or_else(
+            idl_type_struct,
+            "fields",
+            &breadcrumbs.with_idl("fields"),
+        )?
+    {
         let idl_field_name = idl_object_get_key_as_str_or_else(
             idl_field_object,
             "name",
-            &breadcrumbs.as_idl(&format!("fields[{}]", index)),
+            &breadcrumbs.as_idl("@"),
         )?;
         let idl_field_type = idl_object_get_key_or_else(
             idl_field_object,

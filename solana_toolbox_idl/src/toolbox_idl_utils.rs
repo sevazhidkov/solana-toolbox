@@ -4,6 +4,7 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_context::ToolboxIdlContext;
 use crate::toolbox_idl_error::ToolboxIdlError;
 
@@ -102,22 +103,29 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     )
 }
 
-// TODO - this could be a util with a for-each style function call
-pub(crate) fn idl_object_get_key_as_object_array_or_else<'a>(
+pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<Vec<&'a Map<String, Value>>, ToolboxIdlError> {
-    let array_value =
-        idl_object_get_key_as_array_or_else(object, key, context)?;
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Vec<(&'a Map<String, Value>, ToolboxIdlBreadcrumbs)>, ToolboxIdlError>
+{
+    let array_value = idl_object_get_key_as_array_or_else(
+        object,
+        key,
+        &breadcrumbs.as_idl("@"),
+    )?;
     let mut array_object = vec![];
     for item_index in 0..array_value.len() {
         let item_value = array_value.get(item_index).unwrap();
-        array_object.push(idl_ok_or_else(
-            item_value.as_object(),
-            &format!("expected an object at index: {}", item_index),
-            context,
-        )?);
+        let item_tag = &format!("instruction_accounts[{}]", item_index);
+        array_object.push((
+            idl_ok_or_else(
+                item_value.as_object(),
+                &format!("expected an object at index: {}", item_index),
+                &breadcrumbs.as_idl(item_tag),
+            )?,
+            breadcrumbs.with_idl(item_tag),
+        ));
     }
     Ok(array_object)
 }

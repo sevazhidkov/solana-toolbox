@@ -28,12 +28,13 @@ pub trait ToolboxEndpointProxy {
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError>;
 
-    // TODO - this could be split into 2 different calls (one for time, one for slot)
-    // TODO - This could also be implemented to a minimum for regular RPCs by waiting
-
-    async fn move_clock_forward(
+    async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,
+    ) -> Result<(), ToolboxEndpointError>;
+
+    async fn forward_clock_slot(
+        &mut self,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError>;
 }
