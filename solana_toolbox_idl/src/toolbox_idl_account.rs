@@ -21,7 +21,7 @@ impl ToolboxIdl {
         };
         let account_name = idl_ok_or_else(
             self.guess_account_name(&account_data),
-            "Unknown account type",
+            "Could not guess account name",
             &ToolboxIdlBreadcrumbs::default().as_val("account_name"),
         )?;
         Ok(Some(self.decompile_account(account_name, &account_data)?.1))

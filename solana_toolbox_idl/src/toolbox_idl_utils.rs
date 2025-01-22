@@ -112,6 +112,7 @@ pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
 ) -> Result<Vec<ScopedObject<'a>>, ToolboxIdlError> {
     let array_value =
         idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
+    let breadcrumbs = &breadcrumbs.with_idl(key);
     let mut array_object = vec![];
     for item_index in 0..array_value.len() {
         let item_value = array_value.get(item_index).unwrap();
@@ -133,6 +134,7 @@ pub(crate) fn idl_object_get_key_as_scoped_named_object_array_or_else<'a>(
 ) -> Result<Vec<ScopedNamedObject<'a>>, ToolboxIdlError> {
     let array_value =
         idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
+    let breadcrumbs = &breadcrumbs.with_idl(key);
     let mut array_object = vec![];
     for item_index in 0..array_value.len() {
         let item_value = array_value.get(item_index).unwrap();

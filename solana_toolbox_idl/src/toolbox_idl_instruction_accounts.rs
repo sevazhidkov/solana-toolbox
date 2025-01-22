@@ -167,7 +167,7 @@ fn idl_instruction_account_address_resolve(
                 idl,
                 idl_account_object,
                 scope,
-                &breadcrumbs.with_idl(idl_account_name),
+                &breadcrumbs,
             );
         }
     }
@@ -186,7 +186,7 @@ fn idl_instruction_account_object_resolve(
         return Pubkey::from_str(idl_account_address).map_err(|err| {
             ToolboxIdlError::InvalidPubkey {
                 parsing: err,
-                context: breadcrumbs.as_val("address"),
+                context: breadcrumbs.as_idl("address"),
             }
         });
     }
@@ -295,7 +295,7 @@ fn idl_blob_bytes(
             let idl_blob_type = idl_object_get_key_or_else(
                 &idl.accounts_types,
                 idl_blob_account,
-                &breadcrumbs.as_idl("accounts_types"),
+                &breadcrumbs.as_idl("$idl_accounts_types"),
             )?;
             let idl_blob_struct = idl_as_object_or_else(
                 idl_blob_type,
@@ -310,7 +310,7 @@ fn idl_blob_bytes(
                             .get(&account_name.to_case(Case::Camel))
                     },
                 ),
-                "Missing account data",
+                "Missing account value",
                 &breadcrumbs.as_val(account_name),
             )?;
             let account_value_fields = idl_as_object_or_else(
