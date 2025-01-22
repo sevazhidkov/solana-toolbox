@@ -6,15 +6,12 @@ use solana_toolbox_idl::ToolboxIdl;
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
-        read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap();
+        read_to_string("./tests/fixtures/dummy_idl_anchor_0_29.json").unwrap();
     let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
     // Lookup error by code
-    let lookup_error = idl.lookup_error_by_code(6004).unwrap();
-    assert_eq!("MarketIsFrozen", lookup_error.name);
-    assert_eq!(
-        "This market is currently frozen. Please try again later.",
-        lookup_error.msg,
-    );
+    let lookup_error = idl.lookup_error_by_code(6000).unwrap();
+    assert_eq!("Overflow", lookup_error.name);
+    assert_eq!("Overflow in arithmetic operation.", lookup_error.msg,);
     // Lookup instructions and print them
     let lookup_instructions = idl.lookup_instructions().unwrap();
     for lookup_instruction in lookup_instructions {

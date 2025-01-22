@@ -7,6 +7,7 @@ pub mod file_idl_anchor_0_26_data;
 pub mod file_idl_anchor_0_26_instruction;
 pub mod file_idl_anchor_0_26_lookup;
 pub mod file_idl_anchor_0_29_instruction;
+pub mod file_idl_anchor_0_29_lookup;
 pub mod file_idl_anchor_0_30_accounts;
 pub mod file_idl_anchor_0_30_data;
 pub mod file_idl_anchor_0_30_instruction;
