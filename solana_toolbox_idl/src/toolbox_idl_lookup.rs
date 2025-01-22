@@ -4,7 +4,7 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_object_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
 
@@ -48,18 +48,13 @@ impl ToolboxIdl {
     ) -> Result<ToolboxIdlLookupInstruction, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut lookup_accounts = vec![];
-        for (idl_account_object, breadcrumbs) in
-            idl_object_get_key_as_scoped_object_array_or_else(
+        for (idl_account_object, idl_account_name, _) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
                 instruction_name,
                 &breadcrumbs.with_idl("instruction_accounts"),
             )?
         {
-            let idl_account_name = idl_object_get_key_as_str_or_else(
-                idl_account_object,
-                "name",
-                &breadcrumbs.as_idl("@"),
-            )?;
             let idl_account_is_resolvable = idl_account_object
                 .contains_key("address")
                 || idl_account_object.contains_key("pda");

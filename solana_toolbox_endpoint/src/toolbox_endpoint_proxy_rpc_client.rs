@@ -56,6 +56,7 @@ impl ToolboxEndpointProxy for RpcClient {
         Ok(signature)
     }
 
+    // TODO - this could be cleaned up in favor of "wait_until_blah" ?
     async fn forward_clock_unix_timestamp(
         &mut self,
         _unix_timestamp_delta: u64,
@@ -65,7 +66,6 @@ impl ToolboxEndpointProxy for RpcClient {
         ))
     }
 
-    // TODO - this could be cleaned up in favor of "wait_until_clock_slot" ?
     async fn forward_clock_slot(
         &mut self,
         _slot_delta: u64,

@@ -18,6 +18,7 @@ use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
@@ -33,18 +34,13 @@ impl ToolboxIdl {
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut account_metas = vec![];
-        for (idl_account_object, breadcrumbs) in
-            idl_object_get_key_as_scoped_object_array_or_else(
+        for (idl_account_object, idl_account_name, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
                 instruction_name,
                 &breadcrumbs.with_idl("instruction_accounts"),
             )?
         {
-            let idl_account_name = idl_object_get_key_as_str_or_else(
-                idl_account_object,
-                "name",
-                &breadcrumbs.as_idl("@"),
-            )?;
             let instruction_account_address = *idl_map_get_key_or_else(
                 instruction_accounts_addresses,
                 idl_account_name,
@@ -87,18 +83,13 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut instruction_accounts_addresses =
             instruction_accounts_addresses.clone();
-        for (idl_account_object, breadcrumbs) in
-            idl_object_get_key_as_scoped_object_array_or_else(
+        for (_, idl_account_name, _) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
                 instruction_name,
                 &breadcrumbs.with_idl("instruction_accounts"),
             )?
         {
-            let idl_account_name = idl_object_get_key_as_str_or_else(
-                idl_account_object,
-                "name",
-                &breadcrumbs.as_idl("@"),
-            )?;
             if !instruction_accounts_addresses.contains_key(idl_account_name) {
                 let instruction_account_address = self
                     .resolve_instruction_account_address(
@@ -157,18 +148,13 @@ fn idl_instruction_account_address_resolve(
     scope: &ToolboxIdlInstructionAccountsScope,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Pubkey, ToolboxIdlError> {
-    for (idl_account_object, breadcrumbs) in
-        idl_object_get_key_as_scoped_object_array_or_else(
+    for (idl_account_object, idl_account_name, breadcrumbs) in
+        idl_object_get_key_as_scoped_named_object_array_or_else(
             &idl.instructions_accounts,
             scope.instruction_name,
             &breadcrumbs.with_idl("instruction_accounts"),
         )?
     {
-        let idl_account_name = idl_object_get_key_as_str_or_else(
-            idl_account_object,
-            "name",
-            &breadcrumbs.as_idl("@"),
-        )?;
         if idl_account_name.to_case(Case::Snake)
             == account_name.to_case(Case::Snake)
         {
@@ -374,30 +360,25 @@ fn idl_parts_to_bytes(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let field_name = parts[0];
-    for (idl_field_object, breadcrumbs) in
-        idl_object_get_key_as_scoped_object_array_or_else(
+    for (idl_field_object, idl_field_name, breadcrumbs) in
+        idl_object_get_key_as_scoped_named_object_array_or_else(
             idl_fields_container,
             idl_fields_key,
             &breadcrumbs.with_idl(idl_fields_key),
         )?
     {
-        let idl_field_name = idl_object_get_key_as_str_or_else(
-            idl_field_object,
-            "name",
-            &breadcrumbs.as_idl("@"),
-        )?;
         if idl_field_name.to_case(Case::Snake)
             == field_name.to_case(Case::Snake)
         {
             let idl_type = idl_object_get_key_or_else(
                 idl_field_object,
                 "type",
-                &breadcrumbs.as_idl("field"),
+                &breadcrumbs.idl(),
             )?;
             let value = idl_object_get_key_or_else(
                 values,
                 idl_field_name,
-                &breadcrumbs.as_val("&"),
+                &breadcrumbs.val(),
             )?;
             if parts.len() == 1 {
                 let mut bytes = vec![];

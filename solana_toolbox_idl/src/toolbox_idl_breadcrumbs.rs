@@ -40,4 +40,12 @@ impl ToolboxIdlBreadcrumbs {
     ) -> ToolboxIdlContext {
         ToolboxIdlContext::new(&self.idl, &format!("{}.{}.!", self.val, value))
     }
+
+    pub fn idl(&self) -> ToolboxIdlContext {
+        ToolboxIdlContext::new(&format!("{}.!", self.idl), &self.val)
+    }
+
+    pub fn val(&self) -> ToolboxIdlContext {
+        ToolboxIdlContext::new(&self.idl, &format!("{}.!", self.val))
+    }
 }
