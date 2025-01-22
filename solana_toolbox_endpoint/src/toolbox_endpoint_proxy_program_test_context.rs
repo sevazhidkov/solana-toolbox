@@ -12,6 +12,9 @@ use solana_sdk::transaction::Transaction;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
+const SLOT_PER_EPOCH: u64 = 432_000;
+const SLOT_PER_SECOND: u64 = 2;
+
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for ProgramTestContext {
     async fn get_latest_blockhash(
@@ -65,9 +68,11 @@ impl ToolboxEndpointProxy for ProgramTestContext {
     ) -> Result<(), ToolboxEndpointError> {
         let current_clock = self.banks_client.get_sysvar::<Clock>().await?;
         let mut forwarded_clock = current_clock;
-        forwarded_clock.slot += unix_timestamp_delta * 1_000 / 500;
         forwarded_clock.unix_timestamp +=
             i64::try_from(unix_timestamp_delta).unwrap();
+        forwarded_clock.slot += unix_timestamp_delta * SLOT_PER_SECOND;
+        forwarded_clock.epoch +=
+            unix_timestamp_delta * SLOT_PER_SECOND / SLOT_PER_EPOCH;
         self.set_sysvar::<Clock>(&forwarded_clock);
         Ok(())
     }
@@ -78,9 +83,25 @@ impl ToolboxEndpointProxy for ProgramTestContext {
     ) -> Result<(), ToolboxEndpointError> {
         let current_clock = self.banks_client.get_sysvar::<Clock>().await?;
         let mut forwarded_clock = current_clock;
-        forwarded_clock.slot += slot_delta;
         forwarded_clock.unix_timestamp +=
-            i64::try_from(slot_delta * 500 / 1_000).unwrap();
+            i64::try_from(slot_delta / SLOT_PER_SECOND).unwrap();
+        forwarded_clock.slot += slot_delta;
+        forwarded_clock.epoch += slot_delta / SLOT_PER_EPOCH;
+        self.set_sysvar::<Clock>(&forwarded_clock);
+        Ok(())
+    }
+
+    async fn forward_clock_epoch(
+        &mut self,
+        epoch_delta: u64,
+    ) -> Result<(), ToolboxEndpointError> {
+        let current_clock = self.banks_client.get_sysvar::<Clock>().await?;
+        let mut forwarded_clock = current_clock;
+        forwarded_clock.unix_timestamp +=
+            i64::try_from(epoch_delta * SLOT_PER_EPOCH / SLOT_PER_SECOND)
+                .unwrap();
+        forwarded_clock.slot += epoch_delta * SLOT_PER_EPOCH;
+        forwarded_clock.epoch += epoch_delta;
         self.set_sysvar::<Clock>(&forwarded_clock);
         Ok(())
     }

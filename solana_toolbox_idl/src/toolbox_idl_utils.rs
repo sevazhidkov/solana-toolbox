@@ -8,43 +8,45 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_context::ToolboxIdlContext;
 use crate::toolbox_idl_error::ToolboxIdlError;
 
+type ToolboxIdlObject = Map<String, Value>;
+
 pub(crate) fn idl_object_get_key_as_array<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
 ) -> Option<&'a Vec<Value>> {
     object.get(key).and_then(|value| value.as_array())
 }
 
 pub(crate) fn idl_object_get_key_as_object<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
-) -> Option<&'a Map<String, Value>> {
+) -> Option<&'a ToolboxIdlObject> {
     object.get(key).and_then(|value| value.as_object())
 }
 
 pub(crate) fn idl_object_get_key_as_str<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
 ) -> Option<&'a str> {
     object.get(key).and_then(|value| value.as_str())
 }
 
 pub(crate) fn idl_object_get_key_as_u64(
-    object: &Map<String, Value>,
+    object: &ToolboxIdlObject,
     key: &str,
 ) -> Option<u64> {
     object.get(key).and_then(|value| value.as_u64())
 }
 
 pub(crate) fn idl_object_get_key_as_bool(
-    object: &Map<String, Value>,
+    object: &ToolboxIdlObject,
     key: &str,
 ) -> Option<bool> {
     object.get(key).and_then(|value| value.as_bool())
 }
 
 pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a Vec<Value>, ToolboxIdlError> {
@@ -56,10 +58,10 @@ pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
 }
 
 pub(crate) fn idl_object_get_key_as_object_or_else<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
     context: &ToolboxIdlContext,
-) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
+) -> Result<&'a ToolboxIdlObject, ToolboxIdlError> {
     idl_ok_or_else(
         idl_object_get_key_as_object(object, key),
         &format!("expected an object at key: {}", key),
@@ -68,7 +70,7 @@ pub(crate) fn idl_object_get_key_as_object_or_else<'a>(
 }
 
 pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a str, ToolboxIdlError> {
@@ -80,7 +82,7 @@ pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
 }
 
 pub(crate) fn idl_object_get_key_as_u64_or_else(
-    object: &Map<String, Value>,
+    object: &ToolboxIdlObject,
     key: &str,
     context: &ToolboxIdlContext,
 ) -> Result<u64, ToolboxIdlError> {
@@ -92,7 +94,7 @@ pub(crate) fn idl_object_get_key_as_u64_or_else(
 }
 
 pub(crate) fn idl_object_get_key_or_else<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a Value, ToolboxIdlError> {
@@ -104,10 +106,10 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
 }
 
 pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
-    object: &'a Map<String, Value>,
+    object: &'a ToolboxIdlObject,
     key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<(&'a Map<String, Value>, ToolboxIdlBreadcrumbs)>, ToolboxIdlError>
+) -> Result<Vec<(&'a ToolboxIdlObject, ToolboxIdlBreadcrumbs)>, ToolboxIdlError>
 {
     let array_value = idl_object_get_key_as_array_or_else(
         object,
@@ -153,7 +155,7 @@ pub(crate) fn idl_as_array_or_else<'a>(
 pub(crate) fn idl_as_object_or_else<'a>(
     value: &'a Value,
     context: &ToolboxIdlContext,
-) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
+) -> Result<&'a ToolboxIdlObject, ToolboxIdlError> {
     idl_ok_or_else(value.as_object(), "expected an object", context)
 }
 

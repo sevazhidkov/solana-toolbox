@@ -37,4 +37,9 @@ pub trait ToolboxEndpointProxy {
         &mut self,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError>;
+
+    async fn forward_clock_epoch(
+        &mut self,
+        epoch_delta: u64,
+    ) -> Result<(), ToolboxEndpointError>;
 }

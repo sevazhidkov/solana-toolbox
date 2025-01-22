@@ -65,9 +65,19 @@ impl ToolboxEndpointProxy for RpcClient {
         ))
     }
 
+    // TODO - this could be cleaned up in favor of "wait_until_clock_slot" ?
     async fn forward_clock_slot(
         &mut self,
         _slot_delta: u64,
+    ) -> Result<(), ToolboxEndpointError> {
+        Err(ToolboxEndpointError::Custom(
+            "Clock forwarding not supported on RPCs".into(),
+        ))
+    }
+
+    async fn forward_clock_epoch(
+        &mut self,
+        _epoch_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
         Err(ToolboxEndpointError::Custom(
             "Clock forwarding not supported on RPCs".into(),

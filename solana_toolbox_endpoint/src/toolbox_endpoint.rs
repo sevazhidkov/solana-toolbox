@@ -80,4 +80,11 @@ impl ToolboxEndpoint {
     ) -> Result<(), ToolboxEndpointError> {
         self.proxy.forward_clock_slot(slot_delta).await
     }
+
+    pub async fn forward_clock_epoch(
+        &mut self,
+        epoch_delta: u64,
+    ) -> Result<(), ToolboxEndpointError> {
+        self.proxy.forward_clock_epoch(epoch_delta).await
+    }
 }
