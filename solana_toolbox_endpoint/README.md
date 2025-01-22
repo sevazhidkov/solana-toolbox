@@ -17,7 +17,8 @@ The same code can then be run on a different cluster or a different runtime, jus
 Make sure to install the version that matches your solana version.
 Each solana version may come with a different set of dependency hell, so you can specify the solana version you're using directly in the version of this crate.
 
-in `Cargo.toml`
+in `Cargo.toml`:
+
 ```toml
 # For example when using solana version 1.18.26"
 solana_toolbox_endpoint = "=0.1.33-solana-1.18.26"
