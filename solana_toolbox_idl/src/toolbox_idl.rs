@@ -143,9 +143,11 @@ impl ToolboxIdl {
             )?,
         };
         for account_name in idl.accounts_discriminators.keys() {
-            if let Some(idl_type) = idl.types.remove(account_name) {
-                idl.accounts_types
-                    .insert(account_name.to_string(), idl_type.clone());
+            if !idl.accounts_types.contains_key(account_name) {
+                if let Some(idl_type) = idl.types.remove(account_name) {
+                    idl.accounts_types
+                        .insert(account_name.to_string(), idl_type.clone());
+                }
             }
         }
         Ok(idl)
