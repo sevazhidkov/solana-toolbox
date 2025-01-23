@@ -78,8 +78,18 @@ impl ToolboxIdl {
         &self,
         instruction_name: &str,
     ) -> Result<Vec<String>, ToolboxIdlError> {
-        // TODO - implement
-        Ok(vec![])
+        let mut instruction_accounts_names = vec![];
+        for (idl_account_name, ..) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
+                &self.instructions_accounts,
+                instruction_name,
+                &ToolboxIdlBreadcrumbs::default()
+                    .with_idl("instruction_accounts"),
+            )?
+        {
+            instruction_accounts_names.push(idl_account_name.to_string());
+        }
+        Ok(instruction_accounts_names)
     }
 
     pub fn resolve_instruction_accounts_addresses(
@@ -90,21 +100,18 @@ impl ToolboxIdl {
         instruction_accounts_values: &Map<String, Value>,
         instruction_args: &Map<String, Value>,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut instruction_accounts_addresses =
             instruction_accounts_addresses.clone();
-        for (idl_account_name, ..) in
-            idl_object_get_key_as_scoped_named_object_array_or_else(
-                &self.instructions_accounts,
-                instruction_name,
-                &breadcrumbs.with_idl("instruction_accounts"),
-            )?
+        for instruction_account_name in
+            self.get_instruction_accounts_names(instruction_name)?
         {
-            if !instruction_accounts_addresses.contains_key(idl_account_name) {
+            if !instruction_accounts_addresses
+                .contains_key(&instruction_account_name)
+            {
                 instruction_accounts_addresses.insert(
-                    idl_account_name.to_string(),
+                    instruction_account_name.to_string(),
                     self.resolve_instruction_account_address(
-                        idl_account_name,
+                        &instruction_account_name,
                         program_id,
                         instruction_name,
                         &instruction_accounts_addresses,
@@ -126,7 +133,6 @@ impl ToolboxIdl {
         instruction_accounts_values: &Map<String, Value>,
         instruction_args: &Map<String, Value>,
     ) -> Result<Pubkey, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         idl_instruction_account_address_resolve(
             self,
             account_name,
@@ -137,7 +143,7 @@ impl ToolboxIdl {
                 instruction_accounts_values,
                 instruction_args,
             },
-            breadcrumbs,
+            &ToolboxIdlBreadcrumbs::default(),
         )
     }
 }

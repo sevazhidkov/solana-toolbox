@@ -25,12 +25,13 @@ impl ToolboxIdl {
             accounts_addresses.push(*account_address);
         }
         let mut accounts_values_by_name = Map::new();
-        let accounts_values =
-            self.get_accounts_values(endpoint, &accounts_addresses).await?;
-        for (account_name, account_value) in
-            accounts_names.into_iter().zip(accounts_values.into_iter())
+        for (account_name, account_info) in accounts_names
+            .into_iter()
+            .zip(endpoint.get_accounts(&accounts_addresses).await?)
         {
-            if let Some(account_value) = account_value {
+            if let Some(Ok(account_value)) = account_info
+                .map(|account| self.parse_account_value(&account.data))
+            {
                 accounts_values_by_name
                     .insert(account_name.to_string(), account_value);
             }

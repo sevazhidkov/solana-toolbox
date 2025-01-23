@@ -27,11 +27,11 @@ pub async fn run() {
         .unwrap()
         .unwrap();
     // Find an account from another instruction so that we can re-use it
-    let campaign_index = 0u64;
+    let campaign_index = 3u64;
     let campaign = idl
         .resolve_instruction_account_address(
             "campaign",
-            &program_id,
+            &program_id, // TODO - should the program_id be bundled in the IDL ?
             "campaign_create",
             &HashMap::from_iter([]),
             json!({}).as_object().unwrap(),
@@ -49,14 +49,25 @@ pub async fn run() {
         )
         .0
     );
-    // Try to generate a custom instruction
+    // Addresses we'll be using for our instructions
     let payer =
         Keypair::from_seed(b"Hello world, this is a dummy payer for devnet")
             .unwrap();
+    let collateral_mint =
+        pubkey!("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3");
     let user = Keypair::new();
-    // Resolve missing instruction accounts
-    let instruction_accounts_addresses = idl
-        .resolve_instruction_accounts_addresses(
+    let user_collateral = endpoint
+        .process_spl_associated_token_account_get_or_init(
+            &payer,
+            &user.pubkey(),
+            &collateral_mint,
+        )
+        .await
+        .unwrap();
+    // Generate the actual instructions while resolving missing accounts
+    let instruction_pledge_create = idl
+        .resolve_instruction(
+            &mut endpoint,
             &program_id,
             "pledge_create",
             &HashMap::from_iter([
@@ -64,26 +75,34 @@ pub async fn run() {
                 ("user".to_string(), user.pubkey()),
                 ("campaign".to_string(), campaign),
             ]),
-            json!({}).as_object().unwrap(),
-            json!({ "params": { "index": campaign_index } })
-                .as_object()
-                .unwrap(),
+            json!({ "params": {} }).as_object().unwrap(),
         )
+        .await
         .unwrap();
-    // Generate the actual instruction
-    let instruction = idl
-        .generate_instruction(
+    let instruction_pledge_deposit = idl
+        .resolve_instruction(
+            &mut endpoint,
             &program_id,
-            "pledge_create",
-            &instruction_accounts_addresses,
-            json!({ "params": { "index": campaign_index } })
+            "pledge_deposit",
+            &HashMap::from_iter([
+                ("payer".to_string(), payer.pubkey()),
+                ("user".to_string(), user.pubkey()),
+                ("user_collateral".to_string(), user_collateral),
+                ("campaign".to_string(), campaign),
+            ]),
+            json!({ "params": { "collateral_amount": 0 } })
                 .as_object()
                 .unwrap(),
         )
+        .await
         .unwrap();
-    // Process the instruction to check if it works
+    // Process the instructions to check if it works
     endpoint
-        .process_instruction_with_signers(instruction, &payer, &[&user])
+        .process_instructions_with_signers(
+            &[instruction_pledge_create, instruction_pledge_deposit],
+            &payer,
+            &[&user],
+        )
         .await
         .unwrap();
 }
