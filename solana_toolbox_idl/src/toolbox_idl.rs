@@ -94,11 +94,15 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let idl_root_value =
+        let idl_value =
             from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?;
-        let idl_root_object =
-            idl_as_object_or_else(&idl_root_value, &breadcrumbs.as_idl("$"))?;
+            ToolboxIdl::try_from_value(&idl_value)
+    }
+
+    pub fn try_from_value(value: &Value) -> Result<ToolboxIdl, ToolboxIdlError> {
+            let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+            let idl_root_object =
+            idl_as_object_or_else(&value, &breadcrumbs.as_idl("$"))?;
         let mut idl = ToolboxIdl {
             accounts_discriminators: idl_collection_discriminators_by_name(
                 idl_root_object,
