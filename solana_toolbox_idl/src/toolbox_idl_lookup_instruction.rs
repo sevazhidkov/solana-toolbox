@@ -1,18 +1,17 @@
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_describe_type_of_object;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
-use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxIdlLookupInstruction {
     pub name: String,
+    pub discriminator: Vec<u8>,
     pub accounts: Vec<ToolboxIdlLookupInstructionAccount>,
-    // TODO - add args and associated types
+    pub args: Vec<ToolboxIdlLookupInstructionArg>,
 }
 
 #[derive(Debug, Clone)]
@@ -24,13 +23,11 @@ pub struct ToolboxIdlLookupInstructionAccount {
 }
 
 #[derive(Debug, Clone)]
-pub struct ToolboxIdlLookupError {
-    pub code: u64,
+pub struct ToolboxIdlLookupInstructionArg {
     pub name: String,
-    pub msg: String,
+    pub description: String,
 }
 
-// TODO - add lookups for accounts
 impl ToolboxIdl {
     pub fn lookup_instructions(
         &self
@@ -47,7 +44,12 @@ impl ToolboxIdl {
         instruction_name: &str,
     ) -> Result<ToolboxIdlLookupInstruction, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let mut lookup_accounts = vec![];
+        let instruction_discriminator = idl_map_get_key_or_else(
+            &self.instructions_discriminators,
+            instruction_name,
+            &breadcrumbs.as_idl("instructions_discriminators"),
+        )?;
+        let mut instruction_accounts = vec![];
         for (idl_account_object, idl_account_name, _) in
             idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
@@ -69,87 +71,53 @@ impl ToolboxIdl {
                 idl_object_get_key_as_bool(idl_account_object, "writable")
                     .or(idl_object_get_key_as_bool(idl_account_object, "isMut"))
                     .unwrap_or(false);
-            lookup_accounts.push(ToolboxIdlLookupInstructionAccount {
+            instruction_accounts.push(ToolboxIdlLookupInstructionAccount {
                 name: idl_account_name.to_string(),
                 resolvable: idl_account_is_resolvable,
                 writable: idl_account_is_writable,
                 signer: idl_account_is_signer,
             });
         }
+        let mut instruction_args = vec![];
+        for (idl_arg_object, idl_arg_name, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
+                &self.instructions_args,
+                instruction_name,
+                &breadcrumbs.with_idl("instruction_args"),
+            )?
+        {
+            instruction_args.push(ToolboxIdlLookupInstructionArg {
+                name: idl_arg_name.to_string(),
+                description: idl_describe_type_of_object(
+                    idl_arg_object,
+                    &breadcrumbs,
+                )?,
+            });
+        }
         Ok(ToolboxIdlLookupInstruction {
             name: instruction_name.to_string(),
-            accounts: lookup_accounts,
+            discriminator: instruction_discriminator.clone(),
+            accounts: instruction_accounts,
+            args: instruction_args,
         })
-    }
-
-    pub fn lookup_errors(
-        &self
-    ) -> Result<Vec<ToolboxIdlLookupError>, ToolboxIdlError> {
-        let mut errors = vec![];
-        for idl_error_name in self.errors.keys() {
-            errors.push(self.lookup_error(idl_error_name)?);
-        }
-        Ok(errors)
-    }
-
-    pub fn lookup_error(
-        &self,
-        error_name: &str,
-    ) -> Result<ToolboxIdlLookupError, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let idl_error_object = idl_object_get_key_as_object_or_else(
-            &self.errors,
-            error_name,
-            &breadcrumbs.as_idl("errors"),
-        )?;
-        let idl_error_code = idl_object_get_key_as_u64_or_else(
-            idl_error_object,
-            "code",
-            &breadcrumbs.as_idl(&format!("error[{}]", error_name)),
-        )?;
-        let idl_error_msg = idl_object_get_key_as_str_or_else(
-            idl_error_object,
-            "msg",
-            &breadcrumbs.as_idl(&format!("error[{}]", error_name)),
-        )?;
-        Ok(ToolboxIdlLookupError {
-            code: idl_error_code,
-            name: error_name.to_string(),
-            msg: idl_error_msg.to_string(),
-        })
-    }
-
-    pub fn lookup_error_by_code(
-        &self,
-        error_code: u64,
-    ) -> Result<ToolboxIdlLookupError, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        for (idl_error_name, idl_error) in self.errors.iter() {
-            if let Some(idl_error_object) = idl_error.as_object() {
-                if let Some(idl_error_code) = idl_error_object
-                    .get("code")
-                    .and_then(|idl_error_code| idl_error_code.as_u64())
-                {
-                    if idl_error_code == error_code {
-                        return self.lookup_error(idl_error_name);
-                    }
-                }
-            }
-        }
-        idl_err(
-            "Could not find error",
-            &breadcrumbs.as_idl(&format!("error({})", error_code)),
-        )
     }
 }
 
 impl ToolboxIdlLookupInstruction {
     pub fn print(&self) {
         println!("----");
-        println!("instruction: {}", self.name);
+        println!("instruction.name: {:?}", self.name);
+        println!("instruction.discriminator: {:?}", self.discriminator);
         for index in 0..self.accounts.len() {
             let account = self.accounts.get(index).unwrap();
-            println!("- accounts: #{:03}: {}", index + 1, account.describe(),)
+            println!(
+                "instruction.accounts: #{:03}: {}",
+                index + 1,
+                account.describe()
+            );
+        }
+        for arg in &self.args {
+            println!("instruction.arg: {}: {}", arg.name, arg.description);
         }
     }
 }

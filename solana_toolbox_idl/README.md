@@ -5,6 +5,7 @@
 This crate provide a framework to interact with solana smart contracts by using IDLs directly.
 
 For example, using an IDL file, or an IDL downloaded from chain we can:
+
 - Read account data into JSON (decompile the account)
 - Generate transaction data from JSON (compile the transaction data)
 - Resolve an instruction accounts addresses (by looking at the seeds in the IDL)
@@ -14,7 +15,8 @@ For example, using an IDL file, or an IDL downloaded from chain we can:
 Make sure to install the version that matches your solana version.
 Each solana version may come with a different set of dependency hell, so you can specify the solana version you're using directly in the version of this crate.
 
-in `Cargo.toml`
+in `Cargo.toml`:
+
 ```toml
 # For example when using solana version 1.18.26"
 solana_toolbox_idl = "=0.1.33-solana-1.18.26"

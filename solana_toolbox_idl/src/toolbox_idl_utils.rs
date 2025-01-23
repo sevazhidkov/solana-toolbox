@@ -112,6 +112,7 @@ pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
 ) -> Result<Vec<ScopedObject<'a>>, ToolboxIdlError> {
     let array_value =
         idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
+    let breadcrumbs = &breadcrumbs.with_idl(key);
     let mut array_object = vec![];
     for item_index in 0..array_value.len() {
         let item_value = array_value.get(item_index).unwrap();
@@ -133,6 +134,7 @@ pub(crate) fn idl_object_get_key_as_scoped_named_object_array_or_else<'a>(
 ) -> Result<Vec<ScopedNamedObject<'a>>, ToolboxIdlError> {
     let array_value =
         idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
+    let breadcrumbs = &breadcrumbs.with_idl(key);
     let mut array_object = vec![];
     for item_index in 0..array_value.len() {
         let item_value = array_value.get(item_index).unwrap();
@@ -434,4 +436,72 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     let size = size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
+}
+
+pub(crate) fn idl_describe_type_of_object(
+    idl_object: &Map<String, Value>,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<String, ToolboxIdlError> {
+    let idl_type =
+        idl_object_get_key_or_else(idl_object, "type", &breadcrumbs.idl())?;
+    idl_describe_type(idl_type, breadcrumbs)
+}
+
+fn idl_describe_type(
+    idl_type: &Value,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<String, ToolboxIdlError> {
+    if let Some(idl_type_object) = idl_type.as_object() {
+        if let Some(idl_type_defined) = idl_type_object.get("defined") {
+            return Ok(idl_value_as_str_or_object_with_name_as_str_or_else(
+                idl_type_defined,
+                &breadcrumbs.as_idl("defined"),
+            )?
+            .to_string());
+        }
+        if let Some(idl_type_option) = idl_type_object.get("option") {
+            return Ok(format!(
+                "Option<{}>",
+                idl_describe_type(
+                    idl_type_option,
+                    &breadcrumbs.with_idl("Option"),
+                )?
+            ));
+        }
+        if let Some(idl_type_kind) =
+            idl_object_get_key_as_str(idl_type_object, "kind")
+        {
+            if idl_type_kind == "struct" {
+                return Ok("Struct(?)".to_string());
+            }
+            if idl_type_kind == "enum" {
+                return Ok("Enum(?)".to_string());
+            }
+        }
+        if let Some(idl_type_array) =
+            idl_object_get_key_as_array(idl_type_object, "array")
+        {
+            if idl_type_array.len() != 2 {
+                return Ok("unparsable array".to_string());
+            }
+            return Ok(format!(
+                "[{}; {}]",
+                idl_describe_type(
+                    &idl_type_array[0],
+                    &breadcrumbs.with_idl("Array")
+                )?,
+                idl_type_array[1]
+            ));
+        }
+        if let Some(idl_type_vec) = idl_type_object.get("vec") {
+            return Ok(format!(
+                "Vec<{}>",
+                idl_describe_type(idl_type_vec, &breadcrumbs.with_idl("Vec"))?
+            ));
+        }
+    }
+    if let Some(idl_type_leaf) = idl_type.as_str() {
+        return Ok(idl_type_leaf.to_string());
+    }
+    Ok("unparsable type".to_string())
 }
