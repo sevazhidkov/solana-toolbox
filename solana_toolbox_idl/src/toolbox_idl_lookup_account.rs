@@ -1,10 +1,10 @@
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_describe_type_of_object;
+use crate::toolbox_idl_utils::idl_describe_type;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupAccount {
@@ -46,19 +46,17 @@ impl ToolboxIdl {
             &breadcrumbs.as_idl("accounts_types"),
         )?;
         let mut account_fields = vec![];
-        for (idl_field_object, idl_field_name, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_object_array_or_else(
+        for (idl_field_name, idl_field_type, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_content_array_or_else(
                 idl_account_type_object,
                 "fields",
+                "type",
                 &breadcrumbs.with_idl(account_name),
             )?
         {
             account_fields.push(ToolboxIdlLookupAccountField {
                 name: idl_field_name.to_string(),
-                description: idl_describe_type_of_object(
-                    idl_field_object,
-                    &breadcrumbs,
-                )?,
+                description: idl_describe_type(idl_field_type, &breadcrumbs)?,
             });
         }
         Ok(ToolboxIdlLookupAccount {

@@ -94,9 +94,9 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
-        let idl_value =
-            from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?;
-        ToolboxIdl::try_from_value(&idl_value)
+        ToolboxIdl::try_from_value(
+            &from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?,
+        )
     }
 
     pub fn try_from_value(
@@ -104,7 +104,7 @@ impl ToolboxIdl {
     ) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_object =
-            idl_as_object_or_else(&value, &breadcrumbs.as_idl("$"))?;
+            idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
         let mut idl = ToolboxIdl {
             accounts_discriminators: idl_collection_discriminators_by_name(
                 idl_root_object,
@@ -149,11 +149,9 @@ impl ToolboxIdl {
             )?,
         };
         for account_name in idl.accounts_discriminators.keys() {
-            if !idl.accounts_types.contains_key(account_name) {
-                if let Some(idl_type) = idl.types.remove(account_name) {
-                    idl.accounts_types
-                        .insert(account_name.to_string(), idl_type.clone());
-                }
+            if let Some(idl_type) = idl.types.remove(account_name) {
+                idl.accounts_types
+                    .insert(account_name.to_string(), idl_type.clone());
             }
         }
         Ok(idl)
@@ -167,7 +165,7 @@ fn idl_collection_discriminators_by_name(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<HashMap<String, Vec<u8>>, ToolboxIdlError> {
     let mut idl_collection = HashMap::new();
-    for (idl_item_object, idl_item_name, breadcrumbs) in
+    for (idl_item_name, idl_item_object, breadcrumbs) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             object,
             collection_key,
@@ -201,7 +199,7 @@ fn idl_collection_content_mapped_by_name(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Map<String, Value>, ToolboxIdlError> {
     let mut idl_collection = Map::new();
-    for (idl_item_object, idl_item_name, _) in
+    for (idl_item_name, idl_item_object, _) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             object,
             collection_key,
@@ -227,7 +225,7 @@ fn idl_collection_mapped_by_name(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Map<String, Value>, ToolboxIdlError> {
     let mut idl_collection = Map::new();
-    for (idl_item_object, idl_item_name, _) in
+    for (idl_item_name, idl_item_object, _) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             object,
             collection_key,

@@ -13,6 +13,7 @@ pub async fn run() {
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
+                    { "name": "id", "type": "i64" },
                 ]
             }
         },
@@ -20,7 +21,8 @@ pub async fn run() {
             "MyAccount": {
                 "kind": "struct",
                 "fields": [
-                    { "name": "my_field", "type": "u64" }
+                    { "name": "my_field1", "type": "u64" },
+                    { "name": "my_field2", "type": "u32" },
                 ],
             }
         },
@@ -28,7 +30,8 @@ pub async fn run() {
             "MyStruct": {
                 "kind": "struct",
                 "fields": [
-                    { "name": "addr", "type": "pubkey" }
+                    { "name": "addr", "type": "pubkey" },
+                    { "name": "name", "type": "string" },
                 ]
             }
         },
@@ -67,6 +70,7 @@ pub async fn run() {
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
+                    { "name": "id", "type": "i64" },
                 ]
             }
         ],
@@ -76,7 +80,8 @@ pub async fn run() {
                 "type": {
                     "kind": "struct",
                     "fields": [
-                        { "name": "my_field", "type": "u64" }
+                        { "name": "my_field1", "type": "u64" },
+                        { "name": "my_field2", "type": "u32" },
                     ],
                 }
             }
@@ -87,7 +92,8 @@ pub async fn run() {
                 "type": {
                     "kind": "struct",
                     "fields": [
-                        { "name": "addr", "type": "pubkey" }
+                        { "name": "addr", "type": "pubkey" },
+                        { "name": "name", "type": "string" },
                     ]
                 }
             }
@@ -127,15 +133,21 @@ pub async fn run() {
     assert_eq!("authority", my_instruction.accounts[1].name);
     assert_eq!("index", my_instruction.args[0].name);
     assert_eq!("u32", my_instruction.args[0].description);
+    assert_eq!("id", my_instruction.args[1].name);
+    assert_eq!("i64", my_instruction.args[1].description);
     // Assert account was parsed correctly
     let my_account = idl_standard.lookup_account("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
-    assert_eq!("my_field", my_account.fields[0].name);
+    assert_eq!("my_field1", my_account.fields[0].name);
     assert_eq!("u64", my_account.fields[0].description);
+    assert_eq!("my_field2", my_account.fields[1].name);
+    assert_eq!("u32", my_account.fields[1].description);
     // Assert struct was parsed correctly
     let my_struct = idl_standard.lookup_type("MyStruct").unwrap();
     assert_eq!("addr", my_struct.items[0].name);
     assert_eq!("pubkey", my_struct.items[0].description);
+    assert_eq!("name", my_struct.items[1].name);
+    assert_eq!("string", my_struct.items[1].description);
     // Assert error was parsed correctly
     let my_error = idl_standard.lookup_error_by_code(4242).unwrap();
     assert_eq!("MyError", my_error.name);

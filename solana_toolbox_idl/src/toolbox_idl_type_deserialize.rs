@@ -16,7 +16,7 @@ use crate::toolbox_idl_utils::idl_i64_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i8_from_bytes_at;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
@@ -198,18 +198,14 @@ fn idl_type_deserialize_struct(
 ) -> Result<(usize, Value), ToolboxIdlError> {
     let mut data_size = 0;
     let mut data_fields = Map::new();
-    for (idl_field_object, idl_field_name, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_object_array_or_else(
+    for (idl_field_name, idl_field_type, breadcrumbs) in
+        idl_object_get_key_as_scoped_named_content_array_or_else(
             idl_type_struct,
             "fields",
+            "type",
             &breadcrumbs.with_idl("struct"),
         )?
     {
-        let idl_field_type = idl_object_get_key_or_else(
-            idl_field_object,
-            "type",
-            &breadcrumbs.idl(),
-        )?;
         let (data_field_size, data_field_value) = idl_type_deserialize(
             idl,
             idl_field_type,

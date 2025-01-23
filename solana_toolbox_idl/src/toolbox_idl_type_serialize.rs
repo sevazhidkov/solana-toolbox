@@ -16,6 +16,7 @@ use crate::toolbox_idl_utils::idl_as_str_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -182,18 +183,14 @@ fn idl_type_serialize_struct(
 ) -> Result<(), ToolboxIdlError> {
     let value_object =
         idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
-    for (idl_field_object, idl_field_name, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_object_array_or_else(
+    for (idl_field_name, idl_field_type, breadcrumbs) in
+        idl_object_get_key_as_scoped_named_content_array_or_else(
             idl_type_struct,
             "fields",
+            "type",
             &breadcrumbs.with_idl("struct"),
         )?
     {
-        let idl_field_type = idl_object_get_key_or_else(
-            idl_field_object,
-            "type",
-            &breadcrumbs.idl(),
-        )?;
         let value_field = idl_object_get_key_or_else(
             value_object,
             idl_field_name,
@@ -218,7 +215,7 @@ fn idl_type_serialize_enum(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     let value_string = idl_as_str_or_else(value, &breadcrumbs.as_val("enum"))?;
-    for (value_enum, (_, idl_variant_name, _)) in
+    for (value_enum, (idl_variant_name, ..)) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             idl_type_enum,
             "variants",
