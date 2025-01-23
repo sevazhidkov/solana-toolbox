@@ -8,7 +8,7 @@ pub async fn run() {
         "instructions": {
             "my_instruction": {
                 "accounts": [
-                    { "name": "payer" },
+                    { "name": "payer", "isSigner": true },
                     { "name": "authority" },
                 ],
                 "args": [
@@ -65,7 +65,7 @@ pub async fn run() {
             {
                 "name": "my_instruction",
                 "accounts": [
-                    { "name": "payer" },
+                    { "name": "payer", "isSigner": true },
                     { "name": "authority" },
                 ],
                 "args": [
