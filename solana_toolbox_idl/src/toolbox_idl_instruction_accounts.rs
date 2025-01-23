@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::str::FromStr;
+use std::vec;
 
 use convert_case::Case;
 use convert_case::Casing;
@@ -72,7 +73,15 @@ impl ToolboxIdl {
         Ok(account_metas)
     }
 
-    pub fn fill_instruction_accounts_addresses(
+    pub fn get_instruction_accounts_names(
+        &self,
+        instruction_name: &str,
+    ) -> Result<Vec<String>, ToolboxIdlError> {
+        // TODO - implement
+        Ok(vec![])
+    }
+
+    pub fn resolve_instruction_accounts_addresses(
         &self,
         program_id: &Pubkey,
         instruction_name: &str,
@@ -91,18 +100,16 @@ impl ToolboxIdl {
             )?
         {
             if !instruction_accounts_addresses.contains_key(idl_account_name) {
-                let instruction_account_address = self
-                    .resolve_instruction_account_address(
+                instruction_accounts_addresses.insert(
+                    idl_account_name.to_string(),
+                    self.resolve_instruction_account_address(
                         idl_account_name,
                         program_id,
                         instruction_name,
                         &instruction_accounts_addresses,
                         instruction_accounts_values,
                         instruction_args,
-                    )?;
-                instruction_accounts_addresses.insert(
-                    idl_account_name.to_string(),
-                    instruction_account_address,
+                    )?,
                 );
             }
         }
@@ -342,12 +349,10 @@ fn idl_blob_bytes(
                 &breadcrumbs.with_idl("arg"),
             )
         },
-        _ => {
-            idl_err(
-                "Expected a 'kind' value of: const/account/arg",
-                &breadcrumbs.as_idl(idl_blob_kind),
-            )
-        },
+        _ => idl_err(
+            "Expected a 'kind' value of: const/account/arg",
+            &breadcrumbs.as_idl(idl_blob_kind),
+        ),
     }
 }
 

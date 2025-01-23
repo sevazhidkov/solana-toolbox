@@ -47,7 +47,7 @@ pub async fn run() {
     .0;
     // Generate all missing IX accounts with just the minimum information
     let campaign_create_accounts = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "campaign_create",
             &HashMap::from([
@@ -70,7 +70,7 @@ pub async fn run() {
     );
     // Generate all missing IX accounts with just the minimum information
     let campaign_extract_accounts = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "campaign_extract",
             &HashMap::from([
@@ -94,7 +94,7 @@ pub async fn run() {
     );
     // Generate all missing IX accounts with just the minimum information
     let pledge_create_accounts = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "pledge_create",
             &HashMap::from([
@@ -110,7 +110,7 @@ pub async fn run() {
     assert_eq!(pledge, *pledge_create_accounts.get("pledge").unwrap());
     // Generate all missing IX accounts with just the minimum information
     let pledge_deposit_accounts = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "pledge_deposit",
             &HashMap::from([

@@ -64,9 +64,9 @@ let my_instruction = idl
         json!({ "param": 42 }).as_object().unwrap(),
     )
     .unwrap();
-// We can resolve the accounts used in an instruction
+// We can try to resolve the accounts used in an instruction using seeds in IDL
 let instruction_accounts_addresses = idl
-    .fill_instruction_accounts_addresses(
+    .resolve_instruction_accounts_addresses(
         &program_id,
         "my_instruction",
         &HashMap::from_iter([

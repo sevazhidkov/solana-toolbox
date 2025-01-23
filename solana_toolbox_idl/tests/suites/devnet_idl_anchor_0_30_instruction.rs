@@ -56,7 +56,7 @@ pub async fn run() {
     let user = Keypair::new();
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "pledge_create",
             &HashMap::from_iter([

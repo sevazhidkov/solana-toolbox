@@ -39,7 +39,7 @@ pub async fn run() {
     });
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "createDeal",
             &instruction_accounts_addresses,

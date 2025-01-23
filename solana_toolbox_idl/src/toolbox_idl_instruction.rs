@@ -4,6 +4,7 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Signature;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_error::ToolboxIdlError;
@@ -28,4 +29,18 @@ impl ToolboxIdl {
             data: instruction_data,
         })
     }
+
+    /*
+    pub async fn resolve_process_instruction(
+        &self,
+        program_id: &Pubkey,
+        instruction_name: &str,
+        instruction_accounts_addresses: &HashMap<String, Pubkey>,
+        instruction_args: &Map<String, Value>,
+    ) -> Result<Signature, ToolboxIdlError> {
+        let instruction_accounts_values = self.get_accounts_values(endpoint, account_addresses)
+
+        let instruction =
+    }
+     */
 }

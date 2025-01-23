@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -10,21 +13,68 @@ use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdl {
+    pub async fn get_accounts_values_by_name(
+        &self,
+        endpoint: &mut ToolboxEndpoint,
+        accounts_addresses_by_name: &HashMap<String, Pubkey>,
+    ) -> Result<Map<String, Value>, ToolboxIdlError> {
+        let mut accounts_names = vec![];
+        let mut accounts_addresses = vec![];
+        for (account_name, account_address) in accounts_addresses_by_name {
+            accounts_names.push(account_name);
+            accounts_addresses.push(*account_address);
+        }
+        let mut accounts_values_by_name = Map::new();
+        let accounts_values =
+            self.get_accounts_values(endpoint, &accounts_addresses).await?;
+        for (account_name, account_value) in
+            accounts_names.into_iter().zip(accounts_values.into_iter())
+        {
+            if let Some(account_value) = account_value {
+                accounts_values_by_name
+                    .insert(account_name.to_string(), account_value);
+            }
+        }
+        Ok(accounts_values_by_name)
+    }
+
+    pub async fn get_accounts_values(
+        &self,
+        endpoint: &mut ToolboxEndpoint,
+        account_addresses: &[Pubkey],
+    ) -> Result<Vec<Option<Value>>, ToolboxIdlError> {
+        let mut accounts_values = vec![];
+        for account in endpoint.get_accounts(account_addresses).await? {
+            let account_value = account
+                .map(|account| self.parse_account_value(&account.data))
+                .transpose()?;
+            accounts_values.push(account_value);
+        }
+        Ok(accounts_values)
+    }
+
     pub async fn get_account_value(
         &self,
         endpoint: &mut ToolboxEndpoint,
         account_address: &Pubkey,
     ) -> Result<Option<Value>, ToolboxIdlError> {
-        let account_data = match endpoint.get_account(account_address).await? {
-            Some(account) => account.data,
-            None => return Ok(None),
-        };
+        Ok(endpoint
+            .get_account(account_address)
+            .await?
+            .map(|account| self.parse_account_value(&account.data))
+            .transpose()?)
+    }
+
+    pub fn parse_account_value(
+        &self,
+        account_data: &[u8],
+    ) -> Result<Value, ToolboxIdlError> {
         let account_name = idl_ok_or_else(
             self.guess_account_name(&account_data),
             "Could not guess account name",
             &ToolboxIdlBreadcrumbs::default().as_val("account_name"),
         )?;
-        Ok(Some(self.decompile_account(account_name, &account_data)?.1))
+        Ok(self.decompile_account(account_name, &account_data)?.1)
     }
 
     pub fn decompile_account(

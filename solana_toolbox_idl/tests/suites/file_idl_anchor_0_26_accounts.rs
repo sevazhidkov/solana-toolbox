@@ -67,7 +67,7 @@ pub async fn run() {
     .0;
     // Generate all missing IX accounts with just the minimum information
     let initialize_market_accounts = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "initializeMarket",
             &HashMap::from([
@@ -119,7 +119,7 @@ pub async fn run() {
     );
     // Generate all missing IX accounts with just the minimum information
     let open_deal_accounts = idl
-        .fill_instruction_accounts_addresses(
+        .resolve_instruction_accounts_addresses(
             &program_id,
             "openDeal",
             &HashMap::from([

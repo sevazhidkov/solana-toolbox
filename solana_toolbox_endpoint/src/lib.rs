@@ -11,6 +11,7 @@ mod toolbox_endpoint_proxy_program_test_context;
 mod toolbox_endpoint_proxy_rpc_client;
 mod toolbox_endpoint_transaction;
 mod toolbox_endpoint_util_account;
+mod toolbox_endpoint_util_fees;
 mod toolbox_endpoint_util_instruction;
 mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
