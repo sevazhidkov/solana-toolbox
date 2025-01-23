@@ -16,7 +16,7 @@ use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
     pub accounts_discriminators: HashMap<String, Vec<u8>>,
     pub accounts_types: Map<String, Value>,
@@ -94,11 +94,17 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
+        ToolboxIdl::try_from_value(
+            &from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?,
+        )
+    }
+
+    pub fn try_from_value(
+        value: &Value
+    ) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let idl_root_value =
-            from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?;
         let idl_root_object =
-            idl_as_object_or_else(&idl_root_value, &breadcrumbs.as_idl("$"))?;
+            idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
         let mut idl = ToolboxIdl {
             accounts_discriminators: idl_collection_discriminators_by_name(
                 idl_root_object,
@@ -143,11 +149,9 @@ impl ToolboxIdl {
             )?,
         };
         for account_name in idl.accounts_discriminators.keys() {
-            if !idl.accounts_types.contains_key(account_name) {
-                if let Some(idl_type) = idl.types.remove(account_name) {
-                    idl.accounts_types
-                        .insert(account_name.to_string(), idl_type.clone());
-                }
+            if let Some(idl_type) = idl.types.remove(account_name) {
+                idl.accounts_types
+                    .insert(account_name.to_string(), idl_type.clone());
             }
         }
         Ok(idl)
@@ -161,7 +165,7 @@ fn idl_collection_discriminators_by_name(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<HashMap<String, Vec<u8>>, ToolboxIdlError> {
     let mut idl_collection = HashMap::new();
-    for (idl_item_object, idl_item_name, breadcrumbs) in
+    for (idl_item_name, idl_item_object, breadcrumbs) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             object,
             collection_key,
@@ -195,7 +199,7 @@ fn idl_collection_content_mapped_by_name(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Map<String, Value>, ToolboxIdlError> {
     let mut idl_collection = Map::new();
-    for (idl_item_object, idl_item_name, _) in
+    for (idl_item_name, idl_item_object, _) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             object,
             collection_key,
@@ -205,6 +209,11 @@ fn idl_collection_content_mapped_by_name(
         if let Some(idl_item_content) = idl_item_object.get(content_key) {
             idl_collection
                 .insert(idl_item_name.into(), idl_item_content.clone());
+        } else {
+            idl_collection.insert(
+                idl_item_name.into(),
+                Value::Object(idl_item_object.clone()),
+            );
         }
     }
     Ok(idl_collection)
@@ -216,17 +225,22 @@ fn idl_collection_mapped_by_name(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Map<String, Value>, ToolboxIdlError> {
     let mut idl_collection = Map::new();
-    for (idl_item_object, idl_item_name, _) in
+    for (idl_item_name, idl_item_object, _) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             object,
             collection_key,
             &breadcrumbs.with_idl("root"),
         )?
     {
-        idl_collection.insert(
-            idl_item_name.into(),
-            Value::Object(idl_item_object.clone()),
-        );
+        let mut idl_item_object = idl_item_object.clone();
+        if !idl_item_object.contains_key("name") {
+            idl_item_object.insert(
+                "name".to_string(),
+                Value::String(idl_item_name.to_string()),
+            );
+        }
+        idl_collection
+            .insert(idl_item_name.into(), Value::Object(idl_item_object));
     }
     Ok(idl_collection)
 }

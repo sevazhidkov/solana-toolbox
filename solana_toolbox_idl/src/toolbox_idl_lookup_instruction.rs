@@ -1,12 +1,13 @@
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_describe_type_of_object;
+use crate::toolbox_idl_utils::idl_describe_type;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupInstruction {
     pub name: String,
     pub discriminator: Vec<u8>,
@@ -14,7 +15,7 @@ pub struct ToolboxIdlLookupInstruction {
     pub args: Vec<ToolboxIdlLookupInstructionArg>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupInstructionAccount {
     pub name: String,
     pub resolvable: bool,
@@ -22,7 +23,7 @@ pub struct ToolboxIdlLookupInstructionAccount {
     pub signer: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupInstructionArg {
     pub name: String,
     pub description: String,
@@ -50,7 +51,7 @@ impl ToolboxIdl {
             &breadcrumbs.as_idl("instructions_discriminators"),
         )?;
         let mut instruction_accounts = vec![];
-        for (idl_account_object, idl_account_name, _) in
+        for (idl_account_name, idl_account_object, _) in
             idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
                 instruction_name,
@@ -79,19 +80,17 @@ impl ToolboxIdl {
             });
         }
         let mut instruction_args = vec![];
-        for (idl_arg_object, idl_arg_name, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_object_array_or_else(
+        for (idl_arg_name, idl_arg_type, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_content_array_or_else(
                 &self.instructions_args,
                 instruction_name,
+                "type",
                 &breadcrumbs.with_idl("instruction_args"),
             )?
         {
             instruction_args.push(ToolboxIdlLookupInstructionArg {
                 name: idl_arg_name.to_string(),
-                description: idl_describe_type_of_object(
-                    idl_arg_object,
-                    &breadcrumbs,
-                )?,
+                description: idl_describe_type(idl_arg_type, &breadcrumbs)?,
             });
         }
         Ok(ToolboxIdlLookupInstruction {

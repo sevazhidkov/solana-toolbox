@@ -5,7 +5,7 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
 impl ToolboxIdl {
@@ -22,18 +22,14 @@ impl ToolboxIdl {
         )?;
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(discriminator);
-        for (idl_arg_object, idl_arg_name, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_object_array_or_else(
+        for (idl_arg_name, idl_arg_type, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_content_array_or_else(
                 &self.instructions_args,
                 instruction_name,
+                "type",
                 &breadcrumbs.with_idl("instruction_args"),
             )?
         {
-            let idl_arg_type = idl_object_get_key_or_else(
-                idl_arg_object,
-                "type",
-                &breadcrumbs.idl(),
-            )?;
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
                 idl_arg_name,
@@ -68,18 +64,14 @@ impl ToolboxIdl {
         }
         let mut data_offset = discriminator.len();
         let mut instruction_args = Map::new();
-        for (idl_arg_object, idl_arg_name, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_object_array_or_else(
+        for (idl_arg_name, idl_arg_type, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_content_array_or_else(
                 &self.instructions_args,
                 instruction_name,
+                "type",
                 &breadcrumbs.with_idl("instruction_args"),
             )?
         {
-            let idl_arg_type = idl_object_get_key_or_else(
-                idl_arg_object,
-                "type",
-                &breadcrumbs.idl(),
-            )?;
             let (data_arg_size, data_arg_value) = self.type_deserialize(
                 idl_arg_type,
                 instruction_data,

@@ -19,6 +19,7 @@ use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
@@ -35,7 +36,7 @@ impl ToolboxIdl {
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut account_metas = vec![];
-        for (idl_account_object, idl_account_name, breadcrumbs) in
+        for (idl_account_name, idl_account_object, breadcrumbs) in
             idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
                 instruction_name,
@@ -92,7 +93,7 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut instruction_accounts_addresses =
             instruction_accounts_addresses.clone();
-        for (_, idl_account_name, _) in
+        for (idl_account_name, ..) in
             idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
                 instruction_name,
@@ -155,7 +156,7 @@ fn idl_instruction_account_address_resolve(
     scope: &ToolboxIdlInstructionAccountsScope,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Pubkey, ToolboxIdlError> {
-    for (idl_account_object, idl_account_name, breadcrumbs) in
+    for (idl_account_name, idl_account_object, breadcrumbs) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             &idl.instructions_accounts,
             scope.instruction_name,
@@ -365,21 +366,17 @@ fn idl_parts_to_bytes(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let field_name = parts[0];
-    for (idl_field_object, idl_field_name, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_object_array_or_else(
+    for (idl_field_name, idl_field_type, breadcrumbs) in
+        idl_object_get_key_as_scoped_named_content_array_or_else(
             idl_fields_container,
             idl_fields_key,
+            "type",
             &breadcrumbs.with_idl(idl_fields_key),
         )?
     {
         if idl_field_name.to_case(Case::Snake)
             == field_name.to_case(Case::Snake)
         {
-            let idl_type = idl_object_get_key_or_else(
-                idl_field_object,
-                "type",
-                &breadcrumbs.idl(),
-            )?;
             let value = idl_object_get_key_or_else(
                 values,
                 idl_field_name,
@@ -388,19 +385,19 @@ fn idl_parts_to_bytes(
             if parts.len() == 1 {
                 let mut bytes = vec![];
                 idl.type_serialize(
-                    idl_type,
+                    idl_field_type,
                     value,
                     &mut bytes,
                     &breadcrumbs.with_val(idl_field_name),
                 )?;
-                if idl_type.as_str() == Some("string") {
+                if idl_field_type.as_str() == Some("string") {
                     bytes.drain(0..4);
                 }
                 return Ok(bytes);
             } else {
                 return idl_parts_to_bytes_recurse(
                     idl,
-                    idl_type,
+                    idl_field_type,
                     parts,
                     &value,
                     &breadcrumbs.with_val("*"),

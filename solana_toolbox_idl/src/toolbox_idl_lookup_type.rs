@@ -1,19 +1,20 @@
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_describe_type_of_object;
+use crate::toolbox_idl_utils::idl_describe_type;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupType {
     pub name: String,
     pub kind: String,
     pub items: Vec<ToolboxIdlLookupTypeItem>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupTypeItem {
     pub name: String,
     pub description: String,
@@ -45,17 +46,18 @@ impl ToolboxIdl {
         {
             if idl_type_kind == "struct" {
                 let mut type_fields = vec![];
-                for (idl_field_object, idl_field_name, breadcrumbs) in
-                    idl_object_get_key_as_scoped_named_object_array_or_else(
+                for (idl_field_name, idl_field_type, breadcrumbs) in
+                    idl_object_get_key_as_scoped_named_content_array_or_else(
                         idl_type_object,
                         "fields",
+                        "type",
                         &breadcrumbs.with_idl(type_name),
                     )?
                 {
                     type_fields.push(ToolboxIdlLookupTypeItem {
                         name: idl_field_name.to_string(),
-                        description: idl_describe_type_of_object(
-                            idl_field_object,
+                        description: idl_describe_type(
+                            idl_field_type,
                             &breadcrumbs,
                         )?,
                     });
@@ -68,7 +70,7 @@ impl ToolboxIdl {
             }
             if idl_type_kind == "enum" {
                 let mut type_variants = vec![];
-                for (index, (_, idl_variant_name, _)) in
+                for (index, (idl_variant_name, ..)) in
                     idl_object_get_key_as_scoped_named_object_array_or_else(
                         idl_type_object,
                         "variants",

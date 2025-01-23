@@ -6,7 +6,7 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupError {
     pub code: u64,
     pub name: String,
