@@ -122,8 +122,8 @@ pub async fn run() {
     // Assert instruction was parsed correctly
     let my_instruction =
         idl_standard.lookup_instruction("my_instruction").unwrap();
-        assert_eq!("my_instruction", my_instruction.name);
-        assert_eq!("payer", my_instruction.accounts[0].name);
+    assert_eq!("my_instruction", my_instruction.name);
+    assert_eq!("payer", my_instruction.accounts[0].name);
     assert_eq!("authority", my_instruction.accounts[1].name);
     assert_eq!("index", my_instruction.args[0].name);
     assert_eq!("u32", my_instruction.args[0].description);
