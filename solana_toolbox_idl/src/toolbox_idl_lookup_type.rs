@@ -6,14 +6,14 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupType {
     pub name: String,
     pub kind: String,
     pub items: Vec<ToolboxIdlLookupTypeItem>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupTypeItem {
     pub name: String,
     pub description: String,

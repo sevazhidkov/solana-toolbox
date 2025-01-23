@@ -16,7 +16,7 @@ use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
     pub accounts_discriminators: HashMap<String, Vec<u8>>,
     pub accounts_types: Map<String, Value>,
@@ -96,12 +96,14 @@ impl ToolboxIdl {
     pub fn try_from_str(content: &str) -> Result<ToolboxIdl, ToolboxIdlError> {
         let idl_value =
             from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?;
-            ToolboxIdl::try_from_value(&idl_value)
+        ToolboxIdl::try_from_value(&idl_value)
     }
 
-    pub fn try_from_value(value: &Value) -> Result<ToolboxIdl, ToolboxIdlError> {
-            let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-            let idl_root_object =
+    pub fn try_from_value(
+        value: &Value
+    ) -> Result<ToolboxIdl, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let idl_root_object =
             idl_as_object_or_else(&value, &breadcrumbs.as_idl("$"))?;
         let mut idl = ToolboxIdl {
             accounts_discriminators: idl_collection_discriminators_by_name(
@@ -209,6 +211,11 @@ fn idl_collection_content_mapped_by_name(
         if let Some(idl_item_content) = idl_item_object.get(content_key) {
             idl_collection
                 .insert(idl_item_name.into(), idl_item_content.clone());
+        } else {
+            idl_collection.insert(
+                idl_item_name.into(),
+                Value::Object(idl_item_object.clone()),
+            );
         }
     }
     Ok(idl_collection)
@@ -227,10 +234,15 @@ fn idl_collection_mapped_by_name(
             &breadcrumbs.with_idl("root"),
         )?
     {
-        idl_collection.insert(
-            idl_item_name.into(),
-            Value::Object(idl_item_object.clone()),
-        );
+        let mut idl_item_object = idl_item_object.clone();
+        if !idl_item_object.contains_key("name") {
+            idl_item_object.insert(
+                "name".to_string(),
+                Value::String(idl_item_name.to_string()),
+            );
+        }
+        idl_collection
+            .insert(idl_item_name.into(), Value::Object(idl_item_object));
     }
     Ok(idl_collection)
 }

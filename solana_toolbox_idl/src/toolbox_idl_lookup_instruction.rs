@@ -6,7 +6,7 @@ use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupInstruction {
     pub name: String,
     pub discriminator: Vec<u8>,
@@ -14,7 +14,7 @@ pub struct ToolboxIdlLookupInstruction {
     pub args: Vec<ToolboxIdlLookupInstructionArg>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupInstructionAccount {
     pub name: String,
     pub resolvable: bool,
@@ -22,7 +22,7 @@ pub struct ToolboxIdlLookupInstructionAccount {
     pub signer: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupInstructionArg {
     pub name: String,
     pub description: String,

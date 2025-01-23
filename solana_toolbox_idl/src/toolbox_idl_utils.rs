@@ -110,18 +110,18 @@ pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
     key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<ScopedObject<'a>>, ToolboxIdlError> {
-    let array_value =
+    let items_array =
         idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
     let breadcrumbs = &breadcrumbs.with_idl(key);
-    let mut array_object = vec![];
-    for item_index in 0..array_value.len() {
-        let item_value = array_value.get(item_index).unwrap();
+    let mut items_object_array = vec![];
+    for item_index in 0..items_array.len() {
+        let item_value = items_array.get(item_index).unwrap();
         let item_tag = format!("[{}]", item_index);
         let item_object =
             idl_as_object_or_else(item_value, &breadcrumbs.as_idl(&item_tag))?;
-        array_object.push((item_object, breadcrumbs.with_idl(&item_tag)));
+        items_object_array.push((item_object, breadcrumbs.with_idl(&item_tag)));
     }
-    Ok(array_object)
+    Ok(items_object_array)
 }
 
 type ScopedNamedObject<'a> =
@@ -132,12 +132,28 @@ pub(crate) fn idl_object_get_key_as_scoped_named_object_array_or_else<'a>(
     key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<ScopedNamedObject<'a>>, ToolboxIdlError> {
-    let array_value =
+    if let Some(items_object) = idl_object_get_key_as_object(&object, key) {
+        let breadcrumbs = &breadcrumbs.with_idl(key);
+        let mut items_named_object_array = vec![];
+        for (item_name, item_value) in items_object {
+            let item_object = idl_as_object_or_else(
+                item_value,
+                &breadcrumbs.as_idl(item_name),
+            )?;
+            items_named_object_array.push((
+                item_object,
+                item_name.as_str(),
+                breadcrumbs.with_idl(item_name),
+            ));
+        }
+        return Ok(items_named_object_array);
+    }
+    let items_array =
         idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
     let breadcrumbs = &breadcrumbs.with_idl(key);
-    let mut array_object = vec![];
-    for item_index in 0..array_value.len() {
-        let item_value = array_value.get(item_index).unwrap();
+    let mut items_named_object_array = vec![];
+    for item_index in 0..items_array.len() {
+        let item_value = items_array.get(item_index).unwrap();
         let item_tag = format!("[{}]", item_index);
         let item_object =
             idl_as_object_or_else(item_value, &breadcrumbs.as_idl(&item_tag))?;
@@ -146,13 +162,13 @@ pub(crate) fn idl_object_get_key_as_scoped_named_object_array_or_else<'a>(
             "name",
             &breadcrumbs.as_idl(&item_tag),
         )?;
-        array_object.push((
+        items_named_object_array.push((
             item_object,
             item_name,
             breadcrumbs.with_idl(item_name),
         ));
     }
-    Ok(array_object)
+    Ok(items_named_object_array)
 }
 
 pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else<'a>(

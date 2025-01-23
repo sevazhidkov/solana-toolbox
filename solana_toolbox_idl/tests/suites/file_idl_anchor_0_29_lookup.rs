@@ -11,25 +11,21 @@ pub async fn run() {
     // Lookup error by code
     let lookup_error = idl.lookup_error_by_code(6000).unwrap();
     assert_eq!("Overflow", lookup_error.name);
-    assert_eq!("Overflow in arithmetic operation.", lookup_error.msg,);
+    assert_eq!("Overflow in arithmetic operation.", lookup_error.msg);
     // Lookup instructions and print them
-    let lookup_instructions = idl.lookup_instructions().unwrap();
-    for lookup_instruction in lookup_instructions {
+    for lookup_instruction in idl.lookup_instructions().unwrap() {
         lookup_instruction.print();
     }
     // Lookup accounts and print them
-    let lookup_accounts = idl.lookup_accounts().unwrap();
-    for lookup_account in lookup_accounts {
+    for lookup_account in idl.lookup_accounts().unwrap() {
         lookup_account.print();
     }
     // Lookup types and print them
-    let lookup_types = idl.lookup_types().unwrap();
-    for lookup_type in lookup_types {
+    for lookup_type in idl.lookup_types().unwrap() {
         lookup_type.print();
     }
     // Lookup errors and print them
-    let lookup_errors = idl.lookup_errors().unwrap();
-    for lookup_error in lookup_errors {
+    for lookup_error in idl.lookup_errors().unwrap() {
         lookup_error.print();
     }
 }
