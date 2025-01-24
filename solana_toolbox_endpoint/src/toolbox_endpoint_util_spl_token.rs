@@ -21,6 +21,25 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub async fn process_spl_token_mint_new(
+        &mut self,
+        payer: &Keypair,
+        mint_authority: &Pubkey,
+        mint_freeze_authority: Option<&Pubkey>,
+        mint_decimals: u8,
+    ) -> Result<Pubkey, ToolboxEndpointError> {
+        let mint = Keypair::new();
+        self.process_spl_token_mint_init(
+            payer,
+            &mint,
+            mint_authority,
+            mint_freeze_authority,
+            mint_decimals,
+        )
+        .await?;
+        Ok(mint.pubkey())
+    }
+
     pub async fn process_spl_token_mint_init(
         &mut self,
         payer: &Keypair,

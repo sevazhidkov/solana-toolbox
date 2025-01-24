@@ -7,7 +7,9 @@ use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdl {
     pub async fn resolve_instruction(
@@ -95,5 +97,25 @@ impl ToolboxIdl {
             accounts: instruction_accounts,
             data: instruction_data,
         })
+    }
+
+    pub fn parse_instruction(
+        &self,
+        instruction: &Instruction,
+    ) -> Result<(HashMap<String, Pubkey>, Map<String, Value>), ToolboxIdlError>
+    {
+        let instruction_name = idl_ok_or_else(
+            self.guess_instruction_name(&instruction.data),
+            "Could not guess instruction name",
+            &ToolboxIdlBreadcrumbs::default().as_val("instruction_name"),
+        )?;
+        let instruction_accounts_addresses = self
+            .decompile_instruction_accounts_addresses(
+                instruction_name,
+                instruction,
+            )?;
+        let instruction_args = self
+            .decompile_instruction_data(instruction_name, &instruction.data)?;
+        Ok((instruction_accounts_addresses, instruction_args))
     }
 }

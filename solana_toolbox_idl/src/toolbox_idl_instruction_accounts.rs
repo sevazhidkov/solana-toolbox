@@ -7,6 +7,7 @@ use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl::ToolboxIdl;
@@ -92,6 +93,7 @@ impl ToolboxIdl {
         Ok(instruction_accounts_names)
     }
 
+    // TODO - this should be used by resolve_instruction() and small refactor
     pub fn resolve_instruction_accounts_addresses(
         &self,
         program_id: &Pubkey,
@@ -145,6 +147,33 @@ impl ToolboxIdl {
             },
             &ToolboxIdlBreadcrumbs::default(),
         )
+    }
+
+    pub fn decompile_instruction_accounts_addresses(
+        &self,
+        instruction_name: &str,
+        instruction: &Instruction,
+    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+        let instruction_accounts_names =
+            self.get_instruction_accounts_names(instruction_name)?;
+        if instruction_accounts_names.len() != instruction.accounts.len() {
+            return idl_err(
+                "Invalid instruction accounts length",
+                &ToolboxIdlBreadcrumbs::default().val(),
+            );
+        }
+        let mut instruction_accounts_addresses = HashMap::new();
+        for (instruction_account_name, instruction_account_meta) in
+            instruction_accounts_names
+                .into_iter()
+                .zip(instruction.accounts.iter())
+        {
+            instruction_accounts_addresses.insert(
+                instruction_account_name,
+                instruction_account_meta.pubkey,
+            );
+        }
+        Ok(instruction_accounts_addresses)
     }
 }
 
@@ -356,10 +385,12 @@ fn idl_blob_bytes(
                 &breadcrumbs.with_idl("arg"),
             )
         },
-        _ => idl_err(
-            "Expected a 'kind' value of: const/account/arg",
-            &breadcrumbs.as_idl(idl_blob_kind),
-        ),
+        _ => {
+            idl_err(
+                "Expected a 'kind' value of: const/account/arg",
+                &breadcrumbs.as_idl(idl_blob_kind),
+            )
+        },
     }
 }
 
