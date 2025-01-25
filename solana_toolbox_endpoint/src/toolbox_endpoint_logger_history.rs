@@ -11,7 +11,7 @@ use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerHistoryTransaction {
     pub transaction: ToolboxEndpointTransaction,
-    pub signature: Option<Signature>,
+    pub result: Result<Signature, String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -38,14 +38,10 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerHistory {
         transaction: &ToolboxEndpointTransaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
-        let signature = match result {
-            Ok(signature) => Some(*signature),
-            Err(_) => None,
-        };
         self.transactions.write().unwrap().push(
             ToolboxEndpointLoggerHistoryTransaction {
                 transaction: transaction.clone(),
-                signature,
+                result: result.as_ref().map_err(|err| format!("{:?}", err)).copied(),
             },
         );
     }

@@ -304,14 +304,14 @@ impl ToolboxEndpoint {
         get_associated_token_address(owner, mint)
     }
 
-    pub fn spl_token_amount_to_ui_amount(
+    pub fn convert_spl_token_amount_to_ui_amount(
         token_amount: u64,
         mint_decimals: u8,
     ) -> f64 {
         (token_amount as f64) / 10f64.powi(mint_decimals.into())
     }
 
-    pub fn spl_ui_amount_to_token_amount(
+    pub fn convert_ui_amount_to_spl_token_amount(
         ui_amount: f64,
         mint_decimals: u8,
     ) -> u64 {

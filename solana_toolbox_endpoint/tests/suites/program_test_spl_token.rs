@@ -44,7 +44,7 @@ pub async fn run() {
             &mint,
             &mint_authority,
             &user1_account,
-            ToolboxEndpoint::spl_ui_amount_to_token_amount(42.0, mint_decimals),
+            ToolboxEndpoint::convert_ui_amount_to_spl_token_amount(42.0, mint_decimals),
         )
         .await
         .unwrap();
@@ -55,7 +55,7 @@ pub async fn run() {
             &user1,
             &user1_account,
             &user2_account,
-            ToolboxEndpoint::spl_ui_amount_to_token_amount(30.0, mint_decimals),
+            ToolboxEndpoint::convert_ui_amount_to_spl_token_amount(30.0, mint_decimals),
         )
         .await
         .unwrap();
@@ -66,7 +66,7 @@ pub async fn run() {
             &user2,
             &user2_account,
             &user1_account,
-            ToolboxEndpoint::spl_ui_amount_to_token_amount(8.0, mint_decimals),
+            ToolboxEndpoint::convert_ui_amount_to_spl_token_amount(8.0, mint_decimals),
         )
         .await
         .unwrap();
