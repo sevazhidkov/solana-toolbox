@@ -48,8 +48,7 @@ impl ToolboxEndpoint {
             &payer.pubkey(),
             &account.pubkey(),
             lamports,
-            u64::try_from(space)
-                .map_err(ToolboxEndpointError::TryFromIntError)?,
+            u64::try_from(space).map_err(ToolboxEndpointError::TryFromInt)?,
             owner,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])
@@ -68,8 +67,7 @@ impl ToolboxEndpoint {
             &payer.pubkey(),
             &account.pubkey(),
             lamports,
-            u64::try_from(space)
-                .map_err(ToolboxEndpointError::TryFromIntError)?,
+            u64::try_from(space).map_err(ToolboxEndpointError::TryFromInt)?,
             owner,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])
@@ -96,8 +94,7 @@ impl ToolboxEndpoint {
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = allocate(
             &account.pubkey(),
-            u64::try_from(space)
-                .map_err(ToolboxEndpointError::TryFromIntError)?,
+            u64::try_from(space).map_err(ToolboxEndpointError::TryFromInt)?,
         );
         self.process_instruction_with_signers(instruction, payer, &[account])
             .await

@@ -8,6 +8,7 @@ use spl_associated_token_account::get_associated_token_address;
 use spl_associated_token_account::instruction::create_associated_token_account_idempotent;
 use spl_token::instruction::burn;
 use spl_token::instruction::freeze_account;
+use spl_token::instruction::initialize_account;
 use spl_token::instruction::initialize_mint;
 use spl_token::instruction::mint_to;
 use spl_token::instruction::set_authority;
@@ -56,7 +57,7 @@ impl ToolboxEndpoint {
             &mint.pubkey(),
             rent_minimum_lamports,
             u64::try_from(rent_space)
-                .map_err(ToolboxEndpointError::TryFromIntError)?,
+                .map_err(ToolboxEndpointError::TryFromInt)?,
             &spl_token::ID,
         );
         let instruction_init = initialize_mint(
@@ -191,7 +192,7 @@ impl ToolboxEndpoint {
     pub async fn process_spl_token_transfer(
         &mut self,
         payer: &Keypair,
-        authority: &Keypair,
+        owner: &Keypair,
         source_token_account: &Pubkey,
         destination_token_account: &Pubkey,
         amount: u64,
@@ -200,18 +201,18 @@ impl ToolboxEndpoint {
             &spl_token::ID,
             source_token_account,
             destination_token_account,
-            &authority.pubkey(),
+            &owner.pubkey(),
             &[],
             amount,
         )?;
-        self.process_instruction_with_signers(instruction, payer, &[authority])
+        self.process_instruction_with_signers(instruction, payer, &[owner])
             .await
     }
 
     pub async fn process_spl_token_burn(
         &mut self,
         payer: &Keypair,
-        authority: &Keypair,
+        owner: &Keypair,
         source_token_account: &Pubkey,
         mint: &Pubkey,
         amount: u64,
@@ -220,28 +221,61 @@ impl ToolboxEndpoint {
             &spl_token::ID,
             source_token_account,
             mint,
-            &authority.pubkey(),
+            &owner.pubkey(),
             &[],
             amount,
         )?;
-        self.process_instruction_with_signers(instruction, payer, &[authority])
+        self.process_instruction_with_signers(instruction, payer, &[owner])
             .await
+    }
+
+    pub async fn process_spl_token_account_new(
+        &mut self,
+        payer: &Keypair,
+        owner: &Pubkey,
+        mint: &Pubkey,
+    ) -> Result<Pubkey, ToolboxEndpointError> {
+        let rent_space = Account::LEN;
+        let rent_minimum_lamports =
+            self.get_sysvar_rent().await?.minimum_balance(rent_space);
+        let account = Keypair::new();
+        let instruction_create = create_account(
+            &payer.pubkey(),
+            &account.pubkey(),
+            rent_minimum_lamports,
+            u64::try_from(rent_space)
+                .map_err(ToolboxEndpointError::TryFromInt)?,
+            &spl_token::ID,
+        );
+        let instruction_init = initialize_account(
+            &spl_token::id(),
+            &account.pubkey(),
+            mint,
+            owner,
+        )?;
+        self.process_instructions_with_signers(
+            &[instruction_create, instruction_init],
+            payer,
+            &[&account],
+        )
+        .await?;
+        Ok(account.pubkey())
     }
 
     pub async fn process_spl_associated_token_account_get_or_init(
         &mut self,
         payer: &Keypair,
-        authority: &Pubkey,
+        owner: &Pubkey,
         mint: &Pubkey,
     ) -> Result<Pubkey, ToolboxEndpointError> {
         let token_account =
-            ToolboxEndpoint::find_spl_associated_token_account(authority, mint);
+            ToolboxEndpoint::find_spl_associated_token_account(owner, mint);
         if self.get_spl_token_account(&token_account).await?.is_some() {
             return Ok(token_account);
         }
         let instruction = create_associated_token_account_idempotent(
             &payer.pubkey(),
-            authority,
+            owner,
             mint,
             &spl_token::id(),
         );
@@ -264,9 +298,23 @@ impl ToolboxEndpoint {
     }
 
     pub fn find_spl_associated_token_account(
-        authority: &Pubkey,
+        owner: &Pubkey,
         mint: &Pubkey,
     ) -> Pubkey {
-        get_associated_token_address(authority, mint)
+        get_associated_token_address(owner, mint)
+    }
+
+    pub fn spl_token_amount_to_ui_amount(
+        token_amount: u64,
+        mint_decimals: u8,
+    ) -> f64 {
+        (token_amount as f64) / 10f64.powi(mint_decimals.into())
+    }
+
+    pub fn spl_ui_amount_to_token_amount(
+        ui_amount: f64,
+        mint_decimals: u8,
+    ) -> u64 {
+        (ui_amount * 10f64.powi(mint_decimals.into())) as u64
     }
 }

@@ -45,6 +45,14 @@ pub struct ToolboxEndpointProgramTestPreloadedProgram {
 }
 
 impl ToolboxEndpoint {
+    pub async fn new_program_test() -> ToolboxEndpoint {
+        ToolboxEndpoint::new_program_test_with_builtin_and_preloaded_programs(
+            &[],
+            &[],
+        )
+        .await
+    }
+
     pub async fn new_program_test_with_builtin_programs(
         builtin_programs: &[ToolboxEndpointProgramTestBuiltinProgram]
     ) -> ToolboxEndpoint {

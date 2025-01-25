@@ -1,4 +1,3 @@
-use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -8,10 +7,7 @@ use solana_toolbox_idl::ToolboxIdl;
 #[tokio::test]
 pub async fn run() {
     // Create the endpoint
-    let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
-        "https://api.devnet.solana.com",
-        CommitmentConfig::confirmed(),
-    );
+    let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Fetch the idl of an anchor program on chain

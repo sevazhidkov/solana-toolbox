@@ -1,5 +1,6 @@
 mod toolbox_endpoint;
 mod toolbox_endpoint_error;
+mod toolbox_endpoint_factory_common;
 mod toolbox_endpoint_factory_program_test;
 mod toolbox_endpoint_factory_rpc_client;
 mod toolbox_endpoint_logger;
@@ -11,8 +12,9 @@ mod toolbox_endpoint_proxy_program_test_context;
 mod toolbox_endpoint_proxy_rpc_client;
 mod toolbox_endpoint_transaction;
 mod toolbox_endpoint_util_account;
-mod toolbox_endpoint_util_fees;
+mod toolbox_endpoint_util_consts;
 mod toolbox_endpoint_util_instruction;
+mod toolbox_endpoint_util_program;
 mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
 mod toolbox_endpoint_util_sysvar;

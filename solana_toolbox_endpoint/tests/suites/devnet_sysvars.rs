@@ -1,14 +1,10 @@
-use solana_sdk::commitment_config::CommitmentConfig;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 
 #[tokio::test]
 pub async fn run() {
     // Create the endpoint
-    let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
-        "https://api.devnet.solana.com",
-        CommitmentConfig::confirmed(),
-    );
+    let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Fetch the sysvars

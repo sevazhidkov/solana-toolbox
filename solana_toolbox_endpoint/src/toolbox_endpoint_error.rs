@@ -10,7 +10,7 @@ pub enum ToolboxEndpointError {
     Bincode(bincode::Error),
     Io(std::io::Error),
     PodCastError(bytemuck::PodCastError),
-    TryFromIntError(std::num::TryFromIntError),
+    TryFromInt(std::num::TryFromIntError),
     Custom(String),
 }
 

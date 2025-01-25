@@ -4,7 +4,7 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 pub async fn run() {
     // Initialize the endpoint
     let mut endpoint =
-        ToolboxEndpoint::new_program_test_with_builtin_programs(&[]).await;
+        ToolboxEndpoint::new_program_test().await;
     // Read the clock sysvar and check the default values
     let clock = endpoint.get_sysvar_clock().await.unwrap();
     assert_eq!(1, clock.slot);
