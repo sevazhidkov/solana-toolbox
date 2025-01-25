@@ -1,5 +1,6 @@
 use solana_sdk::account::Account;
 use solana_sdk::instruction::Instruction;
+use solana_sdk::transaction::Transaction;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
@@ -8,7 +9,8 @@ use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
 pub struct ToolboxEndpointPrinter {}
 
 impl ToolboxEndpointPrinter {
-    pub fn print_transaction(transaction: &ToolboxEndpointTransaction) {
+    pub fn print_transaction(transaction: &Transaction) {
+        let transaction = ToolboxEndpointTransaction::from(transaction);
         println!("----");
         println!("transaction.payer: {:?}", transaction.payer);
         println!("----");

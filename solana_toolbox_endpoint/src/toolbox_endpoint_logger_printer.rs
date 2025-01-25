@@ -1,9 +1,9 @@
 use solana_sdk::signature::Signature;
+use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_printer::ToolboxEndpointPrinter;
-use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
 
 #[derive(Default)]
 pub struct ToolboxEndpointLoggerPrinter {}
@@ -12,7 +12,7 @@ pub struct ToolboxEndpointLoggerPrinter {}
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrinter {
     async fn on_transaction(
         &self,
-        transaction: &ToolboxEndpointTransaction,
+        transaction: &Transaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
         println!("---------------------------- TRANSACTION PROCESSED -----------------------------");

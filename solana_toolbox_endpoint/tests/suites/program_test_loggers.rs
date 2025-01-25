@@ -64,7 +64,7 @@ pub async fn run() {
     );
     // Custom manual TX printing (no execution)
     ToolboxEndpointPrinter::print_transaction(
-        &ToolboxEndpointTransaction::from(&create_account(
+        &create_account(
             &payer,
             &Keypair::new(),
             endpoint.get_latest_blockhash().await.unwrap(),
@@ -74,20 +74,20 @@ pub async fn run() {
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
             ]),
-        )),
+        ),
     );
     // Check the content of the logger's buffer history
     let transactions = logger_history.get_transactions();
     assert_eq!(2, transactions.len());
     // First the simple transfer IX happened (system program)
-    let tx0 = &transactions[0];
-    assert_eq!(1, tx0.transaction.signers.len());
-    assert_eq!(1, tx0.transaction.instructions.len());
-    assert_eq!(system_program::ID, tx0.transaction.instructions[0].program_id);
+    let tx0 = ToolboxEndpointTransaction::from(&transactions[0].transaction);
+    assert_eq!(1, tx0.signers.len());
+    assert_eq!(1, tx0.instructions.len());
+    assert_eq!(system_program::ID, tx0.instructions[0].program_id);
     // Then the create+init of the mint happened (2 IXs, 2 signers)
-    let tx1 = &transactions[1];
-    assert_eq!(2, tx1.transaction.signers.len());
-    assert_eq!(2, tx1.transaction.instructions.len());
-    assert_eq!(system_program::ID, tx1.transaction.instructions[0].program_id);
-    assert_eq!(spl_token::ID, tx1.transaction.instructions[1].program_id);
+    let tx1 = ToolboxEndpointTransaction::from(&transactions[1].transaction);
+    assert_eq!(2, tx1.signers.len());
+    assert_eq!(2, tx1.instructions.len());
+    assert_eq!(system_program::ID, tx1.instructions[0].program_id);
+    assert_eq!(spl_token::ID, tx1.instructions[1].program_id);
 }

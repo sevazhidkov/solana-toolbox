@@ -3,14 +3,14 @@ use std::sync::RwLock;
 use std::sync::RwLockReadGuard;
 
 use solana_sdk::signature::Signature;
+use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
-use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
 
 #[derive(Debug, Clone)]
 pub struct ToolboxEndpointLoggerHistoryTransaction {
-    pub transaction: ToolboxEndpointTransaction,
+    pub transaction: Transaction,
     pub result: Result<Signature, String>,
 }
 
@@ -35,7 +35,7 @@ impl ToolboxEndpointLoggerHistory {
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerHistory {
     async fn on_transaction(
         &self,
-        transaction: &ToolboxEndpointTransaction,
+        transaction: &Transaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
         self.transactions.write().unwrap().push(
