@@ -281,6 +281,7 @@ impl ToolboxEndpoint {
                 &program_authority.pubkey(),
             )
             .await?;
+        // TODO - extend the program if needed ?
         self.process_program_upgrade(
             payer,
             program_id,
