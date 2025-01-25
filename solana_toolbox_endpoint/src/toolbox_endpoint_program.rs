@@ -173,7 +173,7 @@ impl ToolboxEndpoint {
         self.process_instructions_with_signers(
             &instruction_deploy,
             payer,
-            &[&program_id, &program_authority],
+            &[program_id, program_authority],
         )
         .await
     }
@@ -195,7 +195,7 @@ impl ToolboxEndpoint {
         self.process_instruction_with_signers(
             instruction_upgrade,
             payer,
-            &[&program_authority],
+            &[program_authority],
         )
         .await
     }
@@ -217,7 +217,7 @@ impl ToolboxEndpoint {
         self.process_instruction_with_signers(
             instruction_close,
             payer,
-            &[&program_authority],
+            &[program_authority],
         )
         .await
     }
@@ -329,7 +329,7 @@ impl ToolboxEndpoint {
         self.process_instruction_with_signers(
             instruction_close,
             payer,
-            &[&program_authority],
+            &[program_authority],
         )
         .await
     }

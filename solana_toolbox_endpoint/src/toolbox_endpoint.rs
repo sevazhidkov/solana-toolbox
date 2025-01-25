@@ -38,14 +38,14 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<u64, ToolboxEndpointError> {
-        Ok(self.proxy.get_balance(address).await?)
+        self.proxy.get_balance(address).await
     }
 
     pub async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
-        Ok(self.proxy.get_accounts(addresses).await?)
+        self.proxy.get_accounts(addresses).await
     }
 
     pub async fn process_transaction(
