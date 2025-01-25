@@ -9,11 +9,8 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Fetch a program's bytecode
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
-    let program_bytecode = endpoint
-        .get_program_bytecode_from_program_id(&program_id)
-        .await
-        .unwrap()
-        .unwrap();
+    let program_bytecode =
+        endpoint.get_program(&program_id).await.unwrap().unwrap().bytecode;
     // Check that the bytecode match the expected value
     assert_eq!(
         read("./tests/fixtures/UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j.so")

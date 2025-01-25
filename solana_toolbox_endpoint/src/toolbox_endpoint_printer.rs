@@ -37,7 +37,7 @@ impl ToolboxEndpointPrinter {
                 account_meta.pubkey,
             );
         }
-        ToolboxEndpointPrinter::print_bytes(
+        ToolboxEndpointPrinter::print_data(
             "> instruction.data",
             &instruction.data,
         );
@@ -54,10 +54,10 @@ impl ToolboxEndpointPrinter {
         println!("> account.lamports: {:?}", account.lamports);
         println!("> account.owner: {:?}", account.owner);
         println!("> account.executable: {:?}", account.executable);
-        ToolboxEndpointPrinter::print_bytes("> account.data", &account.data);
+        ToolboxEndpointPrinter::print_data("> account.data", &account.data);
     }
 
-    pub fn print_bytes(
+    pub fn print_data(
         prefix: &str,
         data: &[u8],
     ) {

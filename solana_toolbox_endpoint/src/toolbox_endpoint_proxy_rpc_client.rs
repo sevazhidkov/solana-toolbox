@@ -19,6 +19,13 @@ impl ToolboxEndpointProxy for RpcClient {
         Ok(RpcClient::get_latest_blockhash(self).await?)
     }
 
+    async fn get_balance(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<u64, ToolboxEndpointError> {
+        Ok(self.get_balance(address).await?)
+    }
+
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],

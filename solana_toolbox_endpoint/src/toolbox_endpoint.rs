@@ -34,17 +34,18 @@ impl ToolboxEndpoint {
         self.proxy.get_latest_blockhash().await
     }
 
+    pub async fn get_balance(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<u64, ToolboxEndpointError> {
+        Ok(self.proxy.get_balance(address).await?)
+    }
+
     pub async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
-        let accounts = self.proxy.get_accounts(addresses).await?;
-        for logger in &self.loggers {
-            for index in 0..accounts.len() {
-                logger.on_account(&addresses[index], &accounts[index]).await;
-            }
-        }
-        Ok(accounts)
+        Ok(self.proxy.get_accounts(addresses).await?)
     }
 
     pub async fn process_transaction(

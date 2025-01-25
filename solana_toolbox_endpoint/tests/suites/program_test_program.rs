@@ -1,6 +1,5 @@
 use std::fs::read;
 
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -14,13 +13,11 @@ pub async fn run() {
     endpoint.process_airdrop(&payer.pubkey(), 10_000_000_000).await.unwrap();
     // Program details
     let program_id = Keypair::new();
+    let program_authority = Keypair::new();
     let program_bytecode =
         read("./tests/fixtures/bpf_loader_program_minimal.so").unwrap();
-    // Controlling wallets
-    let program_authority = Keypair::new();
-    let spill = Pubkey::new_unique();
     // Create a buffer
-    let program_buffer1 = endpoint
+    let program_buffer = endpoint
         .process_program_buffer_new(
             &payer,
             &program_bytecode,
@@ -32,29 +29,19 @@ pub async fn run() {
     endpoint
         .process_program_buffer_close(
             &payer,
-            &program_buffer1,
+            &program_buffer,
             &program_authority,
-            &spill,
+            &payer.pubkey(),
         )
         .await
         .unwrap();
-    // Recreate another buffer
-    let program_buffer2 = endpoint
-        .process_program_buffer_new(
-            &payer,
-            &program_bytecode,
-            &program_authority.pubkey(),
-        )
-        .await
-        .unwrap();
-    // Use the re-created buffer to deploy the program
+    // Create the program while it doesnt exist yet
     endpoint
         .process_program_deploy(
             &payer,
             &program_id,
-            &program_buffer2,
             &program_authority,
-            program_bytecode.len(),
+            &program_bytecode,
         )
         .await
         .unwrap();
@@ -62,30 +49,22 @@ pub async fn run() {
     assert_eq!(
         program_bytecode,
         endpoint
-            .get_program_bytecode_from_program_id(&program_id.pubkey())
+            .get_program(&program_id.pubkey())
             .await
             .unwrap()
             .unwrap()
+            .bytecode
     );
-    // Wait a bit to be able to re-deploy
-    endpoint.forward_clock_slot(10).await.unwrap();
-    // Recreate another buffer
-    let program_buffer3 = endpoint
-        .process_program_buffer_new(
-            &payer,
-            &program_bytecode,
-            &program_authority.pubkey(),
-        )
-        .await
-        .unwrap();
-    // Use the re-created buffer to upgrade the program
+    // Wait a slot to be able to interact with the program again
+    endpoint.forward_clock_slot(1).await.unwrap();
+    // Upgrade the program
     endpoint
         .process_program_upgrade(
             &payer,
             &program_id.pubkey(),
-            &program_buffer3,
             &program_authority,
-            &spill,
+            &program_bytecode,
+            &payer.pubkey(),
         )
         .await
         .unwrap();
@@ -93,21 +72,21 @@ pub async fn run() {
     assert_eq!(
         program_bytecode,
         endpoint
-            .get_program_bytecode_from_program_id(&program_id.pubkey())
+            .get_program(&program_id.pubkey())
             .await
             .unwrap()
             .unwrap()
+            .bytecode
     );
-    // Wait a block to be able to re-deploy
-    endpoint.forward_clock_slot(10).await.unwrap();
+    // Wait a slot to be able to interact with the program again
+    endpoint.forward_clock_slot(1).await.unwrap();
     // Close the whole program
     endpoint
         .process_program_close(
             &payer,
             &program_id.pubkey(),
-            &program_buffer3,
             &program_authority,
-            &spill,
+            &payer.pubkey(),
         )
         .await
         .unwrap();

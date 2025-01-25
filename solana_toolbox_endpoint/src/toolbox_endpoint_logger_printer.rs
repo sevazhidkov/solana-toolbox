@@ -1,5 +1,3 @@
-use solana_sdk::account::Account;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
@@ -32,18 +30,6 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrinter {
                 println!("transaction.error: {:?}", error)
             },
         };
-        println!("----");
-        ToolboxEndpointPrinter::print_backtrace("from");
-        println!();
-    }
-
-    async fn on_account(
-        &self,
-        address: &Pubkey,
-        account: &Option<Account>,
-    ) {
-        println!("-------------------------------- ACCOUNT READ ----------------------------------");
-        ToolboxEndpointPrinter::print_account(address, account);
         println!("----");
         ToolboxEndpointPrinter::print_backtrace("from");
         println!();

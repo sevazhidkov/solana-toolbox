@@ -12,6 +12,11 @@ pub trait ToolboxEndpointProxy {
         &mut self
     ) -> Result<Hash, ToolboxEndpointError>;
 
+    async fn get_balance(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<u64, ToolboxEndpointError>;
+
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
@@ -24,7 +29,7 @@ pub trait ToolboxEndpointProxy {
 
     async fn process_airdrop(
         &mut self,
-        to: &Pubkey,
+        address: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError>;
 

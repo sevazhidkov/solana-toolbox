@@ -15,48 +15,67 @@ use solana_sdk::signer::Signer;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::ToolboxEndpointError;
 
+#[derive(Debug, Clone)]
+pub struct ToolboxEndpointProgram {
+    pub slot: u64,
+    pub authority: Option<Pubkey>,
+    pub bytecode: Vec<u8>,
+}
+
 impl ToolboxEndpoint {
-    pub async fn get_program_bytecode_from_program_id(
+    pub async fn get_program(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
+    ) -> Result<Option<ToolboxEndpointProgram>, ToolboxEndpointError> {
         let program_id_account = match self.get_account(program_id).await? {
             Some(account) => account,
             None => {
                 return Ok(None);
             },
         };
-        match program_id_account.owner {
-            bpf_loader_upgradeable::ID => {
-                let program_data =
-                    ToolboxEndpoint::find_program_data_from_program_id(
-                        program_id,
-                    );
-                let program_data_account = self
-                    .get_account(&program_data)
-                    .await?
-                    .ok_or_else(|| {
-                        ToolboxEndpointError::Custom(
-                            "Could not fetch program data".to_string(),
-                        )
-                    })?;
-                let program_data_bytecode_offset =
-                    UpgradeableLoaderState::size_of_programdata_metadata();
-                if program_data_account.data.len()
-                    < program_data_bytecode_offset
-                {
-                    return Err(ToolboxEndpointError::Custom(
-                        "Program data is malformed".to_string(),
-                    ));
-                }
-                Ok(Some(
-                    program_data_account.data[program_data_bytecode_offset..]
+        if !program_id_account.executable {
+            return Err(ToolboxEndpointError::Custom(
+                "Program Id is not executable".to_string(),
+            ));
+        }
+        if program_id_account.owner != bpf_loader_upgradeable::ID {
+            return Err(ToolboxEndpointError::Custom(
+                "Unsupported program owner".to_string(),
+            ));
+        }
+        let program_data =
+            ToolboxEndpoint::find_program_data_from_program_id(program_id);
+        let program_data_data =
+            self.get_account(&program_data).await?.ok_or_else(|| {
+                ToolboxEndpointError::Custom(
+                    "Could not fetch program data".to_string(),
+                )
+            })?.data;
+        let program_data_bytecode_offset =
+            UpgradeableLoaderState::size_of_programdata_metadata();
+        if program_data_data.len() < program_data_bytecode_offset {
+            return Err(ToolboxEndpointError::Custom(
+                "Program data is too small".to_string(),
+            ));
+        }
+        match bincode::deserialize::<UpgradeableLoaderState>(
+            &program_data_data,
+        ) {
+            Ok(UpgradeableLoaderState::ProgramData {
+                slot,
+                upgrade_authority_address,
+            }) => {
+                Ok(Some(ToolboxEndpointProgram {
+                    slot,
+                    authority: upgrade_authority_address,
+                    bytecode: program_data_data
+                        [program_data_bytecode_offset..]
                         .to_vec(),
-                ))
+                }))
             },
             _ => {
                 Err(ToolboxEndpointError::Custom(
-                    "Unsupported program owner".to_string(),
+                    "Program data is malformed".to_string(),
                 ))
             },
         }
@@ -78,8 +97,9 @@ impl ToolboxEndpoint {
     ) -> Result<Pubkey, ToolboxEndpointError> {
         let program_buffer = Keypair::new();
         let program_buffer_authority = Keypair::new();
-        let program_len = program_bytecode.len();
-        let rent_space = UpgradeableLoaderState::size_of_buffer(program_len);
+        let program_bytecode_len = program_bytecode.len();
+        let rent_space =
+            UpgradeableLoaderState::size_of_buffer(program_bytecode_len);
         let rent_minimum_lamports =
             self.get_sysvar_rent().await?.minimum_balance(rent_space);
         let instructions_create = create_buffer(
@@ -87,7 +107,7 @@ impl ToolboxEndpoint {
             &program_buffer.pubkey(),
             &program_buffer_authority.pubkey(),
             rent_minimum_lamports,
-            program_len,
+            program_bytecode_len,
         )
         .unwrap();
         self.process_instructions_with_signers(
@@ -97,10 +117,11 @@ impl ToolboxEndpoint {
         )
         .await?;
         let write_packing = 1216;
-        let write_count = program_len.div_ceil(write_packing);
+        let write_count = program_bytecode_len.div_ceil(write_packing);
         for write_index in 0..write_count {
             let write_before = write_index * write_packing;
-            let write_after = (write_before + write_packing).min(program_len);
+            let write_after =
+                (write_before + write_packing).min(program_bytecode_len);
             let instruction_write = write(
                 &program_buffer.pubkey(),
                 &program_buffer_authority.pubkey(),
@@ -129,29 +150,7 @@ impl ToolboxEndpoint {
         Ok(program_buffer.pubkey())
     }
 
-    pub async fn process_program_buffer_close(
-        &mut self,
-        payer: &Keypair,
-        program_buffer: &Pubkey,
-        program_authority: &Keypair,
-        spill: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
-        let program_authority_address = &program_authority.pubkey();
-        let instruction_close = close_any(
-            program_buffer,
-            spill,
-            Some(program_authority_address),
-            None,
-        );
-        self.process_instruction_with_signers(
-            instruction_close,
-            payer,
-            &[&program_authority],
-        )
-        .await
-    }
-
-    pub async fn process_program_deploy(
+    pub async fn process_program_buffer_deploy(
         &mut self,
         payer: &Keypair,
         program_id: &Keypair,
@@ -179,7 +178,7 @@ impl ToolboxEndpoint {
         .await
     }
 
-    pub async fn process_program_upgrade(
+    pub async fn process_program_buffer_upgrade(
         &mut self,
         payer: &Keypair,
         program_id: &Pubkey,
@@ -201,6 +200,58 @@ impl ToolboxEndpoint {
         .await
     }
 
+    pub async fn process_program_buffer_close(
+        &mut self,
+        payer: &Keypair,
+        program_buffer: &Pubkey,
+        program_authority: &Keypair,
+        spill: &Pubkey,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let program_authority_address = &program_authority.pubkey();
+        let instruction_close = close_any(
+            program_buffer,
+            spill,
+            Some(program_authority_address),
+            None,
+        );
+        self.process_instruction_with_signers(
+            instruction_close,
+            payer,
+            &[&program_authority],
+        )
+        .await
+    }
+
+    pub async fn process_program_deploy(
+        &mut self,
+        payer: &Keypair,
+        program_id: &Keypair,
+        program_authority: &Keypair,
+        program_bytecode: &[u8],
+    ) -> Result<(), ToolboxEndpointError> {
+        if self.get_account_exists(&program_id.pubkey()).await? {
+            return Err(ToolboxEndpointError::Custom(
+                "Cannot deploy on a program that already exist (need to upgrade)".to_string(),
+            ));
+        }
+        let program_buffer = self
+            .process_program_buffer_new(
+                payer,
+                program_bytecode,
+                &program_authority.pubkey(),
+            )
+            .await?;
+        self.process_program_buffer_deploy(
+            payer,
+            program_id,
+            &program_buffer,
+            program_authority,
+            program_bytecode.len(),
+        )
+        .await?;
+        Ok(())
+    }
+
     pub async fn process_program_extend(
         &mut self,
         payer: &Keypair,
@@ -216,18 +267,61 @@ impl ToolboxEndpoint {
         self.process_instruction(instruction_extend, payer).await
     }
 
-    // TODO - for some reason I can't seem to make this work
+    pub async fn process_program_upgrade(
+        &mut self,
+        payer: &Keypair,
+        program_id: &Pubkey,
+        program_authority: &Keypair,
+        program_bytecode: &[u8],
+        spill: &Pubkey,
+    ) -> Result<(), ToolboxEndpointError> {
+        let program_len_before = match self.get_program(program_id).await? {
+            Some(program_before) => program_before.bytecode.len(),
+            None => {
+                return Err(ToolboxEndpointError::Custom(
+                    "Cannot update a program that deosnt exist yet".to_string(),
+                ))
+            },
+        };
+        let program_len_after = program_bytecode.len();
+        if program_len_after > program_len_before {
+            self.process_program_extend(
+                payer,
+                program_id,
+                program_len_after - program_len_before,
+            )
+            .await?;
+        }
+        let program_buffer = self
+            .process_program_buffer_new(
+                payer,
+                program_bytecode,
+                &program_authority.pubkey(),
+            )
+            .await?;
+        self.process_program_buffer_upgrade(
+            payer,
+            program_id,
+            &program_buffer,
+            program_authority,
+            spill,
+        )
+        .await?;
+        Ok(())
+    }
+
     pub async fn process_program_close(
         &mut self,
         payer: &Keypair,
         program_id: &Pubkey,
-        program_buffer: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
+        let program_data =
+            &ToolboxEndpoint::find_program_data_from_program_id(program_id);
         let program_authority_address = &program_authority.pubkey();
         let instruction_close = close_any(
-            program_buffer,
+            program_data,
             spill,
             Some(program_authority_address),
             Some(program_id),
@@ -238,59 +332,5 @@ impl ToolboxEndpoint {
             &[&program_authority],
         )
         .await
-    }
-
-    pub async fn process_program_create(
-        &mut self,
-        payer: &Keypair,
-        program_id: &Keypair,
-        program_authority: &Keypair,
-        program_bytecode: &[u8],
-    ) -> Result<(), ToolboxEndpointError> {
-        let program_buffer = self
-            .process_program_buffer_new(
-                payer,
-                program_bytecode,
-                &program_authority.pubkey(),
-            )
-            .await?;
-        self.process_program_deploy(
-            payer,
-            program_id,
-            &program_buffer,
-            program_authority,
-            program_bytecode.len(),
-        )
-        .await?;
-        // TODO - should be able to close the buffer ?
-        Ok(())
-    }
-
-    pub async fn process_program_override(
-        &mut self,
-        payer: &Keypair,
-        program_id: &Pubkey,
-        program_authority: &Keypair,
-        program_bytecode: &[u8],
-        spill: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
-        let program_buffer = self
-            .process_program_buffer_new(
-                payer,
-                program_bytecode,
-                &program_authority.pubkey(),
-            )
-            .await?;
-        // TODO - extend the program if needed ?
-        self.process_program_upgrade(
-            payer,
-            program_id,
-            &program_buffer,
-            program_authority,
-            spill,
-        )
-        .await?;
-        // TODO - should be able to close the buffer ?
-        Ok(())
     }
 }

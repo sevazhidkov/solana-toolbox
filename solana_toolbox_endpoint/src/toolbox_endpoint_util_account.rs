@@ -21,11 +21,21 @@ impl ToolboxEndpoint {
         Ok(self.get_accounts(&[*address]).await?.pop().flatten())
     }
 
+    pub async fn get_account_exists(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<bool, ToolboxEndpointError> {
+        Ok(self.get_account_lamports(address).await?.is_some())
+    }
+
     pub async fn get_account_lamports(
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<u64>, ToolboxEndpointError> {
-        Ok(self.get_account(address).await?.map(|account| account.lamports))
+        Ok(match self.get_balance(address).await? {
+            0 => None,
+            balance => Some(balance),
+        })
     }
 
     pub async fn get_account_owner(

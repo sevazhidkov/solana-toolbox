@@ -24,6 +24,13 @@ impl ToolboxEndpointProxy for ProgramTestContext {
         Ok(self.last_blockhash)
     }
 
+    async fn get_balance(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<u64, ToolboxEndpointError> {
+        Ok(self.banks_client.get_balance(*address).await?)
+    }
+
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],

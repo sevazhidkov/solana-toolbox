@@ -32,12 +32,11 @@ impl ToolboxIdl {
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
     ) -> Result<Option<ToolboxIdl>, ToolboxIdlError> {
-        let address = &ToolboxIdl::find_for_program_id(program_id)?;
-        let data = match endpoint.get_account(address).await? {
-            Some(account) => account.data,
-            None => return Ok(None),
-        };
-        Ok(Some(ToolboxIdl::try_from_bytes(&data)?))
+        Ok(endpoint
+            .get_account_data(&ToolboxIdl::find_for_program_id(program_id)?)
+            .await?
+            .map(|account_data| ToolboxIdl::try_from_bytes(&account_data))
+            .transpose()?)
     }
 
     pub fn find_for_program_id(
