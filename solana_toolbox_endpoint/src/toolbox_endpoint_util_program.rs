@@ -126,6 +126,7 @@ impl ToolboxEndpoint {
         Ok(program_buffer.pubkey())
     }
 
+     // TODO - provide 1 function call for deploy too
     pub async fn process_program_deploy(
         &mut self,
         payer: &Keypair,
@@ -154,6 +155,7 @@ impl ToolboxEndpoint {
         .await
     }
 
+     // TODO - provide 1 function call for upgrade too
     pub async fn process_program_upgrade(
         &mut self,
         payer: &Keypair,
@@ -197,4 +199,6 @@ impl ToolboxEndpoint {
         )
         .await
     }
+
+    // TODO - ability to close programs
 }
