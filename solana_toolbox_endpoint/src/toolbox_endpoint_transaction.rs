@@ -65,7 +65,7 @@ impl From<&Transaction> for ToolboxEndpointTransaction {
         ToolboxEndpointTransaction {
             payer,
             signers: signers.into_iter().collect(),
-            instructions: instructions.clone(),
+            instructions,
         }
     }
 }
