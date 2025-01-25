@@ -6,8 +6,7 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
-    let mut endpoint =
-        ToolboxEndpoint::new_program_test().await;
+    let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Prepare a payer
     let payer = Keypair::new();
     endpoint.process_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();

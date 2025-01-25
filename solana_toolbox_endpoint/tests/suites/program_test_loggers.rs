@@ -13,8 +13,7 @@ use solana_toolbox_endpoint::ToolboxEndpointTransaction;
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
-    let mut endpoint =
-        ToolboxEndpoint::new_program_test().await;
+    let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Create a logger buffer

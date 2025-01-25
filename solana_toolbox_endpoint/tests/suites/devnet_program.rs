@@ -1,6 +1,7 @@
+use std::fs::read;
+
 use solana_sdk::pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use std::fs::read;
 
 #[tokio::test]
 pub async fn run() {

@@ -1,7 +1,8 @@
 use std::fs::read;
 
-use solana_sdk::{signature::Keypair, signer::Signer};
-use solana_sdk::{pubkey::Pubkey};
+use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Keypair;
+use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
@@ -19,7 +20,7 @@ pub async fn run() {
     let program_authority = Keypair::new();
     let spill = Pubkey::new_unique();
     // Create a buffer
-    let program_buffer = endpoint
+    let program_buffer1 = endpoint
         .process_program_buffer_new(
             &payer,
             &program_bytecode,
@@ -31,14 +32,14 @@ pub async fn run() {
     endpoint
         .process_program_buffer_close(
             &payer,
-            &program_buffer,
+            &program_buffer1,
             &program_authority,
             &spill,
         )
         .await
         .unwrap();
     // Recreate another buffer
-    let program_buffer = endpoint
+    let program_buffer2 = endpoint
         .process_program_buffer_new(
             &payer,
             &program_bytecode,
@@ -51,7 +52,7 @@ pub async fn run() {
         .process_program_deploy(
             &payer,
             &program_id,
-            &program_buffer,
+            &program_buffer2,
             &program_authority,
             program_bytecode.len(),
         )
@@ -66,10 +67,10 @@ pub async fn run() {
             .unwrap()
             .unwrap()
     );
-    // Wait a block to be able to re-deploy
-    endpoint.forward_clock_slot(1).await.unwrap();
+    // Wait a bit to be able to re-deploy
+    endpoint.forward_clock_slot(10).await.unwrap();
     // Recreate another buffer
-    let program_buffer = endpoint
+    let program_buffer3 = endpoint
         .process_program_buffer_new(
             &payer,
             &program_bytecode,
@@ -82,7 +83,7 @@ pub async fn run() {
         .process_program_upgrade(
             &payer,
             &program_id.pubkey(),
-            &program_buffer,
+            &program_buffer3,
             &program_authority,
             &spill,
         )
@@ -97,4 +98,17 @@ pub async fn run() {
             .unwrap()
             .unwrap()
     );
+    // Wait a block to be able to re-deploy
+    endpoint.forward_clock_slot(10).await.unwrap();
+    // Close the whole program
+    endpoint
+        .process_program_close(
+            &payer,
+            &program_id.pubkey(),
+            &program_buffer3,
+            &program_authority,
+            &spill,
+        )
+        .await
+        .unwrap();
 }

@@ -3,8 +3,7 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
-    let mut endpoint =
-        ToolboxEndpoint::new_program_test().await;
+    let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Read the initial clock sysvar
     let clock_01 = endpoint.get_sysvar_clock().await.unwrap();
     // Forward by some timestamp duration

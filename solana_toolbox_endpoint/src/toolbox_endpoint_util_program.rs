@@ -2,6 +2,7 @@ use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::bpf_loader_upgradeable::close_any;
 use solana_sdk::bpf_loader_upgradeable::create_buffer;
 use solana_sdk::bpf_loader_upgradeable::deploy_with_max_program_len;
+use solana_sdk::bpf_loader_upgradeable::extend_program;
 use solana_sdk::bpf_loader_upgradeable::set_buffer_authority;
 use solana_sdk::bpf_loader_upgradeable::upgrade;
 use solana_sdk::bpf_loader_upgradeable::write;
@@ -53,9 +54,11 @@ impl ToolboxEndpoint {
                         .to_vec(),
                 ))
             },
-            _ => Err(ToolboxEndpointError::Custom(
-                "Unsupported program owner".to_string(),
-            )),
+            _ => {
+                Err(ToolboxEndpointError::Custom(
+                    "Unsupported program owner".to_string(),
+                ))
+            },
         }
     }
 
@@ -126,7 +129,28 @@ impl ToolboxEndpoint {
         Ok(program_buffer.pubkey())
     }
 
-     // TODO - provide 1 function call for deploy too
+    pub async fn process_program_buffer_close(
+        &mut self,
+        payer: &Keypair,
+        program_buffer: &Pubkey,
+        program_authority: &Keypair,
+        spill: &Pubkey,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let program_authority_address = &program_authority.pubkey();
+        let instruction_close = close_any(
+            program_buffer,
+            spill,
+            Some(program_authority_address),
+            None,
+        );
+        self.process_instruction_with_signers(
+            instruction_close,
+            payer,
+            &[&program_authority],
+        )
+        .await
+    }
+
     pub async fn process_program_deploy(
         &mut self,
         payer: &Keypair,
@@ -155,7 +179,6 @@ impl ToolboxEndpoint {
         .await
     }
 
-     // TODO - provide 1 function call for upgrade too
     pub async fn process_program_upgrade(
         &mut self,
         payer: &Keypair,
@@ -178,9 +201,26 @@ impl ToolboxEndpoint {
         .await
     }
 
-    pub async fn process_program_buffer_close(
+    pub async fn process_program_extend(
         &mut self,
         payer: &Keypair,
+        program_id: &Pubkey,
+        program_extra_len: usize,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction_extend = extend_program(
+            program_id,
+            Some(&payer.pubkey()),
+            u32::try_from(program_extra_len)
+                .map_err(ToolboxEndpointError::TryFromInt)?,
+        );
+        self.process_instruction(instruction_extend, payer).await
+    }
+
+    // TODO - for some reason I can't seem to make this work
+    pub async fn process_program_close(
+        &mut self,
+        payer: &Keypair,
+        program_id: &Pubkey,
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
@@ -190,7 +230,7 @@ impl ToolboxEndpoint {
             program_buffer,
             spill,
             Some(program_authority_address),
-            None,
+            Some(program_id),
         );
         self.process_instruction_with_signers(
             instruction_close,
@@ -200,5 +240,56 @@ impl ToolboxEndpoint {
         .await
     }
 
-    // TODO - ability to close programs
+    pub async fn process_program_create(
+        &mut self,
+        payer: &Keypair,
+        program_id: &Keypair,
+        program_authority: &Keypair,
+        program_bytecode: &[u8],
+    ) -> Result<(), ToolboxEndpointError> {
+        let program_buffer = self
+            .process_program_buffer_new(
+                payer,
+                program_bytecode,
+                &program_authority.pubkey(),
+            )
+            .await?;
+        self.process_program_deploy(
+            payer,
+            program_id,
+            &program_buffer,
+            program_authority,
+            program_bytecode.len(),
+        )
+        .await?;
+        // TODO - should be able to close the buffer ?
+        Ok(())
+    }
+
+    pub async fn process_program_override(
+        &mut self,
+        payer: &Keypair,
+        program_id: &Pubkey,
+        program_authority: &Keypair,
+        program_bytecode: &[u8],
+        spill: &Pubkey,
+    ) -> Result<(), ToolboxEndpointError> {
+        let program_buffer = self
+            .process_program_buffer_new(
+                payer,
+                program_bytecode,
+                &program_authority.pubkey(),
+            )
+            .await?;
+        self.process_program_upgrade(
+            payer,
+            program_id,
+            &program_buffer,
+            program_authority,
+            spill,
+        )
+        .await?;
+        // TODO - should be able to close the buffer ?
+        Ok(())
+    }
 }
