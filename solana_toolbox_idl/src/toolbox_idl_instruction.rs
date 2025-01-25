@@ -11,14 +11,17 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
+type AddressesByName = HashMap<String, Pubkey>;
+type ValuesByName = Map<String, Value>;
+
 impl ToolboxIdl {
     pub async fn resolve_instruction(
         &self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
         instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
-        instruction_args: &Map<String, Value>,
+        instruction_accounts_addresses: &AddressesByName,
+        instruction_args: &ValuesByName,
     ) -> Result<Instruction, ToolboxIdlError> {
         let mut instruction_accounts_addresses =
             instruction_accounts_addresses.clone();
@@ -83,8 +86,8 @@ impl ToolboxIdl {
         &self,
         program_id: &Pubkey,
         instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
-        instruction_args: &Map<String, Value>,
+        instruction_accounts_addresses: &AddressesByName,
+        instruction_args: &ValuesByName,
     ) -> Result<Instruction, ToolboxIdlError> {
         let instruction_accounts = self.generate_instruction_accounts(
             instruction_name,
@@ -102,7 +105,7 @@ impl ToolboxIdl {
     pub fn parse_instruction(
         &self,
         instruction: &Instruction,
-    ) -> Result<(HashMap<String, Pubkey>, Map<String, Value>), ToolboxIdlError>
+    ) -> Result<(AddressesByName, ValuesByName), ToolboxIdlError>
     {
         let instruction_name = idl_ok_or_else(
             self.guess_instruction_name(&instruction.data),

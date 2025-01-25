@@ -29,6 +29,13 @@ tasks:
       - task lint_idl
       - task lint_anchor
 
+  # Publish to cargo
+  publish:
+    cmds:
+      - task publish_endpoint
+      - task publish_idl
+      - task publish_anchor
+
   # Sub-crate Endpoint
   fmt_endpoint:
     dir: "{{ .TASKFILE_DIR }}/solana_toolbox_endpoint"
@@ -130,8 +137,3 @@ tasks:
       - git add Cargo.lock
       - git commit -m "publish-anchor" --allow-empty
       - cargo publish
-  publish:
-    cmds:
-      - task publish_endpoint
-      - task publish_idl
-      - task publish_anchor

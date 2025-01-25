@@ -59,11 +59,11 @@ impl ToolboxIdl {
         endpoint: &mut ToolboxEndpoint,
         account_address: &Pubkey,
     ) -> Result<Option<Value>, ToolboxIdlError> {
-        Ok(endpoint
+        endpoint
             .get_account(account_address)
             .await?
             .map(|account| self.parse_account_value(&account.data))
-            .transpose()?)
+            .transpose()
     }
 
     pub fn parse_account_value(
@@ -71,11 +71,11 @@ impl ToolboxIdl {
         account_data: &[u8],
     ) -> Result<Value, ToolboxIdlError> {
         let account_name = idl_ok_or_else(
-            self.guess_account_name(&account_data),
+            self.guess_account_name(account_data),
             "Could not guess account name",
             &ToolboxIdlBreadcrumbs::default().as_val("account_name"),
         )?;
-        Ok(self.decompile_account(account_name, &account_data)?.1)
+        Ok(self.decompile_account(account_name, account_data)?.1)
     }
 
     pub fn decompile_account(
