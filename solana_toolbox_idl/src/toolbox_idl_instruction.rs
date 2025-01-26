@@ -58,7 +58,6 @@ impl ToolboxIdl {
         })
     }
 
-    // TODO - should this take name as parameter ?
     pub fn decompile_instruction(
         &self,
         instruction: &Instruction,
@@ -71,14 +70,9 @@ impl ToolboxIdl {
         Ok(ToolboxIdlInstruction {
             program_id: instruction.program_id,
             name: instruction_name.to_string(),
-            accounts_addresses: self.decompile_instruction_accounts_addresses(
-                instruction_name,
-                instruction,
-            )?,
-            args: self.decompile_instruction_data(
-                instruction_name,
-                &instruction.data,
-            )?,
+            accounts_addresses: self
+                .decompile_instruction_accounts_addresses(instruction)?,
+            args: self.decompile_instruction_data(&instruction.data)?,
         })
     }
 }

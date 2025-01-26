@@ -7,6 +7,7 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdl {
     pub fn compile_instruction_data(
@@ -47,10 +48,14 @@ impl ToolboxIdl {
 
     pub fn decompile_instruction_data(
         &self,
-        instruction_name: &str,
         instruction_data: &[u8],
     ) -> Result<Map<String, Value>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let instruction_name = idl_ok_or_else(
+            self.guess_instruction_name(instruction_data),
+            "Could not guess instruction name",
+            &breadcrumbs.as_val("instruction_name"),
+        )?;
         let discriminator = idl_map_get_key_or_else(
             &self.instructions_discriminators,
             instruction_name,

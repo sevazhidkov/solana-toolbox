@@ -34,7 +34,6 @@ pub async fn run() {
     assert_eq!(
         &instruction_args_value,
         &idl.decompile_instruction_data(
-            "campaign_create",
             &idl.compile_instruction_data(
                 "campaign_create",
                 &instruction_args_value
@@ -71,11 +70,7 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         account,
-        idl.decompile_account(
-            "Campaign",
-            &idl.compile_account(&account).unwrap()
-        )
-        .unwrap()
+        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
     );
     // Prepare an account contents
     let account = ToolboxIdlAccount {
@@ -89,10 +84,6 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         account,
-        idl.decompile_account(
-            "Pledge",
-            &idl.compile_account(&account).unwrap()
-        )
-        .unwrap()
+        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
     );
 }

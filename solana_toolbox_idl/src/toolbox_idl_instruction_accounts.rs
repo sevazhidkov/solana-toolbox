@@ -186,18 +186,22 @@ impl ToolboxIdl {
         Ok(account_metas)
     }
 
-    // TODO - naming convention here ? there's no matching compile ?
     pub fn decompile_instruction_accounts_addresses(
         &self,
-        instruction_name: &str,
         instruction: &Instruction,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let instruction_name = idl_ok_or_else(
+            self.guess_instruction_name(&instruction.data),
+            "Could not guess instruction name",
+            &breadcrumbs.as_val("instruction_name"),
+        )?;
         let instruction_accounts_names =
             self.list_instruction_accounts_names(instruction_name)?;
         if instruction_accounts_names.len() != instruction.accounts.len() {
             return idl_err(
                 "Invalid instruction accounts length",
-                &ToolboxIdlBreadcrumbs::default().val(),
+                &breadcrumbs.val(),
             );
         }
         let mut instruction_accounts_addresses = HashMap::new();

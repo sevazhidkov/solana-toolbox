@@ -46,8 +46,7 @@ pub async fn run() {
     // Decompile the instruction args and check that they match the original
     assert_eq!(
         instruction_args_value.as_object().unwrap(),
-        &idl.decompile_instruction_data("initializeMarket", instruction_data)
-            .unwrap()
+        &idl.decompile_instruction_data(instruction_data).unwrap()
     );
     // Prepare an account contents
     let account = ToolboxIdlAccount {
@@ -87,11 +86,7 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         account,
-        idl.decompile_account(
-            "GlobalMarketState",
-            &idl.compile_account(&account).unwrap()
-        )
-        .unwrap()
+        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
     );
     // Prepare an account contents
     let account = ToolboxIdlAccount {
@@ -116,10 +111,6 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         account,
-        idl.decompile_account(
-            "ProgramState",
-            &idl.compile_account(&account).unwrap()
-        )
-        .unwrap()
+        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
     );
 }

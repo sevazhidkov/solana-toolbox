@@ -30,12 +30,12 @@ impl ToolboxIdl {
             accounts_addresses.push(*account_address);
         }
         let mut accounts_by_name = HashMap::new();
-        for (account_name, account_info) in accounts_names
+        for (account_name, account) in accounts_names
             .into_iter()
             .zip(endpoint.get_accounts(&accounts_addresses).await?)
         {
             if let Some(Ok(account)) =
-                account_info.map(|account| self.parse_account(&account.data))
+                account.map(|account| self.decompile_account(&account.data))
             {
                 accounts_by_name.insert(account_name.to_string(), account);
             }
@@ -51,7 +51,7 @@ impl ToolboxIdl {
         let mut accounts = vec![];
         for account in endpoint.get_accounts(accounts_addresses).await? {
             let account = account
-                .map(|account| self.parse_account(&account.data))
+                .map(|account| self.decompile_account(&account.data))
                 .transpose()?;
             accounts.push(account);
         }
@@ -66,29 +66,46 @@ impl ToolboxIdl {
         endpoint
             .get_account(account_address)
             .await?
-            .map(|account| self.parse_account(&account.data))
+            .map(|account| self.decompile_account(&account.data))
             .transpose()
     }
 
-    pub fn parse_account(
+    pub fn compile_account(
         &self,
-        account_data: &[u8],
-    ) -> Result<ToolboxIdlAccount, ToolboxIdlError> {
-        let account_name = idl_ok_or_else(
-            self.guess_account_name(account_data),
-            "Could not guess account name",
-            &ToolboxIdlBreadcrumbs::default().as_val("account_name"),
+        account: &ToolboxIdlAccount,
+    ) -> Result<Vec<u8>, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let discriminator = idl_map_get_key_or_else(
+            &self.accounts_discriminators,
+            &account.name,
+            &breadcrumbs.as_idl("accounts_discriminators"),
         )?;
-        self.decompile_account(account_name, account_data)
+        let mut account_data = vec![];
+        account_data.extend_from_slice(discriminator);
+        let idl_account_type = idl_object_get_key_or_else(
+            &self.accounts_types,
+            &account.name,
+            &breadcrumbs.as_idl("accounts_types"),
+        )?;
+        self.type_serialize(
+            idl_account_type,
+            &account.value,
+            &mut account_data,
+            &breadcrumbs.with_idl(&account.name),
+        )?;
+        Ok(account_data)
     }
 
-    // TODO - clarify compile/decompile API naming (and parse?)
     pub fn decompile_account(
         &self,
-        account_name: &str,
         account_data: &[u8],
     ) -> Result<ToolboxIdlAccount, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let account_name = idl_ok_or_else(
+            self.guess_account_name(account_data),
+            "Could not guess account name",
+            &breadcrumbs.as_val("account_name"),
+        )?;
         let discriminator = idl_map_get_key_or_else(
             &self.accounts_discriminators,
             account_name,
@@ -116,32 +133,6 @@ impl ToolboxIdl {
             name: account_name.to_string(),
             value: data_content_value,
         })
-    }
-
-    pub fn compile_account(
-        &self,
-        account: &ToolboxIdlAccount,
-    ) -> Result<Vec<u8>, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let discriminator = idl_map_get_key_or_else(
-            &self.accounts_discriminators,
-            &account.name,
-            &breadcrumbs.as_idl("accounts_discriminators"),
-        )?;
-        let mut account_data = vec![];
-        account_data.extend_from_slice(discriminator);
-        let idl_account_type = idl_object_get_key_or_else(
-            &self.accounts_types,
-            &account.name,
-            &breadcrumbs.as_idl("accounts_types"),
-        )?;
-        self.type_serialize(
-            idl_account_type,
-            &account.value,
-            &mut account_data,
-            &breadcrumbs.with_idl(&account.name),
-        )?;
-        Ok(account_data)
     }
 
     pub fn guess_account_name(
