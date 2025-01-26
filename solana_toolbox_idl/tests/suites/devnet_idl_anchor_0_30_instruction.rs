@@ -29,13 +29,16 @@ pub async fn run() {
     let campaign = idl
         .find_instruction_account_address(
             "campaign",
-            &program_id,
-            "campaign_create",
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "campaign_create".to_string(),
+                accounts_addresses: HashMap::from_iter([]),
+                args: Map::from_iter([(
+                    "params".to_string(),
+                    json!({ "index": campaign_index }),
+                )]),
+            },
             &HashMap::from_iter([]),
-            json!({}).as_object().unwrap(),
-            json!({ "params": { "index": campaign_index } })
-                .as_object()
-                .unwrap(),
         )
         .unwrap();
     // Make sure the proper account has been properly resolved

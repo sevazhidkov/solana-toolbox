@@ -2,8 +2,11 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
+use serde_json::Map;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlAccount;
+use solana_toolbox_idl::ToolboxIdlInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -68,35 +71,35 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let initialize_market_accounts = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "initializeMarket",
-            &HashMap::from([
-                ("owner".to_string(), owner),
-                (
-                    "liquidityPoolTokenAccount".to_string(),
-                    liquidity_pool_token_account,
-                ),
-                ("treasury".to_string(), treasury),
-                (
-                    "treasuryPoolTokenAccount".to_string(),
-                    treasury_pool_token_account,
-                ),
-                ("baseTokenMint".to_string(), base_token_mint),
-                ("associatedTokenProgram".to_string(), placeholder),
-                ("rent".to_string(), placeholder),
-                ("tokenProgram".to_string(), placeholder),
-                ("systemProgram".to_string(), placeholder),
-            ]),
-            json!({}).as_object().unwrap(),
-            json!({
-                "globalMarketSeed": global_market_seed.to_string(),
-            })
-            .as_object()
-            .unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "initializeMarket".to_string(),
+                accounts_addresses: HashMap::from([
+                    ("owner".to_string(), owner),
+                    (
+                        "liquidityPoolTokenAccount".to_string(),
+                        liquidity_pool_token_account,
+                    ),
+                    ("treasury".to_string(), treasury),
+                    (
+                        "treasuryPoolTokenAccount".to_string(),
+                        treasury_pool_token_account,
+                    ),
+                    ("baseTokenMint".to_string(), base_token_mint),
+                    ("associatedTokenProgram".to_string(), placeholder),
+                    ("rent".to_string(), placeholder),
+                    ("tokenProgram".to_string(), placeholder),
+                    ("systemProgram".to_string(), placeholder),
+                ]),
+                args: Map::from_iter([(
+                    "globalMarketSeed".to_string(),
+                    json!(global_market_seed.to_string()),
+                )]),
+            },
+            &HashMap::from_iter([]),
         )
         .unwrap();
     // Check the outcomes
-    eprintln!("initialize_market_accounts: {:#?}", initialize_market_accounts);
     assert_eq!(
         global_market_state,
         *initialize_market_accounts.get("globalMarketState").unwrap()
@@ -120,29 +123,31 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let open_deal_accounts = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "openDeal",
-            &HashMap::from([
-                ("owner".to_string(), owner),
-                ("globalMarketState".to_string(), global_market_state),
-            ]),
-            json!({
-                "deal": {
-                    "dealNumber": deal_number,
-                    "borrower": borrower.to_string()
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "openDeal".to_string(),
+                accounts_addresses: HashMap::from([
+                    ("owner".to_string(), owner),
+                    ("globalMarketState".to_string(), global_market_state),
+                ]),
+                args: Map::from_iter([(
+                    "globalMarketSeed".to_string(),
+                    json!(global_market_seed.to_string()),
+                )]),
+            },
+            &HashMap::from_iter([(
+                "deal".to_string(),
+                ToolboxIdlAccount {
+                    name: "Deal".to_string(),
+                    value: json!({
+                        "dealNumber": deal_number,
+                        "borrower": borrower.to_string()
+                    }),
                 },
-            })
-            .as_object()
-            .unwrap(),
-            json!({
-                "globalMarketSeed": global_market_seed.to_string(),
-            })
-            .as_object()
-            .unwrap(),
+            )]),
         )
         .unwrap();
     // Check the outcomes
-    eprintln!("open_deal_accounts: {:#?}", open_deal_accounts);
     assert_eq!(market_admins, *open_deal_accounts.get("marketAdmins").unwrap());
     assert_eq!(deal, *open_deal_accounts.get("deal").unwrap());
     assert_eq!(deal_tranches, *open_deal_accounts.get("dealTranches").unwrap());

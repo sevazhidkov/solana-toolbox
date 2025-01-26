@@ -40,8 +40,9 @@ pub async fn run() {
     for index in 0..512 {
         instruction_args_metadata_bytes.push(Value::from(index % 100));
     }
-    let instruction_args_value = json!({
-        "params": {
+    let instruction_args_value = Map::from_iter([(
+        "params".to_string(),
+        json!({
             "index": 11,
             "funding_goal_collateral_amount": 41,
             "funding_phase_duration_seconds": 42,
@@ -49,16 +50,18 @@ pub async fn run() {
                 "length": 22,
                 "bytes": instruction_args_metadata_bytes,
             }
-        },
-    });
+        }),
+    )]);
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "campaign_create",
-            &instruction_accounts_addresses,
-            &Map::new(),
-            instruction_args_value.as_object().unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "campaign_create".to_string(),
+                accounts_addresses: instruction_accounts_addresses.clone(),
+                args: instruction_args_value.clone(),
+            },
+            &HashMap::from_iter([]),
         )
         .unwrap();
     // Actually generate the instruction
@@ -66,8 +69,8 @@ pub async fn run() {
         .compile_instruction(&ToolboxIdlInstruction {
             program_id,
             name: "campaign_create".to_string(),
-            accounts_addresses: instruction_accounts_addresses,
-            args: instruction_args_value.as_object().unwrap().clone(),
+            accounts_addresses: instruction_accounts_addresses.clone(),
+            args: instruction_args_value.clone(),
         })
         .unwrap();
     // Generate expected accounts

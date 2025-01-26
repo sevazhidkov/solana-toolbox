@@ -22,29 +22,28 @@ pub async fn run() {
     // Read the global market state content using the IDL
     let global_market_state_address =
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;
-    eprintln!("global_market_state_address: {:?}", global_market_state_address);
-    let global_market_state_value = idl
-        .get_account_value(&mut endpoint, &global_market_state_address)
+    let global_market_state = idl
+        .get_account(&mut endpoint, &global_market_state_address)
         .await
         .unwrap()
         .unwrap();
-    println!("global_market_state_value: {:?}", global_market_state_value);
+    assert_eq!("GlobalMarketState", global_market_state.name);
     assert_eq!(
         "credix-marketplace",
-        global_market_state_value.get("seed").unwrap().as_str().unwrap()
+        global_market_state.value.get("seed").unwrap().as_str().unwrap()
     );
     // Read the program state content using the IDL
     let program_state_address =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
-    let program_state_value = idl
-        .get_account_value(&mut endpoint, &program_state_address)
+    let program_state = idl
+        .get_account(&mut endpoint, &program_state_address)
         .await
         .unwrap()
         .unwrap();
-    println!("program_state_value: {:?}", program_state_value);
+    assert_eq!("ProgramState", program_state.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        program_state_value.get("credixMultisigKey").unwrap().as_str().unwrap()
+        program_state.value.get("credixMultisigKey").unwrap().as_str().unwrap()
     );
     // Read the market admins content using the IDL
     let market_admins_address = Pubkey::find_program_address(
@@ -52,14 +51,14 @@ pub async fn run() {
         &program_id,
     )
     .0;
-    let market_admins_value = idl
-        .get_account_value(&mut endpoint, &market_admins_address)
+    let market_admins = idl
+        .get_account(&mut endpoint, &market_admins_address)
         .await
         .unwrap()
         .unwrap();
-    println!("market_admins_value: {:?}", market_admins_value);
+    assert_eq!("MarketAdmins", market_admins.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        market_admins_value.get("multisig").unwrap().as_str().unwrap()
+        market_admins.value.get("multisig").unwrap().as_str().unwrap()
     );
 }

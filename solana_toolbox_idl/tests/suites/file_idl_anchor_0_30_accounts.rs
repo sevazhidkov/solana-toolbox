@@ -2,9 +2,12 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
+use serde_json::Map;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlAccount;
+use solana_toolbox_idl::ToolboxIdlInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -48,18 +51,21 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let campaign_create_accounts = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "campaign_create",
-            &HashMap::from([
-                ("payer".to_string(), payer),
-                ("authority".to_string(), authority),
-                ("collateral_mint".to_string(), collateral_mint),
-                ("redeemable_mint".to_string(), redeemable_mint),
-            ]),
-            json!({}).as_object().unwrap(),
-            json!({ "params": { "index": campaign_index } })
-                .as_object()
-                .unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "campaign_create".to_string(),
+                accounts_addresses: HashMap::from([
+                    ("payer".to_string(), payer),
+                    ("authority".to_string(), authority),
+                    ("collateral_mint".to_string(), collateral_mint),
+                    ("redeemable_mint".to_string(), redeemable_mint),
+                ]),
+                args: Map::from_iter([(
+                    "params".to_string(),
+                    json!({ "index": campaign_index }),
+                )]),
+            },
+            &HashMap::from_iter([]),
         )
         .unwrap();
     // Check outcome
@@ -71,20 +77,26 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let campaign_extract_accounts = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "campaign_extract",
-            &HashMap::from([
-                ("payer".to_string(), payer),
-                ("authority".to_string(), authority),
-                ("authority_collateral".to_string(), authority_collateral),
-                ("campaign".to_string(), campaign),
-            ]),
-            json!({
-                "campaign": { "collateral_mint": collateral_mint.to_string() }
-            })
-            .as_object()
-            .unwrap(),
-            json!({ "params": {} }).as_object().unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "campaign_extract".to_string(),
+                accounts_addresses: HashMap::from([
+                    ("payer".to_string(), payer),
+                    ("authority".to_string(), authority),
+                    ("authority_collateral".to_string(), authority_collateral),
+                    ("campaign".to_string(), campaign),
+                ]),
+                args: Map::from_iter([("params".to_string(), json!({}))]),
+            },
+            &HashMap::from_iter([(
+                "campaign".to_string(),
+                ToolboxIdlAccount {
+                    name: "Campaign".to_string(),
+                    value: json!({
+                        "collateral_mint": collateral_mint.to_string()
+                    }),
+                },
+            )]),
         )
         .unwrap();
     // Check outcome
@@ -95,15 +107,17 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let pledge_create_accounts = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "pledge_create",
-            &HashMap::from([
-                ("payer".to_string(), payer),
-                ("user".to_string(), user),
-                ("campaign".to_string(), campaign),
-            ]),
-            json!({}).as_object().unwrap(),
-            json!({ "params": {} }).as_object().unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "pledge_create".to_string(),
+                accounts_addresses: HashMap::from([
+                    ("payer".to_string(), payer),
+                    ("user".to_string(), user),
+                    ("campaign".to_string(), campaign),
+                ]),
+                args: Map::from_iter([("params".to_string(), json!({}))]),
+            },
+            &HashMap::from_iter([]),
         )
         .unwrap();
     // Check outcome
@@ -111,20 +125,26 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let pledge_deposit_accounts = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "pledge_deposit",
-            &HashMap::from([
-                ("payer".to_string(), payer),
-                ("user".to_string(), user),
-                ("user_collateral".to_string(), user_collateral),
-                ("campaign".to_string(), campaign),
-            ]),
-            json!({
-                "campaign": { "collateral_mint": collateral_mint.to_string() }
-            })
-            .as_object()
-            .unwrap(),
-            json!({ "params": {} }).as_object().unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "pledge_deposit".to_string(),
+                accounts_addresses: HashMap::from([
+                    ("payer".to_string(), payer),
+                    ("user".to_string(), user),
+                    ("user_collateral".to_string(), user_collateral),
+                    ("campaign".to_string(), campaign),
+                ]),
+                args: Map::from_iter([("params".to_string(), json!({}))]),
+            },
+            &HashMap::from_iter([(
+                "campaign".to_string(),
+                ToolboxIdlAccount {
+                    name: "Campaign".to_string(),
+                    value: json!({
+                        "collateral_mint": collateral_mint.to_string()
+                    }),
+                },
+            )]),
         )
         .unwrap();
     // Check outcome

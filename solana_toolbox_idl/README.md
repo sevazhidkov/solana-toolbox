@@ -65,7 +65,7 @@ Once we have our IDL object `ToolboxIdl` instanciated we can use it for various 
 ```rust
 // We can fetch an account state and parse it into a JSON object
 let my_account_value = idl
-    .get_account_value(&mut endpoint, &my_account_address)
+    .get_account(&mut endpoint, &my_account_address)
     .await
     .unwrap()
     .unwrap();

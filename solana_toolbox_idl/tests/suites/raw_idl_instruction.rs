@@ -43,7 +43,7 @@ pub async fn run() {
     assert_eq!(
         instruction,
         idl.decompile_instruction(
-            &idl.compile_instruction(&instruction,).unwrap()
+            &idl.compile_instruction(&instruction).unwrap()
         )
         .unwrap()
     );

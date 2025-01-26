@@ -25,31 +25,31 @@ pub async fn run() {
     let campaign_address = campaign_pda.0;
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
-    let campaign_data_value = idl
-        .get_account_value(&mut endpoint, &campaign_address)
+    let campaign = idl
+        .get_account(&mut endpoint, &campaign_address)
         .await
         .unwrap()
         .unwrap();
-    eprintln!("campaign_data_value: {:?}", campaign_data_value);
     // Check that the account was parsed properly and values matches
+    assert_eq!("Campaign", campaign.name);
     assert_eq!(
         u64::from(campaign_bump),
-        campaign_data_value.get("bump").unwrap().as_u64().unwrap()
+        campaign.value.get("bump").unwrap().as_u64().unwrap()
     );
     assert_eq!(
         campaign_index,
-        campaign_data_value.get("index").unwrap().as_u64().unwrap()
+        campaign.value.get("index").unwrap().as_u64().unwrap()
     );
     assert_eq!(
         "Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9",
-        campaign_data_value.get("authority").unwrap().as_str().unwrap()
+        campaign.value.get("authority").unwrap().as_str().unwrap()
     );
     assert_eq!(
         "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
-        campaign_data_value.get("collateral_mint").unwrap().as_str().unwrap()
+        campaign.value.get("collateral_mint").unwrap().as_str().unwrap()
     );
     assert_eq!(
         "3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9",
-        campaign_data_value.get("redeemable_mint").unwrap().as_str().unwrap()
+        campaign.value.get("redeemable_mint").unwrap().as_str().unwrap()
     );
 }

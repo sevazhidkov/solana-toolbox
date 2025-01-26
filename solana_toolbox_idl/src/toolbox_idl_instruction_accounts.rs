@@ -12,8 +12,10 @@ use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
@@ -31,69 +33,7 @@ use crate::toolbox_idl_utils::idl_ok_or_else;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
 impl ToolboxIdl {
-    pub async fn resolve_instruction_accounts_addresses(
-        &self,
-        endpoint: &mut ToolboxEndpoint,
-        program_id: &Pubkey,
-        instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
-        instruction_args: &Map<String, Value>,
-    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
-        let mut instruction_accounts_addresses =
-            instruction_accounts_addresses.clone();
-        let mut instruction_accounts_values = self
-            .get_accounts_values_by_name(
-                endpoint,
-                &instruction_accounts_addresses,
-            )
-            .await?;
-        let instruction_accounts_names =
-            self.get_instruction_accounts_names(instruction_name)?;
-        loop {
-            let mut made_progress = false;
-            for instruction_account_name in &instruction_accounts_names {
-                if instruction_accounts_addresses
-                    .contains_key(instruction_account_name)
-                {
-                    continue;
-                }
-                if let Ok(instruction_account_address) = self
-                    .find_instruction_account_address(
-                        instruction_account_name,
-                        program_id,
-                        instruction_name,
-                        &instruction_accounts_addresses,
-                        &instruction_accounts_values,
-                        instruction_args,
-                    )
-                {
-                    made_progress = true;
-                    instruction_accounts_addresses.insert(
-                        instruction_account_name.to_string(),
-                        instruction_account_address,
-                    );
-                    if let Ok(Some(instruction_account_value)) = self
-                        .get_account_value(
-                            endpoint,
-                            &instruction_account_address,
-                        )
-                        .await
-                    {
-                        instruction_accounts_values.insert(
-                            instruction_account_name.to_string(),
-                            instruction_account_value,
-                        );
-                    }
-                }
-            }
-            if !made_progress {
-                break;
-            }
-        }
-        Ok(instruction_accounts_addresses)
-    }
-
-    pub fn get_instruction_accounts_names(
+    pub fn list_instruction_accounts_names(
         &self,
         instruction_name: &str,
     ) -> Result<Vec<String>, ToolboxIdlError> {
@@ -111,18 +51,65 @@ impl ToolboxIdl {
         Ok(instruction_accounts_names)
     }
 
-    pub fn find_instruction_accounts_addresses(
+    pub async fn resolve_instruction_accounts_addresses(
         &self,
-        program_id: &Pubkey,
-        instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
-        instruction_accounts_values: &Map<String, Value>,
-        instruction_args: &Map<String, Value>,
+        endpoint: &mut ToolboxEndpoint,
+        instruction: &ToolboxIdlInstruction,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         let mut instruction_accounts_addresses =
-            instruction_accounts_addresses.clone();
+            instruction.accounts_addresses.clone();
+        let mut instruction_accounts = self
+            .get_accounts_by_name(endpoint, &instruction_accounts_addresses)
+            .await?;
+        let instruction_accounts_names =
+            self.list_instruction_accounts_names(&instruction.name)?;
+        loop {
+            let mut made_progress = false;
+            for instruction_account_name in &instruction_accounts_names {
+                if instruction_accounts_addresses
+                    .contains_key(instruction_account_name)
+                {
+                    continue;
+                }
+                if let Ok(instruction_account_address) = self
+                    .find_instruction_account_address(
+                        instruction_account_name,
+                        instruction,
+                        &instruction_accounts,
+                    )
+                {
+                    made_progress = true;
+                    instruction_accounts_addresses.insert(
+                        instruction_account_name.to_string(),
+                        instruction_account_address,
+                    );
+                    if let Ok(Some(instruction_account)) = self
+                        .get_account(endpoint, &instruction_account_address)
+                        .await
+                    {
+                        instruction_accounts.insert(
+                            instruction_account_name.to_string(),
+                            instruction_account,
+                        );
+                    }
+                }
+            }
+            if !made_progress {
+                break;
+            }
+        }
+        Ok(instruction_accounts_addresses)
+    }
+
+    pub fn find_instruction_accounts_addresses(
+        &self,
+        instruction: &ToolboxIdlInstruction,
+        instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
+    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+        let mut instruction_accounts_addresses =
+            instruction.accounts_addresses.clone();
         for instruction_account_name in
-            self.get_instruction_accounts_names(instruction_name)?
+            self.list_instruction_accounts_names(&instruction.name)?
         {
             if !instruction_accounts_addresses
                 .contains_key(&instruction_account_name)
@@ -131,11 +118,8 @@ impl ToolboxIdl {
                     instruction_account_name.to_string(),
                     self.find_instruction_account_address(
                         &instruction_account_name,
-                        program_id,
-                        instruction_name,
-                        &instruction_accounts_addresses,
-                        instruction_accounts_values,
-                        instruction_args,
+                        instruction,
+                        instruction_accounts,
                     )?,
                 );
             }
@@ -146,42 +130,33 @@ impl ToolboxIdl {
     pub fn find_instruction_account_address(
         &self,
         account_name: &str,
-        program_id: &Pubkey,
-        instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
-        instruction_accounts_values: &Map<String, Value>,
-        instruction_args: &Map<String, Value>,
+        instruction: &ToolboxIdlInstruction,
+        instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
     ) -> Result<Pubkey, ToolboxIdlError> {
         idl_instruction_account_address_resolve(
             self,
             account_name,
-            &ToolboxIdlInstructionAccountsScope {
-                program_id,
-                instruction_name,
-                instruction_accounts_addresses,
-                instruction_accounts_values,
-                instruction_args,
-            },
+            instruction,
+            instruction_accounts,
             &ToolboxIdlBreadcrumbs::default(),
         )
     }
 
     pub fn compile_instruction_accounts(
         &self,
-        instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
+        instruction: &ToolboxIdlInstruction,
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut account_metas = vec![];
         for (idl_account_name, idl_account_object, breadcrumbs) in
             idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
-                instruction_name,
+                &instruction.name,
                 &breadcrumbs.with_idl("instruction_accounts"),
             )?
         {
             let instruction_account_address = *idl_map_get_key_or_else(
-                instruction_accounts_addresses,
+                &instruction.accounts_addresses,
                 idl_account_name,
                 &breadcrumbs.as_val("instruction_accounts_addresses"),
             )?;
@@ -211,13 +186,14 @@ impl ToolboxIdl {
         Ok(account_metas)
     }
 
+    // TODO - naming convention here ? there's no matching compile ?
     pub fn decompile_instruction_accounts_addresses(
         &self,
         instruction_name: &str,
         instruction: &Instruction,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         let instruction_accounts_names =
-            self.get_instruction_accounts_names(instruction_name)?;
+            self.list_instruction_accounts_names(instruction_name)?;
         if instruction_accounts_names.len() != instruction.accounts.len() {
             return idl_err(
                 "Invalid instruction accounts length",
@@ -239,24 +215,17 @@ impl ToolboxIdl {
     }
 }
 
-struct ToolboxIdlInstructionAccountsScope<'a> {
-    pub program_id: &'a Pubkey,
-    pub instruction_name: &'a str,
-    pub instruction_accounts_addresses: &'a HashMap<String, Pubkey>,
-    pub instruction_accounts_values: &'a Map<String, Value>,
-    pub instruction_args: &'a Map<String, Value>,
-}
-
 fn idl_instruction_account_address_resolve(
     idl: &ToolboxIdl,
     account_name: &str,
-    scope: &ToolboxIdlInstructionAccountsScope,
+    instruction: &ToolboxIdlInstruction,
+    instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Pubkey, ToolboxIdlError> {
     for (idl_account_name, idl_account_object, breadcrumbs) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
             &idl.instructions_accounts,
-            scope.instruction_name,
+            &instruction.name,
             &breadcrumbs.with_idl("instruction_accounts"),
         )?
     {
@@ -264,14 +233,15 @@ fn idl_instruction_account_address_resolve(
             == account_name.to_case(Case::Snake)
         {
             if let Some(instruction_accounts_address) =
-                scope.instruction_accounts_addresses.get(idl_account_name)
+                instruction.accounts_addresses.get(idl_account_name)
             {
                 return Ok(*instruction_accounts_address);
             }
             return idl_instruction_account_object_resolve(
                 idl,
                 idl_account_object,
-                scope,
+                instruction,
+                instruction_accounts,
                 &breadcrumbs,
             );
         }
@@ -282,7 +252,8 @@ fn idl_instruction_account_address_resolve(
 fn idl_instruction_account_object_resolve(
     idl: &ToolboxIdl,
     idl_account_object: &Map<String, Value>,
-    scope: &ToolboxIdlInstructionAccountsScope,
+    instruction: &ToolboxIdlInstruction,
+    instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Pubkey, ToolboxIdlError> {
     if let Some(idl_account_address) =
@@ -299,7 +270,7 @@ fn idl_instruction_account_object_resolve(
         idl_object_get_key_as_object(idl_account_object, "pda")
     {
         let mut pda_seeds_bytes = vec![];
-        let mut pda_program_id = *scope.program_id;
+        let mut pda_program_id = instruction.program_id;
         for (idl_account_seed_object, breadcrumbs) in
             idl_object_get_key_as_scoped_object_array_or_else(
                 idl_account_pda,
@@ -310,7 +281,8 @@ fn idl_instruction_account_object_resolve(
             let pda_seed_bytes = idl_blob_bytes(
                 idl,
                 idl_account_seed_object,
-                scope,
+                instruction,
+                instruction_accounts,
                 &breadcrumbs,
             )?;
             pda_seeds_bytes.push(pda_seed_bytes);
@@ -321,7 +293,8 @@ fn idl_instruction_account_object_resolve(
             let program_id_bytes = idl_blob_bytes(
                 idl,
                 idl_account_program_object,
-                scope,
+                instruction,
+                instruction_accounts,
                 &breadcrumbs.with_idl("program"),
             )?;
             pda_program_id = Pubkey::new_from_array(
@@ -347,7 +320,8 @@ fn idl_instruction_account_object_resolve(
 fn idl_blob_bytes(
     idl: &ToolboxIdl,
     idl_blob_object: &Map<String, Value>,
-    scope: &ToolboxIdlInstructionAccountsScope,
+    instruction: &ToolboxIdlInstruction,
+    instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let idl_blob_kind = idl_object_get_key_as_str_or_else(
@@ -387,40 +361,32 @@ fn idl_blob_bytes(
                 return idl_instruction_account_address_resolve(
                     idl,
                     idl_blob_path,
-                    scope,
+                    instruction,
+                    instruction_accounts,
                     breadcrumbs,
                 )
                 .map(|address| address.to_bytes().into());
             }
-            let idl_blob_account = idl_object_get_key_as_str_or_else(
-                idl_blob_object,
-                "account",
-                &breadcrumbs.as_idl("datadef(account)"),
+            let account_name = idl_blob_parts[0];
+            let account = idl_ok_or_else(
+                instruction_accounts.get(account_name).or_else(|| {
+                    instruction_accounts.get(&account_name.to_case(Case::Camel))
+                }),
+                "Missing account value",
+                &breadcrumbs.as_val(account_name),
+            )?;
+            let account_value_fields = idl_as_object_or_else(
+                &account.value,
+                &breadcrumbs.as_val(account_name),
             )?;
             let idl_blob_type = idl_object_get_key_or_else(
                 &idl.accounts_types,
-                idl_blob_account,
+                &account.name,
                 &breadcrumbs.as_idl("$idl_accounts_types"),
             )?;
             let idl_blob_struct = idl_as_object_or_else(
                 idl_blob_type,
                 &breadcrumbs.as_idl("datadef(type)"),
-            )?;
-            let account_name = idl_blob_parts[0];
-            let account_value = idl_ok_or_else(
-                scope.instruction_accounts_values.get(account_name).or_else(
-                    || {
-                        scope
-                            .instruction_accounts_values
-                            .get(&account_name.to_case(Case::Camel))
-                    },
-                ),
-                "Missing account value",
-                &breadcrumbs.as_val(account_name),
-            )?;
-            let account_value_fields = idl_as_object_or_else(
-                account_value,
-                &breadcrumbs.as_val(account_name),
             )?;
             idl_parts_to_bytes(
                 idl,
@@ -441,9 +407,9 @@ fn idl_blob_bytes(
             idl_parts_to_bytes(
                 idl,
                 &idl.instructions_args,
-                scope.instruction_name,
+                &instruction.name,
                 &idl_blob_parts,
-                scope.instruction_args,
+                &instruction.args,
                 &breadcrumbs.with_idl("arg"),
             )
         },

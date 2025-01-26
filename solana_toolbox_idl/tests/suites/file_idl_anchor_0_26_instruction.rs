@@ -4,6 +4,7 @@ use std::fs::read_to_string;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlInstruction;
 
 #[tokio::test]
@@ -21,12 +22,6 @@ pub async fn run() {
         ("globalMarketState".to_string(), Pubkey::new_unique()),
         ("systemProgram".to_string(), Pubkey::new_unique()),
     ]);
-    // Prepare instruction accounts values
-    let instruction_accounts_values = json!({
-        "borrowerInfo": {
-            "numOfDeals": 42,
-        }
-    });
     // Prepare instruction args
     let instruction_args_value = json!({
         "maxFundingDuration": 42,
@@ -41,21 +36,36 @@ pub async fn run() {
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &program_id,
-            "createDeal",
-            &instruction_accounts_addresses,
-            instruction_accounts_values.as_object().unwrap(),
-            instruction_args_value.as_object().unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "createDeal".to_string(),
+                accounts_addresses: instruction_accounts_addresses.clone(),
+                args: instruction_args_value.as_object().unwrap().clone(),
+            },
+            &HashMap::from_iter([(
+                "borrowerInfo".to_string(),
+                ToolboxIdlAccount {
+                    name: "BorrowerInfo".to_string(),
+                    value: json!({
+                        "numOfDeals": 42,
+                    }),
+                },
+            )]),
         )
         .unwrap();
-    // Compile the instruction
-    let instruction_data = &idl
-        .compile_instruction(&ToolboxIdlInstruction {
-            program_id,
-            name: "createDeal".to_string(),
-            accounts_addresses: instruction_accounts_addresses,
-            args: instruction_args_value.as_object().unwrap().clone(),
-        })
-        .unwrap();
-    eprintln!("instruction_data: {:?}", instruction_data);
+    // Make an instruction
+    let instruction = ToolboxIdlInstruction {
+        program_id,
+        name: "createDeal".to_string(),
+        accounts_addresses: instruction_accounts_addresses.clone(),
+        args: instruction_args_value.as_object().unwrap().clone(),
+    };
+    // Check that we can compile it and then decompile it
+    assert_eq!(
+        instruction,
+        idl.decompile_instruction(
+            &idl.compile_instruction(&instruction).unwrap()
+        )
+        .unwrap()
+    );
 }

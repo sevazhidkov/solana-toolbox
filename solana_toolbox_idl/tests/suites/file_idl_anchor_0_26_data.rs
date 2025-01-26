@@ -3,6 +3,7 @@ use std::fs::read_to_string;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlAccount;
 
 #[tokio::test]
 pub async fn run() {
@@ -49,68 +50,76 @@ pub async fn run() {
             .unwrap()
     );
     // Prepare an account contents
-    let account_value = json!({
-        "baseTokenMint": Pubkey::new_unique().to_string(),
-        "lpTokenMint": Pubkey::new_unique().to_string(),
-        "poolOutstandingCredit": 5_000_000_000u64,
-        "treasuryPoolTokenAccount": Pubkey::new_unique().to_string(),
-        "signingAuthorityBump": 4,
-        "bump": 5,
-        "credixFeePercentage": {
-            "numerator": 51,
-            "denominator": 52,
-        },
-        "withdrawalFee": {
-            "numerator": 41,
-            "denominator": 42,
-        },
-        "frozen": true,
-        "seed": "Hello World !",
-        "poolSizeLimitPercentage": {
-            "numerator": 61,
-            "denominator": 62,
-        },
-        "withdrawEpochRequestSeconds": 0x42_42_42_01,
-        "withdrawEpochRedeemSeconds": 0x42_42_42_02,
-        "withdrawEpochAvailableLiquiditySeconds": 0x42_42_42_03,
-        "latestWithdrawEpochIdx": 0x42_42_42_04,
-        "latestWithdrawEpochEnd": -42,
-        "lockedLiquidity": 777_777,
-        "totalRedeemedBaseAmount": 888_888,
-        "hasWithdrawEpochs": true,
-        "redeemAuthorityBump": 9,
-    });
-    // Compile the account data
-    let account_data =
-        &idl.compile_account("GlobalMarketState", &account_value).unwrap()[..];
+    let account = ToolboxIdlAccount {
+        name: "GlobalMarketState".to_string(),
+        value: json!({
+            "baseTokenMint": Pubkey::new_unique().to_string(),
+            "lpTokenMint": Pubkey::new_unique().to_string(),
+            "poolOutstandingCredit": 5_000_000_000u64,
+            "treasuryPoolTokenAccount": Pubkey::new_unique().to_string(),
+            "signingAuthorityBump": 4,
+            "bump": 5,
+            "credixFeePercentage": {
+                "numerator": 51,
+                "denominator": 52,
+            },
+            "withdrawalFee": {
+                "numerator": 41,
+                "denominator": 42,
+            },
+            "frozen": true,
+            "seed": "Hello World !",
+            "poolSizeLimitPercentage": {
+                "numerator": 61,
+                "denominator": 62,
+            },
+            "withdrawEpochRequestSeconds": 0x42_42_42_01,
+            "withdrawEpochRedeemSeconds": 0x42_42_42_02,
+            "withdrawEpochAvailableLiquiditySeconds": 0x42_42_42_03,
+            "latestWithdrawEpochIdx": 0x42_42_42_04,
+            "latestWithdrawEpochEnd": -42,
+            "lockedLiquidity": 777_777,
+            "totalRedeemedBaseAmount": 888_888,
+            "hasWithdrawEpochs": true,
+            "redeemAuthorityBump": 9,
+        }),
+    };
     // Decompile the account content and check that it matches the original
     assert_eq!(
-        (account_data.len(), account_value),
-        idl.decompile_account("GlobalMarketState", account_data).unwrap()
+        account,
+        idl.decompile_account(
+            "GlobalMarketState",
+            &idl.compile_account(&account).unwrap()
+        )
+        .unwrap()
     );
     // Prepare an account contents
-    let account_value = json!({
-        "credixMultisigKey": Pubkey::new_unique().to_string(),
-        "credixManagers": [
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-            Pubkey::new_unique().to_string(),
-        ],
-        "credixTreasury": Pubkey::new_unique().to_string(),
-    });
-    // Compile the account data
-    let account_data =
-        &idl.compile_account("ProgramState", &account_value).unwrap()[..];
+    let account = ToolboxIdlAccount {
+        name: "ProgramState".to_string(),
+        value: json!({
+            "credixMultisigKey": Pubkey::new_unique().to_string(),
+            "credixManagers": [
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+                Pubkey::new_unique().to_string(),
+            ],
+            "credixTreasury": Pubkey::new_unique().to_string(),
+        }),
+    };
     // Decompile the account content and check that it matches the original
     assert_eq!(
-        (account_data.len(), account_value),
-        idl.decompile_account("ProgramState", account_data).unwrap()
+        account,
+        idl.decompile_account(
+            "ProgramState",
+            &idl.compile_account(&account).unwrap()
+        )
+        .unwrap()
     );
 }

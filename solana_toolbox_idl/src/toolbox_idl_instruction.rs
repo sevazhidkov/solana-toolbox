@@ -26,20 +26,17 @@ impl ToolboxIdl {
         instruction: &ToolboxIdlInstruction,
     ) -> Result<Instruction, ToolboxIdlError> {
         let instruction_accounts_addresses = self
-            .resolve_instruction_accounts_addresses(
-                endpoint,
-                &instruction.program_id,
-                &instruction.name,
-                &instruction.accounts_addresses,
-                &instruction.args,
-            )
+            .resolve_instruction_accounts_addresses(endpoint, instruction)
             .await?;
+        let instruction = ToolboxIdlInstruction {
+            program_id: instruction.program_id,
+            name: instruction.name.clone(),
+            accounts_addresses: instruction_accounts_addresses,
+            args: instruction.args.clone(),
+        };
         Ok(Instruction {
             program_id: instruction.program_id,
-            accounts: self.compile_instruction_accounts(
-                &instruction.name,
-                &instruction_accounts_addresses,
-            )?,
+            accounts: self.compile_instruction_accounts(&instruction)?,
             data: self.compile_instruction_data(
                 &instruction.name,
                 &instruction.args,
@@ -53,10 +50,7 @@ impl ToolboxIdl {
     ) -> Result<Instruction, ToolboxIdlError> {
         Ok(Instruction {
             program_id: instruction.program_id,
-            accounts: self.compile_instruction_accounts(
-                &instruction.name,
-                &instruction.accounts_addresses,
-            )?,
+            accounts: self.compile_instruction_accounts(instruction)?,
             data: self.compile_instruction_data(
                 &instruction.name,
                 &instruction.args,
@@ -64,6 +58,7 @@ impl ToolboxIdl {
         })
     }
 
+    // TODO - should this take name as parameter ?
     pub fn decompile_instruction(
         &self,
         instruction: &Instruction,
