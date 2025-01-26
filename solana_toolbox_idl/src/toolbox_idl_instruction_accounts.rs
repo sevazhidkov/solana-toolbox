@@ -93,51 +93,6 @@ impl ToolboxIdl {
         Ok(instruction_accounts_addresses)
     }
 
-    pub fn generate_instruction_accounts(
-        &self,
-        instruction_name: &str,
-        instruction_accounts_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let mut account_metas = vec![];
-        for (idl_account_name, idl_account_object, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_object_array_or_else(
-                &self.instructions_accounts,
-                instruction_name,
-                &breadcrumbs.with_idl("instruction_accounts"),
-            )?
-        {
-            let instruction_account_address = *idl_map_get_key_or_else(
-                instruction_accounts_addresses,
-                idl_account_name,
-                &breadcrumbs.as_val("instruction_accounts_addresses"),
-            )?;
-            let idl_account_is_signer =
-                idl_object_get_key_as_bool(idl_account_object, "signer")
-                    .or(idl_object_get_key_as_bool(
-                        idl_account_object,
-                        "isSigner",
-                    ))
-                    .unwrap_or(false);
-            let idl_account_is_writable =
-                idl_object_get_key_as_bool(idl_account_object, "writable")
-                    .or(idl_object_get_key_as_bool(idl_account_object, "isMut"))
-                    .unwrap_or(false);
-            if idl_account_is_writable {
-                account_metas.push(AccountMeta::new(
-                    instruction_account_address,
-                    idl_account_is_signer,
-                ));
-            } else {
-                account_metas.push(AccountMeta::new_readonly(
-                    instruction_account_address,
-                    idl_account_is_signer,
-                ));
-            }
-        }
-        Ok(account_metas)
-    }
-
     pub fn get_instruction_accounts_names(
         &self,
         instruction_name: &str,
@@ -209,6 +164,51 @@ impl ToolboxIdl {
             },
             &ToolboxIdlBreadcrumbs::default(),
         )
+    }
+
+    pub fn compile_instruction_accounts(
+        &self,
+        instruction_name: &str,
+        instruction_accounts_addresses: &HashMap<String, Pubkey>,
+    ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let mut account_metas = vec![];
+        for (idl_account_name, idl_account_object, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
+                &self.instructions_accounts,
+                instruction_name,
+                &breadcrumbs.with_idl("instruction_accounts"),
+            )?
+        {
+            let instruction_account_address = *idl_map_get_key_or_else(
+                instruction_accounts_addresses,
+                idl_account_name,
+                &breadcrumbs.as_val("instruction_accounts_addresses"),
+            )?;
+            let idl_account_is_signer =
+                idl_object_get_key_as_bool(idl_account_object, "signer")
+                    .or(idl_object_get_key_as_bool(
+                        idl_account_object,
+                        "isSigner",
+                    ))
+                    .unwrap_or(false);
+            let idl_account_is_writable =
+                idl_object_get_key_as_bool(idl_account_object, "writable")
+                    .or(idl_object_get_key_as_bool(idl_account_object, "isMut"))
+                    .unwrap_or(false);
+            if idl_account_is_writable {
+                account_metas.push(AccountMeta::new(
+                    instruction_account_address,
+                    idl_account_is_signer,
+                ));
+            } else {
+                account_metas.push(AccountMeta::new_readonly(
+                    instruction_account_address,
+                    idl_account_is_signer,
+                ));
+            }
+        }
+        Ok(account_metas)
     }
 
     pub fn decompile_instruction_accounts_addresses(

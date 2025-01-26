@@ -34,16 +34,16 @@ impl ToolboxIdl {
                 &instruction.args,
             )
             .await?;
-        let instruction_accounts = self.generate_instruction_accounts(
-            &instruction.name,
-            &instruction_accounts_addresses,
-        )?;
-        let instruction_data = self
-            .compile_instruction_data(&instruction.name, &instruction.args)?;
         Ok(Instruction {
             program_id: instruction.program_id,
-            accounts: instruction_accounts,
-            data: instruction_data,
+            accounts: self.compile_instruction_accounts(
+                &instruction.name,
+                &instruction_accounts_addresses,
+            )?,
+            data: self.compile_instruction_data(
+                &instruction.name,
+                &instruction.args,
+            )?,
         })
     }
 
@@ -51,16 +51,16 @@ impl ToolboxIdl {
         &self,
         instruction: &ToolboxIdlInstruction,
     ) -> Result<Instruction, ToolboxIdlError> {
-        let instruction_accounts = self.generate_instruction_accounts(
-            &instruction.name,
-            &instruction.accounts_addresses,
-        )?;
-        let instruction_data = self
-            .compile_instruction_data(&instruction.name, &instruction.args)?;
         Ok(Instruction {
             program_id: instruction.program_id,
-            accounts: instruction_accounts,
-            data: instruction_data,
+            accounts: self.compile_instruction_accounts(
+                &instruction.name,
+                &instruction.accounts_addresses,
+            )?,
+            data: self.compile_instruction_data(
+                &instruction.name,
+                &instruction.args,
+            )?,
         })
     }
 
@@ -73,18 +73,17 @@ impl ToolboxIdl {
             "Could not guess instruction name",
             &ToolboxIdlBreadcrumbs::default().as_val("instruction_name"),
         )?;
-        let instruction_accounts_addresses = self
-            .decompile_instruction_accounts_addresses(
-                instruction_name,
-                instruction,
-            )?;
-        let instruction_args = self
-            .decompile_instruction_data(instruction_name, &instruction.data)?;
         Ok(ToolboxIdlInstruction {
             program_id: instruction.program_id,
             name: instruction_name.to_string(),
-            accounts_addresses: instruction_accounts_addresses,
-            args: instruction_args,
+            accounts_addresses: self.decompile_instruction_accounts_addresses(
+                instruction_name,
+                instruction,
+            )?,
+            args: self.decompile_instruction_data(
+                instruction_name,
+                &instruction.data,
+            )?,
         })
     }
 }
