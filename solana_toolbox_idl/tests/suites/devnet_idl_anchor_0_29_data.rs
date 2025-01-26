@@ -18,34 +18,33 @@ pub async fn run() {
         .unwrap();
     // Read an account using the IDL directly
     let realm_pda = Pubkey::find_program_address(&[b"realm"], &program_id);
-    let realm_address = realm_pda.0;
+    let realm = realm_pda.0;
     let realm_bump = realm_pda.1;
-    let realm =
-        idl.get_account(&mut endpoint, &realm_address).await.unwrap().unwrap();
+    let realm_account =
+        idl.get_account(&mut endpoint, &realm).await.unwrap().unwrap();
     // Check that the account was parsed properly and values matches
-    assert_eq!("Realm", realm.name,);
+    assert_eq!("Realm", realm_account.name);
     assert_eq!(
         u64::from(realm_bump),
-        realm.value.get("bump").unwrap().as_u64().unwrap()
+        realm_account.value.get("bump").unwrap().as_u64().unwrap()
     );
     // Related "USDC mint" account checks
-    let usdc_mint_address =
-        pubkey!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
+    let usdc_mint = pubkey!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
     assert_eq!(
-        usdc_mint_address.to_string(),
-        realm.value.get("usdcMint").unwrap().as_str().unwrap(),
+        usdc_mint.to_string(),
+        realm_account.value.get("usdcMint").unwrap().as_str().unwrap(),
     );
     // Related "UCT mint" account checks
     let uct_mint_pda = Pubkey::find_program_address(
-        &[b"uct_mint", &realm_address.to_bytes()],
+        &[b"uct_mint", &realm.to_bytes()],
         &program_id,
     );
     assert_eq!(
         u64::from(uct_mint_pda.1),
-        realm.value.get("uctMintBump").unwrap().as_u64().unwrap(),
+        realm_account.value.get("uctMintBump").unwrap().as_u64().unwrap(),
     );
     assert_eq!(
         uct_mint_pda.0.to_string(),
-        realm.value.get("uctMint").unwrap().as_str().unwrap(),
+        realm_account.value.get("uctMint").unwrap().as_str().unwrap(),
     );
 }

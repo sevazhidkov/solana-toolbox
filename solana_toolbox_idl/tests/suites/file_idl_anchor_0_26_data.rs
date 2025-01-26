@@ -36,17 +36,18 @@ pub async fn run() {
         "withdrawEpochRedeemSeconds": 23,
         "withdrawEpochAvailableLiquiditySeconds": 24,
     });
-    // Compile the instruction data
-    let instruction_data = &idl
-        .compile_instruction_data(
-            "initializeMarket",
-            instruction_args_value.as_object().unwrap(),
-        )
-        .unwrap()[..];
-    // Decompile the instruction args and check that they match the original
+    // Compile / decompile the instruction args and check that they match the original
     assert_eq!(
         instruction_args_value.as_object().unwrap(),
-        &idl.decompile_instruction_data(instruction_data).unwrap()
+        &idl.decompile_instruction_data(
+            "initializeMarket",
+            &idl.compile_instruction_data(
+                "initializeMarket",
+                instruction_args_value.as_object().unwrap(),
+            )
+            .unwrap()
+        )
+        .unwrap()
     );
     // Prepare an account contents
     let account = ToolboxIdlAccount {

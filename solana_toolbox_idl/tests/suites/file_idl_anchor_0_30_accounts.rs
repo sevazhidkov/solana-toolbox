@@ -49,7 +49,7 @@ pub async fn run() {
     )
     .0;
     // Generate all missing IX accounts with just the minimum information
-    let campaign_create_accounts = idl
+    let campaign_create_accounts_addresses = idl
         .find_instruction_accounts_addresses(
             &ToolboxIdlInstruction {
                 program_id,
@@ -69,13 +69,16 @@ pub async fn run() {
         )
         .unwrap();
     // Check outcome
-    assert_eq!(campaign, *campaign_create_accounts.get("campaign").unwrap());
+    assert_eq!(
+        campaign,
+        *campaign_create_accounts_addresses.get("campaign").unwrap()
+    );
     assert_eq!(
         campaign_collateral,
-        *campaign_create_accounts.get("campaign_collateral").unwrap()
+        *campaign_create_accounts_addresses.get("campaign_collateral").unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
-    let campaign_extract_accounts = idl
+    let campaign_extract_accounts_addresses = idl
         .find_instruction_accounts_addresses(
             &ToolboxIdlInstruction {
                 program_id,
@@ -102,10 +105,12 @@ pub async fn run() {
     // Check outcome
     assert_eq!(
         campaign_collateral,
-        *campaign_extract_accounts.get("campaign_collateral").unwrap()
+        *campaign_extract_accounts_addresses
+            .get("campaign_collateral")
+            .unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
-    let pledge_create_accounts = idl
+    let pledge_create_accounts_addresses = idl
         .find_instruction_accounts_addresses(
             &ToolboxIdlInstruction {
                 program_id,
@@ -121,9 +126,12 @@ pub async fn run() {
         )
         .unwrap();
     // Check outcome
-    assert_eq!(pledge, *pledge_create_accounts.get("pledge").unwrap());
+    assert_eq!(
+        pledge,
+        *pledge_create_accounts_addresses.get("pledge").unwrap()
+    );
     // Generate all missing IX accounts with just the minimum information
-    let pledge_deposit_accounts = idl
+    let pledge_deposit_accounts_addresses = idl
         .find_instruction_accounts_addresses(
             &ToolboxIdlInstruction {
                 program_id,
@@ -150,7 +158,10 @@ pub async fn run() {
     // Check outcome
     assert_eq!(
         campaign_collateral,
-        *pledge_deposit_accounts.get("campaign_collateral").unwrap()
+        *pledge_deposit_accounts_addresses.get("campaign_collateral").unwrap()
     );
-    assert_eq!(pledge, *pledge_deposit_accounts.get("pledge").unwrap());
+    assert_eq!(
+        pledge,
+        *pledge_deposit_accounts_addresses.get("pledge").unwrap()
+    );
 }

@@ -36,7 +36,10 @@ impl ToolboxIdl {
         };
         Ok(Instruction {
             program_id: instruction.program_id,
-            accounts: self.compile_instruction_accounts(&instruction)?,
+            accounts: self.compile_instruction_accounts(
+                &instruction.name,
+                &instruction.accounts_addresses,
+            )?,
             data: self.compile_instruction_data(
                 &instruction.name,
                 &instruction.args,
@@ -50,7 +53,10 @@ impl ToolboxIdl {
     ) -> Result<Instruction, ToolboxIdlError> {
         Ok(Instruction {
             program_id: instruction.program_id,
-            accounts: self.compile_instruction_accounts(instruction)?,
+            accounts: self.compile_instruction_accounts(
+                &instruction.name,
+                &instruction.accounts_addresses,
+            )?,
             data: self.compile_instruction_data(
                 &instruction.name,
                 &instruction.args,
@@ -63,16 +69,35 @@ impl ToolboxIdl {
         instruction: &Instruction,
     ) -> Result<ToolboxIdlInstruction, ToolboxIdlError> {
         let instruction_name = idl_ok_or_else(
-            self.guess_instruction_name(&instruction.data),
+            self.guess_instruction_name(instruction),
             "Could not guess instruction name",
             &ToolboxIdlBreadcrumbs::default().as_val("instruction_name"),
         )?;
         Ok(ToolboxIdlInstruction {
             program_id: instruction.program_id,
             name: instruction_name.to_string(),
-            accounts_addresses: self
-                .decompile_instruction_accounts_addresses(instruction)?,
-            args: self.decompile_instruction_data(&instruction.data)?,
+            accounts_addresses: self.decompile_instruction_accounts(
+                instruction_name,
+                &instruction.accounts,
+            )?,
+            args: self.decompile_instruction_data(
+                instruction_name,
+                &instruction.data,
+            )?,
         })
+    }
+
+    pub fn guess_instruction_name(
+        &self,
+        instruction: &Instruction,
+    ) -> Option<&str> {
+        for (instruction_name, instruction_discriminator) in
+            &self.instructions_discriminators
+        {
+            if instruction.data.starts_with(instruction_discriminator) {
+                return Some(instruction_name);
+            }
+        }
+        None
     }
 }

@@ -7,7 +7,6 @@ use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
-use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
@@ -144,19 +143,20 @@ impl ToolboxIdl {
 
     pub fn compile_instruction_accounts(
         &self,
-        instruction: &ToolboxIdlInstruction,
+        instruction_name: &str,
+        instruction_accounts_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let mut account_metas = vec![];
         for (idl_account_name, idl_account_object, breadcrumbs) in
             idl_object_get_key_as_scoped_named_object_array_or_else(
                 &self.instructions_accounts,
-                &instruction.name,
+                instruction_name,
                 &breadcrumbs.with_idl("instruction_accounts"),
             )?
         {
             let instruction_account_address = *idl_map_get_key_or_else(
-                &instruction.accounts_addresses,
+                instruction_accounts_addresses,
                 idl_account_name,
                 &breadcrumbs.as_val("instruction_accounts_addresses"),
             )?;
@@ -186,19 +186,15 @@ impl ToolboxIdl {
         Ok(account_metas)
     }
 
-    pub fn decompile_instruction_accounts_addresses(
+    pub fn decompile_instruction_accounts(
         &self,
-        instruction: &Instruction,
+        instruction_name: &str,
+        instruction_accounts: &[AccountMeta],
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let instruction_name = idl_ok_or_else(
-            self.guess_instruction_name(&instruction.data),
-            "Could not guess instruction name",
-            &breadcrumbs.as_val("instruction_name"),
-        )?;
         let instruction_accounts_names =
             self.list_instruction_accounts_names(instruction_name)?;
-        if instruction_accounts_names.len() != instruction.accounts.len() {
+        if instruction_accounts_names.len() != instruction_accounts.len() {
             return idl_err(
                 "Invalid instruction accounts length",
                 &breadcrumbs.val(),
@@ -208,7 +204,7 @@ impl ToolboxIdl {
         for (instruction_account_name, instruction_account_meta) in
             instruction_accounts_names
                 .into_iter()
-                .zip(instruction.accounts.iter())
+                .zip(instruction_accounts.iter())
         {
             instruction_accounts_addresses.insert(
                 instruction_account_name,
@@ -379,7 +375,7 @@ fn idl_blob_bytes(
                 "Missing account value",
                 &breadcrumbs.as_val(account_name),
             )?;
-            let account_value_fields = idl_as_object_or_else(
+            let account_object = idl_as_object_or_else(
                 &account.value,
                 &breadcrumbs.as_val(account_name),
             )?;
@@ -397,7 +393,7 @@ fn idl_blob_bytes(
                 idl_blob_struct,
                 "fields",
                 &idl_blob_parts[1..],
-                account_value_fields,
+                account_object,
                 &breadcrumbs.with_idl("account"),
             )
         },
@@ -431,7 +427,7 @@ fn idl_parts_to_bytes(
     idl_fields_container: &Map<String, Value>,
     idl_fields_key: &str,
     parts: &[&str],
-    values: &Map<String, Value>,
+    object: &Map<String, Value>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let field_name = parts[0];
@@ -447,7 +443,7 @@ fn idl_parts_to_bytes(
             == field_name.to_case(Case::Snake)
         {
             let value = idl_object_get_key_or_else(
-                values,
+                object,
                 idl_field_name,
                 &breadcrumbs.val(),
             )?;
@@ -495,13 +491,13 @@ fn idl_parts_to_bytes_recurse(
             idl_type_defined_name,
             &breadcrumbs.as_idl("$idl_types"),
         )?;
-        let values = idl_as_object_or_else(value, &breadcrumbs.as_val("@"))?;
+        let object = idl_as_object_or_else(value, &breadcrumbs.as_val("@"))?;
         return idl_parts_to_bytes(
             idl,
             idl_type_inner,
             "fields",
             &parts[1..],
-            values,
+            object,
             &breadcrumbs.with_idl("*"),
         );
     }

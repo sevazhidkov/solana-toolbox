@@ -69,7 +69,7 @@ pub async fn run() {
     )
     .0;
     // Generate all missing IX accounts with just the minimum information
-    let initialize_market_accounts = idl
+    let initialize_market_accounts_addresses = idl
         .find_instruction_accounts_addresses(
             &ToolboxIdlInstruction {
                 program_id,
@@ -102,26 +102,26 @@ pub async fn run() {
     // Check the outcomes
     assert_eq!(
         global_market_state,
-        *initialize_market_accounts.get("globalMarketState").unwrap()
+        *initialize_market_accounts_addresses.get("globalMarketState").unwrap()
     );
     assert_eq!(
         market_admins,
-        *initialize_market_accounts.get("marketAdmins").unwrap()
+        *initialize_market_accounts_addresses.get("marketAdmins").unwrap()
     );
     assert_eq!(
         program_state,
-        *initialize_market_accounts.get("programState").unwrap()
+        *initialize_market_accounts_addresses.get("programState").unwrap()
     );
     assert_eq!(
         signing_authority,
-        *initialize_market_accounts.get("signingAuthority").unwrap()
+        *initialize_market_accounts_addresses.get("signingAuthority").unwrap()
     );
     assert_eq!(
         lp_token_mint,
-        *initialize_market_accounts.get("lpTokenMint").unwrap()
+        *initialize_market_accounts_addresses.get("lpTokenMint").unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
-    let open_deal_accounts = idl
+    let open_deal_accounts_addresses = idl
         .find_instruction_accounts_addresses(
             &ToolboxIdlInstruction {
                 program_id,
@@ -148,11 +148,17 @@ pub async fn run() {
         )
         .unwrap();
     // Check the outcomes
-    assert_eq!(market_admins, *open_deal_accounts.get("marketAdmins").unwrap());
-    assert_eq!(deal, *open_deal_accounts.get("deal").unwrap());
-    assert_eq!(deal_tranches, *open_deal_accounts.get("dealTranches").unwrap());
+    assert_eq!(
+        market_admins,
+        *open_deal_accounts_addresses.get("marketAdmins").unwrap()
+    );
+    assert_eq!(deal, *open_deal_accounts_addresses.get("deal").unwrap());
+    assert_eq!(
+        deal_tranches,
+        *open_deal_accounts_addresses.get("dealTranches").unwrap()
+    );
     assert_eq!(
         repayment_schedule,
-        *open_deal_accounts.get("repaymentSchedule").unwrap()
+        *open_deal_accounts_addresses.get("repaymentSchedule").unwrap()
     );
 }

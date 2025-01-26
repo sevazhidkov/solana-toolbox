@@ -30,10 +30,11 @@ pub async fn run() {
             },
         }),
     )]);
-    // Compile/Decompile the instruction args and check that they match the original
+    // Compile / decompile the instruction args and check that they match the original
     assert_eq!(
         &instruction_args_value,
         &idl.decompile_instruction_data(
+            "campaign_create",
             &idl.compile_instruction_data(
                 "campaign_create",
                 &instruction_args_value
