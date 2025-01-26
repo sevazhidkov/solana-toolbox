@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde_json::json;
+use serde_json::Map;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -9,6 +10,7 @@ use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -25,9 +27,9 @@ pub async fn run() {
     // Find an account from another instruction so that we can re-use it
     let campaign_index = 3u64;
     let campaign = idl
-        .resolve_instruction_account_address(
+        .find_instruction_account_address(
             "campaign",
-            &program_id, // TODO - should the program_id be bundled in the IDL ?
+            &program_id,
             "campaign_create",
             &HashMap::from_iter([]),
             json!({}).as_object().unwrap(),
@@ -64,31 +66,36 @@ pub async fn run() {
     let instruction_pledge_create = idl
         .resolve_instruction(
             &mut endpoint,
-            &program_id,
-            "pledge_create",
-            &HashMap::from_iter([
-                ("payer".to_string(), payer.pubkey()),
-                ("user".to_string(), user.pubkey()),
-                ("campaign".to_string(), campaign),
-            ]),
-            json!({ "params": {} }).as_object().unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "pledge_create".to_string(),
+                accounts_addresses: HashMap::from_iter([
+                    ("payer".to_string(), payer.pubkey()),
+                    ("user".to_string(), user.pubkey()),
+                    ("campaign".to_string(), campaign),
+                ]),
+                args: Map::from_iter([("params".to_string(), json!({}))]),
+            },
         )
         .await
         .unwrap();
     let instruction_pledge_deposit = idl
         .resolve_instruction(
             &mut endpoint,
-            &program_id,
-            "pledge_deposit",
-            &HashMap::from_iter([
-                ("payer".to_string(), payer.pubkey()),
-                ("user".to_string(), user.pubkey()),
-                ("user_collateral".to_string(), user_collateral),
-                ("campaign".to_string(), campaign),
-            ]),
-            json!({ "params": { "collateral_amount": 0 } })
-                .as_object()
-                .unwrap(),
+            &ToolboxIdlInstruction {
+                program_id,
+                name: "pledge_deposit".to_string(),
+                accounts_addresses: HashMap::from_iter([
+                    ("payer".to_string(), payer.pubkey()),
+                    ("user".to_string(), user.pubkey()),
+                    ("user_collateral".to_string(), user_collateral),
+                    ("campaign".to_string(), campaign),
+                ]),
+                args: Map::from_iter([(
+                    "params".to_string(),
+                    json!({ "collateral_amount": 0 }),
+                )]),
+            },
         )
         .await
         .unwrap();

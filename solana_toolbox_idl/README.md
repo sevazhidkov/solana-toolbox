@@ -41,6 +41,23 @@ let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
     .await
     .unwrap()
     .unwrap();
+// We can also manually generate IDLs inline
+let idl = ToolboxIdl::try_from_value(&json!({
+    "instructions": {
+        "my_instruction": {
+            "accounts": [{ "name": "payer", "signer": true }],
+            "args": [{ "name": "arg", "type": {"defined": "MyArg"} }]
+        }
+    },
+    "types": {
+        "MyArg": {
+            "kind": "struct",
+            "fields": [{ "name": "info", "type": "u64" }]
+        }
+    },
+    "accounts": {},
+    "errors": {},
+})).unwrap();
 ```
 
 Once we have our IDL object `ToolboxIdl` instanciated we can use it for various actions:
@@ -52,29 +69,36 @@ let my_account_value = idl
     .await
     .unwrap()
     .unwrap();
-// We can generate an instruction with JSON data and account addresses as inputs
-let my_instruction = idl
-    .generate_instruction(
-        &program_id,
-        "my_instruction",
-        &HashMap::from_iter([
-            ("payer".to_string(), payer.pubkey()),
-            ("user".to_string(), user.pubkey()),
-        ]),
-        json!({ "param": 42 }).as_object().unwrap(),
+// We can generate an instruction from JSON args data and account addresses
+let instruction = idl
+    .compile_instruction(
+        &ToolboxIdlInstruction {
+            program_id,
+            name: "my_instruction".to_string(),
+            accounts_addresses: HashMap::from_iter([
+                ("payer".to_string(), payer.pubkey()),
+            ]),
+            args: Map::from_iter([
+                ("arg".to_string(), json!({ "info": 42 }))
+            ]),
+        },
     )
     .unwrap();
-// We can try to resolve the accounts used in an instruction using seeds in IDL
-let instruction_accounts_addresses = idl
-    .resolve_instruction_accounts_addresses(
-        &program_id,
-        "my_instruction",
-        &HashMap::from_iter([
-            ("payer".to_string(), payer.pubkey()),
-            ("user".to_string(), user.pubkey()),
-        ]),
-        json!({ "my_account": { "info": "hello" } }).as_object().unwrap(),
-        json!({ "params": { "index": 11 } }).as_object().unwrap(),
+// We can also try to resolve all instruction informations by automatically
+// filling in missing info from IDL and on-chain accounts state (smart-compile)
+let instruction = idl
+    .resolve_instruction(
+        &mut endpoint, // See solana_toolbox_endpoint crate
+        &ToolboxIdlInstruction {
+            program_id,
+            name: "my_instruction".to_string(),
+            accounts_addresses: HashMap::from_iter([
+                ("payer".to_string(), payer.pubkey()),
+            ]),
+            args: Map::from_iter([
+                ("arg".to_string(), json!({ "info": 42 }))
+            ]),
+        },
     )
     .unwrap();
 ```

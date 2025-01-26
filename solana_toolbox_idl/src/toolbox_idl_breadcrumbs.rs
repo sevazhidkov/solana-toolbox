@@ -1,6 +1,6 @@
 use crate::toolbox_idl_context::ToolboxIdlContext;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlBreadcrumbs {
     idl: String,
     val: String,

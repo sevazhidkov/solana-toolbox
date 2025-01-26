@@ -15,7 +15,7 @@ use solana_sdk::signer::Signer;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::ToolboxEndpointError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointProgram {
     pub slot: u64,
     pub authority: Option<Pubkey>,
@@ -45,12 +45,15 @@ impl ToolboxEndpoint {
         }
         let program_data =
             ToolboxEndpoint::find_program_data_from_program_id(program_id);
-        let program_data_data =
-            self.get_account(&program_data).await?.ok_or_else(|| {
+        let program_data_data = self
+            .get_account(&program_data)
+            .await?
+            .ok_or_else(|| {
                 ToolboxEndpointError::Custom(
                     "Could not fetch program data".to_string(),
                 )
-            })?.data;
+            })?
+            .data;
         let program_data_bytecode_offset =
             UpgradeableLoaderState::size_of_programdata_metadata();
         if program_data_data.len() < program_data_bytecode_offset {
@@ -58,9 +61,8 @@ impl ToolboxEndpoint {
                 "Program data is too small".to_string(),
             ));
         }
-        match bincode::deserialize::<UpgradeableLoaderState>(
-            &program_data_data,
-        ) {
+        match bincode::deserialize::<UpgradeableLoaderState>(&program_data_data)
+        {
             Ok(UpgradeableLoaderState::ProgramData {
                 slot,
                 upgrade_authority_address,
@@ -68,8 +70,7 @@ impl ToolboxEndpoint {
                 Ok(Some(ToolboxEndpointProgram {
                     slot,
                     authority: upgrade_authority_address,
-                    bytecode: program_data_data
-                        [program_data_bytecode_offset..]
+                    bytecode: program_data_data[program_data_bytecode_offset..]
                         .to_vec(),
                 }))
             },

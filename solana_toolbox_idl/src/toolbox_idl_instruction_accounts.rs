@@ -9,6 +9,7 @@ use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -30,6 +31,68 @@ use crate::toolbox_idl_utils::idl_ok_or_else;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
 impl ToolboxIdl {
+    pub async fn resolve_instruction_accounts_addresses(
+        &self,
+        endpoint: &mut ToolboxEndpoint,
+        program_id: &Pubkey,
+        instruction_name: &str,
+        instruction_accounts_addresses: &HashMap<String, Pubkey>,
+        instruction_args: &Map<String, Value>,
+    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+        let mut instruction_accounts_addresses =
+            instruction_accounts_addresses.clone();
+        let mut instruction_accounts_values = self
+            .get_accounts_values_by_name(
+                endpoint,
+                &instruction_accounts_addresses,
+            )
+            .await?;
+        let instruction_accounts_names =
+            self.get_instruction_accounts_names(instruction_name)?;
+        loop {
+            let mut made_progress = false;
+            for instruction_account_name in &instruction_accounts_names {
+                if instruction_accounts_addresses
+                    .contains_key(instruction_account_name)
+                {
+                    continue;
+                }
+                if let Ok(instruction_account_address) = self
+                    .find_instruction_account_address(
+                        instruction_account_name,
+                        program_id,
+                        instruction_name,
+                        &instruction_accounts_addresses,
+                        &instruction_accounts_values,
+                        instruction_args,
+                    )
+                {
+                    made_progress = true;
+                    instruction_accounts_addresses.insert(
+                        instruction_account_name.to_string(),
+                        instruction_account_address,
+                    );
+                    if let Ok(Some(instruction_account_value)) = self
+                        .get_account_value(
+                            endpoint,
+                            &instruction_account_address,
+                        )
+                        .await
+                    {
+                        instruction_accounts_values.insert(
+                            instruction_account_name.to_string(),
+                            instruction_account_value,
+                        );
+                    }
+                }
+            }
+            if !made_progress {
+                break;
+            }
+        }
+        Ok(instruction_accounts_addresses)
+    }
+
     pub fn generate_instruction_accounts(
         &self,
         instruction_name: &str,
@@ -93,8 +156,7 @@ impl ToolboxIdl {
         Ok(instruction_accounts_names)
     }
 
-    // TODO - this should be used by resolve_instruction() and small refactor
-    pub fn resolve_instruction_accounts_addresses(
+    pub fn find_instruction_accounts_addresses(
         &self,
         program_id: &Pubkey,
         instruction_name: &str,
@@ -112,7 +174,7 @@ impl ToolboxIdl {
             {
                 instruction_accounts_addresses.insert(
                     instruction_account_name.to_string(),
-                    self.resolve_instruction_account_address(
+                    self.find_instruction_account_address(
                         &instruction_account_name,
                         program_id,
                         instruction_name,
@@ -126,7 +188,7 @@ impl ToolboxIdl {
         Ok(instruction_accounts_addresses)
     }
 
-    pub fn resolve_instruction_account_address(
+    pub fn find_instruction_account_address(
         &self,
         account_name: &str,
         program_id: &Pubkey,

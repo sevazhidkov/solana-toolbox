@@ -11,102 +11,63 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
-type AddressesByName = HashMap<String, Pubkey>;
-type ValuesByName = Map<String, Value>;
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlInstruction {
+    pub program_id: Pubkey,
+    pub name: String,
+    pub accounts_addresses: HashMap<String, Pubkey>,
+    pub args: Map<String, Value>,
+}
 
 impl ToolboxIdl {
     pub async fn resolve_instruction(
         &self,
         endpoint: &mut ToolboxEndpoint,
-        program_id: &Pubkey,
-        instruction_name: &str,
-        instruction_accounts_addresses: &AddressesByName,
-        instruction_args: &ValuesByName,
+        instruction: &ToolboxIdlInstruction,
     ) -> Result<Instruction, ToolboxIdlError> {
-        let mut instruction_accounts_addresses =
-            instruction_accounts_addresses.clone();
-        let mut instruction_accounts_values = self
-            .get_accounts_values_by_name(
+        let instruction_accounts_addresses = self
+            .resolve_instruction_accounts_addresses(
                 endpoint,
-                &instruction_accounts_addresses,
+                &instruction.program_id,
+                &instruction.name,
+                &instruction.accounts_addresses,
+                &instruction.args,
             )
             .await?;
-        let instruction_accounts_names =
-            self.get_instruction_accounts_names(instruction_name)?;
-        loop {
-            let mut made_progress = false;
-            for instruction_account_name in &instruction_accounts_names {
-                if instruction_accounts_addresses
-                    .contains_key(instruction_account_name)
-                {
-                    continue;
-                }
-                if let Ok(instruction_account_address) = self
-                    .resolve_instruction_account_address(
-                        instruction_account_name,
-                        program_id,
-                        instruction_name,
-                        &instruction_accounts_addresses,
-                        &instruction_accounts_values,
-                        instruction_args,
-                    )
-                {
-                    made_progress = true;
-                    instruction_accounts_addresses.insert(
-                        instruction_account_name.to_string(),
-                        instruction_account_address,
-                    );
-                    if let Ok(Some(instruction_account_value)) = self
-                        .get_account_value(
-                            endpoint,
-                            &instruction_account_address,
-                        )
-                        .await
-                    {
-                        instruction_accounts_values.insert(
-                            instruction_account_name.to_string(),
-                            instruction_account_value,
-                        );
-                    }
-                }
-            }
-            if !made_progress {
-                break;
-            }
-        }
-        self.generate_instruction(
-            program_id,
-            instruction_name,
-            &instruction_accounts_addresses,
-            instruction_args,
-        )
-    }
-
-    pub fn generate_instruction(
-        &self,
-        program_id: &Pubkey,
-        instruction_name: &str,
-        instruction_accounts_addresses: &AddressesByName,
-        instruction_args: &ValuesByName,
-    ) -> Result<Instruction, ToolboxIdlError> {
         let instruction_accounts = self.generate_instruction_accounts(
-            instruction_name,
-            instruction_accounts_addresses,
+            &instruction.name,
+            &instruction_accounts_addresses,
         )?;
-        let instruction_data =
-            self.compile_instruction_data(instruction_name, instruction_args)?;
+        let instruction_data = self
+            .compile_instruction_data(&instruction.name, &instruction.args)?;
         Ok(Instruction {
-            program_id: *program_id,
+            program_id: instruction.program_id,
             accounts: instruction_accounts,
             data: instruction_data,
         })
     }
 
-    pub fn parse_instruction(
+    pub fn compile_instruction(
+        &self,
+        instruction: &ToolboxIdlInstruction,
+    ) -> Result<Instruction, ToolboxIdlError> {
+        let instruction_accounts = self.generate_instruction_accounts(
+            &instruction.name,
+            &instruction.accounts_addresses,
+        )?;
+        let instruction_data = self
+            .compile_instruction_data(&instruction.name, &instruction.args)?;
+        Ok(Instruction {
+            program_id: instruction.program_id,
+            accounts: instruction_accounts,
+            data: instruction_data,
+        })
+    }
+
+    pub fn decompile_instruction(
         &self,
         instruction: &Instruction,
-    ) -> Result<(AddressesByName, ValuesByName), ToolboxIdlError>
-    {
+    ) -> Result<ToolboxIdlInstruction, ToolboxIdlError> {
         let instruction_name = idl_ok_or_else(
             self.guess_instruction_name(&instruction.data),
             "Could not guess instruction name",
@@ -119,6 +80,11 @@ impl ToolboxIdl {
             )?;
         let instruction_args = self
             .decompile_instruction_data(instruction_name, &instruction.data)?;
-        Ok((instruction_accounts_addresses, instruction_args))
+        Ok(ToolboxIdlInstruction {
+            program_id: instruction.program_id,
+            name: instruction_name.to_string(),
+            accounts_addresses: instruction_accounts_addresses,
+            args: instruction_args,
+        })
     }
 }

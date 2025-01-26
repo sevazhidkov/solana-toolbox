@@ -4,6 +4,7 @@ use std::fs::read_to_string;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -39,7 +40,7 @@ pub async fn run() {
     });
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
-        .resolve_instruction_accounts_addresses(
+        .find_instruction_accounts_addresses(
             &program_id,
             "createDeal",
             &instruction_accounts_addresses,
@@ -47,14 +48,14 @@ pub async fn run() {
             instruction_args_value.as_object().unwrap(),
         )
         .unwrap();
-    // Compile the instruction data
+    // Compile the instruction
     let instruction_data = &idl
-        .generate_instruction(
-            &program_id,
-            "createDeal",
-            &instruction_accounts_addresses,
-            instruction_args_value.as_object().unwrap(),
-        )
+        .compile_instruction(&ToolboxIdlInstruction {
+            program_id,
+            name: "createDeal".to_string(),
+            accounts_addresses: instruction_accounts_addresses,
+            args: instruction_args_value.as_object().unwrap().clone(),
+        })
         .unwrap();
     eprintln!("instruction_data: {:?}", instruction_data);
 }

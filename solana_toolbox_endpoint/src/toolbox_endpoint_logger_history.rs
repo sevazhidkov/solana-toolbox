@@ -41,7 +41,10 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerHistory {
         self.transactions.write().unwrap().push(
             ToolboxEndpointLoggerHistoryTransaction {
                 transaction: transaction.clone(),
-                result: result.as_ref().map_err(|err| format!("{:?}", err)).copied(),
+                result: result
+                    .as_ref()
+                    .map_err(|err| format!("{:?}", err))
+                    .copied(),
             },
         );
     }

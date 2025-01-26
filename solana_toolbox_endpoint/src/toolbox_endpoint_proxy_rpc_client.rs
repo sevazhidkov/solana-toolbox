@@ -1,3 +1,4 @@
+use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -6,10 +7,24 @@ use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
+use solana_sdk::sysvar::clock;
+use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+
+const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
+const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
+
+async fn rpc_get_sysvar_clock(
+    rpc_client: &mut RpcClient
+) -> Result<Clock, ToolboxEndpointError> {
+    bincode::deserialize::<Clock>(
+        &rpc_client.get_account(&clock::ID).await?.data,
+    )
+    .map_err(ToolboxEndpointError::Bincode)
+}
 
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for RpcClient {
@@ -37,21 +52,19 @@ impl ToolboxEndpointProxy for RpcClient {
         &mut self,
         transaction: Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
+        let timer = Instant::now();
         let signature = self.send_transaction(&transaction).await?;
-        let start = Instant::now();
         loop {
-            let confirmed = self.confirm_transaction(&signature).await?;
-            if confirmed {
-                break;
+            if self.confirm_transaction(&signature).await? {
+                return Ok(signature);
             }
-            let duration = start.elapsed();
-            if duration > Duration::from_secs(5) {
-                return Err(ToolboxEndpointError::Custom(
-                    "Timeout on awaiting transaction confirmation".into(),
+            if timer.elapsed() > WAIT_TIMEOUT_DURATION {
+                return Err(ToolboxEndpointError::Timeout(
+                    "Waiting confirmation",
                 ));
             }
+            sleep(WAIT_SLEEP_DURATION)
         }
-        Ok(signature)
     }
 
     async fn process_airdrop(
@@ -63,31 +76,58 @@ impl ToolboxEndpointProxy for RpcClient {
         Ok(signature)
     }
 
-    // TODO - this could be cleaned up in favor of "wait_until_blah" ?
     async fn forward_clock_unix_timestamp(
         &mut self,
-        _unix_timestamp_delta: u64,
+        unix_timestamp_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        Err(ToolboxEndpointError::Custom(
-            "Clock forwarding not supported on RPCs".into(),
-        ))
+        let timer = Instant::now();
+        let unix_timestamp_after =
+            rpc_get_sysvar_clock(self).await?.unix_timestamp
+                + (unix_timestamp_delta as i64);
+        loop {
+            if rpc_get_sysvar_clock(self).await?.unix_timestamp
+                >= unix_timestamp_after
+            {
+                return Ok(());
+            }
+            if timer.elapsed() > WAIT_TIMEOUT_DURATION {
+                return Err(ToolboxEndpointError::Timeout("Clock forwarding"));
+            }
+            sleep(WAIT_SLEEP_DURATION)
+        }
     }
 
     async fn forward_clock_slot(
         &mut self,
-        _slot_delta: u64,
+        slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        Err(ToolboxEndpointError::Custom(
-            "Clock forwarding not supported on RPCs".into(),
-        ))
+        let timer = Instant::now();
+        let slot_after = rpc_get_sysvar_clock(self).await?.slot + slot_delta;
+        loop {
+            if rpc_get_sysvar_clock(self).await?.slot >= slot_after {
+                return Ok(());
+            }
+            if timer.elapsed() > WAIT_TIMEOUT_DURATION {
+                return Err(ToolboxEndpointError::Timeout("Clock forwarding"));
+            }
+            sleep(WAIT_SLEEP_DURATION)
+        }
     }
 
     async fn forward_clock_epoch(
         &mut self,
-        _epoch_delta: u64,
+        epoch_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        Err(ToolboxEndpointError::Custom(
-            "Clock forwarding not supported on RPCs".into(),
-        ))
+        let timer = Instant::now();
+        let epoch_after = rpc_get_sysvar_clock(self).await?.epoch + epoch_delta;
+        loop {
+            if rpc_get_sysvar_clock(self).await?.epoch >= epoch_after {
+                return Ok(());
+            }
+            if timer.elapsed() > WAIT_TIMEOUT_DURATION {
+                return Err(ToolboxEndpointError::Timeout("Clock forwarding"));
+            }
+            sleep(WAIT_SLEEP_DURATION)
+        }
     }
 }

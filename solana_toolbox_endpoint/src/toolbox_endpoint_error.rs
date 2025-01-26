@@ -11,6 +11,7 @@ pub enum ToolboxEndpointError {
     Io(std::io::Error),
     PodCastError(bytemuck::PodCastError),
     TryFromInt(std::num::TryFromIntError),
+    Timeout(&'static str),
     Custom(String),
 }
 

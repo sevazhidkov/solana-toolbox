@@ -19,6 +19,7 @@ pub use toolbox_idl::ToolboxIdl;
 pub use toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 pub use toolbox_idl_context::ToolboxIdlContext;
 pub use toolbox_idl_error::ToolboxIdlError;
+pub use toolbox_idl_instruction::ToolboxIdlInstruction;
 pub use toolbox_idl_lookup_account::ToolboxIdlLookupAccount;
 pub use toolbox_idl_lookup_account::ToolboxIdlLookupAccountField;
 pub use toolbox_idl_lookup_error::ToolboxIdlLookupError;

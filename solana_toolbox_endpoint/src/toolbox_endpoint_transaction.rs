@@ -5,7 +5,7 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::Transaction;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointTransaction {
     pub payer: Pubkey,
     pub signers: Vec<Pubkey>,
