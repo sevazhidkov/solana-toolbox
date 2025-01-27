@@ -49,7 +49,7 @@ pub async fn run() {
     assert_eq!(
         program_bytecode,
         endpoint
-            .get_program(&program_id.pubkey())
+            .get_program_data(&program_id.pubkey())
             .await
             .unwrap()
             .unwrap()
@@ -72,7 +72,7 @@ pub async fn run() {
     assert_eq!(
         program_bytecode,
         endpoint
-            .get_program(&program_id.pubkey())
+            .get_program_data(&program_id.pubkey())
             .await
             .unwrap()
             .unwrap()

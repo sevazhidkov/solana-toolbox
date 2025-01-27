@@ -16,17 +16,17 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::ToolboxEndpointError;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxEndpointProgram {
+pub struct ToolboxEndpointProgramData {
     pub slot: u64,
     pub authority: Option<Pubkey>,
     pub bytecode: Vec<u8>,
 }
 
 impl ToolboxEndpoint {
-    pub async fn get_program(
+    pub async fn get_program_data(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<ToolboxEndpointProgram>, ToolboxEndpointError> {
+    ) -> Result<Option<ToolboxEndpointProgramData>, ToolboxEndpointError> {
         let program_id_account = match self.get_account(program_id).await? {
             Some(account) => account,
             None => {
@@ -67,7 +67,7 @@ impl ToolboxEndpoint {
                 slot,
                 upgrade_authority_address,
             }) => {
-                Ok(Some(ToolboxEndpointProgram {
+                Ok(Some(ToolboxEndpointProgramData {
                     slot,
                     authority: upgrade_authority_address,
                     bytecode: program_data_data[program_data_bytecode_offset..]
@@ -276,11 +276,12 @@ impl ToolboxEndpoint {
         program_bytecode: &[u8],
         spill: &Pubkey,
     ) -> Result<(), ToolboxEndpointError> {
-        let program_len_before = match self.get_program(program_id).await? {
-            Some(program_before) => program_before.bytecode.len(),
+        let program_len_before = match self.get_program_data(program_id).await?
+        {
+            Some(program_data) => program_data.bytecode.len(),
             None => {
                 return Err(ToolboxEndpointError::Custom(
-                    "Cannot update a program that deosnt exist yet".to_string(),
+                    "Cannot update a program that doesnt exist yet".to_string(),
                 ))
             },
         };

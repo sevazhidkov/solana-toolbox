@@ -29,5 +29,5 @@ pub use toolbox_endpoint_logger_history::ToolboxEndpointLoggerHistory;
 pub use toolbox_endpoint_logger_history::ToolboxEndpointLoggerHistoryTransaction;
 pub use toolbox_endpoint_logger_printer::ToolboxEndpointLoggerPrinter;
 pub use toolbox_endpoint_printer::ToolboxEndpointPrinter;
-pub use toolbox_endpoint_program::ToolboxEndpointProgram;
+pub use toolbox_endpoint_program::ToolboxEndpointProgramData;
 pub use toolbox_endpoint_transaction::ToolboxEndpointTransaction;
