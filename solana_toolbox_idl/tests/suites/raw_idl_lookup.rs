@@ -90,7 +90,7 @@ pub async fn run() {
             {
                 "name": "MyStruct",
                 "type": {
-                    "kind": "struct",
+                    "kind": "struct", // TODO - this could be deprecated and allow field shorthand
                     "fields": [
                         { "name": "addr", "type": "pubkey" },
                         { "name": "name", "type": "string" },
@@ -132,22 +132,20 @@ pub async fn run() {
     assert_eq!("payer", my_instruction.accounts[0].name);
     assert_eq!("authority", my_instruction.accounts[1].name);
     assert_eq!("index", my_instruction.args[0].name);
-    assert_eq!("u32", my_instruction.args[0].description);
+    assert_eq!("u32", my_instruction.args[0].kind.describe());
     assert_eq!("id", my_instruction.args[1].name);
-    assert_eq!("i64", my_instruction.args[1].description);
+    assert_eq!("i64", my_instruction.args[1].kind.describe());
     // Assert account was parsed correctly
     let my_account = idl_standard.lookup_account("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
     assert_eq!("my_field1", my_account.fields[0].name);
-    assert_eq!("u64", my_account.fields[0].description);
+    assert_eq!("u64", my_account.fields[0].kind.describe());
     assert_eq!("my_field2", my_account.fields[1].name);
-    assert_eq!("u32", my_account.fields[1].description);
+    assert_eq!("u32", my_account.fields[1].kind.describe());
     // Assert struct was parsed correctly
     let my_struct = idl_standard.lookup_type("MyStruct").unwrap();
-    assert_eq!("addr", my_struct.items[0].name);
-    assert_eq!("pubkey", my_struct.items[0].description);
-    assert_eq!("name", my_struct.items[1].name);
-    assert_eq!("string", my_struct.items[1].description);
+    assert_eq!("MyStruct", my_struct.name);
+    assert_eq!("Struct()", my_struct.kind.describe());
     // Assert error was parsed correctly
     let my_error = idl_standard.lookup_error_by_code(4242).unwrap();
     assert_eq!("MyError", my_error.name);

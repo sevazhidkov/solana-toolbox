@@ -23,7 +23,7 @@ pub struct ToolboxIdl {
     pub instructions_discriminators: HashMap<String, Vec<u8>>,
     pub instructions_accounts: Map<String, Value>,
     pub instructions_args: Map<String, Value>,
-    pub types: Map<String, Value>,
+    pub types: Map<String, Value>, // TODO - store types as ToolboxIdlType ?
     pub errors: Map<String, Value>,
 }
 

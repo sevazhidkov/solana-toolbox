@@ -51,7 +51,6 @@ let idl = ToolboxIdl::try_from_value(&json!({
     },
     "types": {
         "MyArg": {
-            "kind": "struct",
             "fields": [{ "name": "info", "type": "u64" }]
         }
     },

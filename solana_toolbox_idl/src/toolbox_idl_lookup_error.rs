@@ -37,12 +37,12 @@ impl ToolboxIdl {
         let idl_error_code = idl_object_get_key_as_u64_or_else(
             idl_error_object,
             "code",
-            &breadcrumbs.as_idl(&format!("error[{}]", error_name)),
+            &breadcrumbs.as_idl(&format!("errors[{}]", error_name)),
         )?;
         let idl_error_msg = idl_object_get_key_as_str_or_else(
             idl_error_object,
             "msg",
-            &breadcrumbs.as_idl(&format!("error[{}]", error_name)),
+            &breadcrumbs.as_idl(&format!("errors[{}]", error_name)),
         )?;
         Ok(ToolboxIdlLookupError {
             code: idl_error_code,

@@ -9,7 +9,6 @@ pub async fn run() {
         "instructions": {},
         "types": {
             "MyAccount1": {
-                "kind": "struct",
                 "fields": [
                     { "name": "name", "type": "string" },
                     { "name": "my_struct", "type": "MyStruct" },
@@ -18,7 +17,6 @@ pub async fn run() {
                 ]
             },
             "MyStruct": {
-                "kind": "struct",
                 "fields": [
                     { "name": "integer", "type": "u32" },
                     { "name": "my_enum", "type": { "defined": "MyEnum" } },
@@ -26,12 +24,7 @@ pub async fn run() {
                 ]
             },
             "MyEnum": {
-                "kind": "enum",
-                "variants": [
-                    { "name": "Hello0" }, // TODO - could this be an array of string ?
-                    { "name": "Hello1" },
-                    { "name": "Hello2" },
-                ],
+                "variants": ["Hello0", "Hello1", "Hello2"],
             },
         },
         "accounts": {
@@ -39,7 +32,6 @@ pub async fn run() {
                 "discriminator": [74, 73, 72, 71],
             },
             "MyAccount2": {
-                "kind": "struct",
                 "fields": [
                     { "name": "val1", "type": "MyStruct" },
                     { "name": "val2", "type": { "defined": "MyStruct" } },

@@ -1,7 +1,7 @@
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_describe_type;
+use crate::toolbox_idl_type::ToolboxIdlType;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
@@ -16,7 +16,7 @@ pub struct ToolboxIdlLookupAccount {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupAccountField {
     pub name: String,
-    pub description: String,
+    pub kind: ToolboxIdlType,
 }
 
 impl ToolboxIdl {
@@ -56,7 +56,7 @@ impl ToolboxIdl {
         {
             account_fields.push(ToolboxIdlLookupAccountField {
                 name: idl_field_name.to_string(),
-                description: idl_describe_type(idl_field_type, &breadcrumbs)?,
+                kind: self.parse_type(idl_field_type, &breadcrumbs)?,
             });
         }
         Ok(ToolboxIdlLookupAccount {
@@ -73,7 +73,7 @@ impl ToolboxIdlLookupAccount {
         println!("account.name: {:?}", self.name);
         println!("account.discriminator: {:?}", self.discriminator);
         for field in &self.fields {
-            println!("account.data: {}: {}", field.name, field.description);
+            println!("account.field: {}: {}", field.name, field.kind.describe());
         }
     }
 }
