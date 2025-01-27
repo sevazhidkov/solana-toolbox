@@ -12,5 +12,6 @@ pub mod file_idl_anchor_0_30_accounts;
 pub mod file_idl_anchor_0_30_data;
 pub mod file_idl_anchor_0_30_instruction;
 pub mod file_idl_anchor_0_30_lookup;
+pub mod raw_idl_accounts;
 pub mod raw_idl_instruction;
 pub mod raw_idl_lookup;
