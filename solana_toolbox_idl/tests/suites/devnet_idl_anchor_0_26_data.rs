@@ -14,7 +14,7 @@ pub async fn run() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Parse IDL from file JSON directly
     let idl = ToolboxIdl::try_from_str(
-        &read_to_string("./tests/fixtures/dummy_idl_anchor_0_26.json").unwrap(),
+        &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
     )
     .unwrap();
     // Fetch the idl of an anchor program on chain

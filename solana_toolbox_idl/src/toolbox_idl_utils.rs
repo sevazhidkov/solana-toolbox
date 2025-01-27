@@ -485,6 +485,7 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
 }
 
+// TODO - there should probably be a visitor type pattern for the IDL types since its so complicated and duplicated ?
 pub(crate) fn idl_describe_type(
     idl_type: &Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -539,7 +540,7 @@ pub(crate) fn idl_describe_type(
             ));
         }
     }
-    // TODO - support for array shorthand and leaf shorthand
+    // TODO - support for array/vec shorthand and leaf shorthand
     if let Some(idl_type_leaf) = idl_type.as_str() {
         return Ok(idl_type_leaf.to_string());
     }
