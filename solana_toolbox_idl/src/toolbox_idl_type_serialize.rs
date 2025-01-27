@@ -54,7 +54,7 @@ fn idl_type_serialize(
         if idl_type_array.len() == 1 {
             return idl_type_serialize_vec(
                 idl,
-                idl_type_array.get(0).unwrap(),
+                idl_type_array.first().unwrap(),
                 value,
                 data,
                 &breadcrumbs.with_idl("Vec"),

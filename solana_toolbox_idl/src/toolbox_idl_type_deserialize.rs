@@ -60,7 +60,7 @@ fn idl_type_deserialize(
         if idl_type_array.len() == 1 {
             return idl_type_deserialize_vec(
                 idl,
-                idl_type_array.get(0).unwrap(),
+                idl_type_array.first().unwrap(),
                 data,
                 data_offset,
                 &breadcrumbs.with_idl("Vec"),
