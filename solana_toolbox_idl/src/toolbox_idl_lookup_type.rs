@@ -41,6 +41,7 @@ impl ToolboxIdl {
             type_name,
             &breadcrumbs.as_idl("types"),
         )?;
+        // TODO - the "kind" field could be infered from the keys that are present
         if let Some(idl_type_kind) =
             idl_object_get_key_as_str(idl_type_object, "kind")
         {

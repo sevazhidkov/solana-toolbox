@@ -127,6 +127,7 @@ pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
 type ScopedNamedObject<'a> =
     (&'a str, &'a Map<String, Value>, ToolboxIdlBreadcrumbs);
 
+// TODO - could specialize this a bit, args cannot be objects and enum variants could be array of string ?
 pub(crate) fn idl_object_get_key_as_scoped_named_object_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
@@ -505,6 +506,7 @@ pub(crate) fn idl_describe_type(
                 )?
             ));
         }
+        // TODO - support for shorthand on kind using known keys
         if let Some(idl_type_kind) =
             idl_object_get_key_as_str(idl_type_object, "kind")
         {
@@ -537,6 +539,7 @@ pub(crate) fn idl_describe_type(
             ));
         }
     }
+    // TODO - support for array shorthand and leaf shorthand
     if let Some(idl_type_leaf) = idl_type.as_str() {
         return Ok(idl_type_leaf.to_string());
     }

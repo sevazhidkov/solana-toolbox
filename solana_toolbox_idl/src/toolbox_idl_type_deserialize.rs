@@ -56,15 +56,35 @@ fn idl_type_deserialize(
             breadcrumbs,
         );
     }
+    if let Some(idl_type_array) = idl_type.as_array() {
+        if idl_type_array.len() == 1 {
+            return idl_type_deserialize_vec(
+                idl,
+                idl_type_array.get(0).unwrap(),
+                data,
+                data_offset,
+                &breadcrumbs.with_idl("Vec"),
+            );
+        }
+        return idl_type_deserialize_array(
+            idl,
+            idl_type_array,
+            data,
+            data_offset,
+            &breadcrumbs.with_idl("Array"),
+        );
+    }
     if let Some(idl_type_str) = idl_type.as_str() {
         return idl_type_deserialize_leaf(
+            idl,
             idl_type_str,
             data,
             data_offset,
             &breadcrumbs.with_idl(idl_type_str),
         );
     }
-    idl_err("Expected object or string", &breadcrumbs.as_idl("typedef"))
+    // TODO - I feel like error handling could be smarter
+    idl_err("Expected object, array or string", &breadcrumbs.as_idl("typedef"))
 }
 
 fn idl_type_deserialize_node(
@@ -95,6 +115,7 @@ fn idl_type_deserialize_node(
     if let Some(idl_type_kind) =
         idl_object_get_key_as_str(idl_type_object, "kind")
     {
+        // TODO - this could be infered from the fact that the "field" key exists
         if idl_type_kind == "struct" {
             return idl_type_deserialize_struct(
                 idl,
@@ -104,6 +125,7 @@ fn idl_type_deserialize_node(
                 breadcrumbs,
             );
         }
+        // TODO - this could be infered from the fact that the "variants" key exists
         if idl_type_kind == "enum" {
             return idl_type_deserialize_enum(
                 idl_type_object,
@@ -313,6 +335,7 @@ fn idl_type_deserialize_vec(
 }
 
 fn idl_type_deserialize_leaf(
+    idl: &ToolboxIdl,
     idl_type_str: &str,
     data: &[u8],
     data_offset: usize,
@@ -413,8 +436,11 @@ fn idl_type_deserialize_leaf(
         let data_size = size_of_val(&data_pubkey);
         return Ok((data_size, Value::String(data_pubkey.to_string())));
     }
-    Err(ToolboxIdlError::InvalidTypeLeaf {
-        found: idl_type_str.to_string(),
-        context: context.clone(),
-    })
+    idl_type_deserialize_defined(
+        idl,
+        &Value::String(idl_type_str.to_string()),
+        data,
+        data_offset,
+        breadcrumbs,
+    )
 }

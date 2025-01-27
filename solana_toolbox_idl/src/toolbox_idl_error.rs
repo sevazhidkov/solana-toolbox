@@ -39,10 +39,6 @@ pub enum ToolboxIdlError {
         conversion: TryFromIntError,
         context: ToolboxIdlContext,
     },
-    InvalidTypeLeaf {
-        found: String,
-        context: ToolboxIdlContext,
-    },
     Custom {
         failure: String,
         context: ToolboxIdlContext,

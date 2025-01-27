@@ -15,13 +15,19 @@ pub async fn run() {
         "instructions": {
             "my_instruction": {
                 "accounts": [{ "name": "payer", "signer": true }],
-                "args": [{ "name": "arg", "type": {"defined": "MyArg"} }]
+                "args": [
+                    { "name": "arg1", "type": {"defined": "MyArg"} },
+                    { "name": "arg2", "type": "i32" },
+                ]
             }
         },
         "types": {
             "MyArg": {
                 "kind": "struct",
-                "fields": [{ "name": "info", "type": "u64" }]
+                "fields": [
+                    { "name": "id", "type": "u64" },
+                    { "name": "data", "type": {"vec": "u64"} },
+                ]
             }
         },
         "accounts": {},
@@ -37,7 +43,16 @@ pub async fn run() {
             "payer".to_string(),
             payer.pubkey(),
         )]),
-        args: Map::from_iter([("arg".to_string(), json!({ "info": 42 }))]),
+        args: Map::from_iter([
+            (
+                "arg1".to_string(),
+                json!({
+                    "id": 42,
+                    "data": [1, 2, 3]
+                }),
+            ),
+            ("arg2".to_string(), json!(-32)),
+        ]),
     };
     // Check that we can use the manual IDL to compile/decompile our IX
     assert_eq!(

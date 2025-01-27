@@ -50,15 +50,34 @@ fn idl_type_serialize(
             breadcrumbs,
         );
     }
+    if let Some(idl_type_array) = idl_type.as_array() {
+        if idl_type_array.len() == 1 {
+            return idl_type_serialize_vec(
+                idl,
+                idl_type_array.get(0).unwrap(),
+                value,
+                data,
+                &breadcrumbs.with_idl("Vec"),
+            );
+        }
+        return idl_type_serialize_array(
+            idl,
+            idl_type_array,
+            value,
+            data,
+            &breadcrumbs.with_idl("Array"),
+        );
+    }
     if let Some(idl_type_str) = idl_type.as_str() {
         return idl_type_serialize_leaf(
+            idl,
             idl_type_str,
             value,
             data,
             &breadcrumbs.with_idl(idl_type_str),
         );
     }
-    idl_err("Expected object or string", &breadcrumbs.as_idl("typedef"))
+    idl_err("Expected object, array or string", &breadcrumbs.as_idl("typedef"))
 }
 
 fn idl_type_serialize_node(
@@ -303,6 +322,7 @@ fn idl_type_serialize_vec(
 }
 
 fn idl_type_serialize_leaf(
+    idl: &ToolboxIdl,
     idl_type_str: &str,
     value: &Value,
     data: &mut Vec<u8>,
@@ -411,8 +431,11 @@ fn idl_type_serialize_leaf(
         data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(&value_pubkey));
         return Ok(());
     }
-    Err(ToolboxIdlError::InvalidTypeLeaf {
-        found: idl_type_str.to_string(),
-        context: context.clone(),
-    })
+    idl_type_serialize_defined(
+        idl,
+        &Value::String(idl_type_str.to_string()),
+        value,
+        data,
+        breadcrumbs,
+    )
 }
