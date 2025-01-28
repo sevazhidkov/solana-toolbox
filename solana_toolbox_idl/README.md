@@ -41,7 +41,7 @@ let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
     .await
     .unwrap()
     .unwrap();
-// We can also manually generate IDLs inline
+// We can also manually generate IDLs inline (with or without shortcut syntax)
 let idl = ToolboxIdl::try_from_value(&json!({
     "instructions": {
         "my_instruction": {

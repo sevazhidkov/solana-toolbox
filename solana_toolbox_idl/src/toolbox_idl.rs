@@ -9,22 +9,25 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_type::ToolboxIdlType;
+use crate::toolbox_idl_program_error::ToolboxIdlProgramError;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
+use crate::toolbox_idl_program_error::idl_program_errors_parse;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
     pub accounts_discriminators: HashMap<String, Vec<u8>>,
-    pub accounts_types: Map<String, Value>,
+    pub accounts_types: HashMap<String, ToolboxIdlType>,
     pub instructions_discriminators: HashMap<String, Vec<u8>>,
-    pub instructions_accounts: Map<String, Value>,
-    pub instructions_args: Map<String, Value>,
-    pub types: Map<String, Value>, // TODO - store types as ToolboxIdlType ?
-    pub errors: Map<String, Value>,
+    pub instructions_accounts: Map<String, Value>, // TODO - should this be its own map of custom type ?
+    pub instructions_args: HashMap<String, Vec<(String, ToolboxIdlType)>>,
+    pub program_types: HashMap<String, ToolboxIdlType>,
+    pub program_errors: HashMap<u64, ToolboxIdlProgramError>,
 }
 
 impl ToolboxIdl {
@@ -111,10 +114,9 @@ impl ToolboxIdl {
                 &ToolboxIdl::compute_account_discriminator,
                 breadcrumbs,
             )?,
-            accounts_types: idl_collection_content_mapped_by_name(
+            accounts_types: idl_type_parse_collection(
                 idl_root_object,
                 "accounts",
-                "type",
                 breadcrumbs,
             )?,
             instructions_discriminators: idl_collection_discriminators_by_name(
@@ -129,26 +131,24 @@ impl ToolboxIdl {
                 "accounts",
                 breadcrumbs,
             )?,
-            instructions_args: idl_collection_content_mapped_by_name(
+            instructions_args: idl_type_parse_fields(
                 idl_root_object,
                 "instructions",
                 "args",
                 breadcrumbs,
             )?,
-            types: idl_collection_content_mapped_by_name(
+            program_types: idl_type_parse_collection(
                 idl_root_object,
                 "types",
-                "type",
                 breadcrumbs,
             )?,
-            errors: idl_collection_mapped_by_name(
+            program_errors: idl_program_errors_parse(
                 idl_root_object,
-                "errors",
                 breadcrumbs,
             )?,
         };
         for account_name in idl.accounts_discriminators.keys() {
-            if let Some(idl_type) = idl.types.remove(account_name) {
+            if let Some(idl_type) = idl.program_types.remove(account_name) {
                 idl.accounts_types
                     .insert(account_name.to_string(), idl_type.clone());
             }
@@ -191,55 +191,41 @@ fn idl_collection_discriminators_by_name(
     Ok(idl_collection)
 }
 
-fn idl_collection_content_mapped_by_name(
-    object: &Map<String, Value>,
+pub fn idl_type_parse_collection(
+    idl_root_object: &Map<String, Value>,
     collection_key: &str,
-    content_key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Map<String, Value>, ToolboxIdlError> {
-    let mut idl_collection = Map::new();
-    for (idl_item_name, idl_item_object, _) in
-        idl_object_get_key_as_scoped_named_object_array_or_else(
-            object,
+) -> Result<HashMap<String, ToolboxIdlType>, ToolboxIdlError> {
+    let mut types = HashMap::new();
+    for (idl_type_name, idl_type_type, breadcrumbs) in
+        idl_object_get_key_as_scoped_named_content_array_or_else(
+            idl_root_object,
             collection_key,
-            &breadcrumbs.with_idl("root"),
+            "type",
+            breadcrumbs,
         )?
     {
-        if let Some(idl_item_content) = idl_item_object.get(content_key) {
-            idl_collection
-                .insert(idl_item_name.into(), idl_item_content.clone());
-        } else {
-            idl_collection.insert(
-                idl_item_name.into(),
-                Value::Object(idl_item_object.clone()),
-            );
-        }
+        types.insert(idl_type_name.to_string(), idl_type_parse_value(idl_type_type, &breadcrumbs)?);
     }
-    Ok(idl_collection)
+    Ok(types)
 }
 
-fn idl_collection_mapped_by_name(
-    object: &Map<String, Value>,
+pub fn idl_type_parse_fields(
+    idl_root_object: &Map<String, Value>,
     collection_key: &str,
+    fields_key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Map<String, Value>, ToolboxIdlError> {
-    let mut idl_collection = Map::new();
-    for (idl_item_name, idl_item_object, _) in
+) -> Result<Vec<(String, ToolboxIdlType)>, ToolboxIdlError> {
+    let mut types = vec![];
+    for (idl_collection_name, idl_collection_object, breadcrumbs) in
         idl_object_get_key_as_scoped_named_object_array_or_else(
-            object,
+            idl_root_object,
             collection_key,
-            &breadcrumbs.with_idl("root"),
+            fields_key,
+            breadcrumbs,
         )?
     {
-        let mut idl_item_object = idl_item_object.clone();
-        if !idl_item_object.contains_key("name") {
-            idl_item_object.insert(
-                "name".to_string(),
-                Value::String(idl_item_name.to_string()),
-            );
-        }
-        idl_collection
-            .insert(idl_item_name.into(), Value::Object(idl_item_object));
+        types.push((idl_type_name.to_string(), idl_type_parse_value(idl_type_type, &breadcrumbs)?));
     }
-    Ok(idl_collection)
+    Ok(types)
 }

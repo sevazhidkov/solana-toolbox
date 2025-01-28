@@ -14,7 +14,9 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_type::ToolboxIdlType;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
@@ -379,19 +381,19 @@ fn idl_blob_bytes(
                 &account.value,
                 &breadcrumbs.as_val(account_name),
             )?;
-            let idl_blob_type = idl_object_get_key_or_else(
+            let idl_blob_type = idl_map_get_key_or_else(
                 &idl.accounts_types,
                 &account.name,
-                &breadcrumbs.as_idl("$idl_accounts_types"),
+                &breadcrumbs.as_idl("$accounts_types"),
             )?;
-            let idl_blob_struct = idl_as_object_or_else(
+            let idl_blob_fields = idl_type_as_struct_fields(
+                idl,
                 idl_blob_type,
-                &breadcrumbs.as_idl("datadef(type)"),
+                &breadcrumbs.as_idl(&account.name),
             )?;
             idl_parts_to_bytes(
                 idl,
-                idl_blob_struct,
-                "fields",
+                idl_blob_fields,
                 &idl_blob_parts[1..],
                 account_object,
                 &breadcrumbs.with_idl("account"),
@@ -404,10 +406,14 @@ fn idl_blob_bytes(
                 &breadcrumbs.as_idl("arg"),
             )?;
             let idl_blob_parts = Vec::from_iter(idl_blob_path.split("."));
-            idl_parts_to_bytes(
-                idl,
+            let idl_blob_fields = idl_map_get_key_or_else(
                 &idl.instructions_args,
                 &instruction.name,
+                &breadcrumbs.as_idl("$instructions_args"),
+            )?;
+            idl_parts_to_bytes(
+                idl,
+                idl_blob_fields,
                 &idl_blob_parts,
                 &instruction.args,
                 &breadcrumbs.with_idl("arg"),
@@ -424,21 +430,15 @@ fn idl_blob_bytes(
 
 fn idl_parts_to_bytes(
     idl: &ToolboxIdl,
-    idl_fields_container: &Map<String, Value>,
-    idl_fields_key: &str,
+    idl_fields: &[(String, ToolboxIdlType)],
     parts: &[&str],
     object: &Map<String, Value>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let field_name = parts[0];
-    for (idl_field_name, idl_field_type, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_content_array_or_else(
-            idl_fields_container,
-            idl_fields_key,
-            "type",
-            &breadcrumbs.with_idl(idl_fields_key),
-        )?
+    for (idl_field_name, idl_field_type) in idl_fields
     {
+        let breadcrumbs = &breadcrumbs.with_idl(idl_field_name);
         if idl_field_name.to_case(Case::Snake)
             == field_name.to_case(Case::Snake)
         {
@@ -475,34 +475,52 @@ fn idl_parts_to_bytes(
 
 fn idl_parts_to_bytes_recurse(
     idl: &ToolboxIdl,
-    idl_type: &Value,
+    idl_type: &ToolboxIdlType,
     parts: &[&str],
     value: &&Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
-    if let Some(idl_type_defined) = idl_type.get("defined") {
-        let idl_type_defined_name =
-            idl_value_as_str_or_object_with_name_as_str_or_else(
-                idl_type_defined,
-                &breadcrumbs.as_idl("defined"),
+    match idl_type {
+        ToolboxIdlType::Defined {
+            name
+        } => {
+            let idl_type = idl_map_get_key_or_else(
+                &idl.program_types,
+                name,
+                &breadcrumbs.as_idl("$program_types"),
             )?;
-        let idl_type_inner = idl_object_get_key_as_object_or_else(
-            &idl.types,
-            idl_type_defined_name,
-            &breadcrumbs.as_idl("$idl_types"),
-        )?;
-        let object = idl_as_object_or_else(value, &breadcrumbs.as_val("@"))?;
-        return idl_parts_to_bytes(
-            idl,
-            idl_type_inner,
-            "fields",
-            &parts[1..],
-            object,
-            &breadcrumbs.with_idl("*"),
-        );
+            // TODO - what if the lookup points to an enum or vec/array ?
+            let idl_type_fields = idl_type_as_struct_fields(
+                idl,
+                idl_type,
+                &breadcrumbs.as_idl(name)
+            )?;
+            let object = idl_as_object_or_else(value, &breadcrumbs.val())?;
+            return idl_parts_to_bytes(
+                idl,
+                idl_type_fields,
+                &parts[1..],
+                object,
+                &breadcrumbs.with_idl("*"),
+            );
+        }
+        _ => 
+        idl_err(
+            "doesnt support 2+ split path (unless nested structs)",
+            &breadcrumbs.as_idl(&parts.join(".")),
+        )
     }
-    idl_err(
-        "doesnt support 2+ split path (unless nested structs)",
-        &breadcrumbs.as_idl(&parts.join(".")),
-    )
+}
+
+fn idl_type_as_struct_fields<'a>(
+    idl: &ToolboxIdl,
+    idl_type: &'a ToolboxIdlType,
+    context: &ToolboxIdlContext,
+) -> Result<&'a [(String, ToolboxIdlType)], ToolboxIdlError> {
+    let idl_struct = idl_ok_or_else(
+        idl_type.as_struct(),
+        "Type was expected to be a struct",
+        context
+    )?;
+    Ok(idl_struct.fields)
 }

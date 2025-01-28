@@ -22,18 +22,17 @@ use crate::toolbox_idl_utils::idl_u16_from_bytes_at;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_u64_from_bytes_at;
 use crate::toolbox_idl_utils::idl_u8_from_bytes_at;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
 impl ToolboxIdl {
     pub(crate) fn type_deserialize(
         &self,
-        idl_type: &Value,
+        idl_type: &ToolboxIdlType,
         data: &[u8],
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        // TODO - remove
-        let dada = self.parse_type(idl_type, breadcrumbs)?;
-        idl_type_deserialize(self, &dada, data, data_offset, breadcrumbs)
+        idl_type_deserialize(self, idl_type, data, data_offset, breadcrumbs)
     }
 }
 
@@ -45,10 +44,10 @@ fn idl_type_deserialize(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(usize, Value), ToolboxIdlError> {
     match idl_type {
-        ToolboxIdlType::Defined { name, lookup } => {
-            idl_type_deserialize(
+        ToolboxIdlType::Defined { name } => {
+            idl_type_deserialize_defined(
                 idl,
-                lookup,
+                name,
                 data,
                 data_offset,
                 &breadcrumbs.with_idl(name),
@@ -103,6 +102,27 @@ fn idl_type_deserialize(
             idl_type_deserialize_primitive(kind, data, data_offset, breadcrumbs)
         },
     }
+}
+
+fn idl_type_deserialize_defined(
+    idl: &ToolboxIdl,
+    idl_defined_name: &str,
+    data: &[u8],
+    data_offset: usize,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<(usize, Value), ToolboxIdlError> {
+    let idl_defined_type = idl_map_get_key_or_else(
+        &idl.program_types,
+        idl_defined_name,
+        &breadcrumbs.as_idl("$program_types"),
+    )?;
+    idl_type_deserialize(
+        idl,
+        idl_defined_type,
+        data,
+        data_offset,
+        breadcrumbs,
+    )
 }
 
 fn idl_type_deserialize_option(

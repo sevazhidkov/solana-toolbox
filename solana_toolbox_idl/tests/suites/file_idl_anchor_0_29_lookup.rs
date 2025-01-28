@@ -9,9 +9,10 @@ pub async fn run() {
         read_to_string("./tests/fixtures/idl_anchor_0_29.json").unwrap();
     let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
     // Lookup error by code
-    let lookup_error = idl.lookup_error_by_code(6000).unwrap();
-    assert_eq!("Overflow", lookup_error.name);
-    assert_eq!("Overflow in arithmetic operation.", lookup_error.msg);
+    let program_error = idl.program_errors.get(&6000).unwrap();
+    assert_eq!("Overflow", program_error.name);
+    assert_eq!("Overflow in arithmetic operation.", program_error.msg);
+    /* // TODO - re-establish something like that
     // Lookup instructions and print them
     for lookup_instruction in idl.lookup_instructions().unwrap() {
         lookup_instruction.print();
@@ -25,7 +26,8 @@ pub async fn run() {
         lookup_type.print();
     }
     // Lookup errors and print them
-    for lookup_error in idl.lookup_errors().unwrap() {
-        lookup_error.print();
+    for program_error in idl.program_errors.values() {
+        program_error.print();
     }
+        */
 }

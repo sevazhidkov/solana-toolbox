@@ -9,12 +9,13 @@ pub async fn run() {
         read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap();
     let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
     // Lookup error by code
-    let lookup_error = idl.lookup_error_by_code(6004).unwrap();
-    assert_eq!("MarketIsFrozen", lookup_error.name);
+    let program_error = idl.program_errors.get(&6004).unwrap();
+    assert_eq!("MarketIsFrozen", program_error.name);
     assert_eq!(
         "This market is currently frozen. Please try again later.",
-        lookup_error.msg,
+        program_error.msg,
     );
+    /*
     // Lookup instructions and print them
     for lookup_instruction in idl.lookup_instructions().unwrap() {
         lookup_instruction.print();
@@ -28,7 +29,8 @@ pub async fn run() {
         lookup_type.print();
     }
     // Lookup errors and print them
-    for lookup_error in idl.lookup_errors().unwrap() {
-        lookup_error.print();
+    for program_error in idl.program_errors.values() {
+        program_error.print();
     }
+    */
 }

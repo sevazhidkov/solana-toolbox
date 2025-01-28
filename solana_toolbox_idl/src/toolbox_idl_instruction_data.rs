@@ -22,14 +22,8 @@ impl ToolboxIdl {
         )?;
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(discriminator);
-        for (idl_arg_name, idl_arg_type, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_content_array_or_else(
-                &self.instructions_args,
-                instruction_name,
-                "type",
-                &breadcrumbs.with_idl("instruction_args"),
-            )?
-        {
+        for (idl_arg_name, idl_arg_type) in self.instructions_args {
+            let breadcrumbs = &breadcrumbs.with_idl(idl_arg_name);            
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
                 idl_arg_name,
@@ -64,14 +58,8 @@ impl ToolboxIdl {
         }
         let mut data_offset = discriminator.len();
         let mut instruction_args = Map::new();
-        for (idl_arg_name, idl_arg_type, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_content_array_or_else(
-                &self.instructions_args,
-                instruction_name,
-                "type",
-                &breadcrumbs.with_idl("instruction_args"),
-            )?
-        {
+        for (idl_arg_name, idl_arg_type) in self.instructions_args {
+            let breadcrumbs = &breadcrumbs.with_idl(idl_arg_name);            
             let (data_arg_size, data_arg_value) = self.type_deserialize(
                 idl_arg_type,
                 instruction_data,

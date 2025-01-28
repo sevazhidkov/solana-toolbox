@@ -82,10 +82,10 @@ impl ToolboxIdl {
         )?;
         let mut account_data = vec![];
         account_data.extend_from_slice(discriminator);
-        let idl_account_type = idl_object_get_key_or_else(
+        let idl_account_type = idl_map_get_key_or_else(
             &self.accounts_types,
             &account.name,
-            &breadcrumbs.as_idl("accounts_types"),
+            &breadcrumbs.as_idl("$accounts_types"),
         )?;
         self.type_serialize(
             idl_account_type,
@@ -117,10 +117,10 @@ impl ToolboxIdl {
                 found: account_data.to_vec(),
             });
         }
-        let idl_account_type = idl_object_get_key_or_else(
+        let idl_account_type = idl_map_get_key_or_else(
             &self.accounts_types,
             account_name,
-            &breadcrumbs.as_idl("accounts_types"),
+            &breadcrumbs.as_idl("$accounts_types"),
         )?;
         let data_header_size = discriminator.len();
         let (_, data_content_value) = self.type_deserialize(

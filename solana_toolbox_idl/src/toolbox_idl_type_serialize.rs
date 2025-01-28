@@ -17,18 +17,17 @@ use crate::toolbox_idl_utils::idl_as_str_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
 impl ToolboxIdl {
     pub(crate) fn type_serialize(
         &self,
-        idl_type: &Value,
+        idl_type: &ToolboxIdlType,
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        // TODO - remove
-        let dada = self.parse_type(idl_type, breadcrumbs)?;
-        idl_type_serialize(self, &dada, value, data, breadcrumbs)
+        idl_type_serialize(self, idl_type, value, data, breadcrumbs)
     }
 }
 
@@ -40,15 +39,15 @@ fn idl_type_serialize(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     match idl_type {
-        ToolboxIdlType::Defined { name, lookup } => {
-            idl_type_serialize(
+        ToolboxIdlType::Defined { name } => {
+            idl_type_serialize_defined(
                 idl,
-                lookup,
+                name,
                 value,
                 data,
                 &breadcrumbs.with_idl(name),
             )
-        }
+        },
         ToolboxIdlType::Option { content } => {
             idl_type_serialize_option(
                 idl,
@@ -98,6 +97,27 @@ fn idl_type_serialize(
             idl_type_serialize_primitive(kind, value, data, breadcrumbs)
         },
     }
+}
+
+fn idl_type_serialize_defined(
+    idl: &ToolboxIdl,
+    idl_defined_name: &str,
+    value: &Value,
+    data: &mut Vec<u8>,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<(), ToolboxIdlError> {
+    let idl_defined_type = idl_map_get_key_or_else(
+        &idl.program_types,
+        idl_defined_name,
+        &breadcrumbs.as_idl("$program_types"),
+    )?;
+    idl_type_serialize(
+        idl,
+        idl_defined_type,
+        value,
+        data,
+        breadcrumbs,
+    )
 }
 
 fn idl_type_serialize_option(
@@ -204,9 +224,7 @@ fn idl_type_serialize_enum(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<(), ToolboxIdlError> {
     let value_string = idl_as_str_or_else(value, &breadcrumbs.as_val("enum"))?;
-    for (value_enum, idl_enum_variant) in
-        idl_enum_variants.iter().enumerate()
-    {
+    for (value_enum, idl_enum_variant) in idl_enum_variants.iter().enumerate() {
         if idl_enum_variant == value_string {
             data.push(u8::try_from(value_enum).unwrap());
             return Ok(());

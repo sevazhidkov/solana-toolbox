@@ -5,6 +5,7 @@ use crate::toolbox_idl_type::ToolboxIdlType;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
+use crate::toolbox_idl_type::idl_type_parse_value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlLookupAccount {
@@ -56,7 +57,7 @@ impl ToolboxIdl {
         {
             account_fields.push(ToolboxIdlLookupAccountField {
                 name: idl_field_name.to_string(),
-                kind: self.parse_type(idl_field_type, &breadcrumbs)?,
+                kind: idl_type_parse_value(idl_field_type, &breadcrumbs)?,
             });
         }
         Ok(ToolboxIdlLookupAccount {
@@ -73,7 +74,11 @@ impl ToolboxIdlLookupAccount {
         println!("account.name: {:?}", self.name);
         println!("account.discriminator: {:?}", self.discriminator);
         for field in &self.fields {
-            println!("account.field: {}: {}", field.name, field.kind.describe());
+            println!(
+                "account.field: {}: {}",
+                field.name,
+                field.kind.describe()
+            );
         }
     }
 }

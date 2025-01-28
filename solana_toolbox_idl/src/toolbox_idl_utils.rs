@@ -286,8 +286,7 @@ pub(crate) fn idl_as_bytes_or_else(
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let mut bytes = vec![];
     let array = idl_as_array_or_else(value, context)?;
-    for index in 0..array.len() {
-        let item = array.get(index).unwrap();
+    for (_index, item) in array.iter().enumerate() {
         let integer = idl_as_u128_or_else(item, context)?;
         let byte = u8::try_from(integer).map_err(|err| {
             ToolboxIdlError::InvalidInteger {

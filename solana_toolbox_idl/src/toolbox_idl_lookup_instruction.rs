@@ -12,7 +12,6 @@ pub struct ToolboxIdlLookupInstruction {
     pub name: String,
     pub discriminator: Vec<u8>,
     pub accounts: Vec<ToolboxIdlLookupInstructionAccount>,
-    pub args: Vec<ToolboxIdlLookupInstructionArg>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -21,12 +20,6 @@ pub struct ToolboxIdlLookupInstructionAccount {
     pub resolvable: bool,
     pub writable: bool,
     pub signer: bool,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxIdlLookupInstructionArg {
-    pub name: String,
-    pub kind: ToolboxIdlType,
 }
 
 impl ToolboxIdl {
@@ -79,25 +72,10 @@ impl ToolboxIdl {
                 signer: idl_account_is_signer,
             });
         }
-        let mut instruction_args = vec![];
-        for (idl_arg_name, idl_arg_type, breadcrumbs) in
-            idl_object_get_key_as_scoped_named_content_array_or_else(
-                &self.instructions_args,
-                instruction_name,
-                "type",
-                &breadcrumbs.with_idl("instruction_args"),
-            )?
-        {
-            instruction_args.push(ToolboxIdlLookupInstructionArg {
-                name: idl_arg_name.to_string(),
-                kind: self.parse_type(idl_arg_type, &breadcrumbs)?,
-            });
-        }
         Ok(ToolboxIdlLookupInstruction {
             name: instruction_name.to_string(),
             discriminator: instruction_discriminator.clone(),
             accounts: instruction_accounts,
-            args: instruction_args,
         })
     }
 }

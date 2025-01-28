@@ -1,5 +1,6 @@
 use serde_json::Map;
 use serde_json::Value;
+use std::collections::HashMap;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -11,16 +12,44 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlType {
-    Defined { name: String, lookup: Box<ToolboxIdlType> },
+    Defined { name: String },
     Option { content: Box<ToolboxIdlType> },
     Vec { items: Box<ToolboxIdlType> },
     Array { length: u32, items: Box<ToolboxIdlType> },
     Struct { fields: Vec<(String, ToolboxIdlType)> },
     Enum { variants: Vec<String> },
     Primitive { kind: ToolboxIdlTypePrimitiveKind },
+}
+
+impl ToolboxIdlType {
+    pub fn describe(&self) -> String {
+        match self {
+            ToolboxIdlType::Defined { name } => name.to_string(),
+            ToolboxIdlType::Option { content } => {
+                format!("Option<{}>", content.describe())
+            },
+            ToolboxIdlType::Vec { items } => {
+                format!("Vec<{}>", items.describe())
+            },
+            ToolboxIdlType::Array { length, items } => {
+                format!("[{}; {}]", items.describe(), length)
+            },
+            ToolboxIdlType::Struct { .. } => "Struct()".to_string(),
+            ToolboxIdlType::Enum { .. } => "Enum()".to_string(),
+            ToolboxIdlType::Primitive { kind } => kind.as_str().to_string(),
+        }
+    }
+
+    pub fn as_struct(&self) -> () {
+        match self {
+            ToolboxIdlType::Struct { fields } => Some(fields),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -42,29 +71,40 @@ pub enum ToolboxIdlTypePrimitiveKind {
     PublicKey,
 }
 
-impl ToolboxIdl {
-    pub fn parse_type(
-        &self,
-        idl_type_value: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlType, ToolboxIdlError> {
-        idl_type_parse_value(self, idl_type_value, breadcrumbs)
+impl ToolboxIdlTypePrimitiveKind {
+    pub fn as_str(&self) -> &str {
+        match self {
+            ToolboxIdlTypePrimitiveKind::U8 => "u8",
+            ToolboxIdlTypePrimitiveKind::U16 => "u16",
+            ToolboxIdlTypePrimitiveKind::U32 => "u32",
+            ToolboxIdlTypePrimitiveKind::U64 => "u64",
+            ToolboxIdlTypePrimitiveKind::U128 => "u128",
+            ToolboxIdlTypePrimitiveKind::I8 => "i8",
+            ToolboxIdlTypePrimitiveKind::I16 => "i16",
+            ToolboxIdlTypePrimitiveKind::I32 => "i32",
+            ToolboxIdlTypePrimitiveKind::I64 => "i64",
+            ToolboxIdlTypePrimitiveKind::I128 => "i128",
+            ToolboxIdlTypePrimitiveKind::F32 => "f32",
+            ToolboxIdlTypePrimitiveKind::F64 => "f64",
+            ToolboxIdlTypePrimitiveKind::Boolean => "boolean",
+            ToolboxIdlTypePrimitiveKind::String => "string",
+            ToolboxIdlTypePrimitiveKind::PublicKey => "publickey",
+        }
     }
 }
 
-pub fn idl_type_parse_value(
-    idl: &ToolboxIdl,
+pub(crate) fn idl_type_parse_value(
     idl_type_value: &Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
     if let Some(idl_type_object) = idl_type_value.as_object() {
-        return idl_type_parse_object(idl, idl_type_object, breadcrumbs);
+        return idl_type_parse_object(idl_type_object, breadcrumbs);
     }
     if let Some(idl_type_array) = idl_type_value.as_array() {
-        return idl_type_parse_array(idl, idl_type_array, breadcrumbs);
+        return idl_type_parse_array(idl_type_array, breadcrumbs);
     }
     if let Some(idl_type_str) = idl_type_value.as_str() {
-        return idl_type_parse_str(idl, idl_type_str, breadcrumbs);
+        return idl_type_parse_str(idl_type_str, breadcrumbs);
     }
     idl_err(
         "Expected type object, array or string",
@@ -72,29 +112,28 @@ pub fn idl_type_parse_value(
     )
 }
 
-pub fn idl_type_parse_object(
-    idl: &ToolboxIdl,
+fn idl_type_parse_object(
     idl_type_object: &Map<String, Value>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
     if let Some(idl_type_defined) = idl_type_object.get("defined") {
-        return idl_type_parse_defined(idl, idl_type_defined, breadcrumbs);
+        return idl_type_parse_defined(idl_type_defined, breadcrumbs);
     }
     if let Some(idl_type_option) = idl_type_object.get("option") {
-        return idl_type_parse_option(idl, idl_type_option, breadcrumbs);
+        return idl_type_parse_option(idl_type_option, breadcrumbs);
     }
     if let Some(idl_type_vec) = idl_type_object.get("vec") {
-        return idl_type_parse_vec(idl, idl_type_vec, breadcrumbs);
+        return idl_type_parse_vec(idl_type_vec, breadcrumbs);
     }
     if let Some(idl_type_array) =
         idl_object_get_key_as_array(idl_type_object, "array")
     {
-        return idl_type_parse_array(idl, idl_type_array, breadcrumbs);
+        return idl_type_parse_array(idl_type_array, breadcrumbs);
     }
     if let Some(idl_type_fields) =
         idl_object_get_key_as_array(idl_type_object, "fields")
     {
-        return idl_type_parse_struct_fields(idl, idl_type_fields, breadcrumbs);
+        return idl_type_parse_struct_fields(idl_type_fields, breadcrumbs);
     }
     if let Some(idl_type_variants) =
         idl_object_get_key_as_array(idl_type_object, "variants")
@@ -107,13 +146,12 @@ pub fn idl_type_parse_object(
     )
 }
 
-pub fn idl_type_parse_array(
-    idl: &ToolboxIdl,
+fn idl_type_parse_array(
     idl_type_array: &[Value],
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
     if idl_type_array.len() == 1 {
-        return idl_type_parse_vec(idl, &idl_type_array[0], breadcrumbs);
+        return idl_type_parse_vec(&idl_type_array[0], breadcrumbs);
     }
     if idl_type_array.len() == 2 {
         return Ok(ToolboxIdlType::Array {
@@ -128,7 +166,6 @@ pub fn idl_type_parse_array(
                     })?
             },
             items: Box::new(idl_type_parse_value(
-                idl,
                 &idl_type_array[0],
                 &breadcrumbs.with_idl("array"),
             )?),
@@ -140,8 +177,7 @@ pub fn idl_type_parse_array(
     )
 }
 
-pub fn idl_type_parse_str(
-    idl: &ToolboxIdl,
+fn idl_type_parse_str(
     idl_type_str: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
@@ -170,7 +206,6 @@ pub fn idl_type_parse_str(
         },
         None => {
             idl_type_parse_defined(
-                idl,
                 &Value::String(idl_type_str.to_string()),
                 breadcrumbs,
             )?
@@ -178,8 +213,7 @@ pub fn idl_type_parse_str(
     })
 }
 
-pub fn idl_type_parse_defined(
-    idl: &ToolboxIdl,
+fn idl_type_parse_defined(
     idl_type_defined: &Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
@@ -187,51 +221,36 @@ pub fn idl_type_parse_defined(
         idl_type_defined,
         &breadcrumbs.as_idl("defined"),
     )?;
-    let idl_type_value = idl_object_get_key_or_else(
-        &idl.types,
-        idl_type_name,
-        &breadcrumbs.as_idl("$idl_types"),
-    )?;
     Ok(ToolboxIdlType::Defined {
         name: idl_type_name.to_string(),
-        lookup:     Box::new(idl_type_parse_value(
-            idl,
-            idl_type_value,
-            &breadcrumbs.with_idl(idl_type_name),
-        )?    )
     })
 }
 
-pub fn idl_type_parse_option(
-    idl: &ToolboxIdl,
+fn idl_type_parse_option(
     idl_type_option: &Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
     Ok(ToolboxIdlType::Option {
         content: Box::new(idl_type_parse_value(
-            idl,
             idl_type_option,
             &breadcrumbs.with_idl("option"),
         )?),
     })
 }
 
-pub fn idl_type_parse_vec(
-    idl: &ToolboxIdl,
+fn idl_type_parse_vec(
     idl_type_vec: &Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
     Ok(ToolboxIdlType::Vec {
         items: Box::new(idl_type_parse_value(
-            idl,
             idl_type_vec,
             &breadcrumbs.with_idl("vec"),
         )?),
     })
 }
 
-pub fn idl_type_parse_struct_fields(
-    idl: &ToolboxIdl,
+fn idl_type_parse_struct_fields(
     idl_type_fields: &[Value],
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
@@ -253,14 +272,14 @@ pub fn idl_type_parse_struct_fields(
         )?;
         fields.push((
             idl_type_field_name.to_string(),
-            idl_type_parse_value(idl, idl_type_field_type, breadcrumbs)?,
+            idl_type_parse_value(idl_type_field_type, breadcrumbs)?,
         ));
     }
     Ok(ToolboxIdlType::Struct { fields })
 }
 
 // TODO - support for enums with content ?
-pub fn idl_type_parse_enum_variants(
+fn idl_type_parse_enum_variants(
     idl_type_variants: &[Value],
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<ToolboxIdlType, ToolboxIdlError> {
@@ -274,63 +293,4 @@ pub fn idl_type_parse_enum_variants(
         variants.push(idl_type_variant_name.to_string());
     }
     Ok(ToolboxIdlType::Enum { variants })
-}
-
-impl ToolboxIdlType {
-    pub fn describe(
-        &self,
-    ) -> String {
-        match self {
-            ToolboxIdlType::Defined { name, .. } => {
-                name.to_string()
-            },
-            ToolboxIdlType::Option { content } => {
-                format!(
-                    "Option<{}>",
-                    content.describe()
-                )
-            },
-            ToolboxIdlType::Vec { items } => {
-                format!(
-                    "Vec<{}>",
-                    items.describe()
-                )
-            },
-            ToolboxIdlType::Array { length, items } => {
-                format!(
-                    "[{}; {}]",
-                    items.describe(),
-                    length
-                )
-            },
-            ToolboxIdlType::Struct { .. } => "Struct()".to_string(),
-            ToolboxIdlType::Enum { .. } => "Enum()".to_string(),
-            ToolboxIdlType::Primitive { kind } => kind.as_str().to_string(),
-        }
-    }
-}
-
-
-impl ToolboxIdlTypePrimitiveKind {
-    
-
-    pub fn as_str(&self) -> &str {
-        match self {
-            ToolboxIdlTypePrimitiveKind::U8 => "u8",
-            ToolboxIdlTypePrimitiveKind::U16 => "u16",
-            ToolboxIdlTypePrimitiveKind::U32 => "u32",
-            ToolboxIdlTypePrimitiveKind::U64 => "u64",
-            ToolboxIdlTypePrimitiveKind::U128 => "u128",
-            ToolboxIdlTypePrimitiveKind::I8 => "i8",
-            ToolboxIdlTypePrimitiveKind::I16 => "i16",
-            ToolboxIdlTypePrimitiveKind::I32 => "i32",
-            ToolboxIdlTypePrimitiveKind::I64 => "i64",
-            ToolboxIdlTypePrimitiveKind::I128 => "i128",
-            ToolboxIdlTypePrimitiveKind::F32 => "f32",
-            ToolboxIdlTypePrimitiveKind::F64 => "f64",
-            ToolboxIdlTypePrimitiveKind::Boolean => "boolean",
-            ToolboxIdlTypePrimitiveKind::String => "string",
-            ToolboxIdlTypePrimitiveKind::PublicKey => "publickey",
-        }
-    }
 }
