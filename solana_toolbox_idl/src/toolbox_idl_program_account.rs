@@ -24,9 +24,7 @@ impl ToolboxIdlProgramAccount {
         println!("account.discriminator: {:?}", self.discriminator);
         println!("account.typedef: {}", self.typedef.describe());
     }
-}
 
-impl ToolboxIdlProgramAccount {
     pub(crate) fn try_parse(
         program_typedefs: &mut HashMap<String, ToolboxIdlProgramTypedef>,
         idl_account_name: &str,
@@ -74,22 +72,18 @@ impl ToolboxIdlProgramAccount {
         idl_account_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
-        Ok(
-            if let Some(idl_account_typedef_value) =
-                idl_account_object.get("type")
-            {
-                ToolboxIdlProgramTypedef::try_parse(
-                    idl_account_typedef_value,
-                    breadcrumbs,
-                )?
-            } else {
-                idl_map_get_key_or_else(
-                    program_typedefs,
-                    idl_account_name,
-                    &breadcrumbs.idl(),
-                )?
-                .clone()
-            },
-        )
+        Ok(if let Some(idl_account_typedef) = idl_account_object.get("type") {
+            ToolboxIdlProgramTypedef::try_parse(
+                idl_account_typedef,
+                breadcrumbs,
+            )?
+        } else {
+            idl_map_get_key_or_else(
+                program_typedefs,
+                idl_account_name,
+                &breadcrumbs.idl(),
+            )?
+            .clone()
+        })
     }
 }

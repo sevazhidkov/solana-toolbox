@@ -255,7 +255,7 @@ fn idl_instruction_account_object_resolve(
                     pda_seed_blob,
                     instruction,
                     instruction_accounts,
-                    &breadcrumbs,
+                    breadcrumbs,
                 )?);
             }
             let pda_program_id = if let Some(pda_program_blob) = program {

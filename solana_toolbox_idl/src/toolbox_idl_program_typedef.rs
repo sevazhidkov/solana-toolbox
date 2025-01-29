@@ -4,11 +4,10 @@ use serde_json::Value;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitiveKind;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
-use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
@@ -25,22 +24,22 @@ pub enum ToolboxIdlProgramTypedef {
 
 impl ToolboxIdlProgramTypedef {
     pub(crate) fn try_parse(
-        idl_typedef_value: &Value,
+        idl_typedef: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
-        if let Some(idl_typedef_object) = idl_typedef_value.as_object() {
+        if let Some(idl_typedef_object) = idl_typedef.as_object() {
             return ToolboxIdlProgramTypedef::try_parse_object(
                 idl_typedef_object,
                 breadcrumbs,
             );
         }
-        if let Some(idl_typedef_array) = idl_typedef_value.as_array() {
+        if let Some(idl_typedef_array) = idl_typedef.as_array() {
             return ToolboxIdlProgramTypedef::try_parse_array(
                 idl_typedef_array,
                 breadcrumbs,
             );
         }
-        if let Some(idl_typedef_str) = idl_typedef_value.as_str() {
+        if let Some(idl_typedef_str) = idl_typedef.as_str() {
             return ToolboxIdlProgramTypedef::try_parse_str(
                 idl_typedef_str,
                 breadcrumbs,
@@ -146,7 +145,7 @@ impl ToolboxIdlProgramTypedef {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
         Ok(
-            match ToolboxIdlProgramTypedefPrimitiveKind::from_str(
+            match ToolboxIdlProgramTypedefPrimitiveKind::try_parse(
                 idl_typedef_str,
             ) {
                 Some(program_typedef_primitive_kind) => {
@@ -203,31 +202,28 @@ impl ToolboxIdlProgramTypedef {
     }
 
     fn try_parse_struct_fields(
-        idl_typedef_fields: &[Value],
+        idl_typedef_struct_fields: &[Value],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
         let mut program_typedef_struct_fields = vec![];
-        for (index, idl_typedef_field) in idl_typedef_fields.iter().enumerate()
-        {
-            let context = &breadcrumbs.as_idl(&format!("fields[{}]", index));
-            let idl_typedef_field_object =
-                idl_as_object_or_else(idl_typedef_field, context)?;
-            let idl_typedef_field_name = idl_object_get_key_as_str_or_else(
-                idl_typedef_field_object,
-                "name",
-                context,
-            )?;
-            let breadcrumbs = &breadcrumbs.with_idl(idl_typedef_field_name);
-            let idl_typedef_field_typedef_value = idl_object_get_key_or_else(
-                idl_typedef_field_object,
+        for (
+            idl_typedef_struct_field_name,
+            idl_typedef_struct_field_object,
+            breadcrumbs,
+        ) in idl_array_get_scoped_named_object_array_or_else(
+            idl_typedef_struct_fields,
+            breadcrumbs,
+        )? {
+            let idl_typedef_struct_field_typedef = idl_object_get_key_or_else(
+                idl_typedef_struct_field_object,
                 "type",
                 &breadcrumbs.idl(),
             )?;
             program_typedef_struct_fields.push((
-                idl_typedef_field_name.to_string(),
+                idl_typedef_struct_field_name.to_string(),
                 ToolboxIdlProgramTypedef::try_parse(
-                    idl_typedef_field_typedef_value,
-                    breadcrumbs,
+                    idl_typedef_struct_field_typedef,
+                    &breadcrumbs,
                 )?,
             ));
         }

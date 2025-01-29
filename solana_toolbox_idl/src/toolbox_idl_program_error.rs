@@ -14,6 +14,13 @@ pub struct ToolboxIdlProgramError {
 }
 
 impl ToolboxIdlProgramError {
+    pub fn print(&self) {
+        println!("----");
+        println!("error.code: {}", self.code);
+        println!("error.name: {}", self.name);
+        println!("error.msg: {}", self.msg);
+    }
+
     pub(crate) fn try_parse(
         idl_error_name: &str,
         idl_error_object: &Map<String, Value>,

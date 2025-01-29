@@ -18,7 +18,7 @@ pub enum ToolboxIdlProgramTypedefPrimitiveKind {
 }
 
 impl ToolboxIdlProgramTypedefPrimitiveKind {
-    pub fn from_str(
+    pub fn try_parse(
         kind: &str
     ) -> Option<ToolboxIdlProgramTypedefPrimitiveKind> {
         match kind {

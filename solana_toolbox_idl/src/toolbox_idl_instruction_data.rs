@@ -25,7 +25,7 @@ impl ToolboxIdl {
             &program_instruction.args
         {
             let breadcrumbs =
-                &breadcrumbs.with_idl(&program_instruction_arg_name);
+                &breadcrumbs.with_idl(program_instruction_arg_name);
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
                 program_instruction_arg_name,

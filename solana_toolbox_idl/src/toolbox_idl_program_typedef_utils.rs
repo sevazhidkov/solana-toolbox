@@ -14,8 +14,19 @@ impl ToolboxIdlProgramTypedef {
             ToolboxIdlProgramTypedef::Array { length, items_typedef } => {
                 format!("[{}; {}]", items_typedef.describe(), length)
             },
-            ToolboxIdlProgramTypedef::Struct { .. } => "Struct()".to_string(),
-            ToolboxIdlProgramTypedef::Enum { .. } => "Enum()".to_string(),
+            ToolboxIdlProgramTypedef::Struct { fields } => {
+                format!(
+                    "Struct({})",
+                    fields
+                        .iter()
+                        .map(|field| field.0.clone())
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            },
+            ToolboxIdlProgramTypedef::Enum { variants } => {
+                format!("Enum({})", variants.join(","))
+            },
             ToolboxIdlProgramTypedef::Primitive { kind } => {
                 kind.as_str().to_string()
             },

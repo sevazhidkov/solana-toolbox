@@ -12,22 +12,16 @@ pub async fn run() {
     let program_error = idl.program_errors.get(&6000).unwrap();
     assert_eq!("Overflow", program_error.name);
     assert_eq!("Overflow in arithmetic operation.", program_error.msg);
-    /* // TODO - re-establish something like that
     // Lookup instructions and print them
-    for lookup_instruction in idl.lookup_instructions().unwrap() {
-        lookup_instruction.print();
+    for program_instruction in idl.program_instructions.values() {
+        program_instruction.print();
     }
     // Lookup accounts and print them
-    for lookup_account in idl.lookup_accounts().unwrap() {
-        lookup_account.print();
-    }
-    // Lookup types and print them
-    for lookup_type in idl.lookup_types().unwrap() {
-        lookup_type.print();
+    for program_account in idl.program_accounts.values() {
+        program_account.print();
     }
     // Lookup errors and print them
     for program_error in idl.program_errors.values() {
         program_error.print();
     }
-        */
 }

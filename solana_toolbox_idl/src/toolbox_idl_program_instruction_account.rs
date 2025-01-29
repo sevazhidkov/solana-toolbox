@@ -102,19 +102,19 @@ impl ToolboxIdlProgramInstructionAccount {
                 )?
             {
                 program_instruction_account_resolve_pda_seeds.push(ToolboxIdlProgramInstructionAccount::try_parse_resolve_pda_blob(
-                idl_instruction_account_pda_seed_object,
-                &breadcrumbs,
-            )?);
+                    idl_instruction_account_pda_seed_object,
+                    &breadcrumbs,
+                )?);
             }
-            let idl_instruction_account_pda_blob_object =
+            let idl_instruction_account_pda_program_object =
                 idl_object_get_key_as_object(
                     idl_instruction_account_pda,
                     "program",
                 );
-            let program_instruction_account_resolve_pda_program = idl_instruction_account_pda_blob_object
-                .map(|idl_blob_object| {
+            let program_instruction_account_resolve_pda_program = idl_instruction_account_pda_program_object
+                .map(|idl_instruction_account_pda_program_object| {
                     ToolboxIdlProgramInstructionAccount::try_parse_resolve_pda_blob(
-                        idl_blob_object,
+                        idl_instruction_account_pda_program_object,
                         &breadcrumbs.with_idl("program"),
                     )
                 })
