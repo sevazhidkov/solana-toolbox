@@ -27,5 +27,8 @@ pub use toolbox_idl_instruction::ToolboxIdlInstruction;
 pub use toolbox_idl_program_account::ToolboxIdlProgramAccount;
 pub use toolbox_idl_program_error::ToolboxIdlProgramError;
 pub use toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
+pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
+pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolve;
+pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolvePdaBlob;
 pub use toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 pub use toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitiveKind;
