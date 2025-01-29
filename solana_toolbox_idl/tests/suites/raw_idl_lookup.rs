@@ -4,63 +4,6 @@ use solana_toolbox_idl::ToolboxIdl;
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl_shortened = ToolboxIdl::try_from_value(&json!({
-        "instructions": {
-            "my_instruction": {
-                "accounts": [
-                    { "name": "payer", "isSigner": true },
-                    { "name": "authority" },
-                ],
-                "args": [
-                    { "name": "index", "type": "u32" },
-                    { "name": "id", "type": "i64" },
-                ]
-            }
-        },
-        "accounts": {
-            "MyAccount": {
-                "kind": "struct",
-                "fields": [
-                    { "name": "my_field1", "type": "u64" },
-                    { "name": "my_field2", "type": "u32" },
-                ],
-            }
-        },
-        "types": {
-            "MyStruct": {
-                "kind": "struct",
-                "fields": [
-                    { "name": "addr", "type": "pubkey" },
-                    { "name": "name", "type": "string" },
-                ]
-            }
-        },
-        "errors": {
-            "MyError": {
-                "code": 4242,
-                "msg": "My error message",
-            }
-        },
-    }))
-    .unwrap();
-        /* // TODO - re-establish something like that
-    // Lookup instructions and print them
-    for lookup_instruction in idl_shortened.lookup_instructions().unwrap() {
-        lookup_instruction.print();
-    }
-    // Lookup accounts and print them
-    for lookup_account in idl_shortened.lookup_accounts().unwrap() {
-        lookup_account.print();
-    }
-    // Lookup types and print them
-    for lookup_type in idl_shortened.lookup_types().unwrap() {
-        lookup_type.print();
-    }
-    // Lookup errors and print them
-    for program_error in idl_shortened.program_errors.values() {
-        program_error.print();
-    }*/
-    // Create an IDL on the fly
     let idl_standard = ToolboxIdl::try_from_value(&json!({
         "instructions": [
             {
@@ -91,7 +34,7 @@ pub async fn run() {
             {
                 "name": "MyStruct",
                 "type": {
-                    "kind": "struct", // TODO - this could be deprecated and allow field shorthand
+                    "kind": "struct",
                     "fields": [
                         { "name": "addr", "type": "pubkey" },
                         { "name": "name", "type": "string" },
@@ -108,6 +51,65 @@ pub async fn run() {
         ],
     }))
     .unwrap();
+    // Create an IDL on the fly
+    let idl_shortened = ToolboxIdl::try_from_value(&json!({
+        "instructions": {
+            "my_instruction": {
+                "accounts": [
+                    { "name": "payer", "isSigner": true },
+                    { "name": "authority" },
+                ],
+                "args": [
+                    { "name": "index", "type": "u32" },
+                    { "name": "id", "type": "i64" },
+                ]
+            }
+        },
+        "accounts": {
+            "MyAccount": {
+                "fields": [
+                    { "name": "my_field1", "type": "u64" },
+                    { "name": "my_field2", "type": "u32" },
+                ],
+            }
+        },
+        "types": {
+            "MyStruct": {
+                "fields": [
+                    { "name": "addr", "type": "pubkey" },
+                    { "name": "name", "type": "string" },
+                ]
+            }
+        },
+        "errors": {
+            "MyError": {
+                "code": 4242,
+                "msg": "My error message",
+            }
+        },
+    }))
+    .unwrap();
+    eprintln!("idl_shortened:{:#?}", idl_shortened);
+    eprintln!("idl_standard:{:#?}", idl_standard);
+    // Assert that both versions are equivalent
+    assert_eq!(idl_shortened, idl_standard);
+    /* // TODO - re-establish something like that
+    // Lookup instructions and print them
+    for lookup_instruction in idl_shortened.lookup_instructions().unwrap() {
+        lookup_instruction.print();
+    }
+    // Lookup accounts and print them
+    for lookup_account in idl_shortened.lookup_accounts().unwrap() {
+        lookup_account.print();
+    }
+    // Lookup types and print them
+    for lookup_type in idl_shortened.lookup_types().unwrap() {
+        lookup_type.print();
+    }
+    // Lookup errors and print them
+    for program_error in idl_shortened.program_errors.values() {
+        program_error.print();
+    }*/
     /* // TODO - re-establish something like that
     // Lookup instructions and print them
     for lookup_instruction in idl_standard.lookup_instructions().unwrap() {
@@ -125,10 +127,7 @@ pub async fn run() {
     for program_error in idl_standard.program_errors.values() {
         program_error.print();
     }*/
-    // Assert that both versions are equivalent
-    assert_eq!(idl_shortened, idl_standard);
-        /* // TODO - re-establish something like that
-
+    /* // TODO - re-establish something like that
     // Assert instruction was parsed correctly
     let my_instruction =
         idl_standard.lookup_instruction("my_instruction").unwrap();

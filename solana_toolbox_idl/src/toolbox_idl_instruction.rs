@@ -91,11 +91,12 @@ impl ToolboxIdl {
         &self,
         instruction: &Instruction,
     ) -> Option<&str> {
-        for (instruction_name, instruction_discriminator) in
-            &self.instructions_discriminators
+        for (program_instruction_name, program_instruction) in
+            &self.program_instructions
         {
-            if instruction.data.starts_with(instruction_discriminator) {
-                return Some(instruction_name);
+            if instruction.data.starts_with(&program_instruction.discriminator)
+            {
+                return Some(program_instruction_name);
             }
         }
         None

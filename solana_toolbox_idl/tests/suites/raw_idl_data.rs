@@ -86,5 +86,4 @@ pub async fn run() {
         account,
         idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
     );
-    // TODO - lookups shorthands might not work
 }

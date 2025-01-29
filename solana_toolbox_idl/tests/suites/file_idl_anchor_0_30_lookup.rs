@@ -12,7 +12,7 @@ pub async fn run() {
     let program_error = idl.program_errors.get(&6002).unwrap();
     assert_eq!("CampaignFundingPhaseHasEnded", program_error.name);
     assert_eq!("The campaign funding phase has ended", program_error.msg);
-        /* // TODO - re-establish something like that
+    /* // TODO - re-establish something like that
 
     // Lookup instructions and print them
     for lookup_instruction in idl.lookup_instructions().unwrap() {

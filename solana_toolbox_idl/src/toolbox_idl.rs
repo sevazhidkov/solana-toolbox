@@ -9,24 +9,22 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_type::ToolboxIdlType;
+use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
 use crate::toolbox_idl_program_error::ToolboxIdlProgramError;
-use crate::toolbox_idl_utils::idl_as_bytes_or_else;
+use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
+use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_content_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
-use crate::toolbox_idl_program_error::idl_program_errors_parse;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
-    pub accounts_discriminators: HashMap<String, Vec<u8>>,
-    pub accounts_types: HashMap<String, ToolboxIdlType>,
-    pub instructions_discriminators: HashMap<String, Vec<u8>>,
-    pub instructions_accounts: Map<String, Value>, // TODO - should this be its own map of custom type ?
-    pub instructions_args: HashMap<String, Vec<(String, ToolboxIdlType)>>,
-    pub program_types: HashMap<String, ToolboxIdlType>,
+    pub program_typedefs: HashMap<String, ToolboxIdlProgramTypedef>,
+    pub program_accounts: HashMap<String, ToolboxIdlProgramAccount>,
+    pub program_instructions: HashMap<String, ToolboxIdlProgramInstruction>,
     pub program_errors: HashMap<u64, ToolboxIdlProgramError>,
 }
 
@@ -107,125 +105,128 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_object =
             idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
-        let mut idl = ToolboxIdl {
-            accounts_discriminators: idl_collection_discriminators_by_name(
-                idl_root_object,
-                "accounts",
-                &ToolboxIdl::compute_account_discriminator,
-                breadcrumbs,
-            )?,
-            accounts_types: idl_type_parse_collection(
-                idl_root_object,
-                "accounts",
-                breadcrumbs,
-            )?,
-            instructions_discriminators: idl_collection_discriminators_by_name(
-                idl_root_object,
-                "instructions",
-                &ToolboxIdl::compute_instruction_discriminator,
-                breadcrumbs,
-            )?,
-            instructions_accounts: idl_collection_content_mapped_by_name(
-                idl_root_object,
-                "instructions",
-                "accounts",
-                breadcrumbs,
-            )?,
-            instructions_args: idl_type_parse_fields(
-                idl_root_object,
-                "instructions",
-                "args",
-                breadcrumbs,
-            )?,
-            program_types: idl_type_parse_collection(
+        let mut program_typedefs = ToolboxIdl::try_parse_program_typedefs(
+            idl_root_object,
+            breadcrumbs,
+        )?;
+        let program_accounts = ToolboxIdl::try_parse_program_accounts(
+            &mut program_typedefs,
+            idl_root_object,
+            breadcrumbs,
+        )?;
+        let program_instructions = ToolboxIdl::try_parse_program_instructions(
+            idl_root_object,
+            breadcrumbs,
+        )?;
+        let program_errors =
+            ToolboxIdl::try_parse_program_errors(idl_root_object, breadcrumbs)?;
+        for program_account_name in program_accounts.keys() {
+            program_typedefs.remove(program_account_name);
+        }
+        Ok(ToolboxIdl {
+            program_accounts,
+            program_instructions,
+            program_typedefs,
+            program_errors,
+        })
+    }
+
+    fn try_parse_program_typedefs(
+        idl_root_object: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<HashMap<String, ToolboxIdlProgramTypedef>, ToolboxIdlError>
+    {
+        let mut program_typedefs = HashMap::new();
+        for (idl_typedef_name, idl_typedef_value, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_content_array_or_else(
                 idl_root_object,
                 "types",
+                "type",
                 breadcrumbs,
-            )?,
-            program_errors: idl_program_errors_parse(
-                idl_root_object,
-                breadcrumbs,
-            )?,
-        };
-        for account_name in idl.accounts_discriminators.keys() {
-            if let Some(idl_type) = idl.program_types.remove(account_name) {
-                idl.accounts_types
-                    .insert(account_name.to_string(), idl_type.clone());
-            }
-        }
-        Ok(idl)
-    }
-}
-
-fn idl_collection_discriminators_by_name(
-    object: &Map<String, Value>,
-    collection_key: &str,
-    fallback_generator: &dyn Fn(&str) -> Vec<u8>,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<HashMap<String, Vec<u8>>, ToolboxIdlError> {
-    let mut idl_collection = HashMap::new();
-    for (idl_item_name, idl_item_object, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_object_array_or_else(
-            object,
-            collection_key,
-            &breadcrumbs.with_idl("root"),
-        )?
-    {
-        if let Some(idl_item_discriminator) =
-            idl_item_object.get("discriminator")
+            )?
         {
-            idl_collection.insert(
-                idl_item_name.to_string(),
-                idl_as_bytes_or_else(
-                    idl_item_discriminator,
-                    &breadcrumbs.as_val(idl_item_name),
+            program_typedefs.insert(
+                idl_typedef_name.to_string(),
+                ToolboxIdlProgramTypedef::try_parse(
+                    idl_typedef_value,
+                    &breadcrumbs,
                 )?,
             );
-        } else {
-            idl_collection.insert(
-                idl_item_name.to_string(),
-                fallback_generator(idl_item_name),
+        }
+        Ok(program_typedefs)
+    }
+
+    fn try_parse_program_accounts(
+        program_typedefs: &mut HashMap<String, ToolboxIdlProgramTypedef>,
+        idl_root_object: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<HashMap<String, ToolboxIdlProgramAccount>, ToolboxIdlError>
+    {
+        let mut program_accounts = HashMap::new();
+        for (idl_account_name, idl_account_object, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
+                idl_root_object,
+                "accounts",
+                breadcrumbs,
+            )?
+        {
+            program_accounts.insert(
+                idl_account_name.to_string(),
+                ToolboxIdlProgramAccount::try_parse(
+                    program_typedefs,
+                    idl_account_name,
+                    idl_account_object,
+                    &breadcrumbs,
+                )?,
             );
         }
+        Ok(program_accounts)
     }
-    Ok(idl_collection)
-}
 
-pub fn idl_type_parse_collection(
-    idl_root_object: &Map<String, Value>,
-    collection_key: &str,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<HashMap<String, ToolboxIdlType>, ToolboxIdlError> {
-    let mut types = HashMap::new();
-    for (idl_type_name, idl_type_type, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_content_array_or_else(
-            idl_root_object,
-            collection_key,
-            "type",
-            breadcrumbs,
-        )?
+    fn try_parse_program_instructions(
+        idl_root_object: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<HashMap<String, ToolboxIdlProgramInstruction>, ToolboxIdlError>
     {
-        types.insert(idl_type_name.to_string(), idl_type_parse_value(idl_type_type, &breadcrumbs)?);
+        let mut program_instructions = HashMap::new();
+        for (idl_instruction_name, idl_instruction_object, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
+                idl_root_object,
+                "instructions",
+                breadcrumbs,
+            )?
+        {
+            program_instructions.insert(
+                idl_instruction_name.to_string(),
+                ToolboxIdlProgramInstruction::try_parse(
+                    idl_instruction_name,
+                    idl_instruction_object,
+                    &breadcrumbs,
+                )?,
+            );
+        }
+        Ok(program_instructions)
     }
-    Ok(types)
-}
 
-pub fn idl_type_parse_fields(
-    idl_root_object: &Map<String, Value>,
-    collection_key: &str,
-    fields_key: &str,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<(String, ToolboxIdlType)>, ToolboxIdlError> {
-    let mut types = vec![];
-    for (idl_collection_name, idl_collection_object, breadcrumbs) in
-        idl_object_get_key_as_scoped_named_object_array_or_else(
-            idl_root_object,
-            collection_key,
-            fields_key,
-            breadcrumbs,
-        )?
-    {
-        types.push((idl_type_name.to_string(), idl_type_parse_value(idl_type_type, &breadcrumbs)?));
+    fn try_parse_program_errors(
+        idl_root_object: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<HashMap<u64, ToolboxIdlProgramError>, ToolboxIdlError> {
+        let mut program_errors = HashMap::new();
+        for (idl_error_name, idl_error_object, breadcrumbs) in
+            idl_object_get_key_as_scoped_named_object_array_or_else(
+                idl_root_object,
+                "errors",
+                breadcrumbs,
+            )?
+        {
+            let program_error = ToolboxIdlProgramError::try_parse(
+                idl_error_name,
+                idl_error_object,
+                &breadcrumbs,
+            )?;
+            program_errors.insert(program_error.code, program_error);
+        }
+        Ok(program_errors)
     }
-    Ok(types)
 }

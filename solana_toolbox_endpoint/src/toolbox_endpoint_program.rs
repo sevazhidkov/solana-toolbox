@@ -13,7 +13,7 @@ use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::ToolboxEndpointError;
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointProgramData {

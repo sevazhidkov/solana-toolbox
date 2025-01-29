@@ -174,12 +174,25 @@ pub(crate) fn idl_object_get_key_as_scoped_named_object_array_or_else<'a>(
 
 type ScopedNamedContentValue<'a> = (&'a str, &'a Value, ToolboxIdlBreadcrumbs);
 
+// TODO - this implementation needs to be cleaned up
 pub(crate) fn idl_object_get_key_as_scoped_named_content_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
     content_key: &str,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<ScopedNamedContentValue<'a>>, ToolboxIdlError> {
+    if let Some(items_object) = idl_object_get_key_as_object(object, key) {
+        let breadcrumbs = &breadcrumbs.with_idl(key);
+        let mut items_named_content_array = vec![];
+        for (item_name, item_value) in items_object {
+            items_named_content_array.push((
+                item_name.as_str(),
+                item_value,
+                breadcrumbs.with_idl(item_name),
+            ));
+        }
+        return Ok(items_named_content_array);
+    }
     let mut items_named_inner_object_array = vec![];
     for (idl_item_name, idl_item_object, breadcrumbs) in
         idl_object_get_key_as_scoped_named_object_array_or_else(

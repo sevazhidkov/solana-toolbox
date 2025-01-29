@@ -8,7 +8,6 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -75,20 +74,15 @@ impl ToolboxIdl {
         account: &ToolboxIdlAccount,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let discriminator = idl_map_get_key_or_else(
-            &self.accounts_discriminators,
+        let program_account = idl_map_get_key_or_else(
+            &self.program_accounts,
             &account.name,
-            &breadcrumbs.as_idl("accounts_discriminators"),
+            &breadcrumbs.as_idl("$program_accounts"),
         )?;
         let mut account_data = vec![];
-        account_data.extend_from_slice(discriminator);
-        let idl_account_type = idl_map_get_key_or_else(
-            &self.accounts_types,
-            &account.name,
-            &breadcrumbs.as_idl("$accounts_types"),
-        )?;
-        self.type_serialize(
-            idl_account_type,
+        account_data.extend_from_slice(&program_account.discriminator);
+        program_account.typedef.try_serialize(
+            self,
             &account.value,
             &mut account_data,
             &breadcrumbs.with_idl(&account.name),
@@ -106,27 +100,21 @@ impl ToolboxIdl {
             "Could not guess account name",
             &breadcrumbs.as_val("account_name"),
         )?;
-        let discriminator = idl_map_get_key_or_else(
-            &self.accounts_discriminators,
+        let program_account = idl_map_get_key_or_else(
+            &self.program_accounts,
             account_name,
-            &breadcrumbs.as_idl("accounts_discriminators"),
+            &breadcrumbs.as_idl("$program_accounts"),
         )?;
-        if !account_data.starts_with(discriminator) {
+        if !account_data.starts_with(&program_account.discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
-                expected: discriminator.to_vec(),
+                expected: program_account.discriminator.to_vec(),
                 found: account_data.to_vec(),
             });
         }
-        let idl_account_type = idl_map_get_key_or_else(
-            &self.accounts_types,
-            account_name,
-            &breadcrumbs.as_idl("$accounts_types"),
-        )?;
-        let data_header_size = discriminator.len();
-        let (_, data_content_value) = self.type_deserialize(
-            idl_account_type,
+        let (_, data_content_value) = program_account.typedef.try_deserialize(
+            self,
             account_data,
-            data_header_size,
+            program_account.discriminator.len(),
             &breadcrumbs.with_idl(account_name),
         )?;
         Ok(ToolboxIdlAccount {
@@ -139,11 +127,9 @@ impl ToolboxIdl {
         &self,
         account_data: &[u8],
     ) -> Option<&str> {
-        for (account_name, account_discriminator) in
-            &self.accounts_discriminators
-        {
-            if account_data.starts_with(account_discriminator) {
-                return Some(account_name);
+        for (program_account_name, program_account) in &self.program_accounts {
+            if account_data.starts_with(&program_account.discriminator) {
+                return Some(program_account_name);
             }
         }
         None
