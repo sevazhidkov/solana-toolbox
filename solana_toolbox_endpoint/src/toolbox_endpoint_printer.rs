@@ -35,7 +35,7 @@ impl ToolboxEndpointPrinter {
                 "> instruction.accounts: #{:03}: ({}{}) {}",
                 account_index + 1,
                 if account_meta.is_writable { "W" } else { "R" },
-                if account_meta.is_signer { "S" } else { "." },
+                if account_meta.is_signer { "S" } else { "-" },
                 account_meta.pubkey,
             );
         }

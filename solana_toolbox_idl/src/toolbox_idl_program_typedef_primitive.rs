@@ -58,9 +58,9 @@ impl ToolboxIdlProgramTypedefPrimitiveKind {
             ToolboxIdlProgramTypedefPrimitiveKind::I128 => "i128",
             ToolboxIdlProgramTypedefPrimitiveKind::F32 => "f32",
             ToolboxIdlProgramTypedefPrimitiveKind::F64 => "f64",
-            ToolboxIdlProgramTypedefPrimitiveKind::Boolean => "boolean",
+            ToolboxIdlProgramTypedefPrimitiveKind::Boolean => "bool",
             ToolboxIdlProgramTypedefPrimitiveKind::String => "string",
-            ToolboxIdlProgramTypedefPrimitiveKind::PublicKey => "publickey",
+            ToolboxIdlProgramTypedefPrimitiveKind::PublicKey => "pubkey",
         }
     }
 }

@@ -12,20 +12,22 @@ impl ToolboxIdlProgramTypedef {
                 format!("Vec<{}>", items_typedef.describe())
             },
             ToolboxIdlProgramTypedef::Array { length, items_typedef } => {
-                format!("[{}; {}]", items_typedef.describe(), length)
+                format!("[{};{}]", items_typedef.describe(), length)
             },
             ToolboxIdlProgramTypedef::Struct { fields } => {
                 format!(
-                    "Struct({})",
+                    "Struct{{{}}}",
                     fields
                         .iter()
-                        .map(|field| field.0.clone())
+                        .map(|field| {
+                            format!("{}:{}", field.0, field.1.describe())
+                        })
                         .collect::<Vec<_>>()
                         .join(",")
                 )
             },
             ToolboxIdlProgramTypedef::Enum { variants } => {
-                format!("Enum({})", variants.join(","))
+                format!("Enum{{{}}}", variants.join("/"))
             },
             ToolboxIdlProgramTypedef::Primitive { kind } => {
                 kind.as_str().to_string()

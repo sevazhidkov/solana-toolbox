@@ -72,6 +72,12 @@ impl ToolboxIdlProgramAccount {
         idl_account_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
+        if idl_account_object.contains_key("fields") {
+            return Ok(ToolboxIdlProgramTypedef::try_parse(
+                &Value::Object(idl_account_object.clone()),
+                breadcrumbs,
+            )?);
+        }
         Ok(if let Some(idl_account_typedef) = idl_account_object.get("type") {
             ToolboxIdlProgramTypedef::try_parse(
                 idl_account_typedef,

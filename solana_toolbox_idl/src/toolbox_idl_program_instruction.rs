@@ -31,7 +31,7 @@ impl ToolboxIdlProgramInstruction {
                 "instruction.accounts: #{:03}: {}{} {}{}",
                 index + 1,
                 if instruction_account.is_writable { "W" } else { "R" },
-                if instruction_account.is_signer { "S" } else { "." },
+                if instruction_account.is_signer { "S" } else { "-" },
                 instruction_account.name,
                 if instruction_account.resolve
                     != ToolboxIdlProgramInstructionAccountResolve::Unresolvable

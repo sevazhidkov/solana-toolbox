@@ -7,11 +7,22 @@ pub async fn run() {
     // Create an IDL on the fly
     let idl = ToolboxIdl::try_from_value(&json!({
         "instructions": {},
+        "accounts": {
+            "MyAccount1": {
+                "discriminator": [74, 73, 72, 71],
+            },
+            "MyAccount2": {
+                "fields": [
+                    { "name": "val1", "type": "MyStruct" },
+                    { "name": "val2", "type": { "defined": "MyStruct" } },
+                ]
+            },
+        },
         "types": {
             "MyAccount1": {
                 "fields": [
                     { "name": "name", "type": "string" },
-                    { "name": "my_struct", "type": "MyStruct" },
+                    { "name": "struct", "type": "MyStruct" },
                     { "name": "array", "type": ["u16", 3] },
                     { "name": "vec", "type": ["i16"] },
                 ]
@@ -27,19 +38,6 @@ pub async fn run() {
                 "variants": ["Hello0", "Hello1", "Hello2"],
             },
         },
-        "accounts": {
-            "MyAccount1": {
-                "discriminator": [74, 73, 72, 71],
-            },
-            "MyAccount2": {
-                "type": {
-                    "fields": [
-                        { "name": "val1", "type": "MyStruct" },
-                        { "name": "val2", "type": { "defined": "MyStruct" } },
-                    ]
-                },
-            },
-        },
         "errors": {},
     }))
     .unwrap();
@@ -48,7 +46,7 @@ pub async fn run() {
         name: "MyAccount1".to_string(),
         value: json!({
             "name": "ABCD",
-            "my_struct": {
+            "struct": {
                 "integer": 42,
                 "my_enum": "Hello1",
                 "byte": 77,

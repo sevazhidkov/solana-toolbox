@@ -79,12 +79,10 @@ pub async fn run() {
         },
         "accounts": {
             "MyAccount": {
-                "type": {
                     "fields": [
                         { "name": "field1", "type": "u64" },
                         { "name": "field2", "type": "u32" },
                     ],
-                }
             }
         },
         "types": {
@@ -130,10 +128,10 @@ pub async fn run() {
     // Assert account was parsed correctly
     let my_account = idl_standard.program_accounts.get("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
-    assert_eq!("Struct(field1,field2)", my_account.typedef.describe());
+    assert_eq!("Struct{field1:u64,field2:u32}", my_account.typedef.describe());
     // Assert struct was parsed correctly
     let my_struct = idl_standard.program_typedefs.get("MyStruct").unwrap();
-    assert_eq!("Struct(addr,name)", my_struct.describe());
+    assert_eq!("Struct{addr:pubkey,name:string}", my_struct.describe());
     // Assert error was parsed correctly
     let my_error = idl_standard.program_errors.get(&4242).unwrap();
     assert_eq!(4242, my_error.code);
