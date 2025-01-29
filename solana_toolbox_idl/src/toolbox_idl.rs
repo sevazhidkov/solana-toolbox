@@ -304,14 +304,27 @@ impl ToolboxIdl {
                     breadcrumbs,
                 )?
             {
-                let idl_error_object =
-                    idl_as_object_or_else(idl_error_value, &breadcrumbs.idl())?;
-                let program_error = ToolboxIdlProgramError::try_parse(
-                    idl_error_name,
-                    idl_error_object,
-                    &breadcrumbs,
-                )?;
-                program_errors.insert(program_error.code, program_error);
+                if let Some(idl_error_code) = idl_error_value.as_u64() {
+                    program_errors.insert(
+                        idl_error_code,
+                        ToolboxIdlProgramError {
+                            code: idl_error_code,
+                            name: idl_error_name.to_string(),
+                            msg: "".to_string(),
+                        },
+                    );
+                } else {
+                    let idl_error_object = idl_as_object_or_else(
+                        idl_error_value,
+                        &breadcrumbs.idl(),
+                    )?;
+                    let program_error = ToolboxIdlProgramError::try_parse(
+                        idl_error_name,
+                        idl_error_object,
+                        &breadcrumbs,
+                    )?;
+                    program_errors.insert(program_error.code, program_error);
+                }
             }
         }
         if let Some(idl_errors_array) =

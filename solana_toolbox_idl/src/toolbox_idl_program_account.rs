@@ -52,18 +52,15 @@ impl ToolboxIdlProgramAccount {
         idl_account_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
-        Ok(
-            if let Some(idl_account_discriminator) =
-                idl_account_object.get("discriminator")
-            {
-                idl_as_bytes_or_else(
-                    idl_account_discriminator,
-                    &breadcrumbs.idl(),
-                )?
-            } else {
-                ToolboxIdl::compute_account_discriminator(idl_account_name)
-            },
-        )
+        if let Some(idl_account_discriminator) =
+            idl_account_object.get("discriminator")
+        {
+            return idl_as_bytes_or_else(
+                idl_account_discriminator,
+                &breadcrumbs.idl(),
+            );
+        }
+        Ok(ToolboxIdl::compute_account_discriminator(idl_account_name))
     }
 
     fn try_parse_typedef(
@@ -73,23 +70,22 @@ impl ToolboxIdlProgramAccount {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
         if idl_account_object.contains_key("fields") {
-            return Ok(ToolboxIdlProgramTypedef::try_parse(
+            return ToolboxIdlProgramTypedef::try_parse(
                 &Value::Object(idl_account_object.clone()),
                 breadcrumbs,
-            )?);
+            );
         }
-        Ok(if let Some(idl_account_typedef) = idl_account_object.get("type") {
-            ToolboxIdlProgramTypedef::try_parse(
+        if let Some(idl_account_typedef) = idl_account_object.get("type") {
+            return ToolboxIdlProgramTypedef::try_parse(
                 idl_account_typedef,
                 breadcrumbs,
-            )?
-        } else {
-            idl_map_get_key_or_else(
-                program_typedefs,
-                idl_account_name,
-                &breadcrumbs.idl(),
-            )?
-            .clone()
-        })
+            );
+        }
+        Ok(idl_map_get_key_or_else(
+            program_typedefs,
+            idl_account_name,
+            &breadcrumbs.idl(),
+        )?
+        .clone())
     }
 }

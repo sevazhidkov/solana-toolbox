@@ -199,7 +199,7 @@ impl ToolboxIdl {
     }
 }
 
-// TODO - fix naming
+// TODO - naming fix
 fn idl_instruction_account_address_resolve(
     idl: &ToolboxIdl,
     account_name: &str,
@@ -363,6 +363,7 @@ fn idl_blob_bytes(
     }
 }
 
+// TODO - naming fix
 fn idl_parts_to_bytes(
     idl: &ToolboxIdl,
     program_fields: &[(String, ToolboxIdlProgramTypedef)],
@@ -409,6 +410,7 @@ fn idl_parts_to_bytes(
     idl_err("Unknown value field", &breadcrumbs.as_val(field_name))
 }
 
+// TODO - naming fix
 fn idl_parts_to_bytes_recurse(
     idl: &ToolboxIdl,
     idl_type: &ToolboxIdlProgramTypedef,

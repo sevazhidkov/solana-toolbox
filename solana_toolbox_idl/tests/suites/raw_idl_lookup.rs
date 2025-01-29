@@ -10,7 +10,7 @@ pub async fn run() {
                 "name": "my_instruction",
                 "accounts": [
                     { "name": "payer", "isSigner": true },
-                    { "name": "authority" },
+                    { "name": "authority", "signer": true },
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
@@ -44,9 +44,14 @@ pub async fn run() {
         ],
         "errors": [
             {
-                "name": "MyError",
                 "code": 4242,
+                "name": "MyError",
                 "msg": "My error message",
+            },
+            {
+                "code": 4243,
+                "name": "MyError2",
+                "msg": "",
             }
         ],
     }))
@@ -68,8 +73,8 @@ pub async fn run() {
         "instructions": {
             "my_instruction": {
                 "accounts": [
-                    { "name": "payer", "isSigner": true },
-                    { "name": "authority" },
+                    { "name": "payer", "signer": true },
+                    { "name": "authority", "signer": true },
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
@@ -97,7 +102,8 @@ pub async fn run() {
             "MyError": {
                 "code": 4242,
                 "msg": "My error message",
-            }
+            },
+            "MyError2": 4243,
         },
     }))
     .unwrap();

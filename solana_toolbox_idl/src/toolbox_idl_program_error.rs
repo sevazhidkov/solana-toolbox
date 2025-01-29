@@ -3,7 +3,7 @@ use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,11 +31,8 @@ impl ToolboxIdlProgramError {
             "code",
             &breadcrumbs.idl(),
         )?;
-        let idl_error_msg = idl_object_get_key_as_str_or_else(
-            idl_error_object,
-            "msg",
-            &breadcrumbs.idl(),
-        )?;
+        let idl_error_msg =
+            idl_object_get_key_as_str(idl_error_object, "msg").unwrap_or("");
         Ok(ToolboxIdlProgramError {
             code: idl_error_code,
             name: idl_error_name.to_string(),
