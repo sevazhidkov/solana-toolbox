@@ -4,15 +4,15 @@ use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimit
 impl ToolboxIdlProgramTypedef {
     pub fn describe(&self) -> String {
         match self {
-            ToolboxIdlProgramTypedef::Defined { name } => name.to_string(),
-            ToolboxIdlProgramTypedef::Option { content } => {
-                format!("Option<{}>", content.describe())
+            ToolboxIdlProgramTypedef::Defined { name } => format!("@{}", name),
+            ToolboxIdlProgramTypedef::Option { content_typedef } => {
+                format!("Option<{}>", content_typedef.describe())
             },
-            ToolboxIdlProgramTypedef::Vec { items } => {
-                format!("Vec<{}>", items.describe())
+            ToolboxIdlProgramTypedef::Vec { items_typedef } => {
+                format!("Vec<{}>", items_typedef.describe())
             },
-            ToolboxIdlProgramTypedef::Array { length, items } => {
-                format!("[{}; {}]", items.describe(), length)
+            ToolboxIdlProgramTypedef::Array { length, items_typedef } => {
+                format!("[{}; {}]", items_typedef.describe(), length)
             },
             ToolboxIdlProgramTypedef::Struct { .. } => "Struct()".to_string(),
             ToolboxIdlProgramTypedef::Enum { .. } => "Enum()".to_string(),

@@ -63,13 +63,14 @@ impl ToolboxIdl {
             authority_offset,
             &breadcrumbs.as_val("authority"),
         )?;
-        let length_offset = authority_offset + size_of_val(&authority);
+        let length_offset =
+            authority_offset + std::mem::size_of_val(&authority);
         let length = idl_u32_from_bytes_at(
             data,
             length_offset,
             &breadcrumbs.as_val("length"),
         )?;
-        let content_offset = length_offset + size_of_val(&length);
+        let content_offset = length_offset + std::mem::size_of_val(&length);
         let content = idl_slice_from_bytes(
             data,
             content_offset,
@@ -145,13 +146,12 @@ impl ToolboxIdl {
                 breadcrumbs,
             )?
         {
-            program_typedefs.insert(
-                idl_typedef_name.to_string(),
-                ToolboxIdlProgramTypedef::try_parse(
-                    idl_typedef_value,
-                    &breadcrumbs,
-                )?,
-            );
+            let program_typedef = ToolboxIdlProgramTypedef::try_parse(
+                idl_typedef_value,
+                &breadcrumbs,
+            )?;
+            program_typedefs
+                .insert(idl_typedef_name.to_string(), program_typedef);
         }
         Ok(program_typedefs)
     }
@@ -170,15 +170,14 @@ impl ToolboxIdl {
                 breadcrumbs,
             )?
         {
-            program_accounts.insert(
-                idl_account_name.to_string(),
-                ToolboxIdlProgramAccount::try_parse(
-                    program_typedefs,
-                    idl_account_name,
-                    idl_account_object,
-                    &breadcrumbs,
-                )?,
-            );
+            let program_account = ToolboxIdlProgramAccount::try_parse(
+                program_typedefs,
+                idl_account_name,
+                idl_account_object,
+                &breadcrumbs,
+            )?;
+            program_accounts
+                .insert(program_account.name.to_string(), program_account);
         }
         Ok(program_accounts)
     }
@@ -196,13 +195,14 @@ impl ToolboxIdl {
                 breadcrumbs,
             )?
         {
+            let program_instruction = ToolboxIdlProgramInstruction::try_parse(
+                idl_instruction_name,
+                idl_instruction_object,
+                &breadcrumbs,
+            )?;
             program_instructions.insert(
-                idl_instruction_name.to_string(),
-                ToolboxIdlProgramInstruction::try_parse(
-                    idl_instruction_name,
-                    idl_instruction_object,
-                    &breadcrumbs,
-                )?,
+                program_instruction.name.to_string(),
+                program_instruction,
             );
         }
         Ok(program_instructions)

@@ -121,7 +121,7 @@ impl ToolboxEndpoint {
         self.get_account(address)
             .await?
             .map(|account| {
-                let data_size = offset + size_of::<T>();
+                let data_size = offset + std::mem::size_of::<T>();
                 if account.data.len() < data_size {
                     return Err(ToolboxEndpointError::Custom(
                         "Account is too small".into(),

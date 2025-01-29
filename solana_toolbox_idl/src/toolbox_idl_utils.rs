@@ -116,10 +116,13 @@ pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
     let mut items_object_array = vec![];
     for item_index in 0..items_array.len() {
         let item_value = items_array.get(item_index).unwrap();
-        let item_tag = format!("[{}]", item_index);
-        let item_object =
-            idl_as_object_or_else(item_value, &breadcrumbs.as_idl(&item_tag))?;
-        items_object_array.push((item_object, breadcrumbs.with_idl(&item_tag)));
+        let item_scope = format!("[{}]", item_index);
+        let item_object = idl_as_object_or_else(
+            item_value,
+            &breadcrumbs.as_idl(&item_scope),
+        )?;
+        items_object_array
+            .push((item_object, breadcrumbs.with_idl(&item_scope)));
     }
     Ok(items_object_array)
 }
@@ -312,7 +315,8 @@ pub(crate) fn idl_as_bytes_or_else(
     Ok(bytes)
 }
 
-pub(crate) fn idl_map_get_key_or_else<'a, V>(
+// TODO - could be clean'ed
+pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
     map: &'a HashMap<String, V>,
     key: &str,
     context: &ToolboxIdlContext,
@@ -372,7 +376,7 @@ pub(crate) fn idl_u8_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<u8, ToolboxIdlError> {
-    let size = size_of::<u8>();
+    let size = std::mem::size_of::<u8>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(u8::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -382,7 +386,7 @@ pub(crate) fn idl_u16_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<u16, ToolboxIdlError> {
-    let size = size_of::<u16>();
+    let size = std::mem::size_of::<u16>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(u16::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -392,7 +396,7 @@ pub(crate) fn idl_u32_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<u32, ToolboxIdlError> {
-    let size = size_of::<u32>();
+    let size = std::mem::size_of::<u32>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(u32::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -402,7 +406,7 @@ pub(crate) fn idl_u64_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<u64, ToolboxIdlError> {
-    let size = size_of::<u64>();
+    let size = std::mem::size_of::<u64>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(u64::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -412,7 +416,7 @@ pub(crate) fn idl_u128_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<u128, ToolboxIdlError> {
-    let size = size_of::<u128>();
+    let size = std::mem::size_of::<u128>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(u128::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -422,7 +426,7 @@ pub(crate) fn idl_i8_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<i8, ToolboxIdlError> {
-    let size = size_of::<i8>();
+    let size = std::mem::size_of::<i8>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(i8::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -432,7 +436,7 @@ pub(crate) fn idl_i16_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<i16, ToolboxIdlError> {
-    let size = size_of::<i16>();
+    let size = std::mem::size_of::<i16>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(i16::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -442,7 +446,7 @@ pub(crate) fn idl_i32_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<i32, ToolboxIdlError> {
-    let size = size_of::<i32>();
+    let size = std::mem::size_of::<i32>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(i32::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -452,7 +456,7 @@ pub(crate) fn idl_i64_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<i64, ToolboxIdlError> {
-    let size = size_of::<i64>();
+    let size = std::mem::size_of::<i64>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(i64::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -462,7 +466,7 @@ pub(crate) fn idl_i128_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<i128, ToolboxIdlError> {
-    let size = size_of::<i128>();
+    let size = std::mem::size_of::<i128>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(i128::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -472,7 +476,7 @@ pub(crate) fn idl_f32_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<f32, ToolboxIdlError> {
-    let size = size_of::<f32>();
+    let size = std::mem::size_of::<f32>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(f32::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -482,7 +486,7 @@ pub(crate) fn idl_f64_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<f64, ToolboxIdlError> {
-    let size = size_of::<f32>();
+    let size = std::mem::size_of::<f32>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(f64::from_le_bytes(slice.try_into().unwrap()))
 }
@@ -492,7 +496,7 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     offset: usize,
     context: &ToolboxIdlContext,
 ) -> Result<Pubkey, ToolboxIdlError> {
-    let size = size_of::<Pubkey>();
+    let size = std::mem::size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
 }

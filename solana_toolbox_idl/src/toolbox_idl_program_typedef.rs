@@ -15,9 +15,9 @@ use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_els
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlProgramTypedef {
     Defined { name: String },
-    Option { content: Box<ToolboxIdlProgramTypedef> },
-    Vec { items: Box<ToolboxIdlProgramTypedef> },
-    Array { length: u32, items: Box<ToolboxIdlProgramTypedef> },
+    Option { content_typedef: Box<ToolboxIdlProgramTypedef> },
+    Vec { items_typedef: Box<ToolboxIdlProgramTypedef> },
+    Array { length: u32, items_typedef: Box<ToolboxIdlProgramTypedef> },
     Struct { fields: Vec<(String, ToolboxIdlProgramTypedef)> },
     Enum { variants: Vec<String> },
     Primitive { kind: ToolboxIdlProgramTypedefPrimitiveKind },
@@ -129,7 +129,7 @@ impl ToolboxIdlProgramTypedef {
                         }
                     })?
                 },
-                items: Box::new(ToolboxIdlProgramTypedef::try_parse(
+                items_typedef: Box::new(ToolboxIdlProgramTypedef::try_parse(
                     &idl_typedef_array[0],
                     &breadcrumbs.with_idl("array"),
                 )?),
@@ -183,7 +183,7 @@ impl ToolboxIdlProgramTypedef {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
         Ok(ToolboxIdlProgramTypedef::Option {
-            content: Box::new(ToolboxIdlProgramTypedef::try_parse(
+            content_typedef: Box::new(ToolboxIdlProgramTypedef::try_parse(
                 idl_typedef_option,
                 &breadcrumbs.with_idl("option"),
             )?),
@@ -195,7 +195,7 @@ impl ToolboxIdlProgramTypedef {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
         Ok(ToolboxIdlProgramTypedef::Vec {
-            items: Box::new(ToolboxIdlProgramTypedef::try_parse(
+            items_typedef: Box::new(ToolboxIdlProgramTypedef::try_parse(
                 idl_typedef_vec,
                 &breadcrumbs.with_idl("vec"),
             )?),

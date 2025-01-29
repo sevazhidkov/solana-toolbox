@@ -37,29 +37,29 @@ impl ToolboxIdlProgramTypedef {
                     &breadcrumbs.with_idl(name),
                 )
             },
-            ToolboxIdlProgramTypedef::Option { content } => {
+            ToolboxIdlProgramTypedef::Option { content_typedef } => {
                 ToolboxIdlProgramTypedef::try_serialize_option(
                     idl,
-                    content,
+                    content_typedef,
                     value,
                     data,
                     &breadcrumbs.with_idl("option"),
                 )
             },
-            ToolboxIdlProgramTypedef::Vec { items } => {
+            ToolboxIdlProgramTypedef::Vec { items_typedef } => {
                 ToolboxIdlProgramTypedef::try_serialize_vec(
                     idl,
-                    items,
+                    items_typedef,
                     value,
                     data,
                     &breadcrumbs.with_idl("vec"),
                 )
             },
-            ToolboxIdlProgramTypedef::Array { length, items } => {
+            ToolboxIdlProgramTypedef::Array { length, items_typedef } => {
                 ToolboxIdlProgramTypedef::try_serialize_array(
                     idl,
                     *length,
-                    items,
+                    items_typedef,
                     value,
                     data,
                     &breadcrumbs.with_idl("array"),
@@ -110,7 +110,7 @@ impl ToolboxIdlProgramTypedef {
 
     fn try_serialize_option(
         idl: &ToolboxIdl,
-        program_typedef_option_content_typdef: &ToolboxIdlProgramTypedef,
+        program_typedef_option_content_typedef: &ToolboxIdlProgramTypedef,
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -120,7 +120,7 @@ impl ToolboxIdlProgramTypedef {
             Ok(())
         } else {
             data.push(1);
-            program_typedef_option_content_typdef.try_serialize(
+            program_typedef_option_content_typedef.try_serialize(
                 idl,
                 value,
                 data,
@@ -184,7 +184,7 @@ impl ToolboxIdlProgramTypedef {
 
     fn try_serialize_struct(
         idl: &ToolboxIdl,
-        program_typdef_struct_fields: &[(String, ToolboxIdlProgramTypedef)],
+        program_typedef_struct_fields: &[(String, ToolboxIdlProgramTypedef)],
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -192,22 +192,22 @@ impl ToolboxIdlProgramTypedef {
         let value_object =
             idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
         for (
-            program_typdef_struct_field_name,
-            program_typdef_struct_field_typedef,
-        ) in program_typdef_struct_fields
+            program_typedef_struct_field_name,
+            program_typedef_struct_field_typedef,
+        ) in program_typedef_struct_fields
         {
             let breadcrumbs =
-                &breadcrumbs.with_idl(program_typdef_struct_field_name);
+                &breadcrumbs.with_idl(program_typedef_struct_field_name);
             let value_field = idl_object_get_key_or_else(
                 value_object,
-                program_typdef_struct_field_name,
+                program_typedef_struct_field_name,
                 &breadcrumbs.val(),
             )?;
-            program_typdef_struct_field_typedef.try_serialize(
+            program_typedef_struct_field_typedef.try_serialize(
                 idl,
                 value_field,
                 data,
-                &breadcrumbs.with_val(program_typdef_struct_field_name),
+                &breadcrumbs.with_val(program_typedef_struct_field_name),
             )?;
         }
         Ok(())

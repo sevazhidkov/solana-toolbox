@@ -81,9 +81,11 @@ impl ToolboxIdlProgramInstructionAccount {
             idl_object_get_key_as_str(idl_instruction_account_object, "address")
         {
             return Pubkey::from_str(idl_instruction_account_address)
-                .map_err(|err| ToolboxIdlError::InvalidPubkey {
-                    parsing: err,
-                    context: breadcrumbs.as_idl("address"),
+                .map_err(|err| {
+                    ToolboxIdlError::InvalidPubkey {
+                        parsing: err,
+                        context: breadcrumbs.as_idl("address"),
+                    }
                 })
                 .map(ToolboxIdlProgramInstructionAccountResolve::Address);
         }

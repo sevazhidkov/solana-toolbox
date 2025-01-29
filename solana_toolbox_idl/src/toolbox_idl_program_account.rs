@@ -18,6 +18,15 @@ pub struct ToolboxIdlProgramAccount {
 }
 
 impl ToolboxIdlProgramAccount {
+    pub fn print(&self) {
+        println!("----");
+        println!("account.name: {}", self.name);
+        println!("account.discriminator: {:?}", self.discriminator);
+        println!("account.typedef: {}", self.typedef.describe());
+    }
+}
+
+impl ToolboxIdlProgramAccount {
     pub(crate) fn try_parse(
         program_typedefs: &mut HashMap<String, ToolboxIdlProgramTypedef>,
         idl_account_name: &str,

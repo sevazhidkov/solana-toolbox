@@ -32,10 +32,12 @@ pub async fn run() {
                 "discriminator": [74, 73, 72, 71],
             },
             "MyAccount2": {
-                "fields": [
-                    { "name": "val1", "type": "MyStruct" },
-                    { "name": "val2", "type": { "defined": "MyStruct" } },
-                ]
+                "type": {
+                    "fields": [
+                        { "name": "val1", "type": "MyStruct" },
+                        { "name": "val2", "type": { "defined": "MyStruct" } },
+                    ]
+                },
             },
         },
         "errors": {},

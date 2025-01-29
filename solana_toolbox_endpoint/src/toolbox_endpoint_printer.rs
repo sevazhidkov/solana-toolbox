@@ -32,7 +32,7 @@ impl ToolboxEndpointPrinter {
         for account_index in 0..instruction.accounts.len() {
             let account_meta = &instruction.accounts[account_index];
             println!(
-                "> instruction.accounts: #{:03?}: ({}{}) {}",
+                "> instruction.accounts: #{:03}: ({}{}) {}",
                 account_index + 1,
                 if account_meta.is_writable { "W" } else { "R" },
                 if account_meta.is_signer { "S" } else { "." },

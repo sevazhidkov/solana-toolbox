@@ -67,10 +67,12 @@ pub async fn run() {
         },
         "accounts": {
             "MyAccount": {
-                "fields": [
-                    { "name": "my_field1", "type": "u64" },
-                    { "name": "my_field2", "type": "u32" },
-                ],
+                "type": { // TODO - could this be shortened ?
+                    "fields": [
+                        { "name": "my_field1", "type": "u64" },
+                        { "name": "my_field2", "type": "u32" },
+                    ],
+                }
             }
         },
         "types": {

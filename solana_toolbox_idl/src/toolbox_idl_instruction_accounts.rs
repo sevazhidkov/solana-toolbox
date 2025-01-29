@@ -199,6 +199,7 @@ impl ToolboxIdl {
     }
 }
 
+// TODO - fix naming
 fn idl_instruction_account_address_resolve(
     idl: &ToolboxIdl,
     account_name: &str,
@@ -325,14 +326,14 @@ fn idl_blob_bytes(
                 &account.value,
                 &breadcrumbs.as_val(account_name),
             )?;
-            let program_typdef = idl_map_get_key_or_else(
-                &idl.program_typedefs,
+            let program_account = idl_map_get_key_or_else(
+                &idl.program_accounts,
                 &account.name,
-                &breadcrumbs.as_idl("$program_typedefs"),
+                &breadcrumbs.as_idl("$program_accounts"),
             )?;
             let program_typedef_struct_fields =
                 idl_typedef_as_struct_fields_or_else(
-                    program_typdef,
+                    &program_account.typedef,
                     &breadcrumbs.as_idl(&account.name),
                 )?;
             idl_parts_to_bytes(

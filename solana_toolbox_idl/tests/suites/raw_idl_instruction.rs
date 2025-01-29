@@ -23,7 +23,6 @@ pub async fn run() {
         },
         "types": {
             "MyArg": {
-                "kind": "struct",
                 "fields": [
                     { "name": "id", "type": "u64" },
                     { "name": "data", "type": {"vec": "u64"} },
