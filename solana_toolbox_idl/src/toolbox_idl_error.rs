@@ -1,3 +1,4 @@
+use std::num::ParseIntError;
 use std::num::TryFromIntError;
 use std::string::FromUtf8Error;
 
@@ -37,6 +38,10 @@ pub enum ToolboxIdlError {
     },
     InvalidInteger {
         conversion: TryFromIntError,
+        context: ToolboxIdlContext,
+    },
+    InvalidConst {
+        parsing: ParseIntError,
         context: ToolboxIdlContext,
     },
     Custom {

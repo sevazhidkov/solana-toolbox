@@ -12,6 +12,7 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
 use crate::toolbox_idl_program_error::ToolboxIdlProgramError;
 use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
+use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
@@ -23,9 +24,10 @@ use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 
+// TODO - support docs on accounts/instructions/typedefs/etc ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
-    pub program_typedefs: HashMap<String, ToolboxIdlProgramTypedef>,
+    pub program_types: HashMap<String, ToolboxIdlProgramType>,
     pub program_accounts: HashMap<String, ToolboxIdlProgramAccount>,
     pub program_instructions: HashMap<String, ToolboxIdlProgramInstruction>,
     pub program_errors: HashMap<u64, ToolboxIdlProgramError>,
@@ -109,53 +111,57 @@ impl ToolboxIdl {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root_object =
             idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
-        let mut program_typedefs = ToolboxIdl::try_parse_program_typedefs(
-            idl_root_object,
-            breadcrumbs,
-        )?;
-        let program_accounts = ToolboxIdl::try_parse_program_accounts(
-            &mut program_typedefs,
-            idl_root_object,
-            breadcrumbs,
-        )?;
-        let program_instructions = ToolboxIdl::try_parse_program_instructions(
-            idl_root_object,
-            breadcrumbs,
-        )?;
-        let program_errors =
-            ToolboxIdl::try_parse_program_errors(idl_root_object, breadcrumbs)?;
-        for program_account_name in program_accounts.keys() {
-            program_typedefs.remove(program_account_name);
-        }
         Ok(ToolboxIdl {
-            program_accounts,
-            program_instructions,
-            program_typedefs,
-            program_errors,
+            program_accounts: ToolboxIdl::try_parse_program_accounts(
+                idl_root_object,
+                breadcrumbs,
+            )?,
+            program_instructions: ToolboxIdl::try_parse_program_instructions(
+                idl_root_object,
+                breadcrumbs,
+            )?,
+            program_types: ToolboxIdl::try_parse_program_types(
+                idl_root_object,
+                breadcrumbs,
+            )?,
+            program_errors: ToolboxIdl::try_parse_program_errors(
+                idl_root_object,
+                breadcrumbs,
+            )?,
         })
     }
 
-    fn try_parse_program_typedefs(
+    fn try_parse_program_types(
         idl_root_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramTypedef>, ToolboxIdlError>
-    {
-        let mut program_typedefs = HashMap::new();
+    ) -> Result<HashMap<String, ToolboxIdlProgramType>, ToolboxIdlError> {
+        // TODO - generic way for object/array scoped machanism
+        let mut program_types = HashMap::new();
         if let Some(idl_types_object) =
             idl_object_get_key_as_object(idl_root_object, "types")
         {
-            for (idl_type_name, idl_type_typedef, breadcrumbs) in
+            for (idl_type_name, idl_type_value, breadcrumbs) in
                 idl_object_get_scoped_key_value_array(
                     idl_types_object,
                     breadcrumbs,
                 )?
             {
-                let program_typedef = ToolboxIdlProgramTypedef::try_parse(
-                    idl_type_typedef,
-                    &breadcrumbs,
-                )?;
-                program_typedefs
-                    .insert(idl_type_name.to_string(), program_typedef);
+                // TODO - support generics
+                if let Some(idl_type_object) = idl_type_value.as_object() {
+                    if let Some(idl_type_typedef) = idl_type_object.get("type")
+                    {
+                    }
+                }
+                program_types.insert(
+                    idl_type_name.to_string(),
+                    ToolboxIdlProgramType {
+                        name: idl_type_name.to_string(),
+                        typedef: ToolboxIdlProgramTypedef::try_parse(
+                            idl_type_value,
+                            &breadcrumbs,
+                        )?,
+                    },
+                );
             }
         }
         if let Some(idl_types_array) =
@@ -176,15 +182,19 @@ impl ToolboxIdl {
                     idl_type_typedef,
                     &breadcrumbs,
                 )?;
-                program_typedefs
-                    .insert(idl_type_name.to_string(), program_typedef);
+                program_types.insert(
+                    idl_type_name.to_string(),
+                    ToolboxIdlProgramType {
+                        name: idl_type_name.to_string(),
+                        typedef: program_typedef,
+                    },
+                );
             }
         }
-        Ok(program_typedefs)
+        Ok(program_types)
     }
 
     fn try_parse_program_accounts(
-        program_typedefs: &mut HashMap<String, ToolboxIdlProgramTypedef>,
         idl_root_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<HashMap<String, ToolboxIdlProgramAccount>, ToolboxIdlError>
@@ -204,7 +214,6 @@ impl ToolboxIdl {
                     &breadcrumbs.idl(),
                 )?;
                 let program_account = ToolboxIdlProgramAccount::try_parse(
-                    program_typedefs,
                     idl_account_name,
                     idl_account_object,
                     &breadcrumbs,
@@ -223,7 +232,6 @@ impl ToolboxIdl {
                 )?
             {
                 let program_account = ToolboxIdlProgramAccount::try_parse(
-                    program_typedefs,
                     idl_account_name,
                     idl_account_object,
                     &breadcrumbs,

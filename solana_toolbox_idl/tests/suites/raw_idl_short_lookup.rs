@@ -64,6 +64,10 @@ pub async fn run() {
     for program_account in idl_standard.program_accounts.values() {
         program_account.print();
     }
+    // Lookup types and print them
+    for program_type in idl_standard.program_types.values() {
+        program_type.print();
+    }
     // Lookup errors and print them
     for program_error in idl_standard.program_errors.values() {
         program_error.print();
@@ -136,8 +140,9 @@ pub async fn run() {
     assert_eq!("MyAccount", my_account.name);
     assert_eq!("Struct{field1:u64,field2:u32}", my_account.typedef.describe());
     // Assert struct was parsed correctly
-    let my_struct = idl_standard.program_typedefs.get("MyStruct").unwrap();
-    assert_eq!("Struct{addr:pubkey,name:string}", my_struct.describe());
+    let my_struct = idl_standard.program_types.get("MyStruct").unwrap();
+    assert_eq!("MyStruct", my_struct.name);
+    assert_eq!("Struct{addr:pubkey,name:string}", my_struct.typedef.describe());
     // Assert error was parsed correctly
     let my_error = idl_standard.program_errors.get(&4242).unwrap();
     assert_eq!(4242, my_error.code);

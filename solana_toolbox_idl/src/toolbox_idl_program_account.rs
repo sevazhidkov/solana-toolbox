@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use serde_json::Map;
 use serde_json::Value;
 
@@ -8,7 +6,6 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgramAccount {
@@ -26,7 +23,6 @@ impl ToolboxIdlProgramAccount {
     }
 
     pub(crate) fn try_parse(
-        program_typedefs: &mut HashMap<String, ToolboxIdlProgramTypedef>,
         idl_account_name: &str,
         idl_account_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -39,7 +35,6 @@ impl ToolboxIdlProgramAccount {
                 &breadcrumbs.with_idl("discriminator"),
             )?,
             typedef: ToolboxIdlProgramAccount::try_parse_typedef(
-                program_typedefs,
                 idl_account_name,
                 idl_account_object,
                 &breadcrumbs.with_idl("typedef"),
@@ -64,28 +59,25 @@ impl ToolboxIdlProgramAccount {
     }
 
     fn try_parse_typedef(
-        program_typedefs: &mut HashMap<String, ToolboxIdlProgramTypedef>,
         idl_account_name: &str,
         idl_account_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypedef, ToolboxIdlError> {
-        if idl_account_object.contains_key("fields") {
-            return ToolboxIdlProgramTypedef::try_parse(
-                &Value::Object(idl_account_object.clone()),
-                breadcrumbs,
-            );
-        }
         if let Some(idl_account_typedef) = idl_account_object.get("type") {
             return ToolboxIdlProgramTypedef::try_parse(
                 idl_account_typedef,
                 breadcrumbs,
             );
         }
-        Ok(idl_map_get_key_or_else(
-            program_typedefs,
-            idl_account_name,
-            &breadcrumbs.idl(),
-        )?
-        .clone())
+        if idl_account_object.contains_key("fields") {
+            return ToolboxIdlProgramTypedef::try_parse(
+                &Value::Object(idl_account_object.clone()),
+                breadcrumbs,
+            );
+        }
+        Ok(ToolboxIdlProgramTypedef::Defined {
+            name: idl_account_name.to_string(),
+            generics: vec![],
+        })
     }
 }

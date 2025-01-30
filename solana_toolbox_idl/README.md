@@ -54,7 +54,14 @@ let idl = ToolboxIdl::try_from_value(&json!({
             "fields": [{ "name": "info", "type": "u64" }]
         }
     },
-    "accounts": {},
+    "accounts": {
+        "MyAccount": {
+            "fields": [
+                { "name": "id", "type": "pubkey" },
+                { "name": "bytes", "type": ["u8", 42] },
+            ]
+        }
+    },
     "errors": {},
 })).unwrap();
 ```

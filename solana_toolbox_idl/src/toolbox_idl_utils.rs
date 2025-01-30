@@ -92,26 +92,21 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
 }
 
 type ScopedObject<'a> = (&'a Map<String, Value>, ToolboxIdlBreadcrumbs);
-pub(crate) fn idl_object_get_key_as_scoped_object_array_or_else<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
+pub(crate) fn idl_array_get_scoped_object_array_or_else<'a>(
+    idl_array: &'a [Value],
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<ScopedObject<'a>>, ToolboxIdlError> {
-    let items_array =
-        idl_object_get_key_as_array_or_else(object, key, &breadcrumbs.idl())?;
-    let breadcrumbs = &breadcrumbs.with_idl(key);
-    let mut items_object_array = vec![];
-    for item_index in 0..items_array.len() {
-        let item_value = items_array.get(item_index).unwrap();
-        let item_scope = format!("[{}]", item_index);
-        let item_object = idl_as_object_or_else(
-            item_value,
+    let mut scoped_object_array = vec![];
+    for (index, idl_item_value) in idl_array.iter().enumerate() {
+        let item_scope = format!("[{}]", index);
+        let idl_item_object = idl_as_object_or_else(
+            idl_item_value,
             &breadcrumbs.as_idl(&item_scope),
         )?;
-        items_object_array
-            .push((item_object, breadcrumbs.with_idl(&item_scope)));
+        scoped_object_array
+            .push((idl_item_object, breadcrumbs.with_idl(&item_scope)));
     }
-    Ok(items_object_array)
+    Ok(scoped_object_array)
 }
 
 type ScopedNamedObject<'a> =

@@ -6,7 +6,7 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
-use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitiveKind;
+use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitive;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_f32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_f64_from_bytes_at;
@@ -33,7 +33,7 @@ impl ToolboxIdlProgramTypedef {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
         match self {
-            ToolboxIdlProgramTypedef::Defined { name } => {
+            ToolboxIdlProgramTypedef::Defined { name, generics } => {
                 ToolboxIdlProgramTypedef::try_deserialize_defined(
                     idl,
                     name,
@@ -63,16 +63,14 @@ impl ToolboxIdlProgramTypedef {
             ToolboxIdlProgramTypedef::Array {
                 length,
                 items_typedef: items,
-            } => {
-                ToolboxIdlProgramTypedef::try_deserialize_array(
-                    idl,
-                    *length,
-                    items,
-                    data,
-                    data_offset,
-                    &breadcrumbs.with_idl("array"),
-                )
-            },
+            } => ToolboxIdlProgramTypedef::try_deserialize_array(
+                idl,
+                *length,
+                items,
+                data,
+                data_offset,
+                &breadcrumbs.with_idl("array"),
+            ),
             ToolboxIdlProgramTypedef::Struct { fields } => {
                 ToolboxIdlProgramTypedef::try_deserialize_struct(
                     idl,
@@ -90,14 +88,16 @@ impl ToolboxIdlProgramTypedef {
                     &breadcrumbs.with_idl("enum"),
                 )
             },
-            ToolboxIdlProgramTypedef::Primitive { kind } => {
+            ToolboxIdlProgramTypedef::Primitive(primitive) => {
                 ToolboxIdlProgramTypedef::try_deserialize_primitive(
-                    kind,
+                    primitive,
                     data,
                     data_offset,
                     breadcrumbs,
                 )
             },
+            ToolboxIdlProgramTypedef::Const { value } => todo!(),
+            ToolboxIdlProgramTypedef::Generic { symbol } => todo!(),
         }
     }
 
@@ -108,12 +108,17 @@ impl ToolboxIdlProgramTypedef {
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        let program_typedef = idl_map_get_key_or_else(
-            &idl.program_typedefs,
+        let program_type = idl_map_get_key_or_else(
+            &idl.program_types,
             program_typedef_defined_name,
-            &breadcrumbs.as_idl("$program_typedefs"),
+            &breadcrumbs.as_idl("$program_types"),
         )?;
-        program_typedef.try_deserialize(idl, data, data_offset, breadcrumbs)
+        program_type.typedef.try_deserialize(
+            idl,
+            data,
+            data_offset,
+            breadcrumbs,
+        )
     }
 
     fn try_deserialize_option(
@@ -229,7 +234,10 @@ impl ToolboxIdlProgramTypedef {
     }
 
     fn try_deserialize_enum(
-        program_typedef_enum_variants: &[String],
+        program_typedef_enum_variants: &[(
+            String,
+            Vec<ToolboxIdlProgramTypedef>,
+        )],
         data: &[u8],
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -248,37 +256,38 @@ impl ToolboxIdlProgramTypedef {
         }
         let program_typedef_enum_variant =
             &program_typedef_enum_variants[data_index];
+        // TODO - support enum variant fields
         Ok((
             std::mem::size_of_val(&data_enum),
-            Value::String(program_typedef_enum_variant.to_string()),
+            Value::String(program_typedef_enum_variant.0.to_string()),
         ))
     }
 
     fn try_deserialize_primitive(
-        program_typedef_primitive_kind: &ToolboxIdlProgramTypedefPrimitiveKind,
+        program_typedef_primitive: &ToolboxIdlProgramTypedefPrimitive,
         data: &[u8],
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
         let context = &breadcrumbs.val();
-        Ok(match program_typedef_primitive_kind {
-            ToolboxIdlProgramTypedefPrimitiveKind::U8 => {
+        Ok(match program_typedef_primitive {
+            ToolboxIdlProgramTypedefPrimitive::U8 => {
                 let int = idl_u8_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U16 => {
+            ToolboxIdlProgramTypedefPrimitive::U16 => {
                 let int = idl_u16_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U32 => {
+            ToolboxIdlProgramTypedefPrimitive::U32 => {
                 let int = idl_u32_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U64 => {
+            ToolboxIdlProgramTypedefPrimitive::U64 => {
                 let int = idl_u64_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U128 => {
+            ToolboxIdlProgramTypedefPrimitive::U128 => {
                 let int = idl_u128_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
@@ -287,23 +296,23 @@ impl ToolboxIdlProgramTypedef {
                     ),
                 )
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I8 => {
+            ToolboxIdlProgramTypedefPrimitive::I8 => {
                 let int = idl_i8_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I16 => {
+            ToolboxIdlProgramTypedefPrimitive::I16 => {
                 let int = idl_i16_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I32 => {
+            ToolboxIdlProgramTypedefPrimitive::I32 => {
                 let int = idl_i32_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I64 => {
+            ToolboxIdlProgramTypedefPrimitive::I64 => {
                 let int = idl_i64_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I128 => {
+            ToolboxIdlProgramTypedefPrimitive::I128 => {
                 let int = idl_i128_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
@@ -312,7 +321,7 @@ impl ToolboxIdlProgramTypedef {
                     ),
                 )
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::F32 => {
+            ToolboxIdlProgramTypedefPrimitive::F32 => {
                 let float =
                     idl_f32_from_bytes_at(data, data_offset, context)? as f64;
                 (
@@ -322,7 +331,7 @@ impl ToolboxIdlProgramTypedef {
                     ),
                 )
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::F64 => {
+            ToolboxIdlProgramTypedefPrimitive::F64 => {
                 let float = idl_f64_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&float),
@@ -331,13 +340,16 @@ impl ToolboxIdlProgramTypedef {
                     ),
                 )
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::Boolean => {
+            ToolboxIdlProgramTypedefPrimitive::Bytes => {
+                todo!()
+            },
+            ToolboxIdlProgramTypedefPrimitive::Boolean => {
                 let data_flag =
                     idl_u8_from_bytes_at(data, data_offset, context)?;
                 let data_size = std::mem::size_of_val(&data_flag);
                 (data_size, Value::Bool(data_flag != 0))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::String => {
+            ToolboxIdlProgramTypedefPrimitive::String => {
                 let data_length =
                     idl_u32_from_bytes_at(data, data_offset, context)?;
                 let mut data_size = std::mem::size_of_val(&data_length);
@@ -354,15 +366,13 @@ impl ToolboxIdlProgramTypedef {
                 )?;
                 data_size += data_bytes.len();
                 let data_string = String::from_utf8(data_bytes.to_vec())
-                    .map_err(|err| {
-                        ToolboxIdlError::InvalidString {
-                            parsing: err,
-                            context: context.clone(),
-                        }
+                    .map_err(|err| ToolboxIdlError::InvalidString {
+                        parsing: err,
+                        context: context.clone(),
                     })?;
                 (data_size, Value::String(data_string))
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::PublicKey => {
+            ToolboxIdlProgramTypedefPrimitive::PublicKey => {
                 let data_pubkey =
                     idl_pubkey_from_bytes_at(data, data_offset, context)?;
                 let data_size = std::mem::size_of_val(&data_pubkey);

@@ -7,7 +7,7 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
-use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitiveKind;
+use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitive;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_f64_or_else;
@@ -28,7 +28,7 @@ impl ToolboxIdlProgramTypedef {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         match self {
-            ToolboxIdlProgramTypedef::Defined { name } => {
+            ToolboxIdlProgramTypedef::Defined { name, generics } => {
                 ToolboxIdlProgramTypedef::try_serialize_defined(
                     idl,
                     name,
@@ -82,14 +82,16 @@ impl ToolboxIdlProgramTypedef {
                     &breadcrumbs.with_idl("enum"),
                 )
             },
-            ToolboxIdlProgramTypedef::Primitive { kind } => {
+            ToolboxIdlProgramTypedef::Primitive(primitive) => {
                 ToolboxIdlProgramTypedef::try_serialize_primitive(
-                    kind,
+                    primitive,
                     value,
                     data,
                     breadcrumbs,
                 )
             },
+            ToolboxIdlProgramTypedef::Const { value } => todo!(),
+            ToolboxIdlProgramTypedef::Generic { symbol } => todo!(),
         }
     }
 
@@ -100,12 +102,12 @@ impl ToolboxIdlProgramTypedef {
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        let program_typedef = idl_map_get_key_or_else(
-            &idl.program_typedefs,
+        let program_type = idl_map_get_key_or_else(
+            &idl.program_types,
             program_typedef_defined_name,
-            &breadcrumbs.as_idl("$program_typedefs"),
+            &breadcrumbs.as_idl("$program_types"),
         )?;
-        program_typedef.try_serialize(idl, value, data, breadcrumbs)
+        program_type.typedef.try_serialize(idl, value, data, breadcrumbs)
     }
 
     fn try_serialize_option(
@@ -214,7 +216,10 @@ impl ToolboxIdlProgramTypedef {
     }
 
     fn try_serialize_enum(
-        program_typedef_enum_variants: &[String],
+        program_typedef_enum_variants: &[(
+            String,
+            Vec<ToolboxIdlProgramTypedef>,
+        )],
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -224,8 +229,9 @@ impl ToolboxIdlProgramTypedef {
         for (program_typedef_enum_value, program_typedef_enum_variant) in
             program_typedef_enum_variants.iter().enumerate()
         {
-            if program_typedef_enum_variant == value_string {
+            if program_typedef_enum_variant.0 == value_string {
                 data.push(u8::try_from(program_typedef_enum_value).unwrap());
+                // TODO - support enum variant fields
                 return Ok(());
             }
         }
@@ -236,7 +242,7 @@ impl ToolboxIdlProgramTypedef {
     }
 
     fn try_serialize_primitive(
-        program_typedef_primitive_kind: &ToolboxIdlProgramTypedefPrimitiveKind,
+        program_typedef_primitive: &ToolboxIdlProgramTypedefPrimitive,
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -272,61 +278,66 @@ impl ToolboxIdlProgramTypedef {
                 ));
             };
         }
-        match program_typedef_primitive_kind {
-            ToolboxIdlProgramTypedefPrimitiveKind::U8 => {
+        match program_typedef_primitive {
+            ToolboxIdlProgramTypedefPrimitive::U8 => {
                 write_data_using_u_number!(u8);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U16 => {
+            ToolboxIdlProgramTypedefPrimitive::U16 => {
                 write_data_using_u_number!(u16);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U32 => {
+            ToolboxIdlProgramTypedefPrimitive::U32 => {
                 write_data_using_u_number!(u32);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U64 => {
+            ToolboxIdlProgramTypedefPrimitive::U64 => {
                 write_data_using_u_number!(u64);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::U128 => {
+            ToolboxIdlProgramTypedefPrimitive::U128 => {
                 let value_integer = idl_as_u128_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<u128>(
                     &value_integer,
                 ));
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I8 => {
+            ToolboxIdlProgramTypedefPrimitive::I8 => {
                 write_data_using_i_number!(i8);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I16 => {
+            ToolboxIdlProgramTypedefPrimitive::I16 => {
                 write_data_using_i_number!(i16);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I32 => {
+            ToolboxIdlProgramTypedefPrimitive::I32 => {
                 write_data_using_i_number!(i32);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I64 => {
+            ToolboxIdlProgramTypedefPrimitive::I64 => {
                 write_data_using_i_number!(i64);
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::I128 => {
+            ToolboxIdlProgramTypedefPrimitive::I128 => {
                 let value_integer = idl_as_i128_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<i128>(
                     &value_integer,
                 ));
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::F32 => {
+            ToolboxIdlProgramTypedefPrimitive::F32 => {
                 let value_floating = idl_as_f64_or_else(value, context)? as f32;
                 data.extend_from_slice(bytemuck::bytes_of::<f32>(
                     &value_floating,
                 ));
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::F64 => {
+            ToolboxIdlProgramTypedefPrimitive::F64 => {
                 let value_floating = idl_as_f64_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<f64>(
                     &value_floating,
                 ));
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::Boolean => {
-                data.push(
-                    if idl_as_bool_or_else(value, context)? { 1 } else { 0 },
-                );
+            ToolboxIdlProgramTypedefPrimitive::Bytes => {
+                todo!()
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::String => {
+            ToolboxIdlProgramTypedefPrimitive::Boolean => {
+                data.push(if idl_as_bool_or_else(value, context)? {
+                    1
+                } else {
+                    0
+                });
+            },
+            ToolboxIdlProgramTypedefPrimitive::String => {
                 let value_str = idl_as_str_or_else(value, context)?;
                 let value_length = u32::try_from(value_str.len()).unwrap();
                 data.extend_from_slice(bytemuck::bytes_of::<u32>(
@@ -334,7 +345,7 @@ impl ToolboxIdlProgramTypedef {
                 ));
                 data.extend_from_slice(value_str.as_bytes());
             },
-            ToolboxIdlProgramTypedefPrimitiveKind::PublicKey => {
+            ToolboxIdlProgramTypedefPrimitive::PublicKey => {
                 let value_str = idl_as_str_or_else(value, context)?;
                 let value_pubkey =
                     Pubkey::from_str(value_str).map_err(|err| {

@@ -6,11 +6,12 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_utils::idl_array_get_scoped_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
-use crate::toolbox_idl_utils::idl_object_get_key_as_scoped_object_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -81,11 +82,9 @@ impl ToolboxIdlProgramInstructionAccount {
             idl_object_get_key_as_str(idl_instruction_account_object, "address")
         {
             return Pubkey::from_str(idl_instruction_account_address)
-                .map_err(|err| {
-                    ToolboxIdlError::InvalidPubkey {
-                        parsing: err,
-                        context: breadcrumbs.as_idl("address"),
-                    }
+                .map_err(|err| ToolboxIdlError::InvalidPubkey {
+                    parsing: err,
+                    context: breadcrumbs.as_idl("address"),
                 })
                 .map(ToolboxIdlProgramInstructionAccountResolve::Address);
         }
@@ -94,17 +93,23 @@ impl ToolboxIdlProgramInstructionAccount {
         {
             let breadcrumbs = &breadcrumbs.with_idl("pda");
             let mut program_instruction_account_resolve_pda_seeds = vec![];
-            for (idl_instruction_account_pda_seed_object, breadcrumbs) in
-                idl_object_get_key_as_scoped_object_array_or_else(
+            if let Some(idl_instruction_account_pda_seeds_array) =
+                idl_object_get_key_as_array(
                     idl_instruction_account_pda,
                     "seeds",
-                    breadcrumbs,
-                )?
+                )
             {
-                program_instruction_account_resolve_pda_seeds.push(ToolboxIdlProgramInstructionAccount::try_parse_resolve_pda_blob(
-                    idl_instruction_account_pda_seed_object,
-                    &breadcrumbs,
-                )?);
+                for (idl_instruction_account_pda_seed_object, breadcrumbs) in
+                    idl_array_get_scoped_object_array_or_else(
+                        idl_instruction_account_pda_seeds_array,
+                        breadcrumbs,
+                    )?
+                {
+                    program_instruction_account_resolve_pda_seeds.push(ToolboxIdlProgramInstructionAccount::try_parse_resolve_pda_blob(
+                        idl_instruction_account_pda_seed_object,
+                        &breadcrumbs,
+                    )?);
+                }
             }
             let idl_instruction_account_pda_program_object =
                 idl_object_get_key_as_object(

@@ -20,6 +20,10 @@ pub async fn run() {
     for program_account in idl.program_accounts.values() {
         program_account.print();
     }
+    // Lookup types and print them
+    for program_type in idl.program_types.values() {
+        program_type.print();
+    }
     // Lookup errors and print them
     for program_error in idl.program_errors.values() {
         program_error.print();

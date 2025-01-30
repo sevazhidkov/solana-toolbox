@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq)]
-pub enum ToolboxIdlProgramTypedefPrimitiveKind {
+pub enum ToolboxIdlProgramTypedefPrimitive {
     U8,
     U16,
     U32,
@@ -12,55 +12,54 @@ pub enum ToolboxIdlProgramTypedefPrimitiveKind {
     I128,
     F32,
     F64,
+    Bytes,
     Boolean,
     String,
     PublicKey,
 }
 
-impl ToolboxIdlProgramTypedefPrimitiveKind {
-    pub fn try_parse(
-        kind: &str
-    ) -> Option<ToolboxIdlProgramTypedefPrimitiveKind> {
-        match kind {
-            "u8" => Some(ToolboxIdlProgramTypedefPrimitiveKind::U8),
-            "u16" => Some(ToolboxIdlProgramTypedefPrimitiveKind::U16),
-            "u32" => Some(ToolboxIdlProgramTypedefPrimitiveKind::U32),
-            "u64" => Some(ToolboxIdlProgramTypedefPrimitiveKind::U64),
-            "u128" => Some(ToolboxIdlProgramTypedefPrimitiveKind::U128),
-            "i8" => Some(ToolboxIdlProgramTypedefPrimitiveKind::I8),
-            "i16" => Some(ToolboxIdlProgramTypedefPrimitiveKind::I16),
-            "i32" => Some(ToolboxIdlProgramTypedefPrimitiveKind::I32),
-            "i64" => Some(ToolboxIdlProgramTypedefPrimitiveKind::I64),
-            "i128" => Some(ToolboxIdlProgramTypedefPrimitiveKind::I128),
-            "f32" => Some(ToolboxIdlProgramTypedefPrimitiveKind::F32),
-            "f64" => Some(ToolboxIdlProgramTypedefPrimitiveKind::F64),
-            "bool" => Some(ToolboxIdlProgramTypedefPrimitiveKind::Boolean),
-            "string" => Some(ToolboxIdlProgramTypedefPrimitiveKind::String),
-            "pubkey" => Some(ToolboxIdlProgramTypedefPrimitiveKind::PublicKey),
-            "publicKey" => {
-                Some(ToolboxIdlProgramTypedefPrimitiveKind::PublicKey)
-            },
+impl ToolboxIdlProgramTypedefPrimitive {
+    pub fn try_parse(name: &str) -> Option<ToolboxIdlProgramTypedefPrimitive> {
+        match name {
+            "u8" => Some(ToolboxIdlProgramTypedefPrimitive::U8),
+            "u16" => Some(ToolboxIdlProgramTypedefPrimitive::U16),
+            "u32" => Some(ToolboxIdlProgramTypedefPrimitive::U32),
+            "u64" => Some(ToolboxIdlProgramTypedefPrimitive::U64),
+            "u128" => Some(ToolboxIdlProgramTypedefPrimitive::U128),
+            "i8" => Some(ToolboxIdlProgramTypedefPrimitive::I8),
+            "i16" => Some(ToolboxIdlProgramTypedefPrimitive::I16),
+            "i32" => Some(ToolboxIdlProgramTypedefPrimitive::I32),
+            "i64" => Some(ToolboxIdlProgramTypedefPrimitive::I64),
+            "i128" => Some(ToolboxIdlProgramTypedefPrimitive::I128),
+            "f32" => Some(ToolboxIdlProgramTypedefPrimitive::F32),
+            "f64" => Some(ToolboxIdlProgramTypedefPrimitive::F64),
+            "bytes" => Some(ToolboxIdlProgramTypedefPrimitive::Bytes),
+            "bool" => Some(ToolboxIdlProgramTypedefPrimitive::Boolean),
+            "string" => Some(ToolboxIdlProgramTypedefPrimitive::String),
+            "pubkey" => Some(ToolboxIdlProgramTypedefPrimitive::PublicKey),
+            "publicKey" => Some(ToolboxIdlProgramTypedefPrimitive::PublicKey),
             _ => None,
         }
     }
 
     pub fn as_str(&self) -> &str {
         match self {
-            ToolboxIdlProgramTypedefPrimitiveKind::U8 => "u8",
-            ToolboxIdlProgramTypedefPrimitiveKind::U16 => "u16",
-            ToolboxIdlProgramTypedefPrimitiveKind::U32 => "u32",
-            ToolboxIdlProgramTypedefPrimitiveKind::U64 => "u64",
-            ToolboxIdlProgramTypedefPrimitiveKind::U128 => "u128",
-            ToolboxIdlProgramTypedefPrimitiveKind::I8 => "i8",
-            ToolboxIdlProgramTypedefPrimitiveKind::I16 => "i16",
-            ToolboxIdlProgramTypedefPrimitiveKind::I32 => "i32",
-            ToolboxIdlProgramTypedefPrimitiveKind::I64 => "i64",
-            ToolboxIdlProgramTypedefPrimitiveKind::I128 => "i128",
-            ToolboxIdlProgramTypedefPrimitiveKind::F32 => "f32",
-            ToolboxIdlProgramTypedefPrimitiveKind::F64 => "f64",
-            ToolboxIdlProgramTypedefPrimitiveKind::Boolean => "bool",
-            ToolboxIdlProgramTypedefPrimitiveKind::String => "string",
-            ToolboxIdlProgramTypedefPrimitiveKind::PublicKey => "pubkey",
+            ToolboxIdlProgramTypedefPrimitive::U8 => "u8",
+            ToolboxIdlProgramTypedefPrimitive::U16 => "u16",
+            ToolboxIdlProgramTypedefPrimitive::U32 => "u32",
+            ToolboxIdlProgramTypedefPrimitive::U64 => "u64",
+            ToolboxIdlProgramTypedefPrimitive::U128 => "u128",
+            ToolboxIdlProgramTypedefPrimitive::I8 => "i8",
+            ToolboxIdlProgramTypedefPrimitive::I16 => "i16",
+            ToolboxIdlProgramTypedefPrimitive::I32 => "i32",
+            ToolboxIdlProgramTypedefPrimitive::I64 => "i64",
+            ToolboxIdlProgramTypedefPrimitive::I128 => "i128",
+            ToolboxIdlProgramTypedefPrimitive::F32 => "f32",
+            ToolboxIdlProgramTypedefPrimitive::F64 => "f64",
+            ToolboxIdlProgramTypedefPrimitive::Bytes => "bytes",
+            ToolboxIdlProgramTypedefPrimitive::Boolean => "bool",
+            ToolboxIdlProgramTypedefPrimitive::String => "string",
+            ToolboxIdlProgramTypedefPrimitive::PublicKey => "pubkey",
         }
     }
 }

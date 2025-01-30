@@ -18,7 +18,7 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolve;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolvePdaBlob;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
-use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitiveKind;
+use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitive;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
@@ -390,21 +390,20 @@ fn idl_parts_to_bytes(
                     &mut bytes,
                     &breadcrumbs.with_val(program_field_name),
                 )?;
-                if let Some(kind) = program_field_typedef.as_primitive_kind() {
-                    if kind == &ToolboxIdlProgramTypedefPrimitiveKind::String {
+                if let Some(primitive) = program_field_typedef.as_primitive() {
+                    if primitive == &ToolboxIdlProgramTypedefPrimitive::String {
                         bytes.drain(0..4);
                     }
                 }
                 return Ok(bytes);
-            } else {
-                return idl_parts_to_bytes_recurse(
-                    idl,
-                    program_field_typedef,
-                    parts,
-                    &value,
-                    &breadcrumbs.with_val("*"),
-                );
             }
+            return idl_parts_to_bytes_recurse(
+                idl,
+                program_field_typedef,
+                parts,
+                &value,
+                &breadcrumbs.with_val("*"),
+            );
         }
     }
     idl_err("Unknown value field", &breadcrumbs.as_val(field_name))
@@ -419,16 +418,16 @@ fn idl_parts_to_bytes_recurse(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     match idl_type {
-        ToolboxIdlProgramTypedef::Defined { name } => {
-            let program_typedef = idl_map_get_key_or_else(
-                &idl.program_typedefs,
+        ToolboxIdlProgramTypedef::Defined { name, generics } => {
+            let program_type = idl_map_get_key_or_else(
+                &idl.program_types,
                 name,
-                &breadcrumbs.as_idl("$program_typedefs"),
+                &breadcrumbs.as_idl("$program_types"),
             )?;
             // TODO - what if the lookup points to an enum or vec/array ?
             let program_typedef_struct_fields =
                 idl_typedef_as_struct_fields_or_else(
-                    program_typedef,
+                    &program_type.typedef,
                     &breadcrumbs.as_idl(name),
                 )?;
             let object = idl_as_object_or_else(value, &breadcrumbs.val())?;
@@ -440,19 +439,19 @@ fn idl_parts_to_bytes_recurse(
                 &breadcrumbs.with_idl("*"),
             )
         },
-        _ => {
-            idl_err(
-                "doesnt support 2+ split path (unless nested structs)",
-                &breadcrumbs.as_idl(&parts.join(".")),
-            )
-        },
+        _ => idl_err(
+            "doesnt support 2+ split path (unless nested structs)",
+            &breadcrumbs.as_idl(&parts.join(".")),
+        ),
     }
 }
 
+// TODO - this doesn't support recursive defines ?
 fn idl_typedef_as_struct_fields_or_else<'a>(
     idl_type: &'a ToolboxIdlProgramTypedef,
     context: &ToolboxIdlContext,
 ) -> Result<&'a [(String, ToolboxIdlProgramTypedef)], ToolboxIdlError> {
+    eprintln!("idl_type:{:?}", idl_type);
     let program_fields = idl_ok_or_else(
         idl_type.as_struct_fields(),
         "Type was expected to be a struct",
