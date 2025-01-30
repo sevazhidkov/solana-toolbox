@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::num::TryFromIntError;
 
 use serde_json::Map;
 use serde_json::Value;
@@ -162,6 +163,25 @@ pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else<'a>(
     }
 }
 
+pub(crate) fn idl_value_as_object_get_key_as_array<'a>(
+    value: &'a Value,
+    key: &str,
+) -> Option<&'a Vec<Value>> {
+    value
+        .as_object()
+        .map(|object| object.get(key))
+        .flatten()
+        .map(|item| item.as_array())
+        .flatten()
+}
+
+pub(crate) fn idl_value_as_object_get_key<'a>(
+    value: &'a Value,
+    key: &str,
+) -> Option<&'a Value> {
+    value.as_object().map(|object| object.get(key)).flatten()
+}
+
 pub(crate) fn idl_as_array_or_else<'a>(
     value: &'a Value,
     context: &ToolboxIdlContext,
@@ -235,24 +255,10 @@ pub(crate) fn idl_as_bytes_or_else(
     let array = idl_as_array_or_else(value, context)?;
     for item in array {
         let integer = idl_as_u128_or_else(item, context)?;
-        let byte = u8::try_from(integer).map_err(|err| {
-            ToolboxIdlError::InvalidInteger {
-                conversion: err,
-                context: context.clone(),
-            }
-        })?;
+        let byte = idl_map_err_invalid_integer(u8::try_from(integer), context)?;
         bytes.push(byte);
     }
     Ok(bytes)
-}
-
-// TODO - could be clean'ed
-pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
-    map: &'a HashMap<String, V>,
-    key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<&'a V, ToolboxIdlError> {
-    idl_ok_or_else(map.get(key), &format!("missing key: {}", key), context)
 }
 
 pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
@@ -260,11 +266,9 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
     failure: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| {
-        ToolboxIdlError::Custom {
-            failure: failure.to_string(),
-            context: context.clone(),
-        }
+    option.ok_or_else(|| ToolboxIdlError::Custom {
+        failure: failure.to_string(),
+        context: context.clone(),
     })
 }
 
@@ -430,4 +434,23 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     let size = std::mem::size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
+}
+
+// TODO - could be clean'ed
+pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
+    map: &'a HashMap<String, V>,
+    key: &str,
+    context: &ToolboxIdlContext,
+) -> Result<&'a V, ToolboxIdlError> {
+    idl_ok_or_else(map.get(key), &format!("missing key: {}", key), context)
+}
+
+pub(crate) fn idl_map_err_invalid_integer<V>(
+    result: Result<V, TryFromIntError>,
+    context: &ToolboxIdlContext,
+) -> Result<V, ToolboxIdlError> {
+    result.map_err(|err| ToolboxIdlError::InvalidInteger {
+        conversion: err,
+        context: context.clone(),
+    })
 }

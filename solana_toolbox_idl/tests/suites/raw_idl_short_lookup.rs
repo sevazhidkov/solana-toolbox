@@ -138,11 +138,11 @@ pub async fn run() {
     // Assert account was parsed correctly
     let my_account = idl_standard.program_accounts.get("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
-    assert_eq!("Struct{field1:u64,field2:u32}", my_account.typedef.describe());
+    assert_eq!("Struct{field1:u64,field2:u32}", my_account.def.describe());
     // Assert struct was parsed correctly
     let my_struct = idl_standard.program_types.get("MyStruct").unwrap();
     assert_eq!("MyStruct", my_struct.name);
-    assert_eq!("Struct{addr:pubkey,name:string}", my_struct.typedef.describe());
+    assert_eq!("Struct{addr:pubkey,name:string}", my_struct.def.describe());
     // Assert error was parsed correctly
     let my_error = idl_standard.program_errors.get(&4242).unwrap();
     assert_eq!(4242, my_error.code);

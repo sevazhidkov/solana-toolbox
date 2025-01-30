@@ -12,6 +12,7 @@ pub mod file_idl_anchor_0_30_accounts;
 pub mod file_idl_anchor_0_30_data;
 pub mod file_idl_anchor_0_30_instruction;
 pub mod file_idl_anchor_0_30_lookup;
+pub mod file_idl_anchor_generics_lookup;
 pub mod file_idl_anchor_new_lookup;
 pub mod file_idl_anchor_old_lookup;
 pub mod raw_idl_enum_fields;
@@ -20,3 +21,4 @@ pub mod raw_idl_generics_const;
 pub mod raw_idl_short_data;
 pub mod raw_idl_short_instruction;
 pub mod raw_idl_short_lookup;
+// TODO - tests could be better organized and named and more rigurous

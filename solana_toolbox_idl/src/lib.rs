@@ -12,11 +12,11 @@ mod toolbox_idl_program_error;
 mod toolbox_idl_program_instruction;
 mod toolbox_idl_program_instruction_account;
 mod toolbox_idl_program_type;
-mod toolbox_idl_program_typedef;
-mod toolbox_idl_program_typedef_deserialize;
-mod toolbox_idl_program_typedef_primitive;
-mod toolbox_idl_program_typedef_serialize;
-mod toolbox_idl_program_typedef_utils;
+mod toolbox_idl_program_def;
+mod toolbox_idl_program_def_deserialize;
+mod toolbox_idl_program_def_primitive;
+mod toolbox_idl_program_def_serialize;
+mod toolbox_idl_program_def_utils;
 mod toolbox_idl_utils;
 
 pub use toolbox_idl::ToolboxIdl;
@@ -32,5 +32,5 @@ pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAcc
 pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolve;
 pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolvePdaBlob;
 pub use toolbox_idl_program_type::ToolboxIdlProgramType;
-pub use toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
-pub use toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitive;
+pub use toolbox_idl_program_def::ToolboxIdlProgramDef;
+pub use toolbox_idl_program_def_primitive::ToolboxIdlProgramDefPrimitive;

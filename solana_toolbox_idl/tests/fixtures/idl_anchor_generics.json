@@ -494,7 +494,7 @@
       ],
       "type": {
         "kind": "struct",
-        "fields": ["u8"]
+        "fields": []
       }
     }
   ]

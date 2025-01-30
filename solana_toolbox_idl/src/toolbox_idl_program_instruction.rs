@@ -4,9 +4,9 @@ use serde_json::Value;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_program_def::ToolboxIdlProgramDef;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolve;
-use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -18,7 +18,8 @@ pub struct ToolboxIdlProgramInstruction {
     pub name: String,
     pub discriminator: Vec<u8>,
     pub accounts: Vec<ToolboxIdlProgramInstructionAccount>,
-    pub args: Vec<(String, ToolboxIdlProgramTypedef)>,
+    pub args: Vec<(String, ToolboxIdlProgramDef)>,
+    // TODO - support "returns" value ??
 }
 
 impl ToolboxIdlProgramInstruction {
@@ -42,12 +43,8 @@ impl ToolboxIdlProgramInstruction {
                 }
             );
         }
-        for (arg_name, arg_typedef) in &self.args {
-            println!(
-                "instruction.args: {}: {}",
-                arg_name,
-                arg_typedef.describe()
-            );
+        for (arg_name, arg_def) in &self.args {
+            println!("instruction.args: {}: {}", arg_name, arg_def.describe());
         }
     }
 
@@ -129,7 +126,7 @@ impl ToolboxIdlProgramInstruction {
     fn try_parse_args(
         idl_instruction_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<(String, ToolboxIdlProgramTypedef)>, ToolboxIdlError> {
+    ) -> Result<Vec<(String, ToolboxIdlProgramDef)>, ToolboxIdlError> {
         let mut instruction_args = vec![];
         if let Some(idl_instruction_args) =
             idl_object_get_key_as_array(idl_instruction_object, "args")
@@ -142,15 +139,15 @@ impl ToolboxIdlProgramInstruction {
                 idl_instruction_args,
                 breadcrumbs,
             )? {
-                let idl_instruction_arg_typedef = idl_object_get_key_or_else(
+                let idl_instruction_arg_def = idl_object_get_key_or_else(
                     idl_instruction_arg_object,
                     "type",
                     &breadcrumbs.idl(),
                 )?;
                 instruction_args.push((
                     idl_instruction_arg_name.to_string(),
-                    ToolboxIdlProgramTypedef::try_parse(
-                        idl_instruction_arg_typedef,
+                    ToolboxIdlProgramDef::try_parse(
+                        idl_instruction_arg_def,
                         &breadcrumbs,
                     )?,
                 ));

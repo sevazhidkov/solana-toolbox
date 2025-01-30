@@ -17,8 +17,8 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolve;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountResolvePdaBlob;
-use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
-use crate::toolbox_idl_program_typedef_primitive::ToolboxIdlProgramTypedefPrimitive;
+use crate::toolbox_idl_program_def::ToolboxIdlProgramDef;
+use crate::toolbox_idl_program_def_primitive::ToolboxIdlProgramDefPrimitive;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
@@ -331,14 +331,14 @@ fn idl_blob_bytes(
                 &account.name,
                 &breadcrumbs.as_idl("$program_accounts"),
             )?;
-            let program_typedef_struct_fields =
-                idl_typedef_as_struct_fields_or_else(
-                    &program_account.typedef,
+            let program_def_struct_fields =
+                idl_def_as_struct_fields_or_else(
+                    &program_account.def,
                     &breadcrumbs.as_idl(&account.name),
                 )?;
             idl_parts_to_bytes(
                 idl,
-                program_typedef_struct_fields,
+                program_def_struct_fields,
                 &idl_blob_parts[1..],
                 account_object,
                 &breadcrumbs.with_idl("account"),
@@ -366,13 +366,13 @@ fn idl_blob_bytes(
 // TODO - naming fix
 fn idl_parts_to_bytes(
     idl: &ToolboxIdl,
-    program_fields: &[(String, ToolboxIdlProgramTypedef)],
+    program_fields: &[(String, ToolboxIdlProgramDef)],
     parts: &[&str],
     object: &Map<String, Value>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let field_name = parts[0];
-    for (program_field_name, program_field_typedef) in program_fields {
+    for (program_field_name, program_field_def) in program_fields {
         let breadcrumbs = &breadcrumbs.with_idl(program_field_name);
         if program_field_name.to_case(Case::Snake)
             == field_name.to_case(Case::Snake)
@@ -384,14 +384,14 @@ fn idl_parts_to_bytes(
             )?;
             if parts.len() == 1 {
                 let mut bytes = vec![];
-                program_field_typedef.try_serialize(
+                program_field_def.try_serialize(
                     idl,
                     value,
                     &mut bytes,
                     &breadcrumbs.with_val(program_field_name),
                 )?;
-                if let Some(primitive) = program_field_typedef.as_primitive() {
-                    if primitive == &ToolboxIdlProgramTypedefPrimitive::String {
+                if let Some(primitive) = program_field_def.as_primitive() {
+                    if primitive == &ToolboxIdlProgramDefPrimitive::String {
                         bytes.drain(0..4);
                     }
                 }
@@ -399,7 +399,7 @@ fn idl_parts_to_bytes(
             }
             return idl_parts_to_bytes_recurse(
                 idl,
-                program_field_typedef,
+                program_field_def,
                 parts,
                 &value,
                 &breadcrumbs.with_val("*"),
@@ -412,28 +412,28 @@ fn idl_parts_to_bytes(
 // TODO - naming fix
 fn idl_parts_to_bytes_recurse(
     idl: &ToolboxIdl,
-    idl_type: &ToolboxIdlProgramTypedef,
+    idl_type: &ToolboxIdlProgramDef,
     parts: &[&str],
     value: &&Value,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     match idl_type {
-        ToolboxIdlProgramTypedef::Defined { name, generics } => {
+        ToolboxIdlProgramDef::Defined { name, generics } => {
             let program_type = idl_map_get_key_or_else(
                 &idl.program_types,
                 name,
                 &breadcrumbs.as_idl("$program_types"),
             )?;
             // TODO - what if the lookup points to an enum or vec/array ?
-            let program_typedef_struct_fields =
-                idl_typedef_as_struct_fields_or_else(
-                    &program_type.typedef,
+            let program_def_struct_fields =
+                idl_def_as_struct_fields_or_else(
+                    &program_type.def,
                     &breadcrumbs.as_idl(name),
                 )?;
             let object = idl_as_object_or_else(value, &breadcrumbs.val())?;
             idl_parts_to_bytes(
                 idl,
-                program_typedef_struct_fields,
+                program_def_struct_fields,
                 &parts[1..],
                 object,
                 &breadcrumbs.with_idl("*"),
@@ -447,10 +447,10 @@ fn idl_parts_to_bytes_recurse(
 }
 
 // TODO - this doesn't support recursive defines ?
-fn idl_typedef_as_struct_fields_or_else<'a>(
-    idl_type: &'a ToolboxIdlProgramTypedef,
+fn idl_def_as_struct_fields_or_else<'a>(
+    idl_type: &'a ToolboxIdlProgramDef,
     context: &ToolboxIdlContext,
-) -> Result<&'a [(String, ToolboxIdlProgramTypedef)], ToolboxIdlError> {
+) -> Result<&'a [(String, ToolboxIdlProgramDef)], ToolboxIdlError> {
     eprintln!("idl_type:{:?}", idl_type);
     let program_fields = idl_ok_or_else(
         idl_type.as_struct_fields(),

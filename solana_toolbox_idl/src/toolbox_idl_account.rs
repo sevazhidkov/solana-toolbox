@@ -81,7 +81,7 @@ impl ToolboxIdl {
         )?;
         let mut account_data = vec![];
         account_data.extend_from_slice(&program_account.discriminator);
-        program_account.typedef.try_serialize(
+        program_account.def.try_serialize(
             self,
             &account.value,
             &mut account_data,
@@ -111,7 +111,7 @@ impl ToolboxIdl {
                 found: account_data.to_vec(),
             });
         }
-        let (_, data_content_value) = program_account.typedef.try_deserialize(
+        let (_, data_content_value) = program_account.def.try_deserialize(
             self,
             account_data,
             program_account.discriminator.len(),

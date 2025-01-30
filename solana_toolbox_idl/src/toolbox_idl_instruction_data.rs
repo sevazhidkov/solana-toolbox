@@ -21,7 +21,7 @@ impl ToolboxIdl {
         )?;
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(&program_instruction.discriminator);
-        for (program_instruction_arg_name, program_instruction_arg_typedef) in
+        for (program_instruction_arg_name, program_instruction_arg_def) in
             &program_instruction.args
         {
             let breadcrumbs =
@@ -31,7 +31,7 @@ impl ToolboxIdl {
                 program_instruction_arg_name,
                 &breadcrumbs.val(),
             )?;
-            program_instruction_arg_typedef.try_serialize(
+            program_instruction_arg_def.try_serialize(
                 self,
                 instruction_arg,
                 &mut instruction_data,
@@ -60,13 +60,13 @@ impl ToolboxIdl {
         }
         let mut data_offset = program_instruction.discriminator.len();
         let mut instruction_args = Map::new();
-        for (program_instruction_arg_name, program_instruction_arg_typedef) in
+        for (program_instruction_arg_name, program_instruction_arg_def) in
             &program_instruction.args
         {
             let breadcrumbs =
                 &breadcrumbs.with_idl(program_instruction_arg_name);
             let (data_arg_size, data_arg_value) =
-                program_instruction_arg_typedef.try_deserialize(
+                program_instruction_arg_def.try_deserialize(
                     self,
                     instruction_data,
                     data_offset,

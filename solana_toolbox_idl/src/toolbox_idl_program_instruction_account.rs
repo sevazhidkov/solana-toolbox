@@ -24,6 +24,7 @@ pub struct ToolboxIdlProgramInstructionAccount {
     pub resolve: ToolboxIdlProgramInstructionAccountResolve,
 }
 
+// TODO - this could be renamed or included in the account with options
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlProgramInstructionAccountResolve {
     Address(Pubkey),
@@ -47,6 +48,7 @@ impl ToolboxIdlProgramInstructionAccount {
         idl_instruction_account_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramInstructionAccount, ToolboxIdlError> {
+        // TODO - support is optional ?
         let idl_instruction_account_is_writable = idl_object_get_key_as_bool(
             idl_instruction_account_object,
             "writable",
