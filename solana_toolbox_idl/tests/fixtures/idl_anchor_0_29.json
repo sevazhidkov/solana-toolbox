@@ -731,12 +731,6 @@
           {
             "name": "spilledUsdcAmount",
             "type": "u64"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "RealmReserved"
-            }
           }
         ]
       }

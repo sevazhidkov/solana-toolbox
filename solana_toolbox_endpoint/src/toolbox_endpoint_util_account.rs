@@ -124,7 +124,7 @@ impl ToolboxEndpoint {
                 let data_size = offset + std::mem::size_of::<T>();
                 if account.data.len() < data_size {
                     return Err(ToolboxEndpointError::Custom(
-                        "Account is too small".into(),
+                        "Account is too small".to_string(),
                     ));
                 }
                 bytemuck::try_from_bytes::<T>(&account.data[offset..data_size])

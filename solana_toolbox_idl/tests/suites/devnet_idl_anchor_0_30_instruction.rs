@@ -28,7 +28,6 @@ pub async fn run() {
     let campaign_index = 3u64;
     let campaign = idl
         .find_instruction_account_address(
-            "campaign",
             &ToolboxIdlInstruction {
                 program_id,
                 name: "campaign_create".to_string(),
@@ -39,6 +38,7 @@ pub async fn run() {
                 )]),
             },
             &HashMap::from_iter([]),
+            "campaign",
         )
         .unwrap();
     // Make sure the proper account has been properly resolved

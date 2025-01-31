@@ -48,6 +48,15 @@ pub enum ToolboxIdlError {
         failure: String,
         context: ToolboxIdlContext,
     },
+    UnknownProgramType {
+        name: String,
+    },
+    UnknownProgramInstruction {
+        name: String,
+    },
+    UnknownProgramAccount {
+        name: String,
+    },
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {

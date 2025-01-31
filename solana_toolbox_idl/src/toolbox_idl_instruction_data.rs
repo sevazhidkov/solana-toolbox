@@ -21,21 +21,18 @@ impl ToolboxIdl {
         )?;
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(&program_instruction.discriminator);
-        for (program_instruction_arg_name, program_instruction_arg_def) in
-            &program_instruction.args
-        {
+        for program_instruction_arg in &program_instruction.args {
             let breadcrumbs =
-                &breadcrumbs.with_idl(program_instruction_arg_name);
+                &breadcrumbs.with_idl(&program_instruction_arg.name);
             let instruction_arg = idl_object_get_key_or_else(
                 instruction_args,
-                program_instruction_arg_name,
+                &program_instruction_arg.name,
                 &breadcrumbs.val(),
             )?;
-            program_instruction_arg_def.try_serialize(
-                self,
+            program_instruction_arg.type_full.try_serialize(
                 instruction_arg,
                 &mut instruction_data,
-                &breadcrumbs.with_val(program_instruction_arg_name),
+                &breadcrumbs.with_val(&program_instruction_arg.name),
             )?;
         }
         Ok(instruction_data)
@@ -60,21 +57,18 @@ impl ToolboxIdl {
         }
         let mut data_offset = program_instruction.discriminator.len();
         let mut instruction_args = Map::new();
-        for (program_instruction_arg_name, program_instruction_arg_def) in
-            &program_instruction.args
-        {
+        for program_instruction_arg in &program_instruction.args {
             let breadcrumbs =
-                &breadcrumbs.with_idl(program_instruction_arg_name);
-            let (data_arg_size, data_arg_value) =
-                program_instruction_arg_def.try_deserialize(
-                    self,
+                &breadcrumbs.with_idl(&program_instruction_arg.name);
+            let (data_arg_size, data_arg) =
+                program_instruction_arg.type_full.try_deserialize(
                     instruction_data,
                     data_offset,
-                    &breadcrumbs.with_val(program_instruction_arg_name),
+                    &breadcrumbs.with_val(&program_instruction_arg.name),
                 )?;
             data_offset += data_arg_size;
             instruction_args
-                .insert(program_instruction_arg_name.into(), data_arg_value);
+                .insert(program_instruction_arg.name.to_string(), data_arg);
         }
         Ok(instruction_args)
     }

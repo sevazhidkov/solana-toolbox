@@ -1,10 +1,42 @@
-use crate::toolbox_idl_program_def::ToolboxIdlProgramDef;
-use crate::toolbox_idl_program_def_primitive::ToolboxIdlProgramDefPrimitive;
+use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 
-impl ToolboxIdlProgramDef {
+#[derive(Debug, Clone, PartialEq)]
+pub enum ToolboxIdlTypeFlat {
+    Defined {
+        name: String,
+        generics: Vec<ToolboxIdlTypeFlat>,
+    },
+    Generic {
+        symbol: String,
+    },
+    Option {
+        content: Box<ToolboxIdlTypeFlat>,
+    },
+    Vec {
+        items: Box<ToolboxIdlTypeFlat>,
+    },
+    Array {
+        items: Box<ToolboxIdlTypeFlat>,
+        length: Box<ToolboxIdlTypeFlat>,
+    },
+    Struct {
+        fields: Vec<(String, ToolboxIdlTypeFlat)>,
+    },
+    Enum {
+        variants: Vec<(String, Vec<(String, ToolboxIdlTypeFlat)>)>,
+    },
+    Const {
+        literal: usize, // TODO - what other kind of consts can be supported ?
+    },
+    Primitive {
+        primitive: ToolboxIdlPrimitive,
+    },
+}
+
+impl ToolboxIdlTypeFlat {
     pub fn describe(&self) -> String {
         match self {
-            ToolboxIdlProgramDef::Defined { name, generics } => {
+            ToolboxIdlTypeFlat::Defined { name, generics } => {
                 if generics.is_empty() {
                     format!("@{}", name)
                 } else {
@@ -19,16 +51,19 @@ impl ToolboxIdlProgramDef {
                     )
                 }
             },
-            ToolboxIdlProgramDef::Option { content } => {
+            ToolboxIdlTypeFlat::Generic { symbol } => {
+                format!("#{}", symbol)
+            },
+            ToolboxIdlTypeFlat::Option { content } => {
                 format!("Option<{}>", content.describe())
             },
-            ToolboxIdlProgramDef::Vec { items } => {
+            ToolboxIdlTypeFlat::Vec { items } => {
                 format!("Vec<{}>", items.describe())
             },
-            ToolboxIdlProgramDef::Array { items, length } => {
+            ToolboxIdlTypeFlat::Array { items, length } => {
                 format!("[{};{}]", items.describe(), length.describe())
             },
-            ToolboxIdlProgramDef::Struct { fields } => {
+            ToolboxIdlTypeFlat::Struct { fields } => {
                 format!(
                     "Struct{{{}}}",
                     fields
@@ -40,7 +75,7 @@ impl ToolboxIdlProgramDef {
                         .join(",")
                 )
             },
-            ToolboxIdlProgramDef::Enum { variants } => {
+            ToolboxIdlTypeFlat::Enum { variants } => {
                 format!(
                     "Enum{{{}}}",
                     variants
@@ -55,7 +90,13 @@ impl ToolboxIdlProgramDef {
                                     variant
                                         .1
                                         .iter()
-                                        .map(|field| field.describe())
+                                        .map(|field| {
+                                            format!(
+                                                "{}:{}",
+                                                field.0,
+                                                field.1.describe()
+                                            )
+                                        })
                                         .collect::<Vec<_>>()
                                         .join(",")
                                 )
@@ -65,39 +106,12 @@ impl ToolboxIdlProgramDef {
                         .join("/")
                 )
             },
-            ToolboxIdlProgramDef::Primitive { primitive } => {
-                primitive.as_str().to_string()
-            },
-            ToolboxIdlProgramDef::Const { literal } => {
+            ToolboxIdlTypeFlat::Const { literal } => {
                 format!("{}", literal)
             },
-            ToolboxIdlProgramDef::Generic { symbol } => {
-                format!("#{}", symbol)
+            ToolboxIdlTypeFlat::Primitive { primitive } => {
+                primitive.as_str().to_string()
             },
-        }
-    }
-
-    pub fn as_struct_fields(
-        &self
-    ) -> Option<&Vec<(String, ToolboxIdlProgramDef)>> {
-        match self {
-            ToolboxIdlProgramDef::Struct { fields } => Some(fields),
-            _ => None,
-        }
-    }
-
-    // TODO - need to be able to lookup defined automatically
-    pub fn as_const_literal(&self) -> Option<&usize> {
-        match self {
-            ToolboxIdlProgramDef::Const { literal } => Some(literal),
-            _ => None,
-        }
-    }
-
-    pub fn as_primitive(&self) -> Option<&ToolboxIdlProgramDefPrimitive> {
-        match self {
-            ToolboxIdlProgramDef::Primitive { primitive } => Some(primitive),
-            _ => None,
         }
     }
 }

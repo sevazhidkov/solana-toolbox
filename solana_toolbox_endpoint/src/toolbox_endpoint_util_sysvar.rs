@@ -13,7 +13,9 @@ impl ToolboxEndpoint {
         self.get_account_data_bincode_deserialized(&clock::ID)
             .await?
             .ok_or_else(|| {
-                ToolboxEndpointError::Custom("sysvar clock not found".into())
+                ToolboxEndpointError::Custom(
+                    "sysvar clock not found".to_string(),
+                )
             })
     }
 
@@ -21,7 +23,11 @@ impl ToolboxEndpoint {
         &mut self
     ) -> Result<Rent, ToolboxEndpointError> {
         self.get_account_data_bincode_deserialized(&rent::ID).await?.ok_or_else(
-            || ToolboxEndpointError::Custom("sysvar rent not found".into()),
+            || {
+                ToolboxEndpointError::Custom(
+                    "sysvar rent not found".to_string(),
+                )
+            },
         )
     }
 }

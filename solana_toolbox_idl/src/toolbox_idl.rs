@@ -10,7 +10,6 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
-use crate::toolbox_idl_program_def::ToolboxIdlProgramDef;
 use crate::toolbox_idl_program_error::ToolboxIdlProgramError;
 use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
 use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
@@ -19,7 +18,6 @@ use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
-use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_scoped_key_value_array;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
@@ -28,9 +26,9 @@ use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 // TODO - support docs on accounts/instructions/defs/etc ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
+    pub program_types: HashMap<String, ToolboxIdlProgramType>,
     pub program_instructions: HashMap<String, ToolboxIdlProgramInstruction>,
     pub program_accounts: HashMap<String, ToolboxIdlProgramAccount>,
-    pub program_types: HashMap<String, ToolboxIdlProgramType>,
     pub program_errors: HashMap<u64, ToolboxIdlProgramError>,
     // TODO - implement programs_constants ?
 }
@@ -109,147 +107,42 @@ impl ToolboxIdl {
         value: &Value
     ) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let idl_root_object =
-            idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
+        let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
+        let program_types =
+            ToolboxIdl::try_parse_program_types(idl_root, breadcrumbs)?;
+        let program_instructions = ToolboxIdl::try_parse_program_instructions(
+            &program_types,
+            idl_root,
+            breadcrumbs,
+        )?;
+        let program_accounts = ToolboxIdl::try_parse_program_accounts(
+            &program_types,
+            idl_root,
+            breadcrumbs,
+        )?;
+        let program_errors =
+            ToolboxIdl::try_parse_program_errors(idl_root, breadcrumbs)?;
         Ok(ToolboxIdl {
-            program_instructions: ToolboxIdl::try_parse_program_instructions(
-                idl_root_object,
-                breadcrumbs,
-            )?,
-            program_accounts: ToolboxIdl::try_parse_program_accounts(
-                idl_root_object,
-                breadcrumbs,
-            )?,
-            program_types: ToolboxIdl::try_parse_program_types(
-                idl_root_object,
-                breadcrumbs,
-            )?,
-            program_errors: ToolboxIdl::try_parse_program_errors(
-                idl_root_object,
-                breadcrumbs,
-            )?,
+            program_types,
+            program_instructions,
+            program_accounts,
+            program_errors,
         })
     }
 
-    fn try_parse_program_instructions(
-        idl_root_object: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramInstruction>, ToolboxIdlError>
-    {
-        let mut program_instructions = HashMap::new();
-        if let Some(idl_instructions_object) =
-            idl_object_get_key_as_object(idl_root_object, "instructions")
-        {
-            for (idl_instruction_name, idl_instruction_value, breadcrumbs) in
-                idl_object_get_scoped_key_value_array(
-                    idl_instructions_object,
-                    breadcrumbs,
-                )?
-            {
-                let idl_instruction_object = idl_as_object_or_else(
-                    idl_instruction_value,
-                    &breadcrumbs.idl(),
-                )?;
-                program_instructions.insert(
-                    idl_instruction_name.to_string(),
-                    ToolboxIdlProgramInstruction::try_parse(
-                        idl_instruction_name,
-                        idl_instruction_object,
-                        &breadcrumbs,
-                    )?,
-                );
-            }
-        }
-        if let Some(idl_instructions_array) =
-            idl_object_get_key_as_array(idl_root_object, "instructions")
-        {
-            for (idl_instruction_name, idl_instruction_object, breadcrumbs) in
-                idl_array_get_scoped_named_object_array_or_else(
-                    idl_instructions_array,
-                    breadcrumbs,
-                )?
-            {
-                program_instructions.insert(
-                    idl_instruction_name.to_string(),
-                    ToolboxIdlProgramInstruction::try_parse(
-                        idl_instruction_name,
-                        idl_instruction_object,
-                        &breadcrumbs,
-                    )?,
-                );
-            }
-        }
-        Ok(program_instructions)
-    }
-
-    fn try_parse_program_accounts(
-        idl_root_object: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramAccount>, ToolboxIdlError>
-    {
-        let mut program_accounts = HashMap::new();
-        if let Some(idl_accounts_object) =
-            idl_object_get_key_as_object(idl_root_object, "accounts")
-        {
-            for (idl_account_name, idl_account_value, breadcrumbs) in
-                idl_object_get_scoped_key_value_array(
-                    idl_accounts_object,
-                    breadcrumbs,
-                )?
-            {
-                let idl_account_object = idl_as_object_or_else(
-                    idl_account_value,
-                    &breadcrumbs.idl(),
-                )?;
-                program_accounts.insert(
-                    idl_account_name.to_string(),
-                    ToolboxIdlProgramAccount::try_parse(
-                        idl_account_name,
-                        idl_account_object,
-                        &breadcrumbs,
-                    )?,
-                );
-            }
-        }
-        if let Some(idl_accounts_array) =
-            idl_object_get_key_as_array(idl_root_object, "accounts")
-        {
-            for (idl_account_name, idl_account_object, breadcrumbs) in
-                idl_array_get_scoped_named_object_array_or_else(
-                    idl_accounts_array,
-                    breadcrumbs,
-                )?
-            {
-                program_accounts.insert(
-                    idl_account_name.to_string(),
-                    ToolboxIdlProgramAccount::try_parse(
-                        idl_account_name,
-                        idl_account_object,
-                        &breadcrumbs,
-                    )?,
-                );
-            }
-        }
-        Ok(program_accounts)
-    }
-
     fn try_parse_program_types(
-        idl_root_object: &Map<String, Value>,
+        idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<HashMap<String, ToolboxIdlProgramType>, ToolboxIdlError> {
         // TODO - generic way for object/array scoped machanism
         let mut program_types = HashMap::new();
-        if let Some(idl_types_object) =
-            idl_object_get_key_as_object(idl_root_object, "types")
+        if let Some(idl_types) = idl_object_get_key_as_object(idl_root, "types")
         {
-            for (idl_type_name, idl_type_value, breadcrumbs) in
-                idl_object_get_scoped_key_value_array(
-                    idl_types_object,
-                    breadcrumbs,
-                )?
+            for (idl_type_name, idl_type, breadcrumbs) in
+                idl_object_get_scoped_key_value_array(idl_types, breadcrumbs)?
             {
                 let idl_type_object =
-                    idl_as_object_or_else(idl_type_value, &breadcrumbs.idl())?;
+                    idl_as_object_or_else(idl_type, &breadcrumbs.idl())?;
                 program_types.insert(
                     idl_type_name.to_string(),
                     ToolboxIdlProgramType::try_parse(
@@ -260,12 +153,11 @@ impl ToolboxIdl {
                 );
             }
         }
-        if let Some(idl_types_array) =
-            idl_object_get_key_as_array(idl_root_object, "types")
+        if let Some(idl_types) = idl_object_get_key_as_array(idl_root, "types")
         {
             for (idl_type_name, idl_type_object, breadcrumbs) in
                 idl_array_get_scoped_named_object_array_or_else(
-                    idl_types_array,
+                    idl_types,
                     breadcrumbs,
                 )?
             {
@@ -282,21 +174,124 @@ impl ToolboxIdl {
         Ok(program_types)
     }
 
-    fn try_parse_program_errors(
-        idl_root_object: &Map<String, Value>,
+    fn try_parse_program_instructions(
+        program_types: &HashMap<String, ToolboxIdlProgramType>,
+        idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<u64, ToolboxIdlProgramError>, ToolboxIdlError> {
-        let mut program_errors = HashMap::new();
-        if let Some(idl_errors_object) =
-            idl_object_get_key_as_object(idl_root_object, "errors")
+    ) -> Result<HashMap<String, ToolboxIdlProgramInstruction>, ToolboxIdlError>
+    {
+        let mut program_instructions = HashMap::new();
+        if let Some(idl_instructions) =
+            idl_object_get_key_as_object(idl_root, "instructions")
         {
-            for (idl_error_name, idl_error_value, breadcrumbs) in
+            for (idl_instruction_name, idl_instruction_value, breadcrumbs) in
                 idl_object_get_scoped_key_value_array(
-                    idl_errors_object,
+                    idl_instructions,
                     breadcrumbs,
                 )?
             {
-                if let Some(idl_error_code) = idl_error_value.as_u64() {
+                let idl_instruction_object = idl_as_object_or_else(
+                    idl_instruction_value,
+                    &breadcrumbs.idl(),
+                )?;
+                program_instructions.insert(
+                    idl_instruction_name.to_string(),
+                    ToolboxIdlProgramInstruction::try_parse(
+                        program_types,
+                        idl_instruction_name,
+                        idl_instruction_object,
+                        &breadcrumbs,
+                    )?,
+                );
+            }
+        }
+        if let Some(idl_instructions) =
+            idl_object_get_key_as_array(idl_root, "instructions")
+        {
+            for (idl_instruction_name, idl_instruction_object, breadcrumbs) in
+                idl_array_get_scoped_named_object_array_or_else(
+                    idl_instructions,
+                    breadcrumbs,
+                )?
+            {
+                program_instructions.insert(
+                    idl_instruction_name.to_string(),
+                    ToolboxIdlProgramInstruction::try_parse(
+                        program_types,
+                        idl_instruction_name,
+                        idl_instruction_object,
+                        &breadcrumbs,
+                    )?,
+                );
+            }
+        }
+        Ok(program_instructions)
+    }
+
+    fn try_parse_program_accounts(
+        program_types: &HashMap<String, ToolboxIdlProgramType>,
+        idl_root: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<HashMap<String, ToolboxIdlProgramAccount>, ToolboxIdlError>
+    {
+        let mut program_accounts = HashMap::new();
+        if let Some(idl_accounts) =
+            idl_object_get_key_as_object(idl_root, "accounts")
+        {
+            for (idl_account_name, idl_account, breadcrumbs) in
+                idl_object_get_scoped_key_value_array(
+                    idl_accounts,
+                    breadcrumbs,
+                )?
+            {
+                let idl_account =
+                    idl_as_object_or_else(idl_account, &breadcrumbs.idl())?;
+                program_accounts.insert(
+                    idl_account_name.to_string(),
+                    ToolboxIdlProgramAccount::try_parse(
+                        program_types,
+                        idl_account_name,
+                        idl_account,
+                        &breadcrumbs,
+                    )?,
+                );
+            }
+        }
+        if let Some(idl_accounts) =
+            idl_object_get_key_as_array(idl_root, "accounts")
+        {
+            for (idl_account_name, idl_account, breadcrumbs) in
+                idl_array_get_scoped_named_object_array_or_else(
+                    idl_accounts,
+                    breadcrumbs,
+                )?
+            {
+                program_accounts.insert(
+                    idl_account_name.to_string(),
+                    ToolboxIdlProgramAccount::try_parse(
+                        program_types,
+                        idl_account_name,
+                        idl_account,
+                        &breadcrumbs,
+                    )?,
+                );
+            }
+        }
+        Ok(program_accounts)
+    }
+
+    fn try_parse_program_errors(
+        idl_root: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<HashMap<u64, ToolboxIdlProgramError>, ToolboxIdlError> {
+        let mut program_errors = HashMap::new();
+        if let Some(idl_errors) =
+            idl_object_get_key_as_object(idl_root, "errors")
+        {
+            for (idl_error_name, idl_error, breadcrumbs) in
+                idl_object_get_scoped_key_value_array(idl_errors, breadcrumbs)?
+            {
+                if let Some(idl_error_code) = idl_error.as_u64() {
                     program_errors.insert(
                         idl_error_code,
                         ToolboxIdlProgramError {
@@ -306,13 +301,11 @@ impl ToolboxIdl {
                         },
                     );
                 } else {
-                    let idl_error_object = idl_as_object_or_else(
-                        idl_error_value,
-                        &breadcrumbs.idl(),
-                    )?;
+                    let idl_error =
+                        idl_as_object_or_else(idl_error, &breadcrumbs.idl())?;
                     let program_error = ToolboxIdlProgramError::try_parse(
                         idl_error_name,
-                        idl_error_object,
+                        idl_error,
                         &breadcrumbs,
                     )?;
                     program_errors.insert(program_error.code, program_error);
@@ -320,9 +313,9 @@ impl ToolboxIdl {
             }
         }
         if let Some(idl_errors_array) =
-            idl_object_get_key_as_array(idl_root_object, "errors")
+            idl_object_get_key_as_array(idl_root, "errors")
         {
-            for (idl_error_name, idl_error_object, breadcrumbs) in
+            for (idl_error_name, idl_error, breadcrumbs) in
                 idl_array_get_scoped_named_object_array_or_else(
                     idl_errors_array,
                     breadcrumbs,
@@ -330,7 +323,7 @@ impl ToolboxIdl {
             {
                 let program_error = ToolboxIdlProgramError::try_parse(
                     idl_error_name,
-                    idl_error_object,
+                    idl_error,
                     &breadcrumbs,
                 )?;
                 program_errors.insert(program_error.code, program_error);

@@ -42,5 +42,4 @@ pub async fn run() {
     for program_error in idl.program_errors.values() {
         program_error.print();
     }
-    panic!("LOL");
 }

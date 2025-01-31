@@ -23,16 +23,16 @@ impl ToolboxIdlProgramError {
 
     pub(crate) fn try_parse(
         idl_error_name: &str,
-        idl_error_object: &Map<String, Value>,
+        idl_error: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramError, ToolboxIdlError> {
         let idl_error_code = idl_object_get_key_as_u64_or_else(
-            idl_error_object,
+            idl_error,
             "code",
             &breadcrumbs.idl(),
         )?;
         let idl_error_msg =
-            idl_object_get_key_as_str(idl_error_object, "msg").unwrap_or("");
+            idl_object_get_key_as_str(idl_error, "msg").unwrap_or("");
         Ok(ToolboxIdlProgramError {
             code: idl_error_code,
             name: idl_error_name.to_string(),

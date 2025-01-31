@@ -308,13 +308,13 @@ impl ToolboxEndpoint {
         token_amount: u64,
         mint_decimals: u8,
     ) -> f64 {
-        (token_amount as f64) / 10f64.powi(mint_decimals.into())
+        (token_amount as f64) / 10f64.powi(i32::from(mint_decimals))
     }
 
     pub fn convert_ui_amount_to_spl_token_amount(
         ui_amount: f64,
         mint_decimals: u8,
     ) -> u64 {
-        (ui_amount * 10f64.powi(mint_decimals.into())) as u64
+        (ui_amount * 10f64.powi(i32::from(mint_decimals))) as u64
     }
 }

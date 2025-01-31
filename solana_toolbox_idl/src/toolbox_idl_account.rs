@@ -81,8 +81,7 @@ impl ToolboxIdl {
         )?;
         let mut account_data = vec![];
         account_data.extend_from_slice(&program_account.discriminator);
-        program_account.def.try_serialize(
-            self,
+        program_account.type_full.try_serialize(
             &account.value,
             &mut account_data,
             &breadcrumbs.with_idl(&account.name),
@@ -111,15 +110,14 @@ impl ToolboxIdl {
                 found: account_data.to_vec(),
             });
         }
-        let (_, data_content_value) = program_account.def.try_deserialize(
-            self,
+        let (_, account_value) = program_account.type_full.try_deserialize(
             account_data,
             program_account.discriminator.len(),
             &breadcrumbs.with_idl(account_name),
         )?;
         Ok(ToolboxIdlAccount {
             name: account_name.to_string(),
-            value: data_content_value,
+            value: account_value,
         })
     }
 

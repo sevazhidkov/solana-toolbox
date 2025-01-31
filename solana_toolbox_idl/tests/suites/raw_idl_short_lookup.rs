@@ -131,18 +131,24 @@ pub async fn run() {
     assert_eq!("my_instruction", my_instruction.name);
     assert_eq!("payer", my_instruction.accounts[0].name);
     assert_eq!("authority", my_instruction.accounts[1].name);
-    assert_eq!("index", my_instruction.args[0].0);
-    assert_eq!("u32", my_instruction.args[0].1.describe());
-    assert_eq!("id", my_instruction.args[1].0);
-    assert_eq!("i64", my_instruction.args[1].1.describe());
+    assert_eq!("index", my_instruction.args[0].name);
+    assert_eq!("u32", my_instruction.args[0].type_flat.describe());
+    assert_eq!("id", my_instruction.args[1].name);
+    assert_eq!("i64", my_instruction.args[1].type_flat.describe());
     // Assert account was parsed correctly
     let my_account = idl_standard.program_accounts.get("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
-    assert_eq!("Struct{field1:u64,field2:u32}", my_account.def.describe());
+    assert_eq!(
+        "Struct{field1:u64,field2:u32}",
+        my_account.type_flat.describe()
+    );
     // Assert struct was parsed correctly
     let my_struct = idl_standard.program_types.get("MyStruct").unwrap();
     assert_eq!("MyStruct", my_struct.name);
-    assert_eq!("Struct{addr:pubkey,name:string}", my_struct.def.describe());
+    assert_eq!(
+        "Struct{addr:pubkey,name:string}",
+        my_struct.type_flat.describe()
+    );
     // Assert error was parsed correctly
     let my_error = idl_standard.program_errors.get(&4242).unwrap();
     assert_eq!(4242, my_error.code);
