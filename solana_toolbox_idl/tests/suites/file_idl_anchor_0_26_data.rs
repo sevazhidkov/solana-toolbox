@@ -38,12 +38,12 @@ pub async fn run() {
     });
     // Compile / decompile the instruction args and check that they match the original
     assert_eq!(
-        instruction_args_value.as_object().unwrap(),
-        &idl.decompile_instruction_data(
+        instruction_args_value,
+        idl.decompile_instruction_data(
             "initializeMarket",
             &idl.compile_instruction_data(
                 "initializeMarket",
-                instruction_args_value.as_object().unwrap(),
+                &instruction_args_value,
             )
             .unwrap()
         )
@@ -52,7 +52,7 @@ pub async fn run() {
     // Prepare an account contents
     let account = ToolboxIdlAccount {
         name: "GlobalMarketState".to_string(),
-        value: json!({
+        state: json!({
             "baseTokenMint": Pubkey::new_unique().to_string(),
             "lpTokenMint": Pubkey::new_unique().to_string(),
             "poolOutstandingCredit": 5_000_000_000u64,
@@ -92,7 +92,7 @@ pub async fn run() {
     // Prepare an account contents
     let account = ToolboxIdlAccount {
         name: "ProgramState".to_string(),
-        value: json!({
+        state: json!({
             "credixMultisigKey": Pubkey::new_unique().to_string(),
             "credixManagers": [
                 Pubkey::new_unique().to_string(),

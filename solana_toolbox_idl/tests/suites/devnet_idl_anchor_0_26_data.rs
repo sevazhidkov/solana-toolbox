@@ -31,7 +31,7 @@ pub async fn run() {
     assert_eq!(
         "credix-marketplace",
         global_market_state_account
-            .value
+            .state
             .get("seed")
             .unwrap()
             .as_str()
@@ -46,7 +46,7 @@ pub async fn run() {
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
         program_state_account
-            .value
+            .state
             .get("credixMultisigKey")
             .unwrap()
             .as_str()
@@ -63,6 +63,6 @@ pub async fn run() {
     assert_eq!("MarketAdmins", market_admins_account.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        market_admins_account.value.get("multisig").unwrap().as_str().unwrap()
+        market_admins_account.state.get("multisig").unwrap().as_str().unwrap()
     );
 }

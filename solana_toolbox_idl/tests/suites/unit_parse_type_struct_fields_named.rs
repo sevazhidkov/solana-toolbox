@@ -3,6 +3,7 @@ use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramType;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 
 #[tokio::test]
 pub async fn run() {
@@ -43,8 +44,8 @@ pub async fn run() {
         &ToolboxIdlProgramType {
             name: "MyStruct".to_string(),
             generics: vec![],
-            type_flat: solana_toolbox_idl::ToolboxIdlTypeFlat::Struct {
-                fields: vec![
+            type_flat: ToolboxIdlTypeFlat::Struct {
+                fields: ToolboxIdlTypeFlatFields::Named(vec![
                     (
                         "u8".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
@@ -127,11 +128,15 @@ pub async fn run() {
                     ),
                     (
                         "struct1".to_string(),
-                        ToolboxIdlTypeFlat::Struct { fields: vec![] },
+                        ToolboxIdlTypeFlat::Struct {
+                            fields: ToolboxIdlTypeFlatFields::None
+                        },
                     ),
                     (
                         "struct2".to_string(),
-                        ToolboxIdlTypeFlat::Struct { fields: vec![] },
+                        ToolboxIdlTypeFlat::Struct {
+                            fields: ToolboxIdlTypeFlatFields::None
+                        },
                     ),
                     (
                         "enum1".to_string(),
@@ -193,7 +198,7 @@ pub async fn run() {
                         "generic2".to_string(),
                         ToolboxIdlTypeFlat::Generic { symbol: "G".to_string() },
                     )
-                ]
+                ])
             }
         }
     )

@@ -2,6 +2,7 @@ use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlProgramType;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 
 #[tokio::test]
 pub async fn run() {
@@ -53,9 +54,9 @@ pub async fn run() {
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum {
                 variants: vec![
-                    ("Case1".to_string(), vec![]),
-                    ("Case2".to_string(), vec![]),
-                    ("Case3".to_string(), vec![]),
+                    ("Case1".to_string(), ToolboxIdlTypeFlatFields::None),
+                    ("Case2".to_string(), ToolboxIdlTypeFlatFields::None),
+                    ("Case3".to_string(), ToolboxIdlTypeFlatFields::None),
                 ]
             }
         }

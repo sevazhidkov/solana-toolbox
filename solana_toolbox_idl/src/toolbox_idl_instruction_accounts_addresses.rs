@@ -3,7 +3,6 @@ use std::vec;
 
 use convert_case::Case;
 use convert_case::Casing;
-use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -23,6 +22,7 @@ use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
+use crate::ToolboxIdlTypeFullFields;
 
 impl ToolboxIdl {
     pub async fn resolve_instruction_accounts_addresses(
@@ -252,25 +252,17 @@ fn idl_instruction_account_pda_blob_resolve(
                 "Missing account value",
                 &breadcrumbs.as_val(account_name),
             )?;
-            let account_object = idl_as_object_or_else(
-                &account.value,
-                &breadcrumbs.as_val(account_name),
-            )?;
             let program_account = idl_map_get_key_or_else(
                 &idl.program_accounts,
                 &account.name,
                 &breadcrumbs.as_idl("$program_accounts"),
             )?;
-            let pda_items = idl_type_full_to_pda_items_or_else(
-                &program_account.type_full,
-                &breadcrumbs.as_idl(&account.name),
-            )?;
-            idl_instruction_account_pda_items_resolve(
+            idl_instruction_account_pda_path_resolve(
                 idl,
-                &pda_items,
+                &program_account.data_type_full,
+                &account.state,
                 &idl_blob_parts[1..],
-                account_object,
-                &breadcrumbs.with_idl("account"),
+                &breadcrumbs.with_idl(&account.name).with_val(account_name),
             )
         },
         ToolboxIdlProgramInstructionAccountPdaBlob::Arg { path } => {
@@ -280,65 +272,56 @@ fn idl_instruction_account_pda_blob_resolve(
                 &instruction.name,
                 &breadcrumbs.as_idl("$program_instructions"),
             )?;
-            let mut pda_items = vec![];
-            for program_instruction_arg in &program_instruction.args {
-                pda_items.push((
-                    &program_instruction_arg.name,
-                    &program_instruction_arg.type_full,
-                ));
-            }
-            idl_instruction_account_pda_items_resolve(
+            idl_instruction_account_pda_path_resolve(
                 idl,
-                &pda_items,
-                &idl_blob_parts,
+                &program_instruction.data_type_full,
                 &instruction.args,
-                &breadcrumbs.with_idl("arg"),
+                &idl_blob_parts,
+                &breadcrumbs.with_idl(&instruction.name).with_idl("args"),
             )
         },
     }
 }
 
 // TODO - naming fix
-fn idl_instruction_account_pda_items_resolve(
+fn idl_instruction_account_pda_path_resolve(
     idl: &ToolboxIdl,
-    pda_items: &[(&String, &ToolboxIdlTypeFull)],
+    type_full: &ToolboxIdlTypeFull,
+    value: &Value,
     parts: &[&str],
-    object: &Map<String, Value>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let current = parts[0];
-    for (pda_item_name, pda_item_type_full) in pda_items {
-        let breadcrumbs = &breadcrumbs.with_idl(pda_item_name);
-        if pda_item_name.to_case(Case::Snake) == current.to_case(Case::Snake) {
-            let value = idl_object_get_key_or_else(
-                object,
-                pda_item_name,
+    let value_object = idl_as_object_or_else(value, &breadcrumbs.val())?;
+    let named_fields =
+        idl_type_full_to_named_fields_or_else(type_full, &breadcrumbs.idl())?;
+    for (field_name, field_type_full) in named_fields {
+        let breadcrumbs = &breadcrumbs.with_idl(field_name);
+        if field_name.to_case(Case::Snake) == current.to_case(Case::Snake) {
+            let value_field = idl_object_get_key_or_else(
+                value_object,
+                field_name,
                 &breadcrumbs.val(),
             )?;
             if parts.len() == 1 {
                 let mut bytes = vec![];
-                pda_item_type_full.try_serialize(
-                    value,
+                field_type_full.try_serialize(
+                    value_field,
                     &mut bytes,
-                    &breadcrumbs.with_val(pda_item_name),
+                    &breadcrumbs.with_val(field_name),
                 )?;
-                if let Some(primitive) = pda_item_type_full.as_primitive() {
+                if let Some(primitive) = field_type_full.as_primitive() {
                     if primitive == &ToolboxIdlPrimitive::String {
                         bytes.drain(0..4);
                     }
                 }
                 return Ok(bytes);
             }
-            let pda_items = idl_type_full_to_pda_items_or_else(
-                &pda_item_type_full,
-                &breadcrumbs.as_idl(&parts.join(".")),
-            )?;
-            let object = idl_as_object_or_else(value, &breadcrumbs.val())?;
-            return idl_instruction_account_pda_items_resolve(
+            return idl_instruction_account_pda_path_resolve(
                 idl,
-                &pda_items,
+                &field_type_full,
+                value_field,
                 &parts[1..],
-                object,
                 &breadcrumbs.with_idl("*"),
             );
         }
@@ -346,23 +329,14 @@ fn idl_instruction_account_pda_items_resolve(
     idl_err("Unknown value field", &breadcrumbs.as_val(current))
 }
 
-fn idl_type_full_to_pda_items_or_else<'a>(
+fn idl_type_full_to_named_fields_or_else<'a>(
     type_full: &'a ToolboxIdlTypeFull,
     context: &ToolboxIdlContext,
-) -> Result<Vec<(&'a String, &'a ToolboxIdlTypeFull)>, ToolboxIdlError> {
-    let type_full_struct_fields = idl_ok_or_else(
-        type_full.as_struct_fields(),
-        "Type was expected to be a struct",
-        context,
-    )?;
-    let mut pda_items = vec![];
-    for (type_full_struct_field_name, type_full_struct_field_type_full) in
-        type_full_struct_fields
-    {
-        pda_items.push((
-            type_full_struct_field_name,
-            type_full_struct_field_type_full,
-        ));
+) -> Result<&'a Vec<(String, ToolboxIdlTypeFull)>, ToolboxIdlError> {
+    match type_full {
+        ToolboxIdlTypeFull::Struct {
+            fields: ToolboxIdlTypeFullFields::Named(fields),
+        } => Ok(fields),
+        _ => return idl_err("Expected fields", context),
     }
-    Ok(pda_items)
 }

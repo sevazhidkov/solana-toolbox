@@ -1,17 +1,15 @@
-use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
 impl ToolboxIdl {
     pub fn compile_instruction_data(
         &self,
         instruction_name: &str,
-        instruction_args: &Map<String, Value>,
+        instruction_args: &Value,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let program_instruction = idl_map_get_key_or_else(
@@ -21,20 +19,11 @@ impl ToolboxIdl {
         )?;
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(&program_instruction.discriminator);
-        for program_instruction_arg in &program_instruction.args {
-            let breadcrumbs =
-                &breadcrumbs.with_idl(&program_instruction_arg.name);
-            let instruction_arg = idl_object_get_key_or_else(
-                instruction_args,
-                &program_instruction_arg.name,
-                &breadcrumbs.val(),
-            )?;
-            program_instruction_arg.type_full.try_serialize(
-                instruction_arg,
-                &mut instruction_data,
-                &breadcrumbs.with_val(&program_instruction_arg.name),
-            )?;
-        }
+        program_instruction.data_type_full.try_serialize(
+            instruction_args,
+            &mut instruction_data,
+            &breadcrumbs.with_val("args"),
+        )?;
         Ok(instruction_data)
     }
 
@@ -42,7 +31,7 @@ impl ToolboxIdl {
         &self,
         instruction_name: &str,
         instruction_data: &[u8],
-    ) -> Result<Map<String, Value>, ToolboxIdlError> {
+    ) -> Result<Value, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let program_instruction = idl_map_get_key_or_else(
             &self.program_instructions,
@@ -55,21 +44,12 @@ impl ToolboxIdl {
                 found: instruction_data.to_vec(),
             });
         }
-        let mut data_offset = program_instruction.discriminator.len();
-        let mut instruction_args = Map::new();
-        for program_instruction_arg in &program_instruction.args {
-            let breadcrumbs =
-                &breadcrumbs.with_idl(&program_instruction_arg.name);
-            let (data_arg_size, data_arg) =
-                program_instruction_arg.type_full.try_deserialize(
-                    instruction_data,
-                    data_offset,
-                    &breadcrumbs.with_val(&program_instruction_arg.name),
-                )?;
-            data_offset += data_arg_size;
-            instruction_args
-                .insert(program_instruction_arg.name.to_string(), data_arg);
-        }
+        let (_, instruction_args) =
+            program_instruction.data_type_full.try_deserialize(
+                instruction_data,
+                program_instruction.discriminator.len(),
+                &breadcrumbs.with_val("args"),
+            )?;
         Ok(instruction_args)
     }
 }

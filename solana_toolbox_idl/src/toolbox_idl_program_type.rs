@@ -22,7 +22,7 @@ impl ToolboxIdlProgramType {
         } else {
             println!("type.name: {}<{}>", self.name, self.generics.join(","))
         }
-        println!("type.type_flat: {}", self.type_flat.describe());
+        println!("type.type: {}", self.type_flat.describe());
     }
 
     pub(crate) fn try_parse(
@@ -45,13 +45,9 @@ impl ToolboxIdlProgramType {
                 program_type_generics.push(idl_type_generic_name.to_string());
             }
         }
-        eprintln!(
-            "program_type_generics:{}:{:?}",
-            idl_type_name, program_type_generics
-        );
         Ok(ToolboxIdlProgramType {
             name: idl_type_name.to_string(),
-            generics: vec![],
+            generics: program_type_generics,
             type_flat: ToolboxIdlTypeFlat::try_parse(
                 &Value::Object(idl_type.clone()),
                 breadcrumbs,

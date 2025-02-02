@@ -6,12 +6,12 @@ use solana_toolbox_idl::ToolboxIdlAccount;
 pub async fn run() {
     // Create an IDL on the fly
     let idl = ToolboxIdl::try_from_value(&json!({
-        "instructions": {},
         "accounts": {
             "MyAccount1": {
                 "discriminator": [74, 73, 72, 71],
             },
             "MyAccount2": {
+                "discriminator": [99],
                 "fields": [
                     { "name": "val1", "type": "MyStruct" },
                     { "name": "val2", "type": { "defined": "MyStruct" } },
@@ -38,13 +38,12 @@ pub async fn run() {
                 "variants": ["Hello0", "Hello1", "Hello2"],
             },
         },
-        "errors": {},
     }))
     .unwrap();
     // MyAccount1 prepared
     let account = ToolboxIdlAccount {
         name: "MyAccount1".to_string(),
-        value: json!({
+        state: json!({
             "name": "ABCD",
             "struct": {
                 "integer": 42,
@@ -68,7 +67,7 @@ pub async fn run() {
     // MyAccount2 prepared
     let account = ToolboxIdlAccount {
         name: "MyAccount2".to_string(),
-        value: json!({
+        state: json!({
             "val1": {
                 "integer": 43,
                 "my_enum": "Hello0",
@@ -82,8 +81,7 @@ pub async fn run() {
         }),
     };
     // Check that we can use the manual IDL to compile/decompile our account 2
-    assert_eq!(
-        account,
-        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
-    );
+    let account_data = idl.compile_account(&account).unwrap();
+    assert_eq!(vec![99, 43, 0, 0, 0, 0, 78, 44, 0, 0, 0, 2, 79], account_data,);
+    assert_eq!(account, idl.decompile_account(&account_data).unwrap());
 }

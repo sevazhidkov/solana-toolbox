@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde_json::json;
-use serde_json::Map;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -32,10 +31,7 @@ pub async fn run() {
                 program_id,
                 name: "campaign_create".to_string(),
                 accounts_addresses: HashMap::from_iter([]),
-                args: Map::from_iter([(
-                    "params".to_string(),
-                    json!({ "index": campaign_index }),
-                )]),
+                args: json!({ "params": { "index": campaign_index } }),
             },
             &HashMap::from_iter([]),
             "campaign",
@@ -77,7 +73,7 @@ pub async fn run() {
                     ("user".to_string(), user.pubkey()),
                     ("campaign".to_string(), campaign),
                 ]),
-                args: Map::from_iter([("params".to_string(), json!({}))]),
+                args: json!({ "params": {} }),
             },
         )
         .await
@@ -94,10 +90,7 @@ pub async fn run() {
                     ("user_collateral".to_string(), user_collateral),
                     ("campaign".to_string(), campaign),
                 ]),
-                args: Map::from_iter([(
-                    "params".to_string(),
-                    json!({ "collateral_amount": 0 }),
-                )]),
+                args: json!({ "params": { "collateral_amount": 0 } }),
             },
         )
         .await

@@ -1,7 +1,6 @@
 use std::fs::read_to_string;
 
 use serde_json::json;
-use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
@@ -18,9 +17,8 @@ pub async fn run() {
     for index in 0..512 {
         instruction_args_metadata_bytes.push(Value::from(index % 100));
     }
-    let instruction_args_value = Map::from_iter([(
-        "params".to_string(),
-        json!({
+    let instruction_args_value = json!({
+        "params": {
             "index": 42,
             "funding_goal_collateral_amount": 41,
             "funding_phase_duration_seconds": 99,
@@ -28,8 +26,8 @@ pub async fn run() {
                 "length": 22,
                 "bytes": instruction_args_metadata_bytes,
             },
-        }),
-    )]);
+        },
+    });
     // Compile / decompile the instruction args and check that they match the original
     assert_eq!(
         &instruction_args_value,
@@ -50,7 +48,7 @@ pub async fn run() {
     }
     let account = ToolboxIdlAccount {
         name: "Campaign".to_string(),
-        value: json!({
+        state: json!({
             "index": 77,
             "bump": 99,
             "authority": Pubkey::new_unique().to_string(),
@@ -76,7 +74,7 @@ pub async fn run() {
     // Prepare an account contents
     let account = ToolboxIdlAccount {
         name: "Pledge".to_string(),
-        value: json!({
+        state: json!({
             "bump": 44,
             "deposited_collateral_amount": 999,
             "claimed_redeemable_amount": 22,

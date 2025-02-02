@@ -13,7 +13,7 @@ use crate::toolbox_idl_utils::idl_ok_or_else;
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
     pub name: String,
-    pub value: Value,
+    pub state: Value,
 }
 
 impl ToolboxIdl {
@@ -81,8 +81,8 @@ impl ToolboxIdl {
         )?;
         let mut account_data = vec![];
         account_data.extend_from_slice(&program_account.discriminator);
-        program_account.type_full.try_serialize(
-            &account.value,
+        program_account.data_type_full.try_serialize(
+            &account.state,
             &mut account_data,
             &breadcrumbs.with_idl(&account.name),
         )?;
@@ -110,14 +110,15 @@ impl ToolboxIdl {
                 found: account_data.to_vec(),
             });
         }
-        let (_, account_value) = program_account.type_full.try_deserialize(
-            account_data,
-            program_account.discriminator.len(),
-            &breadcrumbs.with_idl(account_name),
-        )?;
+        let (_, account_state) =
+            program_account.data_type_full.try_deserialize(
+                account_data,
+                program_account.discriminator.len(),
+                &breadcrumbs.with_idl(account_name),
+            )?;
         Ok(ToolboxIdlAccount {
             name: account_name.to_string(),
-            value: account_value,
+            state: account_state,
         })
     }
 

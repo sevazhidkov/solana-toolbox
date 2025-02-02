@@ -31,20 +31,20 @@ pub async fn run() {
     assert_eq!("Campaign", campaign_account.name);
     assert_eq!(
         u64::from(campaign_bump),
-        campaign_account.value.get("bump").unwrap().as_u64().unwrap()
+        campaign_account.state.get("bump").unwrap().as_u64().unwrap()
     );
     assert_eq!(
         campaign_index,
-        campaign_account.value.get("index").unwrap().as_u64().unwrap()
+        campaign_account.state.get("index").unwrap().as_u64().unwrap()
     );
     assert_eq!(
         "Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9",
-        campaign_account.value.get("authority").unwrap().as_str().unwrap()
+        campaign_account.state.get("authority").unwrap().as_str().unwrap()
     );
     assert_eq!(
         "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
         campaign_account
-            .value
+            .state
             .get("collateral_mint")
             .unwrap()
             .as_str()
@@ -53,7 +53,7 @@ pub async fn run() {
     assert_eq!(
         "3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9",
         campaign_account
-            .value
+            .state
             .get("redeemable_mint")
             .unwrap()
             .as_str()

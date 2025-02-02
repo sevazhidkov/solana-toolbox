@@ -84,9 +84,7 @@ let instruction = idl
             accounts_addresses: HashMap::from_iter([
                 ("payer".to_string(), payer.pubkey()),
             ]),
-            args: Map::from_iter([
-                ("arg".to_string(), json!({ "info": 42 }))
-            ]),
+            args: json!({ "arg": {"info": 42} }),
         },
     )
     .unwrap();
@@ -101,9 +99,7 @@ let instruction = idl
             accounts_addresses: HashMap::from_iter([
                 ("payer".to_string(), payer.pubkey()),
             ]),
-            args: Map::from_iter([
-                ("arg".to_string(), json!({ "info": 42 }))
-            ]),
+            args: json!({ "arg": {"info": 42} }),
         },
     )
     .unwrap();

@@ -20,10 +20,10 @@ pub enum ToolboxIdlTypeFlat {
         length: Box<ToolboxIdlTypeFlat>,
     },
     Struct {
-        fields: Vec<(String, ToolboxIdlTypeFlat)>,
+        fields: ToolboxIdlTypeFlatFields,
     },
     Enum {
-        variants: Vec<(String, Vec<(String, ToolboxIdlTypeFlat)>)>,
+        variants: Vec<(String, ToolboxIdlTypeFlatFields)>,
     },
     Const {
         literal: usize, // TODO - what other kind of consts can be supported ?
@@ -31,6 +31,13 @@ pub enum ToolboxIdlTypeFlat {
     Primitive {
         primitive: ToolboxIdlPrimitive,
     },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ToolboxIdlTypeFlatFields {
+    Named(Vec<(String, ToolboxIdlTypeFlat)>),
+    Unamed(Vec<ToolboxIdlTypeFlat>),
+    None,
 }
 
 impl ToolboxIdlTypeFlat {
@@ -64,10 +71,7 @@ impl ToolboxIdlTypeFlat {
                 format!("[{};{}]", items.describe(), length.describe())
             },
             ToolboxIdlTypeFlat::Struct { fields } => {
-                format!(
-                    "Struct{{{}}}",
-                    ToolboxIdlTypeFlat::describe_fields(fields)
-                )
+                format!("Struct{}", fields.describe())
             },
             ToolboxIdlTypeFlat::Enum { variants } => {
                 format!(
@@ -75,17 +79,7 @@ impl ToolboxIdlTypeFlat {
                     variants
                         .iter()
                         .map(|variant| {
-                            if variant.1.is_empty() {
-                                variant.0.to_string()
-                            } else {
-                                format!(
-                                    "{}[{}]",
-                                    variant.0,
-                                    ToolboxIdlTypeFlat::describe_fields(
-                                        &variant.1
-                                    )
-                                )
-                            }
+                            format!("{}{}", variant.0, variant.1.describe())
                         })
                         .collect::<Vec<_>>()
                         .join("/")
@@ -99,12 +93,28 @@ impl ToolboxIdlTypeFlat {
             },
         }
     }
+}
 
-    fn describe_fields(fields: &Vec<(String, ToolboxIdlTypeFlat)>) -> String {
-        fields
-            .iter()
-            .map(|field| format!("{}:{}", field.0, field.1.describe()))
-            .collect::<Vec<_>>()
-            .join(",")
+impl ToolboxIdlTypeFlatFields {
+    pub fn describe(&self) -> String {
+        match self {
+            ToolboxIdlTypeFlatFields::Named(fields) => format!(
+                "{{{}}}",
+                fields
+                    .iter()
+                    .map(|field| format!("{}:{}", field.0, field.1.describe()))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
+            ToolboxIdlTypeFlatFields::Unamed(fields) => format!(
+                "({})",
+                fields
+                    .iter()
+                    .map(|field| field.describe())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
+            ToolboxIdlTypeFlatFields::None => "".to_string(),
+        }
     }
 }

@@ -26,13 +26,13 @@ pub async fn run() {
     assert_eq!("Realm", realm_account.name);
     assert_eq!(
         u64::from(realm_bump),
-        realm_account.value.get("bump").unwrap().as_u64().unwrap()
+        realm_account.state.get("bump").unwrap().as_u64().unwrap()
     );
     // Related "USDC mint" account checks
     let usdc_mint = pubkey!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B");
     assert_eq!(
         usdc_mint.to_string(),
-        realm_account.value.get("usdcMint").unwrap().as_str().unwrap(),
+        realm_account.state.get("usdcMint").unwrap().as_str().unwrap(),
     );
     // Related "UCT mint" account checks
     let uct_mint_pda = Pubkey::find_program_address(
@@ -41,10 +41,10 @@ pub async fn run() {
     );
     assert_eq!(
         u64::from(uct_mint_pda.1),
-        realm_account.value.get("uctMintBump").unwrap().as_u64().unwrap(),
+        realm_account.state.get("uctMintBump").unwrap().as_u64().unwrap(),
     );
     assert_eq!(
         uct_mint_pda.0.to_string(),
-        realm_account.value.get("uctMint").unwrap().as_str().unwrap(),
+        realm_account.state.get("uctMint").unwrap().as_str().unwrap(),
     );
 }

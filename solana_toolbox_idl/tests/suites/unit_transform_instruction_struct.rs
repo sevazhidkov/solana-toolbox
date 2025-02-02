@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde_json::json;
-use serde_json::Map;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signer;
 use solana_sdk::signer::keypair::Keypair;
@@ -29,8 +28,6 @@ pub async fn run() {
                 ]
             }
         },
-        "accounts": {},
-        "errors": {},
     }))
     .unwrap();
     // Prepare an instruction
@@ -42,16 +39,13 @@ pub async fn run() {
             "payer".to_string(),
             payer.pubkey(),
         )]),
-        args: Map::from_iter([
-            (
-                "arg1".to_string(),
-                json!({
-                    "id": 42,
-                    "data": [1, 2, 3]
-                }),
-            ),
-            ("arg2".to_string(), json!(-32)),
-        ]),
+        args: json!({
+            "arg1": {
+                "id": 42,
+                "data": [1, 2, 3]
+            },
+            "arg2": -32,
+        }),
     };
     // Check that we can use the manual IDL to compile/decompile our IX
     assert_eq!(

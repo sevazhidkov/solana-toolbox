@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
-use serde_json::Map;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
@@ -60,10 +59,7 @@ pub async fn run() {
                     ("collateral_mint".to_string(), collateral_mint),
                     ("redeemable_mint".to_string(), redeemable_mint),
                 ]),
-                args: Map::from_iter([(
-                    "params".to_string(),
-                    json!({ "index": campaign_index }),
-                )]),
+                args: json!({ "params": { "index": campaign_index } }),
             },
             &HashMap::from_iter([]),
         )
@@ -89,13 +85,13 @@ pub async fn run() {
                     ("authority_collateral".to_string(), authority_collateral),
                     ("campaign".to_string(), campaign),
                 ]),
-                args: Map::from_iter([("params".to_string(), json!({}))]),
+                args: json!({ "params": {} }),
             },
             &HashMap::from_iter([(
                 "campaign".to_string(),
                 ToolboxIdlAccount {
                     name: "Campaign".to_string(),
-                    value: json!({
+                    state: json!({
                         "collateral_mint": collateral_mint.to_string()
                     }),
                 },
@@ -120,7 +116,7 @@ pub async fn run() {
                     ("user".to_string(), user),
                     ("campaign".to_string(), campaign),
                 ]),
-                args: Map::from_iter([("params".to_string(), json!({}))]),
+                args: json!({ "params": {} }),
             },
             &HashMap::from_iter([]),
         )
@@ -142,13 +138,13 @@ pub async fn run() {
                     ("user_collateral".to_string(), user_collateral),
                     ("campaign".to_string(), campaign),
                 ]),
-                args: Map::from_iter([("params".to_string(), json!({}))]),
+                args: json!({ "params": {} }),
             },
             &HashMap::from_iter([(
                 "campaign".to_string(),
                 ToolboxIdlAccount {
                     name: "Campaign".to_string(),
-                    value: json!({
+                    state: json!({
                         "collateral_mint": collateral_mint.to_string()
                     }),
                 },

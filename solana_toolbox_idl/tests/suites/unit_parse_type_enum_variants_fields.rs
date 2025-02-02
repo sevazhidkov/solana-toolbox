@@ -3,6 +3,7 @@ use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramType;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 
 #[tokio::test]
 pub async fn run() {
@@ -71,7 +72,7 @@ pub async fn run() {
                 variants: vec![
                     (
                         "Named".to_string(),
-                        vec![
+                        ToolboxIdlTypeFlatFields::Named(vec![
                             (
                                 "f1".to_string(),
                                 ToolboxIdlTypeFlat::Defined {
@@ -95,40 +96,31 @@ pub async fn run() {
                                     symbol: "G".to_string()
                                 },
                             ),
-                        ]
+                        ])
                     ),
                     (
                         "Unamed".to_string(),
-                        vec![
-                            (
-                                "0".to_string(),
-                                ToolboxIdlTypeFlat::Primitive {
-                                    primitive: ToolboxIdlPrimitive::U64,
-                                },
-                            ),
-                            (
-                                "1".to_string(),
-                                ToolboxIdlTypeFlat::Vec {
-                                    items: Box::new(
-                                        ToolboxIdlTypeFlat::Primitive {
-                                            primitive: ToolboxIdlPrimitive::U8,
-                                        }
-                                    )
-                                },
-                            ),
-                            (
-                                "2".to_string(),
-                                ToolboxIdlTypeFlat::Vec {
-                                    items: Box::new(
-                                        ToolboxIdlTypeFlat::Primitive {
-                                            primitive: ToolboxIdlPrimitive::U8,
-                                        }
-                                    )
-                                },
-                            ),
-                        ],
+                        ToolboxIdlTypeFlatFields::Unamed(vec![
+                            ToolboxIdlTypeFlat::Primitive {
+                                primitive: ToolboxIdlPrimitive::U64,
+                            },
+                            ToolboxIdlTypeFlat::Vec {
+                                items: Box::new(
+                                    ToolboxIdlTypeFlat::Primitive {
+                                        primitive: ToolboxIdlPrimitive::U8,
+                                    }
+                                )
+                            },
+                            ToolboxIdlTypeFlat::Vec {
+                                items: Box::new(
+                                    ToolboxIdlTypeFlat::Primitive {
+                                        primitive: ToolboxIdlPrimitive::U8,
+                                    }
+                                )
+                            },
+                        ]),
                     ),
-                    ("Empty".to_string(), vec![]),
+                    ("Empty".to_string(), ToolboxIdlTypeFlatFields::None),
                 ]
             }
         }

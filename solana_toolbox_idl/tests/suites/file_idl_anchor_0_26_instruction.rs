@@ -40,13 +40,13 @@ pub async fn run() {
                 program_id,
                 name: "createDeal".to_string(),
                 accounts_addresses: instruction_accounts_addresses.clone(),
-                args: instruction_args_value.as_object().unwrap().clone(),
+                args: instruction_args_value.clone(),
             },
             &HashMap::from_iter([(
                 "borrowerInfo".to_string(),
                 ToolboxIdlAccount {
                     name: "BorrowerInfo".to_string(),
-                    value: json!({
+                    state: json!({
                         "numOfDeals": 42,
                     }),
                 },
@@ -58,12 +58,12 @@ pub async fn run() {
         program_id,
         name: "createDeal".to_string(),
         accounts_addresses: instruction_accounts_addresses.clone(),
-        args: instruction_args_value.as_object().unwrap().clone(),
+        args: instruction_args_value.clone(),
     };
     // Check that we can compile it and then decompile it
     assert_eq!(
-        instruction,
-        idl.decompile_instruction(
+        &instruction,
+        &idl.decompile_instruction(
             &idl.compile_instruction(&instruction).unwrap()
         )
         .unwrap()

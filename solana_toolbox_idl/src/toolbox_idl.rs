@@ -30,7 +30,6 @@ pub struct ToolboxIdl {
     pub program_instructions: HashMap<String, ToolboxIdlProgramInstruction>,
     pub program_accounts: HashMap<String, ToolboxIdlProgramAccount>,
     pub program_errors: HashMap<u64, ToolboxIdlProgramError>,
-    // TODO - implement programs_constants ?
 }
 
 impl ToolboxIdl {
@@ -41,7 +40,7 @@ impl ToolboxIdl {
         endpoint
             .get_account_data(&ToolboxIdl::find_for_program_id(program_id)?)
             .await?
-            .map(|account_data| ToolboxIdl::try_from_bytes(&account_data))
+            .map(|account_data| ToolboxIdl::try_from_data(&account_data))
             .transpose()
     }
 
@@ -53,7 +52,7 @@ impl ToolboxIdl {
             .map_err(ToolboxIdlError::Pubkey)
     }
 
-    pub fn try_from_bytes(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
+    pub fn try_from_data(data: &[u8]) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let discriminator = ToolboxIdl::DISCRIMINATOR;
         if !data.starts_with(discriminator) {

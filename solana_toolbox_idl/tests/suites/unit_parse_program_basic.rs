@@ -56,22 +56,6 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    // Lookup instructions and print them
-    for program_instruction in idl_standard.program_instructions.values() {
-        program_instruction.print();
-    }
-    // Lookup accounts and print them
-    for program_account in idl_standard.program_accounts.values() {
-        program_account.print();
-    }
-    // Lookup types and print them
-    for program_type in idl_standard.program_types.values() {
-        program_type.print();
-    }
-    // Lookup errors and print them
-    for program_error in idl_standard.program_errors.values() {
-        program_error.print();
-    }
     // Create an IDL on the fly
     let idl_shortened = ToolboxIdl::try_from_value(&json!({
         "instructions": {
@@ -88,10 +72,10 @@ pub async fn run() {
         },
         "accounts": {
             "MyAccount": {
-                    "fields": [
-                        { "name": "field1", "type": "u64" },
-                        { "name": "field2", "type": "u32" },
-                    ],
+                "fields": [
+                    { "name": "field1", "type": "u64" },
+                    { "name": "field2", "type": "u32" },
+                ],
             }
         },
         "types": {
@@ -111,18 +95,6 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    // Lookup instructions and print them
-    for program_instruction in idl_shortened.program_instructions.values() {
-        program_instruction.print();
-    }
-    // Lookup accounts and print them
-    for program_account in idl_shortened.program_accounts.values() {
-        program_account.print();
-    }
-    // Lookup errors and print them
-    for program_error in idl_shortened.program_errors.values() {
-        program_error.print();
-    }
     // Assert that both versions are equivalent
     assert_eq!(idl_shortened, idl_standard);
     // Assert instruction was parsed correctly
@@ -131,16 +103,16 @@ pub async fn run() {
     assert_eq!("my_instruction", my_instruction.name);
     assert_eq!("payer", my_instruction.accounts[0].name);
     assert_eq!("authority", my_instruction.accounts[1].name);
-    assert_eq!("index", my_instruction.args[0].name);
-    assert_eq!("u32", my_instruction.args[0].type_flat.describe());
-    assert_eq!("id", my_instruction.args[1].name);
-    assert_eq!("i64", my_instruction.args[1].type_flat.describe());
+    assert_eq!(
+        "Struct{index:u32,id:i64}",
+        my_instruction.data_type_flat.describe()
+    );
     // Assert account was parsed correctly
     let my_account = idl_standard.program_accounts.get("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
     assert_eq!(
         "Struct{field1:u64,field2:u32}",
-        my_account.type_flat.describe()
+        my_account.data_type_flat.describe()
     );
     // Assert struct was parsed correctly
     let my_struct = idl_standard.program_types.get("MyStruct").unwrap();

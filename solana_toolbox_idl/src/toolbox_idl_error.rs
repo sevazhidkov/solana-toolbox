@@ -40,7 +40,7 @@ pub enum ToolboxIdlError {
         conversion: TryFromIntError,
         context: ToolboxIdlContext,
     },
-    InvalidConstLiteral {
+    InvalidNumber {
         parsing: ParseIntError,
         context: ToolboxIdlContext,
     },

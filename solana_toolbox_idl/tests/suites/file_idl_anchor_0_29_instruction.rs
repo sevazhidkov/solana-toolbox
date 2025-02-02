@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
-use serde_json::Map;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
@@ -38,14 +37,13 @@ pub async fn run() {
                 ("systemProgram".to_string(), placeholder),
                 ("tokenProgram".to_string(), placeholder),
             ]),
-            args: Map::from_iter([(
-                "params".to_string(),
-                json!({
+            args: json!({
+                "params": {
                     "liquidInsuranceFundUsdcAmount": 41,
                     "phaseOneDurationSeconds": 42,
                     "phaseTwoDurationSeconds": 43,
-                }),
-            )]),
+                },
+            }),
         })
         .unwrap();
     // Check instruction content

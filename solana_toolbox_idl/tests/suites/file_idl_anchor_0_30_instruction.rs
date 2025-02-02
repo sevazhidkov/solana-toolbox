@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
-use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey;
@@ -40,9 +39,8 @@ pub async fn run() {
     for index in 0..512 {
         instruction_args_metadata_bytes.push(Value::from(index % 100));
     }
-    let instruction_args_value = Map::from_iter([(
-        "params".to_string(),
-        json!({
+    let instruction_args_value = json!({
+        "params": {
             "index": 11,
             "funding_goal_collateral_amount": 41,
             "funding_phase_duration_seconds": 42,
@@ -50,8 +48,8 @@ pub async fn run() {
                 "length": 22,
                 "bytes": instruction_args_metadata_bytes,
             }
-        }),
-    )]);
+        },
+    });
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
         .find_instruction_accounts_addresses(

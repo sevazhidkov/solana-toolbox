@@ -7,6 +7,7 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
@@ -76,15 +77,10 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => {
-                idl_err(
-                    &format!(
-                        "Can't use a const literal directly: {:?}",
-                        literal
-                    ),
-                    &breadcrumbs.idl(),
-                )
-            },
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
+                &format!("Can't use a const literal directly: {:?}", literal),
+                &breadcrumbs.idl(),
+            ),
         }
     }
 
@@ -153,12 +149,12 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_struct(
-        struct_fields: &[(String, ToolboxIdlTypeFull)],
+        struct_fields: &ToolboxIdlTypeFullFields,
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        ToolboxIdlTypeFull::try_serialize_common_fields(
+        ToolboxIdlTypeFull::try_serialize_fields(
             struct_fields,
             value,
             data,
@@ -167,29 +163,39 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_enum(
-        enum_variants: &[(String, Vec<(String, ToolboxIdlTypeFull)>)],
+        enum_variants: &[(String, ToolboxIdlTypeFullFields)],
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        // TODO - support enum variant fields
-        let value_string =
-            idl_as_str_or_else(value, &breadcrumbs.as_val("enum"))?;
+        let (value_enum, value_fields) = if let Some(value_string) =
+            value.as_str()
+        {
+            (value_string, &Value::Null)
+        } else {
+            let value_array = idl_as_array_or_else(value, &breadcrumbs.val())?;
+            if value_array.len() != 2 {
+                return idl_err(
+                    "Expected an array of 2 item [{enum}, {fields}]",
+                    &breadcrumbs.val(),
+                );
+            }
+            let value_string =
+                idl_as_str_or_else(&value_array[0], &breadcrumbs.val())?;
+            (value_string, &value_array[1])
+        };
         for (enum_value, enum_variant) in enum_variants.iter().enumerate() {
-            if enum_variant.0 == value_string {
+            if enum_variant.0 == value_enum {
                 data.push(u8::try_from(enum_value).unwrap());
-                return ToolboxIdlTypeFull::try_serialize_common_fields(
+                return ToolboxIdlTypeFull::try_serialize_fields(
                     &enum_variant.1,
-                    value,
+                    value_fields,
                     data,
                     breadcrumbs,
                 );
             }
         }
-        idl_err(
-            "could not find matching enum",
-            &breadcrumbs.as_val(value_string),
-        )
+        idl_err("could not find matching enum", &breadcrumbs.as_val(value_enum))
     }
 
     fn try_serialize_primitive(
@@ -281,9 +287,11 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(&value_bytes);
             },
             ToolboxIdlPrimitive::Boolean => {
-                data.push(
-                    if idl_as_bool_or_else(value, context)? { 1 } else { 0 },
-                );
+                data.push(if idl_as_bool_or_else(value, context)? {
+                    1
+                } else {
+                    0
+                });
             },
             ToolboxIdlPrimitive::String => {
                 let value_str = idl_as_str_or_else(value, context)?;
@@ -310,27 +318,47 @@ impl ToolboxIdlTypeFull {
         Ok(())
     }
 
-    fn try_serialize_common_fields(
-        common_fields: &[(String, ToolboxIdlTypeFull)],
+    fn try_serialize_fields(
+        fields: &ToolboxIdlTypeFullFields,
         value: &Value,
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        // TODO - support unamed fields
-        let value_object =
-            idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
-        for (common_field_name, common_field) in common_fields {
-            let breadcrumbs = &breadcrumbs.with_idl(common_field_name);
-            let value_field = idl_object_get_key_or_else(
-                value_object,
-                common_field_name,
-                &breadcrumbs.val(),
-            )?;
-            common_field.try_serialize(
-                value_field,
-                data,
-                &breadcrumbs.with_val(common_field_name),
-            )?;
+        match fields {
+            ToolboxIdlTypeFullFields::Named(fields) => {
+                let value_object =
+                    idl_as_object_or_else(value, &breadcrumbs.val())?;
+                for (name, field) in fields {
+                    let value_field = idl_object_get_key_or_else(
+                        value_object,
+                        &name,
+                        &breadcrumbs.val(),
+                    )?;
+                    field.try_serialize(
+                        value_field,
+                        data,
+                        &breadcrumbs.with_val(name),
+                    )?;
+                }
+            },
+            ToolboxIdlTypeFullFields::Unamed(fields) => {
+                let value_array =
+                    idl_as_array_or_else(value, &breadcrumbs.val())?;
+                if value_array.len() != fields.len() {
+                    return idl_err(
+                        "Wrong number of unamed fields",
+                        &breadcrumbs.val(),
+                    );
+                }
+                for (index, field) in fields.iter().enumerate() {
+                    field.try_serialize(
+                        &value_array[index],
+                        data,
+                        &breadcrumbs.with_val(&format!("[{}]", index)),
+                    )?;
+                }
+            },
+            ToolboxIdlTypeFullFields::None => {},
         }
         Ok(())
     }

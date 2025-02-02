@@ -7,20 +7,21 @@ use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
-use crate::toolbox_idl_program_instruction_arg::ToolboxIdlProgramInstructionArg;
 use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::ToolboxIdlTypeFlat;
+use crate::ToolboxIdlTypeFull;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgramInstruction {
     pub name: String,
     pub discriminator: Vec<u8>,
     pub accounts: Vec<ToolboxIdlProgramInstructionAccount>,
-    pub args: Vec<ToolboxIdlProgramInstructionArg>,
-    // TODO - support "returns" value ??
+    pub data_type_flat: ToolboxIdlTypeFlat,
+    pub data_type_full: ToolboxIdlTypeFull,
 }
 
 impl ToolboxIdlProgramInstruction {
@@ -44,13 +45,7 @@ impl ToolboxIdlProgramInstruction {
                 }
             );
         }
-        for arg in &self.args {
-            println!(
-                "instruction.args: {}: {}",
-                arg.name,
-                arg.type_flat.describe()
-            );
-        }
+        println!("instruction.data_type: {}", self.data_type_flat.describe());
     }
 
     pub(crate) fn try_parse(
@@ -59,23 +54,34 @@ impl ToolboxIdlProgramInstruction {
         idl_instruction: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramInstruction, ToolboxIdlError> {
+        let program_instruction_discriminator =
+            ToolboxIdlProgramInstruction::try_parse_discriminator(
+                idl_instruction_name,
+                idl_instruction,
+                breadcrumbs,
+            )?;
+        let program_instruction_accounts =
+            ToolboxIdlProgramInstruction::try_parse_accounts(
+                idl_instruction,
+                breadcrumbs,
+            )?;
+        let program_instruction_data_type_flat =
+            ToolboxIdlProgramInstruction::try_parse_data_type_flat(
+                idl_instruction,
+                breadcrumbs,
+            )?;
+        let program_instruction_data_type_full =
+            ToolboxIdlProgramInstruction::try_parse_data_type_full(
+                program_types,
+                &program_instruction_data_type_flat,
+                breadcrumbs,
+            )?;
         Ok(ToolboxIdlProgramInstruction {
             name: idl_instruction_name.to_string(),
-            discriminator:
-                ToolboxIdlProgramInstruction::try_parse_discriminator(
-                    idl_instruction_name,
-                    idl_instruction,
-                    breadcrumbs,
-                )?,
-            accounts: ToolboxIdlProgramInstruction::try_parse_accounts(
-                idl_instruction,
-                breadcrumbs,
-            )?,
-            args: ToolboxIdlProgramInstruction::try_parse_args(
-                program_types,
-                idl_instruction,
-                breadcrumbs,
-            )?,
+            discriminator: program_instruction_discriminator,
+            accounts: program_instruction_accounts,
+            data_type_flat: program_instruction_data_type_flat,
+            data_type_full: program_instruction_data_type_full,
         })
     }
 
@@ -130,31 +136,35 @@ impl ToolboxIdlProgramInstruction {
         Ok(instruction_accounts)
     }
 
-    fn try_parse_args(
-        program_types: &HashMap<String, ToolboxIdlProgramType>,
+    fn try_parse_data_type_flat(
         idl_instruction: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<ToolboxIdlProgramInstructionArg>, ToolboxIdlError> {
-        let mut instruction_args = vec![];
-        if let Some(idl_instruction_args) =
-            idl_object_get_key_as_array(idl_instruction, "args")
-        {
-            for (idl_instruction_arg_name, idl_instruction_arg, breadcrumbs) in
-                idl_array_get_scoped_named_object_array_or_else(
-                    idl_instruction_args,
-                    breadcrumbs,
-                )?
-            {
-                instruction_args.push(
-                    ToolboxIdlProgramInstructionArg::try_parse(
-                        program_types,
-                        idl_instruction_arg_name,
-                        idl_instruction_arg,
-                        &breadcrumbs,
-                    )?,
-                );
-            }
+    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+        if let Some(idl_instruction_args) = idl_instruction.get("args") {
+            let idl_instruction_args = Value::Object(Map::from_iter(vec![(
+                "fields".to_string(),
+                idl_instruction_args.clone(),
+            )]));
+            return ToolboxIdlTypeFlat::try_parse(
+                &idl_instruction_args,
+                &breadcrumbs,
+            );
         }
-        Ok(instruction_args)
+        Ok(ToolboxIdlTypeFlat::Struct {
+            fields: ToolboxIdlTypeFlatFields::None,
+        })
+    }
+
+    fn try_parse_data_type_full(
+        program_types: &HashMap<String, ToolboxIdlProgramType>,
+        data_type_flat: &ToolboxIdlTypeFlat,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<ToolboxIdlTypeFull, ToolboxIdlError> {
+        ToolboxIdlTypeFull::try_hydrate(
+            program_types,
+            &HashMap::new(),
+            data_type_flat,
+            breadcrumbs,
+        )
     }
 }

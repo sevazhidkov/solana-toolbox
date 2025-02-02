@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
@@ -16,7 +15,7 @@ pub struct ToolboxIdlInstruction {
     pub program_id: Pubkey,
     pub name: String,
     pub accounts_addresses: HashMap<String, Pubkey>,
-    pub args: Map<String, Value>,
+    pub args: Value,
 }
 
 impl ToolboxIdl {

@@ -5,10 +5,12 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_str_to_usize_or_else;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
@@ -90,6 +92,14 @@ impl ToolboxIdlTypeFlat {
                 breadcrumbs,
             );
         }
+        if let Some(idl_value_literal) =
+            idl_object_get_key_as_str(idl_object, "value")
+        {
+            return ToolboxIdlTypeFlat::try_parse_value_literal(
+                idl_value_literal,
+                breadcrumbs,
+            );
+        }
         idl_err(
             "Missing type object key: defined/option/fields/variants/array/vec/generic",
             &breadcrumbs.as_idl("def(object)"),
@@ -110,7 +120,7 @@ impl ToolboxIdlTypeFlat {
             return Ok(ToolboxIdlTypeFlat::Array {
                 items: Box::new(ToolboxIdlTypeFlat::try_parse(
                     &idl_array[0],
-                    &breadcrumbs.with_idl("values"),
+                    &breadcrumbs.with_idl("items"),
                 )?),
                 length: Box::new(ToolboxIdlTypeFlat::try_parse(
                     &idl_array[1],
@@ -167,47 +177,17 @@ impl ToolboxIdlTypeFlat {
             for (idl_defined_generic_index, idl_defined_generic) in
                 idl_defined_generics.iter().enumerate()
             {
-                defined_generics.push(
-                    ToolboxIdlTypeFlat::try_parse_defined_generic(
-                        idl_defined_generic,
-                        &breadcrumbs.with_idl(&format!(
-                            "[{}]",
-                            idl_defined_generic_index
-                        )),
-                    )?,
-                );
+                defined_generics.push(ToolboxIdlTypeFlat::try_parse(
+                    idl_defined_generic,
+                    &breadcrumbs
+                        .with_idl(&format!("[{}]", idl_defined_generic_index)),
+                )?);
             }
         }
-        println!("defined_generics:{}:{:?}", defined_name, defined_generics);
         Ok(ToolboxIdlTypeFlat::Defined {
             name: defined_name.to_string(),
             generics: defined_generics,
         })
-    }
-
-    fn try_parse_defined_generic(
-        idl_defined_generic: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        // TODO - double IFs worth an util ?
-        if let Some(idl_defined_generic) = idl_defined_generic.as_object() {
-            if let Some(idl_defined_generic_value) =
-                idl_object_get_key_as_str(idl_defined_generic, "value")
-            {
-                return Ok(ToolboxIdlTypeFlat::Const {
-                    literal: idl_defined_generic_value.parse().map_err(
-                        |err| ToolboxIdlError::InvalidConstLiteral {
-                            parsing: err,
-                            context: breadcrumbs.as_idl(&format!(
-                                "value:{:?}",
-                                idl_defined_generic
-                            )),
-                        },
-                    )?,
-                });
-            }
-        }
-        ToolboxIdlTypeFlat::try_parse(idl_defined_generic, &breadcrumbs)
     }
 
     fn try_parse_generic_symbol(
@@ -216,6 +196,18 @@ impl ToolboxIdlTypeFlat {
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Generic {
             symbol: idl_generic_symbol.to_string(),
+        })
+    }
+
+    fn try_parse_value_literal(
+        idl_value_literal: &str,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+        Ok(ToolboxIdlTypeFlat::Const {
+            literal: idl_str_to_usize_or_else(
+                idl_value_literal,
+                &breadcrumbs.idl(),
+            )?,
         })
     }
 
@@ -248,7 +240,7 @@ impl ToolboxIdlTypeFlat {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlat::try_parse_common_fields(
+            fields: ToolboxIdlTypeFlat::try_parse_fields(
                 idl_struct_fields,
                 breadcrumbs,
             )?,
@@ -274,12 +266,12 @@ impl ToolboxIdlTypeFlat {
             let enum_variant_fields = if let Some(idl_enum_variant_fields) =
                 idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
             {
-                ToolboxIdlTypeFlat::try_parse_common_fields(
+                ToolboxIdlTypeFlat::try_parse_fields(
                     idl_enum_variant_fields,
                     breadcrumbs,
                 )?
             } else {
-                vec![]
+                ToolboxIdlTypeFlatFields::None
             };
             enum_variants
                 .push((enum_variant_name.to_string(), enum_variant_fields));
@@ -287,41 +279,39 @@ impl ToolboxIdlTypeFlat {
         Ok(ToolboxIdlTypeFlat::Enum { variants: enum_variants })
     }
 
-    fn try_parse_common_fields(
-        idl_common_fields: &[Value],
+    fn try_parse_fields(
+        idl_fields: &[Value],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<(String, ToolboxIdlTypeFlat)>, ToolboxIdlError> {
-        // TODO - should this warrant a scoping util ?
-        let mut common_fields = vec![];
-        for (idl_common_field_index, idl_common_field) in
-            idl_common_fields.iter().enumerate()
-        {
-            common_fields.push(ToolboxIdlTypeFlat::try_parse_common_field(
-                idl_common_field_index,
-                idl_common_field,
-                breadcrumbs,
-            )?);
+    ) -> Result<ToolboxIdlTypeFlatFields, ToolboxIdlError> {
+        if idl_fields.is_empty() {
+            return Ok(ToolboxIdlTypeFlatFields::None);
         }
-        Ok(common_fields)
-    }
-
-    fn try_parse_common_field(
-        idl_common_field_index: usize,
-        idl_common_field: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(String, ToolboxIdlTypeFlat), ToolboxIdlError> {
-        let common_field_name =
-            idl_value_as_object_get_key(idl_common_field, "name")
+        let mut fields_named = false;
+        let mut fields_info = vec![];
+        for (idl_field_index, idl_field) in idl_fields.iter().enumerate() {
+            let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .map(|name| name.as_str())
                 .flatten()
-                .map(|name| name.to_string())
-                .unwrap_or(format!("{}", idl_common_field_index));
-        Ok((
-            common_field_name.clone(),
-            ToolboxIdlTypeFlat::try_parse(
-                idl_common_field,
-                &breadcrumbs.with_idl(&common_field_name),
-            )?,
-        ))
+                .map(|name| name.to_string());
+            if field_name.is_some() {
+                fields_named = true;
+            }
+            let field_name_or_index =
+                field_name.unwrap_or(format!("{}", idl_field_index));
+            let field_type_flat = ToolboxIdlTypeFlat::try_parse(
+                idl_field,
+                &breadcrumbs.with_idl(&field_name_or_index),
+            )?;
+            fields_info.push((field_name_or_index, field_type_flat));
+        }
+        if !fields_named {
+            let mut fields = vec![];
+            for (_, field_type) in fields_info {
+                fields.push(field_type);
+            }
+            Ok(ToolboxIdlTypeFlatFields::Unamed(fields))
+        } else {
+            Ok(ToolboxIdlTypeFlatFields::Named(fields_info))
+        }
     }
 }

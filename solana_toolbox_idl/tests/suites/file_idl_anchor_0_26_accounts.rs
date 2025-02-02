@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
-use serde_json::Map;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlAccount;
@@ -91,10 +90,7 @@ pub async fn run() {
                     ("tokenProgram".to_string(), placeholder),
                     ("systemProgram".to_string(), placeholder),
                 ]),
-                args: Map::from_iter([(
-                    "globalMarketSeed".to_string(),
-                    json!(global_market_seed.to_string()),
-                )]),
+                args: json!({ "globalMarketSeed": global_market_seed.to_string() }),
             },
             &HashMap::from_iter([]),
         )
@@ -130,16 +126,13 @@ pub async fn run() {
                     ("owner".to_string(), owner),
                     ("globalMarketState".to_string(), global_market_state),
                 ]),
-                args: Map::from_iter([(
-                    "globalMarketSeed".to_string(),
-                    json!(global_market_seed.to_string()),
-                )]),
+                args: json!({ "globalMarketSeed": global_market_seed.to_string() }),
             },
             &HashMap::from_iter([(
                 "deal".to_string(),
                 ToolboxIdlAccount {
                     name: "Deal".to_string(),
-                    value: json!({
+                    state: json!({
                         "dealNumber": deal_number,
                         "borrower": borrower.to_string()
                     }),
