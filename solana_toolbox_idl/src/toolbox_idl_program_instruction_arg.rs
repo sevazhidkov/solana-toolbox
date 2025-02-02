@@ -29,6 +29,7 @@ impl ToolboxIdlProgramInstructionArg {
             "type",
             &breadcrumbs.idl(),
         )?;
+        // TODO - this could be abbreviated without the "type" wrapper, similar to unamed fields
         let type_flat = ToolboxIdlTypeFlat::try_parse(
             idl_instruction_arg_type,
             &breadcrumbs,

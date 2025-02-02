@@ -92,6 +92,7 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     )
 }
 
+// TODO - could be cleaned ?
 type ScopedObject<'a> = (&'a Map<String, Value>, ToolboxIdlBreadcrumbs);
 pub(crate) fn idl_array_get_scoped_object_array_or_else<'a>(
     idl_array: &'a [Value],
@@ -107,6 +108,7 @@ pub(crate) fn idl_array_get_scoped_object_array_or_else<'a>(
     Ok(scoped_object_array)
 }
 
+// TODO - used in program_instruct (could be inlined there, and program_idl, could be modified/inlined)
 type ScopedNamedObject<'a> =
     (&'a str, &'a Map<String, Value>, ToolboxIdlBreadcrumbs);
 pub(crate) fn idl_array_get_scoped_named_object_array_or_else<'a>(
@@ -128,6 +130,7 @@ pub(crate) fn idl_array_get_scoped_named_object_array_or_else<'a>(
     Ok(scoped_named_object_array)
 }
 
+// TODO - only used in program_idl, where it can be modified/inlined
 type ScopedKeyValue<'a> = (&'a str, &'a Value, ToolboxIdlBreadcrumbs);
 pub(crate) fn idl_object_get_scoped_key_value_array<'a>(
     idl_object: &'a Map<String, Value>,

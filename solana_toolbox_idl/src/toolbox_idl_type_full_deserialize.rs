@@ -15,7 +15,6 @@ use crate::toolbox_idl_utils::idl_i32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i64_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i8_from_bytes_at;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
-use crate::toolbox_idl_utils::idl_ok_or_else;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u128_from_bytes_at;
@@ -81,7 +80,15 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => todo!(),
+            ToolboxIdlTypeFull::Const { literal } => {
+                idl_err(
+                    &format!(
+                        "Can't use a const literal directly: {:?}",
+                        literal
+                    ),
+                    &breadcrumbs.idl(),
+                )
+            },
         }
     }
 
@@ -192,12 +199,28 @@ impl ToolboxIdlTypeFull {
                 &breadcrumbs.as_idl("variants"),
             );
         }
+        let mut data_size = std::mem::size_of_val(&data_enum);
         let enum_variant = &enum_variants[data_index];
+        let (data_fields_size, data_fields) =
+            ToolboxIdlTypeFull::try_deserialize_common_fields(
+                &enum_variant.1,
+                data,
+                data_offset + data_size,
+                breadcrumbs,
+            )?;
         // TODO - support enum variant fields
-        Ok((
-            std::mem::size_of_val(&data_enum),
-            Value::String(enum_variant.0.to_string()),
-        ))
+        data_size += data_fields_size;
+        if data_fields_size > 0 {
+            Ok((
+                data_size,
+                Value::Array(vec![
+                    Value::String(enum_variant.0.to_string()),
+                    data_fields,
+                ]),
+            ))
+        } else {
+            Ok((data_size, Value::String(enum_variant.0.to_string())))
+        }
     }
 
     fn try_deserialize_primitive(
@@ -333,5 +356,26 @@ impl ToolboxIdlTypeFull {
                 (data_size, Value::String(data_pubkey.to_string()))
             },
         })
+    }
+
+    fn try_deserialize_common_fields(
+        common_fields: &[(String, ToolboxIdlTypeFull)],
+        data: &[u8],
+        data_offset: usize,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<(usize, Value), ToolboxIdlError> {
+        let mut data_size = 0;
+        let mut data_fields = Map::new();
+        for (common_field_name, common_field) in common_fields {
+            let breadcrumbs = &breadcrumbs.with_idl(common_field_name);
+            let (data_field_size, data_field) = common_field.try_deserialize(
+                data,
+                data_offset + data_size,
+                &breadcrumbs.with_val(common_field_name),
+            )?;
+            data_size += data_field_size;
+            data_fields.insert(common_field_name.to_string(), data_field);
+        }
+        Ok((data_size, Value::Object(data_fields)))
     }
 }

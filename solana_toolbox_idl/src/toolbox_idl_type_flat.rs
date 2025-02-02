@@ -66,13 +66,7 @@ impl ToolboxIdlTypeFlat {
             ToolboxIdlTypeFlat::Struct { fields } => {
                 format!(
                     "Struct{{{}}}",
-                    fields
-                        .iter()
-                        .map(|field| {
-                            format!("{}:{}", field.0, field.1.describe())
-                        })
-                        .collect::<Vec<_>>()
-                        .join(",")
+                    ToolboxIdlTypeFlat::describe_fields(fields)
                 )
             },
             ToolboxIdlTypeFlat::Enum { variants } => {
@@ -87,18 +81,9 @@ impl ToolboxIdlTypeFlat {
                                 format!(
                                     "{}[{}]",
                                     variant.0,
-                                    variant
-                                        .1
-                                        .iter()
-                                        .map(|field| {
-                                            format!(
-                                                "{}:{}",
-                                                field.0,
-                                                field.1.describe()
-                                            )
-                                        })
-                                        .collect::<Vec<_>>()
-                                        .join(",")
+                                    ToolboxIdlTypeFlat::describe_fields(
+                                        &variant.1
+                                    )
                                 )
                             }
                         })
@@ -113,5 +98,13 @@ impl ToolboxIdlTypeFlat {
                 primitive.as_str().to_string()
             },
         }
+    }
+
+    fn describe_fields(fields: &Vec<(String, ToolboxIdlTypeFlat)>) -> String {
+        fields
+            .iter()
+            .map(|field| format!("{}:{}", field.0, field.1.describe()))
+            .collect::<Vec<_>>()
+            .join(",")
     }
 }

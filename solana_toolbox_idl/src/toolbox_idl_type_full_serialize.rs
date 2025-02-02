@@ -76,7 +76,15 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => todo!(),
+            ToolboxIdlTypeFull::Const { literal } => {
+                idl_err(
+                    &format!(
+                        "Can't use a const literal directly: {:?}",
+                        literal
+                    ),
+                    &breadcrumbs.idl(),
+                )
+            },
         }
     }
 
@@ -150,22 +158,12 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        let value_object =
-            idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
-        for (struct_field_name, struct_field) in struct_fields {
-            let breadcrumbs = &breadcrumbs.with_idl(struct_field_name);
-            let value_field = idl_object_get_key_or_else(
-                value_object,
-                struct_field_name,
-                &breadcrumbs.val(),
-            )?;
-            struct_field.try_serialize(
-                value_field,
-                data,
-                &breadcrumbs.with_val(struct_field_name),
-            )?;
-        }
-        Ok(())
+        ToolboxIdlTypeFull::try_serialize_common_fields(
+            struct_fields,
+            value,
+            data,
+            breadcrumbs,
+        )
     }
 
     fn try_serialize_enum(
@@ -174,13 +172,18 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
+        // TODO - support enum variant fields
         let value_string =
             idl_as_str_or_else(value, &breadcrumbs.as_val("enum"))?;
         for (enum_value, enum_variant) in enum_variants.iter().enumerate() {
             if enum_variant.0 == value_string {
                 data.push(u8::try_from(enum_value).unwrap());
-                // TODO - support enum variant fields
-                return Ok(());
+                return ToolboxIdlTypeFull::try_serialize_common_fields(
+                    &enum_variant.1,
+                    value,
+                    data,
+                    breadcrumbs,
+                );
             }
         }
         idl_err(
@@ -304,6 +307,31 @@ impl ToolboxIdlTypeFull {
                 ));
             },
         };
+        Ok(())
+    }
+
+    fn try_serialize_common_fields(
+        common_fields: &[(String, ToolboxIdlTypeFull)],
+        value: &Value,
+        data: &mut Vec<u8>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<(), ToolboxIdlError> {
+        // TODO - support unamed fields
+        let value_object =
+            idl_as_object_or_else(value, &breadcrumbs.as_val("struct"))?;
+        for (common_field_name, common_field) in common_fields {
+            let breadcrumbs = &breadcrumbs.with_idl(common_field_name);
+            let value_field = idl_object_get_key_or_else(
+                value_object,
+                common_field_name,
+                &breadcrumbs.val(),
+            )?;
+            common_field.try_serialize(
+                value_field,
+                data,
+                &breadcrumbs.with_val(common_field_name),
+            )?;
+        }
         Ok(())
     }
 }

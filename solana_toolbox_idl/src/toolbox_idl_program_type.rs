@@ -30,40 +30,32 @@ impl ToolboxIdlProgramType {
         idl_type: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramType, ToolboxIdlError> {
-        if let Some(idl_type_type) = idl_type.get("type") {
-            let mut program_type_generics = vec![];
-            if let Some(idl_type_generics) =
-                idl_object_get_key_as_array(idl_type, "generics")
+        let mut program_type_generics = vec![];
+        if let Some(idl_type_generics) =
+            idl_object_get_key_as_array(idl_type, "generics")
+        {
+            for (index, idl_type_generic) in
+                idl_type_generics.iter().enumerate()
             {
-                for (index, idl_type_generic) in
-                    idl_type_generics.iter().enumerate()
-                {
-                    let idl_type_generic_name =
-                        idl_value_as_str_or_object_with_name_as_str_or_else(
-                            idl_type_generic,
-                            &breadcrumbs.as_idl(&format!("[{}]", index)),
-                        )?;
-                    program_type_generics
-                        .push(idl_type_generic_name.to_string());
-                }
+                let idl_type_generic_name =
+                    idl_value_as_str_or_object_with_name_as_str_or_else(
+                        idl_type_generic,
+                        &breadcrumbs.as_idl(&format!("[{}]", index)),
+                    )?;
+                program_type_generics.push(idl_type_generic_name.to_string());
             }
-            Ok(ToolboxIdlProgramType {
-                name: idl_type_name.to_string(),
-                generics: program_type_generics,
-                type_flat: ToolboxIdlTypeFlat::try_parse(
-                    idl_type_type,
-                    &breadcrumbs.with_idl("type"),
-                )?,
-            })
-        } else {
-            Ok(ToolboxIdlProgramType {
-                name: idl_type_name.to_string(),
-                generics: vec![],
-                type_flat: ToolboxIdlTypeFlat::try_parse(
-                    &Value::Object(idl_type.clone()),
-                    breadcrumbs,
-                )?,
-            })
         }
+        eprintln!(
+            "program_type_generics:{}:{:?}",
+            idl_type_name, program_type_generics
+        );
+        Ok(ToolboxIdlProgramType {
+            name: idl_type_name.to_string(),
+            generics: vec![],
+            type_flat: ToolboxIdlTypeFlat::try_parse(
+                &Value::Object(idl_type.clone()),
+                breadcrumbs,
+            )?,
+        })
     }
 }

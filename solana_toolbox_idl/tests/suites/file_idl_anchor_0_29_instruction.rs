@@ -25,7 +25,7 @@ pub async fn run() {
             program_id,
             name: "initializeRealm".to_string(),
             accounts_addresses: HashMap::from_iter([
-                ("payer".to_string(), payer),
+                ("payer".to_string(), payer), // TODO - could remove the need for to_string() everywhere
                 ("funding".to_string(), funding),
                 ("fundingUsdc".to_string(), placeholder),
                 ("realm".to_string(), placeholder),

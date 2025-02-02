@@ -25,14 +25,8 @@ impl ToolboxIdlTypeFull {
             },
             ToolboxIdlTypeFull::Struct { fields } => {
                 format!(
-                    "Struct{{{}}}",
-                    fields
-                        .iter()
-                        .map(|field| {
-                            format!("{}:{}", field.0, field.1.describe())
-                        })
-                        .collect::<Vec<_>>()
-                        .join(",")
+                    "Struct({})",
+                    ToolboxIdlTypeFull::describe_fields(fields)
                 )
             },
             ToolboxIdlTypeFull::Enum { variants } => {
@@ -45,20 +39,11 @@ impl ToolboxIdlTypeFull {
                                 variant.0.to_string()
                             } else {
                                 format!(
-                                    "{}[{}]",
+                                    "{}({})",
                                     variant.0,
-                                    variant
-                                        .1
-                                        .iter()
-                                        .map(|field| {
-                                            format!(
-                                                "{}:{}",
-                                                field.0,
-                                                field.1.describe()
-                                            )
-                                        })
-                                        .collect::<Vec<_>>()
-                                        .join(",")
+                                    ToolboxIdlTypeFull::describe_fields(
+                                        &variant.1
+                                    )
                                 )
                             }
                         })
@@ -73,6 +58,14 @@ impl ToolboxIdlTypeFull {
                 format!("{}", literal)
             },
         }
+    }
+
+    fn describe_fields(fields: &Vec<(String, ToolboxIdlTypeFull)>) -> String {
+        fields
+            .iter()
+            .map(|field| format!("{}:{}", field.0, field.1.describe()))
+            .collect::<Vec<_>>()
+            .join(",")
     }
 
     pub fn as_struct_fields(

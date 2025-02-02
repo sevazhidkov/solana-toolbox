@@ -46,7 +46,7 @@ let idl = ToolboxIdl::try_from_value(&json!({
     "instructions": {
         "my_instruction": {
             "accounts": [{ "name": "payer", "signer": true }],
-            "args": [{ "name": "arg", "type": {"defined": "MyArg"} }]
+            "args": [{ "name": "arg", "type": "MyArg" }]
         }
     },
     "types": {

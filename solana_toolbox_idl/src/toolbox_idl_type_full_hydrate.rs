@@ -31,6 +31,7 @@ impl ToolboxIdlTypeFull {
                     name,
                     &breadcrumbs.idl(),
                 )?;
+                // TODO - what if generics array is not correct length
                 let mut generics_by_symbol = HashMap::new();
                 for (program_type_generic_name, generic_full) in
                     program_type.generics.iter().zip(generics_full)

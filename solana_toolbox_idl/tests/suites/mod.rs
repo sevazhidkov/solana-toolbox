@@ -12,6 +12,7 @@ pub mod file_idl_anchor_0_30_accounts;
 pub mod file_idl_anchor_0_30_data;
 pub mod file_idl_anchor_0_30_instruction;
 pub mod file_idl_anchor_0_30_lookup;
+pub mod file_idl_anchor_broken;
 pub mod file_idl_anchor_generics_lookup;
 pub mod file_idl_anchor_new_lookup;
 pub mod file_idl_anchor_old_lookup;
@@ -22,3 +23,9 @@ pub mod raw_idl_short_data;
 pub mod raw_idl_short_instruction;
 pub mod raw_idl_short_lookup;
 // TODO - tests could be better organized and named and more rigurous
+pub mod unit_parse_types_enum_root;
+pub mod unit_parse_types_enum_variants;
+pub mod unit_parse_types_enum_variants_fields;
+pub mod unit_parse_types_struct_fields_named;
+pub mod unit_parse_types_struct_fields_unamed;
+pub mod unit_parse_types_struct_root;

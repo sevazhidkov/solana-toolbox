@@ -1,19 +1,17 @@
-use serde_json::json;
+use std::fs::read_to_string;
+
 use solana_toolbox_idl::ToolboxIdl;
 
 #[tokio::test]
 pub async fn run() {
-    // Create an IDL on the fly
-    let idl = ToolboxIdl::try_from_value(&json!({
-        "instructions": {},
-        "accounts": {},
-        "types": {},
-        "errors": {},
-    }))
-    .unwrap();
+    // Parse IDL from file JSON directly
+    let idl_string =
+        read_to_string("./tests/fixtures/idl_anchor_broken.json").unwrap();
+    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
     // Lookup instructions and print them
     for program_instruction in idl.program_instructions.values() {
         program_instruction.print();
+        println!("program_instruction: {:#?}", program_instruction);
     }
     // Lookup accounts and print them
     for program_account in idl.program_accounts.values() {
@@ -27,4 +25,5 @@ pub async fn run() {
     for program_error in idl.program_errors.values() {
         program_error.print();
     }
+    panic!("BROKEN");
 }

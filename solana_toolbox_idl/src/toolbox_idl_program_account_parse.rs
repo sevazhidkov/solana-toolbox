@@ -19,26 +19,29 @@ impl ToolboxIdlProgramAccount {
         idl_account: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramAccount, ToolboxIdlError> {
-        let discriminator = ToolboxIdlProgramAccount::try_parse_discriminator(
-            idl_account_name,
-            idl_account,
-            &breadcrumbs.with_idl("discriminator"),
-        )?;
-        let type_flat = ToolboxIdlProgramAccount::try_parse_type_flat(
-            idl_account_name,
-            idl_account,
-            breadcrumbs,
-        )?;
-        let type_full = ToolboxIdlProgramAccount::try_parse_type_full(
-            program_types,
-            &type_flat,
-            breadcrumbs,
-        )?;
+        let program_account_discriminator =
+            ToolboxIdlProgramAccount::try_parse_discriminator(
+                idl_account_name,
+                idl_account,
+                &breadcrumbs.with_idl("discriminator"),
+            )?;
+        let program_account_type_flat =
+            ToolboxIdlProgramAccount::try_parse_type_flat(
+                idl_account_name,
+                idl_account,
+                breadcrumbs,
+            )?;
+        let program_account_type_full =
+            ToolboxIdlProgramAccount::try_parse_type_full(
+                program_types,
+                &program_account_type_flat,
+                breadcrumbs,
+            )?;
         Ok(ToolboxIdlProgramAccount {
             name: idl_account_name.to_string(),
-            discriminator,
-            type_flat,
-            type_full,
+            discriminator: program_account_discriminator,
+            type_flat: program_account_type_flat,
+            type_full: program_account_type_full,
         })
     }
 
@@ -63,13 +66,15 @@ impl ToolboxIdlProgramAccount {
         idl_account: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        if let Some(idl_account_type) = idl_account.get("type") {
-            return ToolboxIdlTypeFlat::try_parse(
-                idl_account_type,
-                breadcrumbs,
-            );
-        }
-        if idl_account.contains_key("fields") {
+        if idl_account.contains_key("type")
+            || idl_account.contains_key("defined")
+            || idl_account.contains_key("option")
+            || idl_account.contains_key("vec")
+            || idl_account.contains_key("array")
+            || idl_account.contains_key("fields")
+            || idl_account.contains_key("variants")
+            || idl_account.contains_key("generic")
+        {
             return ToolboxIdlTypeFlat::try_parse(
                 &Value::Object(idl_account.clone()),
                 breadcrumbs,
