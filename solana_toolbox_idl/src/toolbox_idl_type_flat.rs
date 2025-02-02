@@ -98,22 +98,28 @@ impl ToolboxIdlTypeFlat {
 impl ToolboxIdlTypeFlatFields {
     pub fn describe(&self) -> String {
         match self {
-            ToolboxIdlTypeFlatFields::Named(fields) => format!(
-                "{{{}}}",
-                fields
-                    .iter()
-                    .map(|field| format!("{}:{}", field.0, field.1.describe()))
-                    .collect::<Vec<_>>()
-                    .join(",")
-            ),
-            ToolboxIdlTypeFlatFields::Unamed(fields) => format!(
-                "({})",
-                fields
-                    .iter()
-                    .map(|field| field.describe())
-                    .collect::<Vec<_>>()
-                    .join(",")
-            ),
+            ToolboxIdlTypeFlatFields::Named(fields) => {
+                format!(
+                    "{{{}}}",
+                    fields
+                        .iter()
+                        .map(|field| {
+                            format!("{}:{}", field.0, field.1.describe())
+                        })
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            },
+            ToolboxIdlTypeFlatFields::Unamed(fields) => {
+                format!(
+                    "({})",
+                    fields
+                        .iter()
+                        .map(|field| field.describe())
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            },
             ToolboxIdlTypeFlatFields::None => "".to_string(),
         }
     }

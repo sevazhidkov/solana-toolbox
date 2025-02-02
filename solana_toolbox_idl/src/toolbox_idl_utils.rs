@@ -263,9 +263,11 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
     failure: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| ToolboxIdlError::Custom {
-        failure: failure.to_string(),
-        context: context.clone(),
+    option.ok_or_else(|| {
+        ToolboxIdlError::Custom {
+            failure: failure.to_string(),
+            context: context.clone(),
+        }
     })
 }
 
@@ -446,9 +448,11 @@ pub(crate) fn idl_map_err_invalid_integer<V>(
     result: Result<V, TryFromIntError>,
     context: &ToolboxIdlContext,
 ) -> Result<V, ToolboxIdlError> {
-    result.map_err(|err| ToolboxIdlError::InvalidInteger {
-        conversion: err,
-        context: context.clone(),
+    result.map_err(|err| {
+        ToolboxIdlError::InvalidInteger {
+            conversion: err,
+            context: context.clone(),
+        }
     })
 }
 
@@ -456,8 +460,10 @@ pub(crate) fn idl_str_to_usize_or_else(
     value: &str,
     context: &ToolboxIdlContext,
 ) -> Result<usize, ToolboxIdlError> {
-    value.parse().map_err(|err| ToolboxIdlError::InvalidNumber {
-        parsing: err,
-        context: context.clone(),
+    value.parse().map_err(|err| {
+        ToolboxIdlError::InvalidNumber {
+            parsing: err,
+            context: context.clone(),
+        }
     })
 }

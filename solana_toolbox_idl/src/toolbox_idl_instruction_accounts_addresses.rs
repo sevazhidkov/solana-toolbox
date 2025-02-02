@@ -17,12 +17,12 @@ use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_program_instruction_account_pda::ToolboxIdlProgramInstructionAccountPda;
 use crate::toolbox_idl_program_instruction_account_pda::ToolboxIdlProgramInstructionAccountPdaBlob;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
-use crate::ToolboxIdlTypeFullFields;
 
 impl ToolboxIdl {
     pub async fn resolve_instruction_accounts_addresses(

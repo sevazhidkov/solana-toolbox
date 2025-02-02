@@ -13,6 +13,7 @@ pub async fn run() {
                     "MyEnum",
                     "MyEnum",
                     "MyEnum",
+                    "MyEnum",
                 ]
             },
         },
@@ -31,7 +32,8 @@ pub async fn run() {
                     },
                     {
                         "name": "Empty",
-                    }
+                    },
+                    "Shortened",
                 ],
             },
         },
@@ -44,10 +46,11 @@ pub async fn run() {
             "Empty",
             ["Named", {"field1": 42}],
             ["Unamed", [22, 23]],
+            "Shortened",
         ]),
     };
     // Check that we can use the manual IDL to compile/decompile our account 1
     let account_data = idl.compile_account(&account).unwrap();
-    assert_eq!(vec![77, 78, 2, 0, 42, 0, 0, 0, 1, 22, 23], account_data);
+    assert_eq!(vec![77, 78, 2, 0, 42, 0, 0, 0, 1, 22, 23, 3], account_data);
     assert_eq!(account, idl.decompile_account(&account_data).unwrap());
 }

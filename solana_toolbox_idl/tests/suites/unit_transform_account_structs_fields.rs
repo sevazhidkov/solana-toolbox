@@ -10,8 +10,8 @@ pub async fn run() {
             "MyAccount": {
                 "discriminator": [77, 78],
                 "fields": [
-                    "MyStructNamed",
-                    "MyStructUnamed",
+                    {"name": "named", "type": "MyStructNamed"},
+                    {"name": "unamed", "type": "MyStructUnamed"},
                 ]
             },
         },
@@ -30,10 +30,10 @@ pub async fn run() {
     // MyAccount prepared
     let account = ToolboxIdlAccount {
         name: "MyAccount".to_string(),
-        state: json!([
-            { "field1": 42 },
-            [22, 23],
-        ]),
+        state: json!({
+            "named": { "field1": 42 },
+            "unamed": [22, 23],
+        }),
     };
     // Check that we can use the manual IDL to compile/decompile our account 1
     let account_data = idl.compile_account(&account).unwrap();

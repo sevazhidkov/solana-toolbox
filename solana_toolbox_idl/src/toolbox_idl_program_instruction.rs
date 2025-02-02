@@ -8,12 +8,12 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
 use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::ToolboxIdlTypeFlat;
-use crate::ToolboxIdlTypeFull;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgramInstruction {

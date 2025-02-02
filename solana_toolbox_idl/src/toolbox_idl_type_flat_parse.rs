@@ -141,9 +141,11 @@ impl ToolboxIdlTypeFlat {
         // TODO - support for numeric value to be parsed as const literals
         Ok(match ToolboxIdlPrimitive::try_parse(idl_str) {
             Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
-            None => ToolboxIdlTypeFlat::Defined {
-                name: idl_str.to_string(),
-                generics: vec![],
+            None => {
+                ToolboxIdlTypeFlat::Defined {
+                    name: idl_str.to_string(),
+                    generics: vec![],
+                }
             },
         })
     }

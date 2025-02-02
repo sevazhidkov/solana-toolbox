@@ -11,6 +11,7 @@ pub mod file_idl_anchor_0_30_data;
 pub mod file_idl_anchor_0_30_instruction;
 pub mod file_idl_anchor_broken_lookup;
 pub mod unit_parse_program_account_defined;
+pub mod unit_parse_program_account_generics;
 pub mod unit_parse_program_account_inlined;
 pub mod unit_parse_program_basic;
 pub mod unit_parse_program_error;

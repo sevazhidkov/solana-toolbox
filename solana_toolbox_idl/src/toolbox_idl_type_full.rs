@@ -58,22 +58,28 @@ impl ToolboxIdlTypeFull {
 impl ToolboxIdlTypeFullFields {
     pub fn describe(&self) -> String {
         match self {
-            ToolboxIdlTypeFullFields::Named(fields) => format!(
-                "{{{}}}",
-                fields
-                    .iter()
-                    .map(|field| format!("{}:{}", field.0, field.1.describe()))
-                    .collect::<Vec<_>>()
-                    .join(",")
-            ),
-            ToolboxIdlTypeFullFields::Unamed(fields) => format!(
-                "({})",
-                fields
-                    .iter()
-                    .map(|field| field.describe())
-                    .collect::<Vec<_>>()
-                    .join(",")
-            ),
+            ToolboxIdlTypeFullFields::Named(fields) => {
+                format!(
+                    "{{{}}}",
+                    fields
+                        .iter()
+                        .map(|field| {
+                            format!("{}:{}", field.0, field.1.describe())
+                        })
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            },
+            ToolboxIdlTypeFullFields::Unamed(fields) => {
+                format!(
+                    "({})",
+                    fields
+                        .iter()
+                        .map(|field| field.describe())
+                        .collect::<Vec<_>>()
+                        .join(",")
+                )
+            },
             ToolboxIdlTypeFullFields::None => "".to_string(),
         }
     }
