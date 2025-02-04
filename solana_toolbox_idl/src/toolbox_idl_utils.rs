@@ -92,6 +92,18 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     )
 }
 
+pub(crate) fn idl_array_get_scoped_values<'a>(
+    idl_array: &'a [Value],
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Vec<(&'a Value, ToolboxIdlBreadcrumbs)>, ToolboxIdlError> {
+    let mut scoped_array = vec![];
+    for (index, idl_item) in idl_array.iter().enumerate() {
+        scoped_array
+            .push((idl_item, breadcrumbs.with_idl(&format!("[{}]", index))));
+    }
+    Ok(scoped_array)
+}
+
 // TODO - could be cleaned ?
 type ScopedObject<'a> = (&'a Map<String, Value>, ToolboxIdlBreadcrumbs);
 pub(crate) fn idl_array_get_scoped_object_array_or_else<'a>(

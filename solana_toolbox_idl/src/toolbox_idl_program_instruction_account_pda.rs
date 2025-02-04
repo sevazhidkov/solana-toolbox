@@ -70,6 +70,7 @@ impl ToolboxIdlProgramInstructionAccountPda {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramInstructionAccountPdaBlob, ToolboxIdlError>
     {
+        // TODO - we could remove the lookup to "kind" and provide a shortcut
         let idl_instruction_account_pda_blob_kind =
             idl_object_get_key_as_str_or_else(
                 idl_instruction_account_pda_blob,

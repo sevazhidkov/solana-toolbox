@@ -35,6 +35,9 @@ impl ToolboxIdlTypeFull {
                     &breadcrumbs.idl(),
                 )?;
                 if generics_full.len() != program_type.generics.len() {
+                    println!("type_flat: {:?}", type_flat);
+                    println!("generics_full: {:?}", generics_full);
+                    println!("program_type: {:?}", program_type);
                     return idl_err(
                         "Wrong number of generic parameter",
                         &breadcrumbs.val(),

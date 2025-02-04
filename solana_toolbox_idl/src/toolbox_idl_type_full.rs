@@ -99,4 +99,11 @@ impl ToolboxIdlTypeFull {
             _ => None,
         }
     }
+
+    pub fn as_vec(&self) -> Option<&Box<ToolboxIdlTypeFull>> {
+        match self {
+            ToolboxIdlTypeFull::Vec { items } => Some(items),
+            _ => None,
+        }
+    }
 }

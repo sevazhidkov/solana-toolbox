@@ -292,6 +292,7 @@ fn idl_instruction_account_pda_path_resolve(
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let current = parts[0];
+    // TODO - support unamed structs as arg ?
     let value_object = idl_as_object_or_else(value, &breadcrumbs.val())?;
     let named_fields =
         idl_type_full_to_named_fields_or_else(type_full, &breadcrumbs.idl())?;
@@ -310,6 +311,10 @@ fn idl_instruction_account_pda_path_resolve(
                     &mut bytes,
                     &breadcrumbs.with_val(field_name),
                 )?;
+                // TODO - generalize this case to vec and nested structs fields
+                if field_type_full.as_vec().is_some() {
+                    bytes.drain(0..4);
+                }
                 if let Some(primitive) = field_type_full.as_primitive() {
                     if primitive == &ToolboxIdlPrimitive::String {
                         bytes.drain(0..4);

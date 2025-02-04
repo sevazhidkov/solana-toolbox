@@ -13,18 +13,19 @@ pub async fn run() {
     let idl = ToolboxIdl::try_from_value(&json!({
         "instructions": {
             "my_instruction": {
+                "discriminator": [77, 78],
                 "accounts": [{ "name": "payer", "signer": true }],
                 "args": [
                     { "name": "arg1", "type": {"defined": "MyArg"} },
-                    { "name": "arg2", "type": "i32" },
+                    { "name": "arg2", "type": "i16" },
                 ]
             }
         },
         "types": {
             "MyArg": {
                 "fields": [
-                    { "name": "id", "type": "u64" },
-                    { "name": "data", "type": {"vec": "u64"} },
+                    { "name": "id", "type": "u16" },
+                    { "name": "data", "type": {"vec": "u8"} },
                 ]
             }
         },
@@ -44,15 +45,11 @@ pub async fn run() {
                 "id": 42,
                 "data": [1, 2, 3]
             },
-            "arg2": -32,
+            "arg2": -2,
         }),
     };
     // Check that we can use the manual IDL to compile/decompile our IX
-    assert_eq!(
-        instruction,
-        idl.decompile_instruction(
-            &idl.compile_instruction(&instruction).unwrap()
-        )
-        .unwrap()
-    );
+    let ix = idl.compile_instruction(&instruction).unwrap();
+    assert_eq!(vec![77, 78, 42, 0, 3, 0, 0, 0, 1, 2, 3, 254, 255], ix.data);
+    assert_eq!(instruction, idl.decompile_instruction(&ix).unwrap());
 }

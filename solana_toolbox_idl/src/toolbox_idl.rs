@@ -23,7 +23,6 @@ use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 
-// TODO - support docs on accounts/instructions/defs/etc ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
     pub program_types: HashMap<String, ToolboxIdlProgramType>,

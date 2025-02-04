@@ -1604,17 +1604,7 @@
             "name": "participant_bloom",
             "type": {
               "defined": {
-                "name": "Bloom16_8",
-                "generics": [
-                  {
-                    "kind": "const",
-                    "value": "16"
-                  },
-                  {
-                    "kind": "const",
-                    "value": "8"
-                  }
-                ]
+                "name": "Bloom16_8"
               }
             }
           },
@@ -1622,17 +1612,7 @@
             "name": "order_bloom",
             "type": {
               "defined": {
-                "name": "Bloom16_8",
-                "generics": [
-                  {
-                    "kind": "const",
-                    "value": "16"
-                  },
-                  {
-                    "kind": "const",
-                    "value": "8"
-                  }
-                ]
+                "name": "Bloom16_8"
               }
             }
           }

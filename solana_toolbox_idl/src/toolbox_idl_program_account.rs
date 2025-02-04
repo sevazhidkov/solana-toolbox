@@ -11,6 +11,7 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 
+// TODO - should we simply expose the account API directly on this struct ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgramAccount {
     pub name: String,
