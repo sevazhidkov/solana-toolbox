@@ -92,18 +92,4 @@ impl ToolboxIdlTypeFull {
             _ => None,
         }
     }
-
-    pub fn as_primitive(&self) -> Option<&ToolboxIdlPrimitive> {
-        match self {
-            ToolboxIdlTypeFull::Primitive { primitive } => Some(primitive),
-            _ => None,
-        }
-    }
-
-    pub fn as_vec(&self) -> Option<&Box<ToolboxIdlTypeFull>> {
-        match self {
-            ToolboxIdlTypeFull::Vec { items } => Some(items),
-            _ => None,
-        }
-    }
 }

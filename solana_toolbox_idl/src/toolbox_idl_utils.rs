@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::num::TryFromIntError;
+use std::slice::Iter;
 
 use serde_json::Map;
 use serde_json::Value;
@@ -90,34 +91,6 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
         &format!("missing value at key: {}", key),
         context,
     )
-}
-
-pub(crate) fn idl_array_get_scoped_values<'a>(
-    idl_array: &'a [Value],
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<(&'a Value, ToolboxIdlBreadcrumbs)>, ToolboxIdlError> {
-    let mut scoped_array = vec![];
-    for (index, idl_item) in idl_array.iter().enumerate() {
-        scoped_array
-            .push((idl_item, breadcrumbs.with_idl(&format!("[{}]", index))));
-    }
-    Ok(scoped_array)
-}
-
-// TODO - could be cleaned ?
-type ScopedObject<'a> = (&'a Map<String, Value>, ToolboxIdlBreadcrumbs);
-pub(crate) fn idl_array_get_scoped_object_array_or_else<'a>(
-    idl_array: &'a [Value],
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<ScopedObject<'a>>, ToolboxIdlError> {
-    let mut scoped_object_array = vec![];
-    for (index, idl_item) in idl_array.iter().enumerate() {
-        let item_scope = format!("[{}]", index);
-        let idl_item =
-            idl_as_object_or_else(idl_item, &breadcrumbs.as_idl(&item_scope))?;
-        scoped_object_array.push((idl_item, breadcrumbs.with_idl(&item_scope)));
-    }
-    Ok(scoped_object_array)
 }
 
 // TODO - used in program_instruct (could be inlined there, and program_idl, could be modified/inlined)
@@ -257,11 +230,10 @@ pub(crate) fn idl_as_bool_or_else(
 }
 
 pub(crate) fn idl_as_bytes_or_else(
-    value: &Value,
+    array: &[Value],
     context: &ToolboxIdlContext,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     let mut bytes = vec![];
-    let array = idl_as_array_or_else(value, context)?;
     for item in array {
         let integer = idl_as_u128_or_else(item, context)?;
         let byte = idl_map_err_invalid_integer(u8::try_from(integer), context)?;
@@ -478,4 +450,19 @@ pub(crate) fn idl_str_to_usize_or_else(
             context: context.clone(),
         }
     })
+}
+
+pub(crate) fn idl_iter_get_scoped_values<'a, T>(
+    iter: impl IntoIterator<Item = &'a T>,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Vec<(usize, &'a T, ToolboxIdlBreadcrumbs)>, ToolboxIdlError> {
+    let mut scoped_values = vec![];
+    for (item_index, item) in iter.into_iter().enumerate() {
+        scoped_values.push((
+            item_index,
+            item,
+            breadcrumbs.with_idl(&format!("[{}]", item_index)),
+        ));
+    }
+    Ok(scoped_values)
 }

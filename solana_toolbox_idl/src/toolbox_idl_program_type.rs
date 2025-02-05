@@ -4,6 +4,7 @@ use serde_json::Value;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
@@ -34,13 +35,13 @@ impl ToolboxIdlProgramType {
         if let Some(idl_type_generics) =
             idl_object_get_key_as_array(idl_type, "generics")
         {
-            for (index, idl_type_generic) in
-                idl_type_generics.iter().enumerate()
+            for (_, idl_type_generic, breadcrumbs) in
+                idl_iter_get_scoped_values(idl_type_generics, breadcrumbs)?
             {
                 let idl_type_generic_name =
                     idl_value_as_str_or_object_with_name_as_str_or_else(
                         idl_type_generic,
-                        &breadcrumbs.as_idl(&format!("[{}]", index)),
+                        &breadcrumbs.idl(),
                     )?;
                 program_type_generics.push(idl_type_generic_name.to_string());
             }

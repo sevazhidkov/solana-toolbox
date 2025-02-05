@@ -13,6 +13,7 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -92,7 +93,7 @@ impl ToolboxIdlProgramInstruction {
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         Ok(
             if let Some(idl_instruction_discriminator) =
-                idl_instruction.get("discriminator")
+                idl_object_get_key_as_array(idl_instruction, "discriminator")
             {
                 idl_as_bytes_or_else(
                     idl_instruction_discriminator,
@@ -119,7 +120,7 @@ impl ToolboxIdlProgramInstruction {
         let mut instruction_accounts = vec![];
         for (
             idl_instruction_account_name,
-            idl_instruction_account_object,
+            idl_instruction_account,
             breadcrumbs,
         ) in idl_array_get_scoped_named_object_array_or_else(
             idl_instruction_accounts_array,
@@ -128,7 +129,7 @@ impl ToolboxIdlProgramInstruction {
             instruction_accounts.push(
                 ToolboxIdlProgramInstructionAccount::try_parse(
                     idl_instruction_account_name,
-                    idl_instruction_account_object,
+                    idl_instruction_account,
                     &breadcrumbs,
                 )?,
             );

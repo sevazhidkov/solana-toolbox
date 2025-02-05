@@ -10,6 +10,7 @@ use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 
 // TODO - should we simply expose the account API directly on this struct ?
 #[derive(Debug, Clone, PartialEq)]
@@ -66,7 +67,7 @@ impl ToolboxIdlProgramAccount {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         if let Some(idl_account_discriminator) =
-            idl_account.get("discriminator")
+            idl_object_get_key_as_array(idl_account, "discriminator")
         {
             return idl_as_bytes_or_else(
                 idl_account_discriminator,

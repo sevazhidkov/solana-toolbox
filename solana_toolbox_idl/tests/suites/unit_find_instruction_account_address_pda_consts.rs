@@ -9,21 +9,16 @@ use solana_toolbox_idl::ToolboxIdlInstruction;
 #[tokio::test]
 pub async fn run() {
     // Keys used during the test
-    let dummy_address = Pubkey::new_unique();
-    let dummy_program_id1 = Pubkey::new_unique();
-    let dummy_program_id2 = Pubkey::new_unique();
-    // Create an IDL on the fly
+    let program_id1 = Pubkey::new_unique();
+    let program_id2 = Pubkey::new_unique();
+    // Create IDLs on the fly
     let idl1 = ToolboxIdl::try_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],
                 "accounts": [
                     {
-                        "name": "const_address",
-                        "address": dummy_address.to_string()
-                    },
-                    {
-                        "name": "const_pda_bytes_without_program",
+                        "name": "const_bytes_without_program",
                         "pda": {
                             "seeds": [
                                 { "kind": "const", "value": [41, 00, 00, 00] },
@@ -32,7 +27,7 @@ pub async fn run() {
                         }
                     },
                     {
-                        "name": "const_pda_bytes_with_program",
+                        "name": "const_bytes_with_program",
                         "pda": {
                             "seeds": [
                                 { "kind": "const", "value": [41, 00, 00, 00] },
@@ -40,12 +35,12 @@ pub async fn run() {
                             ],
                             "program": {
                                 "kind": "const",
-                                "value": dummy_program_id2.to_bytes(),
+                                "value": program_id2.to_bytes(),
                             }
                         }
                     },
                     {
-                        "name": "const_pda_string_without_program",
+                        "name": "const_string_without_program",
                         "pda": {
                             "seeds": [
                                 { "kind": "const", "value": "hello" },
@@ -54,7 +49,7 @@ pub async fn run() {
                         }
                     },
                     {
-                        "name": "const_pda_string_with_program",
+                        "name": "const_string_with_program",
                         "pda": {
                             "seeds": [
                                 { "kind": "const", "value": "hello"},
@@ -62,7 +57,7 @@ pub async fn run() {
                             ],
                             "program": {
                                 "kind": "const",
-                                "value": dummy_program_id2.to_bytes(),
+                                "value": program_id2.to_bytes(),
                             }
                         }
                     },
@@ -71,78 +66,99 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    // Pdas based off of bytes seeds
-    let dummy_pda_seeds_bytes: &[&[u8]] =
+    let idl2 = ToolboxIdl::try_from_value(&json!({
+        "instructions": {
+            "my_instruction": {
+                "discriminator": [77, 78],
+                "accounts": [
+                    {
+                        "name": "const_bytes_without_program",
+                        "pda": {
+                            "seeds": [[41, 00, 00, 00], [42, 00, 00, 00]],
+                        }
+                    },
+                    {
+                        "name": "const_bytes_with_program",
+                        "pda": {
+                            "seeds": [[41, 00, 00, 00], [42, 00, 00, 00]],
+                            "program": { "value": program_id2.to_bytes() }
+                        }
+                    },
+                    {
+                        "name": "const_string_without_program",
+                        "pda": {
+                            "seeds": ["hello", "world"]
+                        }
+                    },
+                    {
+                        "name": "const_string_with_program",
+                        "pda": {
+                            "seeds": ["hello", "world"],
+                            "program": { "value": program_id2.to_bytes() }
+                        }
+                    },
+                ]
+            },
+        },
+    }))
+    .unwrap();
+    // Make sure the IDLs are equivalent
+    assert_eq!(idl1, idl2);
+    // Pdas based off of const bytes seeds
+    let pda_seeds_const_bytes: &[&[u8]] =
         &[&41u32.to_le_bytes(), &42u32.to_le_bytes()];
-    let dummy_pda_bytes1 =
-        Pubkey::find_program_address(dummy_pda_seeds_bytes, &dummy_program_id1)
-            .0;
-    let dummy_pda_bytes2 =
-        Pubkey::find_program_address(dummy_pda_seeds_bytes, &dummy_program_id2)
-            .0;
-    // Pdas based off of string seeds
-    let dummy_pda_seeds_string: &[&[u8]] = &[b"hello", b"world"];
-    eprintln!("dummy_pda_seeds_string:{:?}", dummy_pda_seeds_string);
-    let dummy_pda_string1 = Pubkey::find_program_address(
-        dummy_pda_seeds_string,
-        &dummy_program_id1,
-    )
-    .0;
-    let dummy_pda_string2 = Pubkey::find_program_address(
-        dummy_pda_seeds_string,
-        &dummy_program_id2,
-    )
-    .0;
+    let pda_const_bytes1 =
+        Pubkey::find_program_address(pda_seeds_const_bytes, &program_id1).0;
+    let pda_const_bytes2 =
+        Pubkey::find_program_address(pda_seeds_const_bytes, &program_id2).0;
+    // Pdas based off of const string seeds
+    let pda_seeds_const_string: &[&[u8]] = &[b"hello", b"world"];
+    eprintln!("pda_seeds_const_string:{:?}", pda_seeds_const_string);
+    let pda_const_string1 =
+        Pubkey::find_program_address(pda_seeds_const_string, &program_id1).0;
+    let pda_const_string2 =
+        Pubkey::find_program_address(pda_seeds_const_string, &program_id2).0;
     // The instruction we'll use
     let instruction = ToolboxIdlInstruction {
-        program_id: dummy_program_id1,
+        program_id: program_id1,
         name: "my_instruction".to_string(),
         accounts_addresses: HashMap::new(),
         args: Value::Null,
     };
     // Assert that the accounts can be properly resolved
     assert_eq!(
-        dummy_address,
+        pda_const_bytes1,
         idl1.find_instruction_account_address(
             &instruction,
             &HashMap::new(),
-            "const_address",
+            "const_bytes_without_program",
         )
         .unwrap()
     );
     assert_eq!(
-        dummy_pda_bytes1,
+        pda_const_bytes2,
         idl1.find_instruction_account_address(
             &instruction,
             &HashMap::new(),
-            "const_pda_bytes_without_program",
+            "const_bytes_with_program",
         )
         .unwrap()
     );
     assert_eq!(
-        dummy_pda_bytes2,
+        pda_const_string1,
         idl1.find_instruction_account_address(
             &instruction,
             &HashMap::new(),
-            "const_pda_bytes_with_program",
+            "const_string_without_program",
         )
         .unwrap()
     );
     assert_eq!(
-        dummy_pda_string1,
+        pda_const_string2,
         idl1.find_instruction_account_address(
             &instruction,
             &HashMap::new(),
-            "const_pda_string_without_program",
-        )
-        .unwrap()
-    );
-    assert_eq!(
-        dummy_pda_string2,
-        idl1.find_instruction_account_address(
-            &instruction,
-            &HashMap::new(),
-            "const_pda_string_with_program",
+            "const_string_with_program",
         )
         .unwrap()
     );

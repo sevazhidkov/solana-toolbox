@@ -15,6 +15,7 @@ use crate::toolbox_idl_utils::idl_i16_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i64_from_bytes_at;
 use crate::toolbox_idl_utils::idl_i8_from_bytes_at;
+use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
@@ -128,11 +129,14 @@ impl ToolboxIdlTypeFull {
         )?;
         let mut data_size = std::mem::size_of_val(&data_length);
         let mut data_items = vec![];
-        for index in 0..data_length {
+        for (_, _, breadcrumbs) in idl_iter_get_scoped_values(
+            &(0..data_length).collect::<Vec<u32>>(),
+            breadcrumbs,
+        )? {
             let (data_item_size, data_item) = vec_items.try_deserialize(
                 data,
                 data_offset + data_size,
-                &breadcrumbs.with_val(&format!("[{}]", index)),
+                &breadcrumbs,
             )?;
             data_size += data_item_size;
             data_items.push(data_item);
@@ -167,7 +171,7 @@ impl ToolboxIdlTypeFull {
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        ToolboxIdlTypeFull::try_deserialize_fields(
+        ToolboxIdlTypeFullFields::try_deserialize(
             struct_fields,
             data,
             data_offset,
@@ -196,7 +200,7 @@ impl ToolboxIdlTypeFull {
         let mut data_size = std::mem::size_of_val(&data_enum);
         let enum_variant = &enum_variants[data_index];
         let (data_fields_size, data_fields) =
-            ToolboxIdlTypeFull::try_deserialize_fields(
+            ToolboxIdlTypeFullFields::try_deserialize(
                 &enum_variant.1,
                 data,
                 data_offset + data_size,
@@ -350,14 +354,16 @@ impl ToolboxIdlTypeFull {
             },
         })
     }
+}
 
-    fn try_deserialize_fields(
-        fields: &ToolboxIdlTypeFullFields,
+impl ToolboxIdlTypeFullFields {
+    fn try_deserialize(
+        &self,
         data: &[u8],
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        Ok(match fields {
+        Ok(match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let mut data_size = 0;
                 let mut data_fields = Map::new();
@@ -376,11 +382,13 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFullFields::Unamed(fields) => {
                 let mut data_size = 0;
                 let mut data_fields = vec![];
-                for (index, field) in fields.iter().enumerate() {
+                for (_, field, breadcrumbs) in
+                    idl_iter_get_scoped_values(fields, breadcrumbs)?
+                {
                     let (data_field_size, data_field) = field.try_deserialize(
                         data,
                         data_offset + data_size,
-                        &breadcrumbs.with_val(&format!("[{}]", index)),
+                        &breadcrumbs,
                     )?;
                     data_size += data_field_size;
                     data_fields.push(data_field);

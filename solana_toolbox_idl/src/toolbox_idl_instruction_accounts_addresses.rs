@@ -13,9 +13,8 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_context::ToolboxIdlContext;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
-use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
+use crate::toolbox_idl_program_instruction_account_blob::ToolboxIdlProgramInstructionAccountBlob;
 use crate::toolbox_idl_program_instruction_account_pda::ToolboxIdlProgramInstructionAccountPda;
-use crate::toolbox_idl_program_instruction_account_pda::ToolboxIdlProgramInstructionAccountPdaBlob;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
@@ -184,7 +183,7 @@ fn idl_instruction_account_pda_resolve(
 ) -> Result<Pubkey, ToolboxIdlError> {
     let mut pda_seeds_bytes = vec![];
     for pda_seed_blob in &program_instruction_account_pda.seeds {
-        pda_seeds_bytes.push(idl_instruction_account_pda_blob_resolve(
+        pda_seeds_bytes.push(idl_instruction_account_blob_resolve(
             idl,
             pda_seed_blob,
             instruction,
@@ -195,7 +194,7 @@ fn idl_instruction_account_pda_resolve(
     let pda_program_id = if let Some(pda_program_blob) =
         &program_instruction_account_pda.program
     {
-        let pda_program_id_bytes = idl_instruction_account_pda_blob_resolve(
+        let pda_program_id_bytes = idl_instruction_account_blob_resolve(
             idl,
             pda_program_blob,
             instruction,
@@ -221,18 +220,18 @@ fn idl_instruction_account_pda_resolve(
 }
 
 // TODO - naming fix
-fn idl_instruction_account_pda_blob_resolve(
+fn idl_instruction_account_blob_resolve(
     idl: &ToolboxIdl,
-    program_account_pda_blob: &ToolboxIdlProgramInstructionAccountPdaBlob,
+    program_instruction_account_blob: &ToolboxIdlProgramInstructionAccountBlob,
     instruction: &ToolboxIdlInstruction,
     instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
     breadcrumbs: &ToolboxIdlBreadcrumbs,
 ) -> Result<Vec<u8>, ToolboxIdlError> {
-    match program_account_pda_blob {
-        ToolboxIdlProgramInstructionAccountPdaBlob::Const { bytes } => {
+    match program_instruction_account_blob {
+        ToolboxIdlProgramInstructionAccountBlob::Const { bytes } => {
             Ok(bytes.clone())
         },
-        ToolboxIdlProgramInstructionAccountPdaBlob::Account { path } => {
+        ToolboxIdlProgramInstructionAccountBlob::Account { path } => {
             let idl_blob_parts = Vec::from_iter(path.split("."));
             if idl_blob_parts.len() == 1 {
                 return idl_instruction_account_address_resolve(
@@ -244,28 +243,33 @@ fn idl_instruction_account_pda_blob_resolve(
                 )
                 .map(|address| address.to_bytes().to_vec());
             }
-            let account_name = idl_blob_parts[0];
-            let account = idl_ok_or_else(
-                instruction_accounts.get(account_name).or_else(|| {
-                    instruction_accounts.get(&account_name.to_case(Case::Camel))
-                }),
-                "Missing account value",
-                &breadcrumbs.as_val(account_name),
+            let instruction_account_name = idl_blob_parts[0];
+            let instruction_account = idl_ok_or_else(
+                instruction_accounts.get(instruction_account_name).or_else(
+                    || {
+                        instruction_accounts
+                            .get(&instruction_account_name.to_case(Case::Camel))
+                    },
+                ),
+                "Missing instruction account value",
+                &breadcrumbs.as_val(instruction_account_name),
             )?;
             let program_account = idl_map_get_key_or_else(
                 &idl.program_accounts,
-                &account.name,
+                &instruction_account.name,
                 &breadcrumbs.as_idl("$program_accounts"),
             )?;
             idl_instruction_account_pda_path_resolve(
                 idl,
                 &program_account.data_type_full,
-                &account.state,
+                &instruction_account.state,
                 &idl_blob_parts[1..],
-                &breadcrumbs.with_idl(&account.name).with_val(account_name),
+                &breadcrumbs
+                    .with_idl(&instruction_account.name)
+                    .with_val(instruction_account_name),
             )
         },
-        ToolboxIdlProgramInstructionAccountPdaBlob::Arg { path } => {
+        ToolboxIdlProgramInstructionAccountBlob::Arg { path } => {
             let idl_blob_parts = Vec::from_iter(path.split("."));
             let program_instruction = &idl_map_get_key_or_else(
                 &idl.program_instructions,
@@ -309,17 +313,9 @@ fn idl_instruction_account_pda_path_resolve(
                 field_type_full.try_serialize(
                     value_field,
                     &mut bytes,
+                    false,
                     &breadcrumbs.with_val(field_name),
                 )?;
-                // TODO - generalize this case to vec and nested structs fields
-                if field_type_full.as_vec().is_some() {
-                    bytes.drain(0..4);
-                }
-                if let Some(primitive) = field_type_full.as_primitive() {
-                    if primitive == &ToolboxIdlPrimitive::String {
-                        bytes.drain(0..4);
-                    }
-                }
                 return Ok(bytes);
             }
             return idl_instruction_account_pda_path_resolve(
@@ -342,6 +338,6 @@ fn idl_type_full_to_named_fields_or_else<'a>(
         ToolboxIdlTypeFull::Struct {
             fields: ToolboxIdlTypeFullFields::Named(fields),
         } => Ok(fields),
-        _ => return idl_err("Expected fields", context),
+        _ => return idl_err("Expected struct fields named", context),
     }
 }

@@ -7,6 +7,7 @@ use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
@@ -175,14 +176,12 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_defined_generics) =
             idl_value_as_object_get_key_as_array(idl_defined, "generics")
         {
-            // TODO - iteration scoped worth utils ?
-            for (idl_defined_generic_index, idl_defined_generic) in
-                idl_defined_generics.iter().enumerate()
+            for (_, idl_defined_generic, breadcrumbs) in
+                idl_iter_get_scoped_values(idl_defined_generics, breadcrumbs)?
             {
                 defined_generics.push(ToolboxIdlTypeFlat::try_parse(
                     idl_defined_generic,
-                    &breadcrumbs
-                        .with_idl(&format!("[{}]", idl_defined_generic_index)),
+                    &breadcrumbs,
                 )?);
             }
         }
@@ -242,7 +241,7 @@ impl ToolboxIdlTypeFlat {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlat::try_parse_fields(
+            fields: ToolboxIdlTypeFlatFields::try_parse(
                 idl_struct_fields,
                 breadcrumbs,
             )?,
@@ -254,23 +253,20 @@ impl ToolboxIdlTypeFlat {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         let mut enum_variants = vec![];
-        for (idl_enum_variant_index, idl_enum_variant) in
-            idl_enum_variants.iter().enumerate()
+        for (_, idl_enum_variant, breadcrumbs) in
+            idl_iter_get_scoped_values(idl_enum_variants, breadcrumbs)?
         {
             let enum_variant_name =
                 idl_value_as_str_or_object_with_name_as_str_or_else(
                     idl_enum_variant,
-                    &breadcrumbs.as_idl(&format!(
-                        "variants[{}]",
-                        idl_enum_variant_index
-                    )),
+                    &breadcrumbs.idl(),
                 )?;
             let enum_variant_fields = if let Some(idl_enum_variant_fields) =
                 idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
             {
-                ToolboxIdlTypeFlat::try_parse_fields(
+                ToolboxIdlTypeFlatFields::try_parse(
                     idl_enum_variant_fields,
-                    breadcrumbs,
+                    &breadcrumbs.with_idl("fields"),
                 )?
             } else {
                 ToolboxIdlTypeFlatFields::None
@@ -280,8 +276,10 @@ impl ToolboxIdlTypeFlat {
         }
         Ok(ToolboxIdlTypeFlat::Enum { variants: enum_variants })
     }
+}
 
-    fn try_parse_fields(
+impl ToolboxIdlTypeFlatFields {
+    fn try_parse(
         idl_fields: &[Value],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlatFields, ToolboxIdlError> {

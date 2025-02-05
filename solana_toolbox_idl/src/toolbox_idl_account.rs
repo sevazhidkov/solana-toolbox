@@ -84,6 +84,7 @@ impl ToolboxIdl {
         program_account.data_type_full.try_serialize(
             &account.state,
             &mut account_data,
+            true,
             &breadcrumbs.with_idl(&account.name),
         )?;
         Ok(account_data)

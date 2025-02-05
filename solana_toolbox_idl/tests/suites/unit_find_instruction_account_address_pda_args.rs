@@ -1,44 +1,34 @@
 use std::collections::HashMap;
 
 use serde_json::json;
-use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl1 = ToolboxIdl::try_from_value(&json!({
+    let idl = ToolboxIdl::try_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],
                 "accounts": [
                     {
-                        "name": "first",
-                        "type": "my_account",
-                    },
-                    {
                         "name": "pda",
                         "pda": {
                             "seeds": [
-                                { "kind": "account", "path": "first.u8" },
-                                { "kind": "account", "path": "first.u16" },
-                                { "kind": "account", "path": "first.u32" },
-                                { "kind": "account", "path": "first.u64" },
-                                { "kind": "account", "path": "first.array_u8_2" },
-                                { "kind": "account", "path": "first.vec_u8_3" },
-                                { "kind": "account", "path": "first.string" },
+                                { "kind": "arg", "path": "u8" },
+                                { "kind": "arg", "path": "u16" },
+                                { "kind": "arg", "path": "u32" },
+                                { "kind": "arg", "path": "u64" },
+                                { "kind": "arg", "path": "array_u8_2" },
+                                { "kind": "arg", "path": "vec_u8_3" },
+                                { "kind": "arg", "path": "string" },
                             ]
                         }
                     },
                 ],
-            },
-        },
-        "accounts": {
-            "my_account": {
-                "fields": [
+                "args": [
                     { "name": "u8", "type": "u8" },
                     { "name": "u16", "type": "u16" },
                     { "name": "u32", "type": "u32" },
@@ -47,8 +37,8 @@ pub async fn run() {
                     { "name": "vec_u8_3", "type": ["u8"] },
                     { "name": "string", "type": "string" },
                 ]
-            }
-        }
+            },
+        },
     }))
     .unwrap();
     // Keys used during the test
@@ -69,28 +59,22 @@ pub async fn run() {
         program_id: dummy_program_id,
         name: "my_instruction".to_string(),
         accounts_addresses: HashMap::new(),
-        args: Value::Null,
+        args: json!({
+            "u8": 77,
+            "u16": 78,
+            "u32": 79,
+            "u64": 80,
+            "array_u8_2": [11, 12],
+            "vec_u8_3": [21, 22, 23],
+            "string": "hello",
+        }),
     };
     // Assert that the accounts can be properly resolved
     assert_eq!(
         dummy_pda,
-        idl1.find_instruction_account_address(
+        idl.find_instruction_account_address(
             &instruction,
-            &HashMap::from_iter(vec![(
-                "first".to_string(),
-                ToolboxIdlAccount {
-                    name: "my_account".to_string(),
-                    state: json!({
-                        "u8": 77,
-                        "u16": 78,
-                        "u32": 79,
-                        "u64": 80,
-                        "array_u8_2": [11, 12],
-                        "vec_u8_3": [21, 22, 23],
-                        "string": "hello",
-                    })
-                }
-            )]),
+            &HashMap::new(),
             "pda",
         )
         .unwrap()

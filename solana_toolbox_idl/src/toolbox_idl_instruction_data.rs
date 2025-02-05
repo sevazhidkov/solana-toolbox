@@ -22,6 +22,7 @@ impl ToolboxIdl {
         program_instruction.data_type_full.try_serialize(
             instruction_args,
             &mut instruction_data,
+            true,
             &breadcrumbs.with_val("args"),
         )?;
         Ok(instruction_data)
