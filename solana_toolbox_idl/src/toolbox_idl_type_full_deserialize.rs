@@ -153,11 +153,14 @@ impl ToolboxIdlTypeFull {
     ) -> Result<(usize, Value), ToolboxIdlError> {
         let mut data_size = 0;
         let mut data_items = vec![];
-        for index in 0..array_length {
+        for (_, _, breadcrumbs) in idl_iter_get_scoped_values(
+            &(0..array_length).collect::<Vec<usize>>(),
+            breadcrumbs,
+        )? {
             let (data_item_size, data_item) = array_items.try_deserialize(
                 data,
                 data_offset + data_size,
-                &breadcrumbs.with_val(&format!("[{}]", index)),
+                &breadcrumbs,
             )?;
             data_size += data_item_size;
             data_items.push(data_item);

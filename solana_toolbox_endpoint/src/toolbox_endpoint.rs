@@ -7,6 +7,7 @@ use solana_sdk::transaction::Transaction;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+use crate::toolbox_endpoint_simulation::ToolboxEndpointSimulation;
 
 pub struct ToolboxEndpoint {
     proxy: Box<dyn ToolboxEndpointProxy>,
@@ -47,11 +48,18 @@ impl ToolboxEndpoint {
         self.proxy.get_accounts(addresses).await
     }
 
+    pub async fn simulate_transaction(
+        &mut self,
+        transaction: &Transaction,
+    ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
+        self.proxy.simulate_transaction(&transaction).await
+    }
+
     pub async fn process_transaction(
         &mut self,
-        transaction: Transaction,
+        transaction: &Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let result = self.proxy.process_transaction(transaction.clone()).await;
+        let result = self.proxy.process_transaction(transaction).await;
         for logger in &self.loggers {
             logger.on_transaction(&transaction, &result).await;
         }

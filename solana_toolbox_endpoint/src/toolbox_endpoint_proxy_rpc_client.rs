@@ -2,6 +2,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
+use serde::Serialize;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
@@ -10,9 +11,12 @@ use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
+use spl_token::amount_to_ui_amount;
+use spl_token::instruction::ui_amount_to_amount;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+use crate::toolbox_endpoint_simulation::ToolboxEndpointSimulation;
 
 const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
 const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
@@ -48,12 +52,30 @@ impl ToolboxEndpointProxy for RpcClient {
         Ok(self.get_multiple_accounts(addresses).await?)
     }
 
+    async fn simulate_transaction(
+        &mut self,
+        transaction: &Transaction,
+    ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
+        let simulate_transaction_result =
+            RpcClient::simulate_transaction(&self, transaction).await?.value;
+        eprintln!(
+            "simulate_transaction_result.return_data: {:?}",
+            simulate_transaction_result.return_data
+        );
+        Ok(ToolboxEndpointSimulation {
+            err: simulate_transaction_result.err,
+            logs: simulate_transaction_result.logs,
+            units_consumed: simulate_transaction_result.units_consumed,
+            return_data: None, // TODO - decode transaction return data
+        })
+    }
+
     async fn process_transaction(
         &mut self,
-        transaction: Transaction,
+        transaction: &Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
         let timer = Instant::now();
-        let signature = self.send_transaction(&transaction).await?;
+        let signature = self.send_transaction(transaction).await?;
         loop {
             if self.confirm_transaction(&signature).await? {
                 return Ok(signature);

@@ -11,6 +11,7 @@ use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+use crate::toolbox_endpoint_simulation::ToolboxEndpointSimulation;
 
 const SLOTS_PER_EPOCH: u64 = 432_000;
 const SLOTS_PER_SECOND: u64 = 2;
@@ -42,16 +43,42 @@ impl ToolboxEndpointProxy for ProgramTestContext {
         Ok(accounts)
     }
 
+    async fn simulate_transaction(
+        &mut self,
+        transaction: &Transaction,
+    ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
+        let simulation_outcome =
+            self.banks_client.simulate_transaction(transaction.clone()).await?;
+        let simulation_err = simulation_outcome.result.transpose().err();
+        if let Some(simulation_details) = simulation_outcome.simulation_details
+        {
+            return Ok(ToolboxEndpointSimulation {
+                err: simulation_err,
+                logs: Some(simulation_details.logs),
+                return_data: simulation_details
+                    .return_data
+                    .map(|return_data| return_data.data),
+                units_consumed: Some(simulation_details.units_consumed),
+            });
+        }
+        Ok(ToolboxEndpointSimulation {
+            err: simulation_err,
+            logs: None,
+            return_data: None,
+            units_consumed: None,
+        })
+    }
+
     async fn process_transaction(
         &mut self,
-        transaction: Transaction,
+        transaction: &Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
         self.last_blockhash = self
             .banks_client
             .get_new_latest_blockhash(&self.last_blockhash)
             .await
             .map_err(ToolboxEndpointError::Io)?;
-        self.banks_client.process_transaction(transaction).await?;
+        self.banks_client.process_transaction(transaction.clone()).await?;
         Ok(Signature::default())
     }
 
@@ -62,12 +89,12 @@ impl ToolboxEndpointProxy for ProgramTestContext {
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = transfer(&self.payer.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
-        let mut transaction: Transaction = Transaction::new_with_payer(
+        let mut transaction = Transaction::new_with_payer(
             &[instruction.clone()],
             Some(&self.payer.pubkey()),
         );
         transaction.partial_sign(&[&self.payer], latest_blockhash);
-        self.process_transaction(transaction).await
+        self.process_transaction(&transaction).await
     }
 
     async fn forward_clock_unix_timestamp(

@@ -139,7 +139,7 @@ impl ToolboxIdlTypeFlat {
         idl_str: &str,
         _breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        // TODO - support for numeric value to be parsed as const literals
+        // TODO - support for numeric value to be parsed as const literals ?
         Ok(match ToolboxIdlPrimitive::try_parse(idl_str) {
             Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
             None => {
@@ -172,7 +172,6 @@ impl ToolboxIdlTypeFlat {
             &breadcrumbs.as_idl("defined"),
         )?;
         let mut defined_generics = vec![];
-        // TODO - parsing here could use a shortened version
         if let Some(idl_defined_generics) =
             idl_value_as_object_get_key_as_array(idl_defined, "generics")
         {

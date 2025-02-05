@@ -11,6 +11,7 @@ mod toolbox_endpoint_program;
 mod toolbox_endpoint_proxy;
 mod toolbox_endpoint_proxy_program_test_context;
 mod toolbox_endpoint_proxy_rpc_client;
+mod toolbox_endpoint_simulation;
 mod toolbox_endpoint_transaction;
 mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_consts;
@@ -19,6 +20,7 @@ mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
 mod toolbox_endpoint_util_sysvar;
 // TODO - support for subscriptions/websockets ?
+// TODO - support for simulating transaction ?
 
 pub use solana_program_test::processor as solana_program_test_processor;
 pub use toolbox_endpoint::ToolboxEndpoint;
@@ -31,4 +33,5 @@ pub use toolbox_endpoint_logger_history::ToolboxEndpointLoggerHistoryTransaction
 pub use toolbox_endpoint_logger_printer::ToolboxEndpointLoggerPrinter;
 pub use toolbox_endpoint_printer::ToolboxEndpointPrinter;
 pub use toolbox_endpoint_program::ToolboxEndpointProgramData;
+pub use toolbox_endpoint_simulation::ToolboxEndpointSimulation;
 pub use toolbox_endpoint_transaction::ToolboxEndpointTransaction;

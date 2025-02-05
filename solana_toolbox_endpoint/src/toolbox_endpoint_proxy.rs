@@ -5,6 +5,7 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_simulation::ToolboxEndpointSimulation;
 
 #[async_trait::async_trait]
 pub trait ToolboxEndpointProxy {
@@ -22,9 +23,14 @@ pub trait ToolboxEndpointProxy {
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>, ToolboxEndpointError>;
 
+    async fn simulate_transaction(
+        &mut self,
+        transaction: &Transaction,
+    ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError>;
+
     async fn process_transaction(
         &mut self,
-        transaction: Transaction,
+        transaction: &Transaction,
     ) -> Result<Signature, ToolboxEndpointError>;
 
     async fn process_airdrop(

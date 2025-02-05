@@ -85,10 +85,15 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => idl_err(
-                &format!("Can't use a const literal directly: {:?}", literal),
-                &breadcrumbs.idl(),
-            ),
+            ToolboxIdlTypeFull::Const { literal } => {
+                idl_err(
+                    &format!(
+                        "Can't use a const literal directly: {:?}",
+                        literal
+                    ),
+                    &breadcrumbs.idl(),
+                )
+            },
         }
     }
 
@@ -320,11 +325,9 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(&value_bytes);
             },
             ToolboxIdlPrimitive::Boolean => {
-                data.push(if idl_as_bool_or_else(value, context)? {
-                    1
-                } else {
-                    0
-                });
+                data.push(
+                    if idl_as_bool_or_else(value, context)? { 1 } else { 0 },
+                );
             },
             ToolboxIdlPrimitive::String => {
                 let value_str = idl_as_str_or_else(value, context)?;
