@@ -44,7 +44,7 @@ impl ToolboxIdlProgramInstructionAccountPda {
             pda_program =
                 Some(ToolboxIdlProgramInstructionAccountBlob::try_parse(
                     idl_instruction_account_pda_program,
-                    &breadcrumbs,
+                    breadcrumbs,
                 )?);
         }
         Ok(Some(ToolboxIdlProgramInstructionAccountPda {

@@ -11,7 +11,6 @@ pub async fn run() {
     // Lookup instructions and print them
     for program_instruction in idl.program_instructions.values() {
         program_instruction.print();
-        println!("program_instruction: {:#?}", program_instruction);
     }
     // Lookup accounts and print them
     for program_account in idl.program_accounts.values() {
@@ -25,5 +24,4 @@ pub async fn run() {
     for program_error in idl.program_errors.values() {
         program_error.print();
     }
-    panic!("BROKEN");
 }

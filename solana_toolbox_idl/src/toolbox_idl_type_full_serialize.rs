@@ -368,7 +368,7 @@ impl ToolboxIdlTypeFullFields {
                 for (name, field) in fields {
                     let value_field = idl_object_get_key_or_else(
                         value,
-                        &name,
+                        name,
                         &breadcrumbs.val(),
                     )?;
                     field.try_serialize(

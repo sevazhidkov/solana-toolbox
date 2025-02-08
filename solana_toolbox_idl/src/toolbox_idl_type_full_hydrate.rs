@@ -91,7 +91,7 @@ impl ToolboxIdlTypeFull {
                         ToolboxIdlTypeFull::try_hydrate(
                             program_types,
                             generics_by_symbol,
-                            &length,
+                            length,
                             breadcrumbs,
                         )?
                         .as_const_literal(),
@@ -128,7 +128,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFlat::Generic { symbol } => {
                 idl_map_get_key_or_else(
                     generics_by_symbol,
-                    &symbol,
+                    symbol,
                     &breadcrumbs.idl(),
                 )?
                 .clone()

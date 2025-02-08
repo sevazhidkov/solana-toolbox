@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::num::TryFromIntError;
-use std::slice::Iter;
 
 use serde_json::Map;
 use serde_json::Value;
@@ -151,17 +150,15 @@ pub(crate) fn idl_value_as_object_get_key_as_array<'a>(
 ) -> Option<&'a Vec<Value>> {
     value
         .as_object()
-        .map(|object| object.get(key))
-        .flatten()
-        .map(|item| item.as_array())
-        .flatten()
+        .and_then(|object| object.get(key))
+        .and_then(|item| item.as_array())
 }
 
 pub(crate) fn idl_value_as_object_get_key<'a>(
     value: &'a Value,
     key: &str,
 ) -> Option<&'a Value> {
-    value.as_object().map(|object| object.get(key)).flatten()
+    value.as_object().and_then(|object| object.get(key))
 }
 
 pub(crate) fn idl_as_array_or_else<'a>(

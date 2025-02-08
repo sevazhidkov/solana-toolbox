@@ -289,8 +289,7 @@ impl ToolboxIdlTypeFlatFields {
         let mut fields_info = vec![];
         for (idl_field_index, idl_field) in idl_fields.iter().enumerate() {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
-                .map(|name| name.as_str())
-                .flatten()
+                .and_then(|name| name.as_str())
                 .map(|name| name.to_string());
             if field_name.is_some() {
                 fields_named = true;

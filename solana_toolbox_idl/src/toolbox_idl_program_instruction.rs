@@ -148,7 +148,7 @@ impl ToolboxIdlProgramInstruction {
             )]));
             return ToolboxIdlTypeFlat::try_parse(
                 &idl_instruction_args,
-                &breadcrumbs,
+                breadcrumbs,
             );
         }
         Ok(ToolboxIdlTypeFlat::Struct {

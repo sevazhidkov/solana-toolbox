@@ -52,7 +52,7 @@ impl ToolboxEndpoint {
         &mut self,
         transaction: &Transaction,
     ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
-        self.proxy.simulate_transaction(&transaction).await
+        self.proxy.simulate_transaction(transaction).await
     }
 
     pub async fn process_transaction(
@@ -61,7 +61,7 @@ impl ToolboxEndpoint {
     ) -> Result<Signature, ToolboxEndpointError> {
         let result = self.proxy.process_transaction(transaction).await;
         for logger in &self.loggers {
-            logger.on_transaction(&transaction, &result).await;
+            logger.on_transaction(transaction, &result).await;
         }
         result
     }

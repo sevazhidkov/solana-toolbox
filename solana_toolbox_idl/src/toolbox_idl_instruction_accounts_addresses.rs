@@ -260,7 +260,6 @@ fn idl_instruction_account_blob_resolve(
                 &breadcrumbs.as_idl("$program_accounts"),
             )?;
             idl_instruction_account_pda_path_resolve(
-                idl,
                 &program_account.data_type_full,
                 &instruction_account.state,
                 &idl_blob_parts[1..],
@@ -277,7 +276,6 @@ fn idl_instruction_account_blob_resolve(
                 &breadcrumbs.as_idl("$program_instructions"),
             )?;
             idl_instruction_account_pda_path_resolve(
-                idl,
                 &program_instruction.data_type_full,
                 &instruction.args,
                 &idl_blob_parts,
@@ -289,7 +287,6 @@ fn idl_instruction_account_blob_resolve(
 
 // TODO - naming fix
 fn idl_instruction_account_pda_path_resolve(
-    idl: &ToolboxIdl,
     type_full: &ToolboxIdlTypeFull,
     value: &Value,
     parts: &[&str],
@@ -319,8 +316,7 @@ fn idl_instruction_account_pda_path_resolve(
                 return Ok(bytes);
             }
             return idl_instruction_account_pda_path_resolve(
-                idl,
-                &field_type_full,
+                field_type_full,
                 value_field,
                 &parts[1..],
                 &breadcrumbs.with_idl("*"),
@@ -338,6 +334,6 @@ fn idl_type_full_to_named_fields_or_else<'a>(
         ToolboxIdlTypeFull::Struct {
             fields: ToolboxIdlTypeFullFields::Named(fields),
         } => Ok(fields),
-        _ => return idl_err("Expected struct fields named", context),
+        _ => idl_err("Expected struct fields named", context),
     }
 }

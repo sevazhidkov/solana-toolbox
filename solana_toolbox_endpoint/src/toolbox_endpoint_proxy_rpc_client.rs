@@ -2,7 +2,6 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
-use serde::Serialize;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
@@ -11,8 +10,6 @@ use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
-use spl_token::amount_to_ui_amount;
-use spl_token::instruction::ui_amount_to_amount;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
@@ -57,7 +54,7 @@ impl ToolboxEndpointProxy for RpcClient {
         transaction: &Transaction,
     ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
         let simulate_transaction_result =
-            RpcClient::simulate_transaction(&self, transaction).await?.value;
+            RpcClient::simulate_transaction(self, transaction).await?.value;
         eprintln!(
             "simulate_transaction_result.return_data: {:?}",
             simulate_transaction_result.return_data
