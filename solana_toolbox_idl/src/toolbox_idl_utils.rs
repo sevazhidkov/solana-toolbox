@@ -92,45 +92,6 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     )
 }
 
-// TODO - used in program_instruct (could be inlined there, and program_idl, could be modified/inlined)
-type ScopedNamedObject<'a> =
-    (&'a str, &'a Map<String, Value>, ToolboxIdlBreadcrumbs);
-pub(crate) fn idl_array_get_scoped_named_object_array_or_else<'a>(
-    idl_array: &'a [Value],
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<ScopedNamedObject<'a>>, ToolboxIdlError> {
-    let mut scoped_named_object_array = vec![];
-    for (index, idl_item) in idl_array.iter().enumerate() {
-        let context = &breadcrumbs.as_idl(&format!("[{}]", index));
-        let idl_item = idl_as_object_or_else(idl_item, context)?;
-        let idl_item_name =
-            idl_object_get_key_as_str_or_else(idl_item, "name", context)?;
-        scoped_named_object_array.push((
-            idl_item_name,
-            idl_item,
-            breadcrumbs.with_idl(idl_item_name),
-        ))
-    }
-    Ok(scoped_named_object_array)
-}
-
-// TODO - only used in program_idl, where it can be modified/inlined
-type ScopedKeyValue<'a> = (&'a str, &'a Value, ToolboxIdlBreadcrumbs);
-pub(crate) fn idl_object_get_scoped_key_value_array<'a>(
-    idl_object: &'a Map<String, Value>,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<ScopedKeyValue<'a>>, ToolboxIdlError> {
-    let mut scoped_key_value_array = vec![];
-    for (idl_key, idl_value) in idl_object {
-        scoped_key_value_array.push((
-            idl_key.as_str(),
-            idl_value,
-            breadcrumbs.with_idl(idl_key),
-        ))
-    }
-    Ok(scoped_key_value_array)
-}
-
 pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else<'a>(
     value: &'a Value,
     context: &ToolboxIdlContext,
@@ -244,11 +205,9 @@ pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
     failure: &str,
     context: &ToolboxIdlContext,
 ) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| {
-        ToolboxIdlError::Custom {
-            failure: failure.to_string(),
-            context: context.clone(),
-        }
+    option.ok_or_else(|| ToolboxIdlError::Custom {
+        failure: failure.to_string(),
+        context: context.clone(),
     })
 }
 
@@ -429,11 +388,9 @@ pub(crate) fn idl_map_err_invalid_integer<V>(
     result: Result<V, TryFromIntError>,
     context: &ToolboxIdlContext,
 ) -> Result<V, ToolboxIdlError> {
-    result.map_err(|err| {
-        ToolboxIdlError::InvalidInteger {
-            conversion: err,
-            context: context.clone(),
-        }
+    result.map_err(|err| ToolboxIdlError::InvalidInteger {
+        conversion: err,
+        context: context.clone(),
     })
 }
 
@@ -441,11 +398,9 @@ pub(crate) fn idl_str_to_usize_or_else(
     value: &str,
     context: &ToolboxIdlContext,
 ) -> Result<usize, ToolboxIdlError> {
-    value.parse().map_err(|err| {
-        ToolboxIdlError::InvalidNumber {
-            parsing: err,
-            context: context.clone(),
-        }
+    value.parse().map_err(|err| ToolboxIdlError::InvalidNumber {
+        parsing: err,
+        context: context.clone(),
     })
 }
 

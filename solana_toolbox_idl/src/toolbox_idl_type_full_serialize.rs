@@ -85,15 +85,10 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => {
-                idl_err(
-                    &format!(
-                        "Can't use a const literal directly: {:?}",
-                        literal
-                    ),
-                    &breadcrumbs.idl(),
-                )
-            },
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
+                &format!("Can't use a const literal directly: {:?}", literal),
+                &breadcrumbs.idl(),
+            ),
         }
     }
 
@@ -125,14 +120,13 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        let value_array =
-            idl_as_array_or_else(value, &breadcrumbs.as_val("vec"))?;
+        let values = idl_as_array_or_else(value, &breadcrumbs.as_val("vec"))?;
         if deserializable {
-            let value_length = u32::try_from(value_array.len()).unwrap();
+            let value_length = u32::try_from(values.len()).unwrap();
             data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_length));
         }
         for (_, value_item, breadcrumbs) in
-            idl_iter_get_scoped_values(value_array, breadcrumbs)?
+            idl_iter_get_scoped_values(values, breadcrumbs)?
         {
             vec_items.try_serialize(
                 value_item,
@@ -152,20 +146,19 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        let value_array =
-            idl_as_array_or_else(value, &breadcrumbs.as_val("array"))?;
-        if value_array.len() != array_length {
+        let values = idl_as_array_or_else(value, &breadcrumbs.as_val("array"))?;
+        if values.len() != array_length {
             return idl_err(
                 &format!(
                     "value array is not the correct size: expected {} items, found {} items",
                     array_length,
-                    value_array.len()
+                    values.len()
                 ),
                 &breadcrumbs.as_idl("value array"),
             );
         }
         for (_, value_item, breadcrumbs) in
-            idl_iter_get_scoped_values(value_array, breadcrumbs)?
+            idl_iter_get_scoped_values(values, breadcrumbs)?
         {
             array_items.try_serialize(
                 value_item,
@@ -200,22 +193,21 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        let (value_enum, value_fields) = if let Some(value_string) =
-            value.as_str()
-        {
-            (value_string, &Value::Null)
-        } else {
-            let value_array = idl_as_array_or_else(value, &breadcrumbs.val())?;
-            if value_array.len() != 2 {
-                return idl_err(
-                    "Expected an array of 2 item [{enum}, {fields}]",
-                    &breadcrumbs.val(),
-                );
-            }
-            let value_string =
-                idl_as_str_or_else(&value_array[0], &breadcrumbs.val())?;
-            (value_string, &value_array[1])
-        };
+        let (value_enum, value_fields) =
+            if let Some(value_string) = value.as_str() {
+                (value_string, &Value::Null)
+            } else {
+                let values = idl_as_array_or_else(value, &breadcrumbs.val())?;
+                if values.len() != 2 {
+                    return idl_err(
+                        "Expected an array of 2 item [{enum}, {fields}]",
+                        &breadcrumbs.val(),
+                    );
+                }
+                let value_string =
+                    idl_as_str_or_else(&values[0], &breadcrumbs.val())?;
+                (value_string, &values[1])
+            };
         for (enum_variant_index, enum_variant, breadcrumbs) in
             idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
         {
@@ -315,8 +307,8 @@ impl ToolboxIdlTypeFull {
                 ));
             },
             ToolboxIdlPrimitive::Bytes => {
-                let value_array = idl_as_array_or_else(value, context)?;
-                let value_bytes = idl_as_bytes_or_else(value_array, context)?;
+                let values = idl_as_array_or_else(value, context)?;
+                let value_bytes = idl_as_bytes_or_else(values, context)?;
                 if deserializable {
                     data.extend_from_slice(bytemuck::bytes_of::<u32>(
                         &u32::try_from(value_bytes.len()).unwrap(),
@@ -325,9 +317,11 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(&value_bytes);
             },
             ToolboxIdlPrimitive::Boolean => {
-                data.push(
-                    if idl_as_bool_or_else(value, context)? { 1 } else { 0 },
-                );
+                data.push(if idl_as_bool_or_else(value, context)? {
+                    1
+                } else {
+                    0
+                });
             },
             ToolboxIdlPrimitive::String => {
                 let value_str = idl_as_str_or_else(value, context)?;
@@ -380,9 +374,8 @@ impl ToolboxIdlTypeFullFields {
                 }
             },
             ToolboxIdlTypeFullFields::Unamed(fields) => {
-                let value_array =
-                    idl_as_array_or_else(value, &breadcrumbs.val())?;
-                if value_array.len() != fields.len() {
+                let values = idl_as_array_or_else(value, &breadcrumbs.val())?;
+                if values.len() != fields.len() {
                     return idl_err(
                         "Wrong number of unamed fields",
                         &breadcrumbs.val(),
@@ -392,7 +385,7 @@ impl ToolboxIdlTypeFullFields {
                     idl_iter_get_scoped_values(fields, breadcrumbs)?
                 {
                     field.try_serialize(
-                        &value_array[field_index],
+                        &values[field_index],
                         data,
                         deserializable,
                         &breadcrumbs,

@@ -1,11 +1,10 @@
-use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
-use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -28,12 +27,12 @@ impl ToolboxIdlProgramType {
 
     pub(crate) fn try_parse(
         idl_type_name: &str,
-        idl_type: &Map<String, Value>,
+        idl_type: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramType, ToolboxIdlError> {
         let mut program_type_generics = vec![];
         if let Some(idl_type_generics) =
-            idl_object_get_key_as_array(idl_type, "generics")
+            idl_value_as_object_get_key_as_array(idl_type, "generics")
         {
             for (_, idl_type_generic, breadcrumbs) in
                 idl_iter_get_scoped_values(idl_type_generics, breadcrumbs)?
@@ -49,10 +48,7 @@ impl ToolboxIdlProgramType {
         Ok(ToolboxIdlProgramType {
             name: idl_type_name.to_string(),
             generics: program_type_generics,
-            type_flat: ToolboxIdlTypeFlat::try_parse(
-                &Value::Object(idl_type.clone()),
-                breadcrumbs,
-            )?,
+            type_flat: ToolboxIdlTypeFlat::try_parse(idl_type, breadcrumbs)?,
         })
     }
 }

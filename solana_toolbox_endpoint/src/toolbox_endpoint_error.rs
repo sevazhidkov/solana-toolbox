@@ -8,6 +8,7 @@ pub enum ToolboxEndpointError {
     Client(Box<ClientError>),
     Program(Box<ProgramError>),
     Bincode(bincode::Error),
+    Base64Decode(base64::DecodeError),
     Io(std::io::Error),
     PodCastError(bytemuck::PodCastError),
     TryFromInt(std::num::TryFromIntError),

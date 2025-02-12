@@ -6,6 +6,7 @@ use solana_sdk::system_program;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointSimulation;
+use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
 pub async fn run() {
@@ -64,5 +65,32 @@ pub async fn run() {
             units_consumed: Some(150),
         },
         simulation_failure
+    );
+    // Simulate an intreuction with return data
+    let mint = endpoint
+        .process_spl_token_mint_new(&payer, &payer.pubkey(), None, 6)
+        .await
+        .unwrap();
+    let simulation_returned = endpoint
+        .simulate_instruction(
+            ui_amount_to_amount(&spl_token::ID, &mint, "12.34").unwrap(),
+            &payer,
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        ToolboxEndpointSimulation {
+            err: None,
+            logs: Some(vec![
+                "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]".to_string(),
+                "Program log: Instruction: UiAmountToAmount".to_string(),
+                "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3034 of 200000 compute units".to_string(),
+                "Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA IEu8AAAAAAA=".to_string(),
+                "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success".to_string(),
+            ]),
+            return_data: Some(12_340_000u64.to_le_bytes().to_vec()),
+            units_consumed: Some(3034),
+        },
+        simulation_returned
     );
 }

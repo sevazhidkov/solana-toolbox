@@ -20,7 +20,7 @@ mod toolbox_endpoint_util_spl_token;
 mod toolbox_endpoint_util_system;
 mod toolbox_endpoint_util_sysvar;
 // TODO - support for subscriptions/websockets ?
-// TODO - support for simulating transaction ?
+// TODO - support for some RPC lookups by signature and stuff
 
 pub use solana_program_test::processor as solana_program_test_processor;
 pub use toolbox_endpoint::ToolboxEndpoint;

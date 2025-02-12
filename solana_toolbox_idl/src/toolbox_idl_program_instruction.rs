@@ -11,8 +11,9 @@ use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
-use crate::toolbox_idl_utils::idl_array_get_scoped_named_object_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 
@@ -30,10 +31,10 @@ impl ToolboxIdlProgramInstruction {
         println!("----");
         println!("instruction.name: {}", self.name);
         println!("instruction.discriminator: {:?}", self.discriminator);
-        for (index, instruction_account) in self.accounts.iter().enumerate() {
+        for instruction_account in &self.accounts {
             println!(
                 "instruction.accounts: #{:03}: {}{} {}{}",
-                index + 1,
+                instruction_account.index,
                 if instruction_account.is_writable { "W" } else { "R" },
                 if instruction_account.is_signer { "S" } else { "-" },
                 instruction_account.name,
@@ -52,9 +53,11 @@ impl ToolboxIdlProgramInstruction {
     pub(crate) fn try_parse(
         program_types: &HashMap<String, ToolboxIdlProgramType>,
         idl_instruction_name: &str,
-        idl_instruction: &Map<String, Value>,
+        idl_instruction: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramInstruction, ToolboxIdlError> {
+        let idl_instruction =
+            idl_as_object_or_else(idl_instruction, &breadcrumbs.idl())?;
         let program_instruction_discriminator =
             ToolboxIdlProgramInstruction::try_parse_discriminator(
                 idl_instruction_name,
@@ -118,17 +121,15 @@ impl ToolboxIdlProgramInstruction {
                 &breadcrumbs.idl(),
             )?;
         let mut instruction_accounts = vec![];
-        for (
-            idl_instruction_account_name,
-            idl_instruction_account,
-            breadcrumbs,
-        ) in idl_array_get_scoped_named_object_array_or_else(
-            idl_instruction_accounts_array,
-            breadcrumbs,
-        )? {
+        for (index, idl_instruction_account, breadcrumbs) in
+            idl_iter_get_scoped_values(
+                idl_instruction_accounts_array,
+                breadcrumbs,
+            )?
+        {
             instruction_accounts.push(
                 ToolboxIdlProgramInstructionAccount::try_parse(
-                    idl_instruction_account_name,
+                    index,
                     idl_instruction_account,
                     &breadcrumbs,
                 )?,

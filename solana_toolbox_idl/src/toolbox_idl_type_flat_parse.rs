@@ -139,14 +139,11 @@ impl ToolboxIdlTypeFlat {
         idl_str: &str,
         _breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        // TODO - support for numeric value to be parsed as const literals ?
         Ok(match ToolboxIdlPrimitive::try_parse(idl_str) {
             Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
-            None => {
-                ToolboxIdlTypeFlat::Defined {
-                    name: idl_str.to_string(),
-                    generics: vec![],
-                }
+            None => ToolboxIdlTypeFlat::Defined {
+                name: idl_str.to_string(),
+                generics: vec![],
             },
         })
     }
@@ -287,7 +284,9 @@ impl ToolboxIdlTypeFlatFields {
         }
         let mut fields_named = false;
         let mut fields_info = vec![];
-        for (idl_field_index, idl_field) in idl_fields.iter().enumerate() {
+        for (idl_field_index, idl_field, breadcrumbs) in
+            idl_iter_get_scoped_values(idl_fields, breadcrumbs)?
+        {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .and_then(|name| name.as_str())
                 .map(|name| name.to_string());

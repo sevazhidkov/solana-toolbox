@@ -2,6 +2,8 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
@@ -55,15 +57,18 @@ impl ToolboxEndpointProxy for RpcClient {
     ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
         let simulate_transaction_result =
             RpcClient::simulate_transaction(self, transaction).await?.value;
-        eprintln!(
-            "simulate_transaction_result.return_data: {:?}",
-            simulate_transaction_result.return_data
-        );
         Ok(ToolboxEndpointSimulation {
             err: simulate_transaction_result.err,
             logs: simulate_transaction_result.logs,
             units_consumed: simulate_transaction_result.units_consumed,
-            return_data: None, // TODO - decode transaction return data
+            return_data: simulate_transaction_result
+                .return_data
+                .map(|return_data| {
+                    let (payload, _encoding) = return_data.data;
+                    STANDARD.decode(payload)
+                })
+                .transpose()
+                .map_err(ToolboxEndpointError::Base64Decode)?,
         })
     }
 

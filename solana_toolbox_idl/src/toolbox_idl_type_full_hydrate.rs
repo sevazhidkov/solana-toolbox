@@ -35,9 +35,6 @@ impl ToolboxIdlTypeFull {
                     &breadcrumbs.idl(),
                 )?;
                 if generics_full.len() != program_type.generics.len() {
-                    println!("type_flat: {:?}", type_flat);
-                    println!("generics_full: {:?}", generics_full);
-                    println!("program_type: {:?}", program_type);
                     return idl_err(
                         "Wrong number of generic parameter",
                         &breadcrumbs.val(),
@@ -69,15 +66,13 @@ impl ToolboxIdlTypeFull {
                     )?),
                 }
             },
-            ToolboxIdlTypeFlat::Vec { items } => {
-                ToolboxIdlTypeFull::Vec {
-                    items: Box::new(ToolboxIdlTypeFull::try_hydrate(
-                        program_types,
-                        generics_by_symbol,
-                        items,
-                        breadcrumbs,
-                    )?),
-                }
+            ToolboxIdlTypeFlat::Vec { items } => ToolboxIdlTypeFull::Vec {
+                items: Box::new(ToolboxIdlTypeFull::try_hydrate(
+                    program_types,
+                    generics_by_symbol,
+                    items,
+                    breadcrumbs,
+                )?),
             },
             ToolboxIdlTypeFlat::Array { items, length } => {
                 ToolboxIdlTypeFull::Array {
@@ -125,14 +120,12 @@ impl ToolboxIdlTypeFull {
                 }
                 ToolboxIdlTypeFull::Enum { variants: variants_full }
             },
-            ToolboxIdlTypeFlat::Generic { symbol } => {
-                idl_map_get_key_or_else(
-                    generics_by_symbol,
-                    symbol,
-                    &breadcrumbs.idl(),
-                )?
-                .clone()
-            },
+            ToolboxIdlTypeFlat::Generic { symbol } => idl_map_get_key_or_else(
+                generics_by_symbol,
+                symbol,
+                &breadcrumbs.idl(),
+            )?
+            .clone(),
             ToolboxIdlTypeFlat::Const { literal } => {
                 ToolboxIdlTypeFull::Const { literal: *literal }
             },

@@ -45,7 +45,7 @@ pub async fn run() {
     assert_eq!(idl1, idl4);
     // Assert that the content is correct
     assert_eq!(
-        idl1.program_errors.get(&42).unwrap(),
+        idl1.program_errors.get("MyError").unwrap(),
         &ToolboxIdlProgramError {
             name: "MyError".to_string(),
             code: 42,

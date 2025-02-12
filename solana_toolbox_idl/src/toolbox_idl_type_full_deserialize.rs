@@ -82,15 +82,10 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => {
-                idl_err(
-                    &format!(
-                        "Can't use a const literal directly: {:?}",
-                        literal
-                    ),
-                    &breadcrumbs.idl(),
-                )
-            },
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
+                &format!("Can't use a const literal directly: {:?}", literal),
+                &breadcrumbs.idl(),
+            ),
         }
     }
 
@@ -314,11 +309,11 @@ impl ToolboxIdlTypeFull {
                     context,
                 )?;
                 data_size += data_bytes.len();
-                let mut data_array = vec![];
+                let mut data = vec![];
                 for data_byte in data_bytes {
-                    data_array.push(Value::Number(Number::from(*data_byte)));
+                    data.push(Value::Number(Number::from(*data_byte)));
                 }
-                (data_size, Value::Array(data_array))
+                (data_size, Value::Array(data))
             },
             ToolboxIdlPrimitive::Boolean => {
                 let data_flag =
@@ -341,11 +336,9 @@ impl ToolboxIdlTypeFull {
                 )?;
                 data_size += data_bytes.len();
                 let data_string = String::from_utf8(data_bytes.to_vec())
-                    .map_err(|err| {
-                        ToolboxIdlError::InvalidString {
-                            parsing: err,
-                            context: context.clone(),
-                        }
+                    .map_err(|err| ToolboxIdlError::InvalidString {
+                        parsing: err,
+                        context: context.clone(),
                     })?;
                 (data_size, Value::String(data_string))
             },

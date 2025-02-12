@@ -122,7 +122,7 @@ pub async fn run() {
         my_struct.type_flat.describe()
     );
     // Assert error was parsed correctly
-    let my_error = idl_standard.program_errors.get(&4242).unwrap();
+    let my_error = idl_standard.program_errors.get("MyError").unwrap();
     assert_eq!(4242, my_error.code);
     assert_eq!("MyError", my_error.name);
     assert_eq!("My error message", my_error.msg);

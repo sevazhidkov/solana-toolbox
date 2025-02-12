@@ -93,6 +93,7 @@ pub async fn run() {
             discriminator: vec![195, 241, 184, 14, 127, 155, 68, 53],
             accounts: vec![
                 ToolboxIdlProgramInstructionAccount {
+                    index: 1,
                     name: "account_ws".to_string(),
                     is_writable: true,
                     is_signer: true,
@@ -100,6 +101,7 @@ pub async fn run() {
                     pda: None
                 },
                 ToolboxIdlProgramInstructionAccount {
+                    index: 2,
                     name: "account_rs".to_string(),
                     is_writable: false,
                     is_signer: true,
@@ -107,6 +109,7 @@ pub async fn run() {
                     pda: None
                 },
                 ToolboxIdlProgramInstructionAccount {
+                    index: 3,
                     name: "account_w".to_string(),
                     is_writable: true,
                     is_signer: false,
@@ -114,6 +117,7 @@ pub async fn run() {
                     pda: None
                 },
                 ToolboxIdlProgramInstructionAccount {
+                    index: 4,
                     name: "account_r".to_string(),
                     is_writable: false,
                     is_signer: false,

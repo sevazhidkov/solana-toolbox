@@ -10,6 +10,7 @@ use crate::toolbox_idl_program_type::ToolboxIdlProgramType;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 
 // TODO - should we simply expose the account API directly on this struct ?
@@ -32,9 +33,11 @@ impl ToolboxIdlProgramAccount {
     pub(crate) fn try_parse(
         program_types: &HashMap<String, ToolboxIdlProgramType>,
         idl_account_name: &str,
-        idl_account: &Map<String, Value>,
+        idl_account: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramAccount, ToolboxIdlError> {
+        let idl_account =
+            idl_as_object_or_else(idl_account, &breadcrumbs.idl())?;
         let program_account_discriminator =
             ToolboxIdlProgramAccount::try_parse_discriminator(
                 idl_account_name,

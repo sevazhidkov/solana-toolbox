@@ -7,12 +7,15 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_instruction_account_pda::ToolboxIdlProgramInstructionAccountPda;
+use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgramInstructionAccount {
+    pub index: usize,
     pub name: String,
     pub is_writable: bool,
     pub is_signer: bool,
@@ -23,10 +26,18 @@ pub struct ToolboxIdlProgramInstructionAccount {
 
 impl ToolboxIdlProgramInstructionAccount {
     pub(crate) fn try_parse(
-        idl_instruction_account_name: &str,
-        idl_instruction_account: &Map<String, Value>,
+        idl_instruction_account_index: usize,
+        idl_instruction_account: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramInstructionAccount, ToolboxIdlError> {
+        let idl_instruction_account =
+            idl_as_object_or_else(idl_instruction_account, &breadcrumbs.idl())?;
+        let idl_instruction_account_name = idl_object_get_key_as_str_or_else(
+            idl_instruction_account,
+            "name",
+            &breadcrumbs.idl(),
+        )?;
+        let breadcrumbs = &breadcrumbs.with_idl(idl_instruction_account_name);
         let idl_instruction_account_is_writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
                 .or(idl_object_get_key_as_bool(
@@ -42,6 +53,7 @@ impl ToolboxIdlProgramInstructionAccount {
                 ))
                 .unwrap_or(false);
         Ok(ToolboxIdlProgramInstructionAccount {
+            index: idl_instruction_account_index + 1,
             name: idl_instruction_account_name.to_string(),
             is_writable: idl_instruction_account_is_writable,
             is_signer: idl_instruction_account_is_signer,
@@ -67,11 +79,9 @@ impl ToolboxIdlProgramInstructionAccount {
                 Some(val) => val,
             };
         Ok(Some(Pubkey::from_str(idl_instruction_account_address).map_err(
-            |err| {
-                ToolboxIdlError::InvalidPubkey {
-                    parsing: err,
-                    context: breadcrumbs.as_idl("address"),
-                }
+            |err| ToolboxIdlError::InvalidPubkey {
+                parsing: err,
+                context: breadcrumbs.as_idl("address"),
             },
         )?))
     }
