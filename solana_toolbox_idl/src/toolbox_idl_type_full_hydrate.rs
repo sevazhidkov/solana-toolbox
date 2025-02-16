@@ -66,13 +66,15 @@ impl ToolboxIdlTypeFull {
                     )?),
                 }
             },
-            ToolboxIdlTypeFlat::Vec { items } => ToolboxIdlTypeFull::Vec {
-                items: Box::new(ToolboxIdlTypeFull::try_hydrate(
-                    program_types,
-                    generics_by_symbol,
-                    items,
-                    breadcrumbs,
-                )?),
+            ToolboxIdlTypeFlat::Vec { items } => {
+                ToolboxIdlTypeFull::Vec {
+                    items: Box::new(ToolboxIdlTypeFull::try_hydrate(
+                        program_types,
+                        generics_by_symbol,
+                        items,
+                        breadcrumbs,
+                    )?),
+                }
             },
             ToolboxIdlTypeFlat::Array { items, length } => {
                 ToolboxIdlTypeFull::Array {
@@ -120,12 +122,14 @@ impl ToolboxIdlTypeFull {
                 }
                 ToolboxIdlTypeFull::Enum { variants: variants_full }
             },
-            ToolboxIdlTypeFlat::Generic { symbol } => idl_map_get_key_or_else(
-                generics_by_symbol,
-                symbol,
-                &breadcrumbs.idl(),
-            )?
-            .clone(),
+            ToolboxIdlTypeFlat::Generic { symbol } => {
+                idl_map_get_key_or_else(
+                    generics_by_symbol,
+                    symbol,
+                    &breadcrumbs.idl(),
+                )?
+                .clone()
+            },
             ToolboxIdlTypeFlat::Const { literal } => {
                 ToolboxIdlTypeFull::Const { literal: *literal }
             },

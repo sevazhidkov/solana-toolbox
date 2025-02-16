@@ -39,6 +39,11 @@ pub trait ToolboxEndpointProxy {
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError>;
 
+    async fn check_transaction(
+        &mut self,
+        signature: &Signature,
+    ) -> Result<(), ToolboxEndpointError>;
+
     async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,

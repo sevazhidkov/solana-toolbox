@@ -18,6 +18,7 @@ solana-client = "=2.1.4"
 solana-program-test = "=2.1.4"
 solana-program-runtime = "=2.1.4"
 solana-sdk = "=2.1.4"
+solana-transaction-status = "=2.1.4"
 
 spl-token = { version = "4.0", features = ["no-entrypoint"] }
 spl-associated-token-account = { version = "6.0.0", features = [

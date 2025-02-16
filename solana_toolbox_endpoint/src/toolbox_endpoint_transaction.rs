@@ -12,6 +12,7 @@ pub struct ToolboxEndpointTransaction {
     pub instructions: Vec<Instruction>,
 }
 
+// TODO - support transaction conversions for versionned transactions
 impl From<&Transaction> for ToolboxEndpointTransaction {
     fn from(transaction: &Transaction) -> ToolboxEndpointTransaction {
         let message = &transaction.message;

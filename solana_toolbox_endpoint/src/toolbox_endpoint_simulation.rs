@@ -8,6 +8,7 @@ use solana_sdk::transaction::TransactionError;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
+// TODO - should this be called Execution or similar ? can this be used for TX status check ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointSimulation {
     pub err: Option<TransactionError>,

@@ -1,3 +1,4 @@
+use solana_sdk::account::Account;
 use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::bpf_loader_upgradeable::close_any;
 use solana_sdk::bpf_loader_upgradeable::create_buffer;
@@ -15,18 +16,55 @@ use solana_sdk::signer::Signer;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxEndpointProgramData {
-    pub slot: u64,
-    pub authority: Option<Pubkey>,
-    pub bytecode: Vec<u8>,
-}
-
 impl ToolboxEndpoint {
-    pub async fn get_program_data(
+    pub async fn get_program_meta(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<ToolboxEndpointProgramData>, ToolboxEndpointError> {
+    ) -> Result<Option<(u64, Option<Pubkey>)>, ToolboxEndpointError> {
+        let program_data =
+            self.get_program_data(program_id).await?.ok_or_else(|| {
+                ToolboxEndpointError::Custom(
+                    "Could not fetch program data".to_string(),
+                )
+            })?;
+        match bincode::deserialize::<UpgradeableLoaderState>(&program_data.data)
+        {
+            Ok(UpgradeableLoaderState::ProgramData {
+                slot,
+                upgrade_authority_address,
+            }) => Ok(Some((slot, upgrade_authority_address))),
+            _ => {
+                Err(ToolboxEndpointError::Custom(
+                    "Program data is malformed".to_string(),
+                ))
+            },
+        }
+    }
+
+    pub async fn get_program_bytecode(
+        &mut self,
+        program_id: &Pubkey,
+    ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
+        let program_data =
+            self.get_program_data(program_id).await?.ok_or_else(|| {
+                ToolboxEndpointError::Custom(
+                    "Could not fetch program data".to_string(),
+                )
+            })?;
+        let program_data_bytecode_offset =
+            UpgradeableLoaderState::size_of_programdata_metadata();
+        if program_data.data.len() < program_data_bytecode_offset {
+            return Err(ToolboxEndpointError::Custom(
+                "Program data is too small".to_string(),
+            ));
+        }
+        Ok(Some(program_data.data[program_data_bytecode_offset..].to_vec()))
+    }
+
+    async fn get_program_data(
+        &mut self,
+        program_id: &Pubkey,
+    ) -> Result<Option<Account>, ToolboxEndpointError> {
         let program_id_account = match self.get_account(program_id).await? {
             Some(account) => account,
             None => {
@@ -43,43 +81,10 @@ impl ToolboxEndpoint {
                 "Unsupported program owner".to_string(),
             ));
         }
-        let program_data =
-            ToolboxEndpoint::find_program_data_from_program_id(program_id);
-        let program_data_data = self
-            .get_account(&program_data)
-            .await?
-            .ok_or_else(|| {
-                ToolboxEndpointError::Custom(
-                    "Could not fetch program data".to_string(),
-                )
-            })?
-            .data;
-        let program_data_bytecode_offset =
-            UpgradeableLoaderState::size_of_programdata_metadata();
-        if program_data_data.len() < program_data_bytecode_offset {
-            return Err(ToolboxEndpointError::Custom(
-                "Program data is too small".to_string(),
-            ));
-        }
-        match bincode::deserialize::<UpgradeableLoaderState>(&program_data_data)
-        {
-            Ok(UpgradeableLoaderState::ProgramData {
-                slot,
-                upgrade_authority_address,
-            }) => {
-                Ok(Some(ToolboxEndpointProgramData {
-                    slot,
-                    authority: upgrade_authority_address,
-                    bytecode: program_data_data[program_data_bytecode_offset..]
-                        .to_vec(),
-                }))
-            },
-            _ => {
-                Err(ToolboxEndpointError::Custom(
-                    "Program data is malformed".to_string(),
-                ))
-            },
-        }
+        self.get_account(&ToolboxEndpoint::find_program_data_from_program_id(
+            program_id,
+        ))
+        .await
     }
 
     pub fn find_program_data_from_program_id(program_id: &Pubkey) -> Pubkey {
@@ -157,7 +162,7 @@ impl ToolboxEndpoint {
         program_id: &Keypair,
         program_buffer: &Pubkey,
         program_authority: &Keypair,
-        program_len: usize,
+        program_bytecode_len: usize,
     ) -> Result<Signature, ToolboxEndpointError> {
         let rent_space = UpgradeableLoaderState::size_of_program();
         let rent_minimum_lamports =
@@ -168,7 +173,7 @@ impl ToolboxEndpoint {
             program_buffer,
             &program_authority.pubkey(),
             rent_minimum_lamports,
-            program_len,
+            program_bytecode_len,
         )
         .unwrap();
         self.process_instructions_with_signers(
@@ -257,12 +262,12 @@ impl ToolboxEndpoint {
         &mut self,
         payer: &Keypair,
         program_id: &Pubkey,
-        program_extra_len: usize,
+        program_bytecode_len_added: usize,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction_extend = extend_program(
             program_id,
             Some(&payer.pubkey()),
-            u32::try_from(program_extra_len)
+            u32::try_from(program_bytecode_len_added)
                 .map_err(ToolboxEndpointError::TryFromInt)?,
         );
         self.process_instruction(instruction_extend, payer).await
@@ -276,21 +281,22 @@ impl ToolboxEndpoint {
         program_bytecode: &[u8],
         spill: &Pubkey,
     ) -> Result<(), ToolboxEndpointError> {
-        let program_len_before = match self.get_program_data(program_id).await?
-        {
-            Some(program_data) => program_data.bytecode.len(),
-            None => {
-                return Err(ToolboxEndpointError::Custom(
-                    "Cannot update a program that doesnt exist yet".to_string(),
-                ))
-            },
-        };
-        let program_len_after = program_bytecode.len();
-        if program_len_after > program_len_before {
+        let program_bytecode_len_before =
+            match self.get_program_bytecode(program_id).await? {
+                Some(program_bytecode) => program_bytecode.len(),
+                None => {
+                    return Err(ToolboxEndpointError::Custom(
+                        "Cannot update a program that doesnt exist yet"
+                            .to_string(),
+                    ))
+                },
+            };
+        let program_bytecode_len_after = program_bytecode.len();
+        if program_bytecode_len_after > program_bytecode_len_before {
             self.process_program_extend(
                 payer,
                 program_id,
-                program_len_after - program_len_before,
+                program_bytecode_len_after - program_bytecode_len_before,
             )
             .await?;
         }

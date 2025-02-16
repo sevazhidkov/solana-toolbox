@@ -49,11 +49,10 @@ pub async fn run() {
     assert_eq!(
         program_bytecode,
         endpoint
-            .get_program_data(&program_id.pubkey())
+            .get_program_bytecode(&program_id.pubkey())
             .await
             .unwrap()
             .unwrap()
-            .bytecode
     );
     // Wait a slot to be able to interact with the program again
     endpoint.forward_clock_slot(1).await.unwrap();
@@ -72,11 +71,10 @@ pub async fn run() {
     assert_eq!(
         program_bytecode,
         endpoint
-            .get_program_data(&program_id.pubkey())
+            .get_program_bytecode(&program_id.pubkey())
             .await
             .unwrap()
             .unwrap()
-            .bytecode
     );
     // Wait a slot to be able to interact with the program again
     endpoint.forward_clock_slot(1).await.unwrap();

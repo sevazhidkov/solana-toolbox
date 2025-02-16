@@ -97,6 +97,14 @@ impl ToolboxEndpointProxy for ProgramTestContext {
         self.process_transaction(&transaction).await
     }
 
+    async fn check_transaction(
+        &mut self,
+        signature: &Signature,
+    ) -> Result<(), ToolboxEndpointError> {
+        // TODO - rpc transaction saving
+        return Ok(());
+    }
+
     async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,

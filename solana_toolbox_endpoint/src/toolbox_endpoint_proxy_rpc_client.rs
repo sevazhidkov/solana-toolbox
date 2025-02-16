@@ -12,6 +12,7 @@ use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
+use solana_transaction_status::UiTransactionEncoding;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
@@ -98,6 +99,20 @@ impl ToolboxEndpointProxy for RpcClient {
     ) -> Result<Signature, ToolboxEndpointError> {
         let signature = self.request_airdrop(to, lamports).await?;
         Ok(signature)
+    }
+
+    async fn check_transaction(
+        &mut self,
+        signature: &Signature,
+    ) -> Result<(), ToolboxEndpointError> {
+        let tx = self
+            .get_transaction(signature, UiTransactionEncoding::Base64)
+            .await?;
+        let tx_slot = tx.slot;
+        let tx_dada: solana_transaction_status::UiTransactionStatusMeta =
+            tx.transaction.meta.unwrap();
+        return Ok(());
+        // TODO - rpc transaction fetching
     }
 
     async fn forward_clock_unix_timestamp(

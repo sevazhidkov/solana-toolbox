@@ -18,8 +18,6 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
-    eprintln!("SYSTEM:{:?}", system_program::ID);
-    panic!("LOL");
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
     let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
