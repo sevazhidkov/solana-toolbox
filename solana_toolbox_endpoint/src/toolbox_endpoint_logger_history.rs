@@ -38,6 +38,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerHistory {
         transaction: &Transaction,
         result: &Result<Signature, ToolboxEndpointError>,
     ) {
+        // TODO - could this use a globally used API struct instead ?
         self.transactions.write().unwrap().push(
             ToolboxEndpointLoggerHistoryTransaction {
                 transaction: transaction.clone(),

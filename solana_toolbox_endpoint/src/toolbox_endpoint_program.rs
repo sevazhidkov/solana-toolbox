@@ -21,8 +21,10 @@ impl ToolboxEndpoint {
         &mut self,
         program_id: &Pubkey,
     ) -> Result<Option<(u64, Option<Pubkey>)>, ToolboxEndpointError> {
-        let program_data =
-            self.get_program_data(program_id).await?.ok_or_else(|| {
+        let program_data = self
+            .get_program_data_account(program_id)
+            .await?
+            .ok_or_else(|| {
                 ToolboxEndpointError::Custom(
                     "Could not fetch program data".to_string(),
                 )
@@ -45,8 +47,10 @@ impl ToolboxEndpoint {
         &mut self,
         program_id: &Pubkey,
     ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
-        let program_data =
-            self.get_program_data(program_id).await?.ok_or_else(|| {
+        let program_data = self
+            .get_program_data_account(program_id)
+            .await?
+            .ok_or_else(|| {
                 ToolboxEndpointError::Custom(
                     "Could not fetch program data".to_string(),
                 )
@@ -61,7 +65,7 @@ impl ToolboxEndpoint {
         Ok(Some(program_data.data[program_data_bytecode_offset..].to_vec()))
     }
 
-    async fn get_program_data(
+    async fn get_program_data_account(
         &mut self,
         program_id: &Pubkey,
     ) -> Result<Option<Account>, ToolboxEndpointError> {
@@ -87,7 +91,7 @@ impl ToolboxEndpoint {
         .await
     }
 
-    pub fn find_program_data_from_program_id(program_id: &Pubkey) -> Pubkey {
+    fn find_program_data_from_program_id(program_id: &Pubkey) -> Pubkey {
         Pubkey::find_program_address(
             &[program_id.as_ref()],
             &bpf_loader_upgradeable::ID,

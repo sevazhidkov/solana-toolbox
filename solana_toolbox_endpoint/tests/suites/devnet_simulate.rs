@@ -7,7 +7,6 @@ use solana_sdk::system_instruction::create_account;
 use solana_sdk::system_program;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointSimulation;
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
@@ -32,19 +31,16 @@ pub async fn run() {
         )
         .await
         .unwrap();
+    assert_eq!(simulation_success.error, None);
     assert_eq!(
-        ToolboxEndpointSimulation {
-            err: None,
-            logs: Some(vec![
-                "Program 11111111111111111111111111111111 invoke [1]"
-                    .to_string(),
-                "Program 11111111111111111111111111111111 success".to_string(),
-            ]),
-            return_data: None,
-            units_consumed: Some(150),
-        },
-        simulation_success
+        simulation_success.logs,
+        Some(vec![
+            "Program 11111111111111111111111111111111 invoke [1]".to_string(),
+            "Program 11111111111111111111111111111111 success".to_string(),
+        ])
     );
+    assert_eq!(simulation_success.return_data, None);
+    assert_eq!(simulation_success.units_consumed, Some(150));
     // Simulate an instruction that should fail
     let simulation_failure = endpoint
         .simulate_instruction(
@@ -60,23 +56,21 @@ pub async fn run() {
         .await
         .unwrap();
     assert_eq!(
-        ToolboxEndpointSimulation {
-            err: Some(TransactionError::InstructionError(
-                0,
-                InstructionError::Custom(1)
-            )),
-            logs: Some(vec![
-                "Program 11111111111111111111111111111111 invoke [1]"
-                    .to_string(),
-                "Transfer: insufficient lamports 199990000, need 10000000000"
-                    .to_string(),
-                    "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
-            ]),
-            return_data: None,
-            units_consumed: Some(150),
-        },
-        simulation_failure
+        simulation_failure.error,
+        Some(TransactionError::InstructionError(
+            0,
+            InstructionError::Custom(1)
+        ))
     );
+    assert_eq!(simulation_failure.logs, Some(vec![
+        "Program 11111111111111111111111111111111 invoke [1]"
+            .to_string(),
+        "Transfer: insufficient lamports 199990000, need 10000000000"
+            .to_string(),
+            "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
+    ]));
+    assert_eq!(simulation_failure.return_data, None);
+    assert_eq!(simulation_failure.units_consumed, Some(150));
     // Simulate an intreuction with return data
     let simulation_returned = endpoint
         .simulate_instruction(
@@ -90,19 +84,20 @@ pub async fn run() {
         )
         .await
         .unwrap();
+    assert_eq!(simulation_returned.error, None);
     assert_eq!(
-        ToolboxEndpointSimulation {
-            err: None,
-            logs: Some(vec![
-                "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]".to_string(),
-                "Program log: Instruction: UiAmountToAmount".to_string(),
-                "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3034 of 200000 compute units".to_string(),
-                "Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA IEu8AAAAAAA=".to_string(),
-                "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success".to_string(),
-            ]),
-            return_data: Some(12_340_000u64.to_le_bytes().to_vec()),
-            units_consumed: Some(3034),
-        },
-        simulation_returned
+        simulation_returned.logs,
+        Some(vec![
+            "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]".to_string(),
+            "Program log: Instruction: UiAmountToAmount".to_string(),
+            "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3034 of 200000 compute units".to_string(),
+            "Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA IEu8AAAAAAA=".to_string(),
+            "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success".to_string(),
+    ])
     );
+    assert_eq!(
+        simulation_returned.return_data,
+        Some(12_340_000u64.to_le_bytes().to_vec())
+    );
+    assert_eq!(simulation_returned.units_consumed, Some(3034));
 }

@@ -1,3 +1,4 @@
+pub mod devnet_history;
 pub mod devnet_program;
 pub mod devnet_simulate;
 pub mod devnet_sysvars;

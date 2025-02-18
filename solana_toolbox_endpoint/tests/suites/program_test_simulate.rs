@@ -5,7 +5,7 @@ use solana_sdk::system_instruction::create_account;
 use solana_sdk::system_program;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointSimulation;
+use solana_toolbox_endpoint::ToolboxEndpointExecution;
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
@@ -14,7 +14,7 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Make a payer
     let payer = Keypair::new();
-    endpoint.process_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
+    endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
     // Simulate an instruction that should succeed
     let instruction = create_account(
         &payer.pubkey(),
@@ -26,8 +26,9 @@ pub async fn run() {
     let simulation_success =
         endpoint.simulate_instruction(instruction, &payer).await.unwrap();
     assert_eq!(
-        ToolboxEndpointSimulation {
-            err: None,
+        ToolboxEndpointExecution {
+            slot: 1,
+            error: None,
             logs: Some(vec![
                 "Program 11111111111111111111111111111111 invoke [1]"
                     .to_string(),
@@ -49,8 +50,9 @@ pub async fn run() {
     let simulation_failure =
         endpoint.simulate_instruction(instruction, &payer).await.unwrap();
     assert_eq!(
-        ToolboxEndpointSimulation {
-            err: Some(TransactionError::InstructionError(
+        ToolboxEndpointExecution {
+            slot: 1,
+            error: Some(TransactionError::InstructionError(
                 0,
                 InstructionError::Custom(1)
             )),
@@ -79,8 +81,9 @@ pub async fn run() {
         .await
         .unwrap();
     assert_eq!(
-        ToolboxEndpointSimulation {
-            err: None,
+        ToolboxEndpointExecution {
+            slot: 1,
+            error: None,
             logs: Some(vec![
                 "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]".to_string(),
                 "Program log: Instruction: UiAmountToAmount".to_string(),

@@ -8,7 +8,7 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.process_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
+    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
     // Create a mint
     let mint_authority = Keypair::new();
     let mint_decimals = 9;

@@ -5,9 +5,9 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
-use crate::toolbox_endpoint_simulation::ToolboxEndpointSimulation;
 
 pub struct ToolboxEndpoint {
     proxy: Box<dyn ToolboxEndpointProxy>,
@@ -51,7 +51,7 @@ impl ToolboxEndpoint {
     pub async fn simulate_transaction(
         &mut self,
         transaction: &Transaction,
-    ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         self.proxy.simulate_transaction(transaction).await
     }
 
@@ -66,12 +66,19 @@ impl ToolboxEndpoint {
         result
     }
 
-    pub async fn process_airdrop(
+    pub async fn request_airdrop(
         &mut self,
         to: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.proxy.process_airdrop(to, lamports).await
+        self.proxy.request_airdrop(to, lamports).await
+    }
+
+    pub async fn get_execution(
+        &mut self,
+        signature: &Signature,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.proxy.get_execution(signature).await
     }
 
     pub async fn forward_clock_unix_timestamp(

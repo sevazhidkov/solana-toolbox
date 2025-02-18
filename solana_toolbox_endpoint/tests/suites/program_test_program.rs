@@ -10,7 +10,7 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Make a payer
     let payer = Keypair::new();
-    endpoint.process_airdrop(&payer.pubkey(), 10_000_000_000).await.unwrap();
+    endpoint.request_airdrop(&payer.pubkey(), 10_000_000_000).await.unwrap();
     // Program details
     let program_id = Keypair::new();
     let program_authority = Keypair::new();

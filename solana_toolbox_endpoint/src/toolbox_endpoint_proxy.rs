@@ -5,7 +5,7 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_simulation::ToolboxEndpointSimulation;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 #[async_trait::async_trait]
 pub trait ToolboxEndpointProxy {
@@ -25,24 +25,24 @@ pub trait ToolboxEndpointProxy {
 
     async fn simulate_transaction(
         &mut self,
-        transaction: &Transaction,
-    ) -> Result<ToolboxEndpointSimulation, ToolboxEndpointError>;
+        transaction: &Transaction, // TODO - support versionned transactions
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError>;
 
     async fn process_transaction(
         &mut self,
-        transaction: &Transaction,
+        transaction: &Transaction, // TODO - support versionned transactions
     ) -> Result<Signature, ToolboxEndpointError>;
 
-    async fn process_airdrop(
+    async fn request_airdrop(
         &mut self,
         address: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError>;
 
-    async fn check_transaction(
+    async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<(), ToolboxEndpointError>;
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError>;
 
     async fn forward_clock_unix_timestamp(
         &mut self,

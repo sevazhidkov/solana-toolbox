@@ -9,7 +9,7 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.process_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
+    endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
     // Unique wallet
     let destination = Keypair::new();
     // Send a custom compute budget instruction

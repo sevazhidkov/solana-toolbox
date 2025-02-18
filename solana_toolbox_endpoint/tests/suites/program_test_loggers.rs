@@ -20,7 +20,7 @@ pub async fn run() {
     endpoint.add_logger(Box::new(logger_history.clone()));
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.process_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
+    endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
     // Unique wallet
     let destination = Keypair::new();
     // Send a simple transfer instruction

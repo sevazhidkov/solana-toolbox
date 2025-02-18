@@ -82,6 +82,6 @@ pub async fn run() {
     };
     // Check that we can use the manual IDL to compile/decompile our account 2
     let account_data = idl.compile_account(&account).unwrap();
-    assert_eq!(vec![99, 43, 0, 0, 0, 0, 78, 44, 0, 0, 0, 2, 79], account_data,);
+    assert_eq!(vec![99, 43, 0, 0, 0, 0, 78, 44, 0, 0, 0, 2, 79], account_data);
     assert_eq!(account, idl.decompile_account(&account_data).unwrap());
 }

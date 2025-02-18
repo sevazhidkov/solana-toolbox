@@ -5,6 +5,7 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+use crate::toolbox_endpoint_proxy_program_test_context::ToolboxEndpointProxyProgramTestContext;
 
 pub struct ToolboxEndpointProgramTestBuiltinProgram {
     pub id: Pubkey,
@@ -99,8 +100,9 @@ impl ToolboxEndpoint {
 
 impl From<ProgramTestContext> for ToolboxEndpoint {
     fn from(program_test_context: ProgramTestContext) -> Self {
-        let proxy: Box<dyn ToolboxEndpointProxy> =
-            Box::new(program_test_context);
+        let proxy: Box<dyn ToolboxEndpointProxy> = Box::new(
+            ToolboxEndpointProxyProgramTestContext::new(program_test_context),
+        );
         ToolboxEndpoint::from(proxy)
     }
 }
