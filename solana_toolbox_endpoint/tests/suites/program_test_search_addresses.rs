@@ -1,12 +1,5 @@
-use std::collections::HashSet;
-use std::hash::RandomState;
-use std::usize;
-
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
-use solana_sdk::system_program;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
@@ -71,6 +64,30 @@ pub async fn run() {
     for user_collateral in &users_collaterals {
         assert!(token_accounts_addresses.contains(user_collateral));
     }
+    // Find token accounts by mint
+    let token_accounts_addresses = endpoint
+        .search_addresses(
+            &spl_token::ID,
+            None,
+            &[(0, &collateral_mint.as_ref())],
+        )
+        .await
+        .unwrap();
+    assert_eq!(token_accounts_addresses.len(), 10);
+    for i in 0..10 {
+        assert!(token_accounts_addresses.contains(&users_collaterals[i]))
+    }
+    // Find mint by size and content
+    let token_mints_addresses = endpoint
+        .search_addresses(
+            &spl_token::ID,
+            Some(82),
+            &[(4, collateral_mint_authority.pubkey().as_ref())],
+        )
+        .await
+        .unwrap();
+    assert_eq!(token_mints_addresses.len(), 1);
+    assert!(token_mints_addresses.contains(&collateral_mint));
     // Find token account by owner
     for i in 0..10 {
         let user = &users[i];
@@ -99,16 +116,4 @@ pub async fn run() {
         assert_eq!(user_addresses.len(), 1);
         assert!(user_addresses.contains(&users_collaterals[i]))
     }
-    // Find mint by size and content
-    let token_mints_addresses = endpoint
-        .search_addresses(
-            &spl_token::ID,
-            Some(82),
-            &[(4, collateral_mint_authority.pubkey().as_ref())],
-        )
-        .await
-        .unwrap();
-    assert_eq!(token_mints_addresses.len(), 1);
-    assert!(token_mints_addresses.contains(&collateral_mint));
-    panic!("LOL");
 }
