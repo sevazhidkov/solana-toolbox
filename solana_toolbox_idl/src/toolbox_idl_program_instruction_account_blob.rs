@@ -58,16 +58,12 @@ impl ToolboxIdlProgramInstructionAccountBlob {
                 &breadcrumbs.idl(),
             )?;
         match idl_instruction_account_blob_kind {
-            "account" => {
-                Ok(ToolboxIdlProgramInstructionAccountBlob::Account {
-                    path: idl_instruction_account_blob_path.to_string(),
-                })
-            },
-            "arg" => {
-                Ok(ToolboxIdlProgramInstructionAccountBlob::Arg {
-                    path: idl_instruction_account_blob_path.to_string(),
-                })
-            },
+            "account" => Ok(ToolboxIdlProgramInstructionAccountBlob::Account {
+                path: idl_instruction_account_blob_path.to_string(),
+            }),
+            "arg" => Ok(ToolboxIdlProgramInstructionAccountBlob::Arg {
+                path: idl_instruction_account_blob_path.to_string(),
+            }),
             _ => idl_err("unknown blob kind", &breadcrumbs.idl()),
         }
     }

@@ -5,7 +5,7 @@ use solana_sdk::system_instruction::create_account;
 use solana_sdk::system_program;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointExecution;
+use solana_toolbox_endpoint::ToolboxEndpointDataExecution;
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
@@ -26,7 +26,7 @@ pub async fn run() {
     let simulation_success =
         endpoint.simulate_instruction(instruction, &payer).await.unwrap();
     assert_eq!(
-        ToolboxEndpointExecution {
+        ToolboxEndpointDataExecution {
             slot: 1,
             error: None,
             logs: Some(vec![
@@ -50,7 +50,7 @@ pub async fn run() {
     let simulation_failure =
         endpoint.simulate_instruction(instruction, &payer).await.unwrap();
     assert_eq!(
-        ToolboxEndpointExecution {
+        ToolboxEndpointDataExecution {
             slot: 1,
             error: Some(TransactionError::InstructionError(
                 0,
@@ -81,7 +81,7 @@ pub async fn run() {
         .await
         .unwrap();
     assert_eq!(
-        ToolboxEndpointExecution {
+        ToolboxEndpointDataExecution {
             slot: 1,
             error: None,
             logs: Some(vec![

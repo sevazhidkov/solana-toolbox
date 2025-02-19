@@ -35,11 +35,9 @@ impl ToolboxEndpoint {
                 slot,
                 upgrade_authority_address,
             }) => Ok(Some((slot, upgrade_authority_address))),
-            _ => {
-                Err(ToolboxEndpointError::Custom(
-                    "Program data is malformed".to_string(),
-                ))
-            },
+            _ => Err(ToolboxEndpointError::Custom(
+                "Program data is malformed".to_string(),
+            )),
         }
     }
 

@@ -6,15 +6,16 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::Transaction;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxEndpointTransaction {
+pub struct ToolboxEndpointDataTransaction {
     pub payer: Pubkey,
     pub signers: Vec<Pubkey>,
     pub instructions: Vec<Instruction>,
 }
 
+// TODO - figure out the proper API for those sanitizing types
 // TODO - support transaction conversions for versionned transactions
-impl From<&Transaction> for ToolboxEndpointTransaction {
-    fn from(transaction: &Transaction) -> ToolboxEndpointTransaction {
+impl From<&Transaction> for ToolboxEndpointDataTransaction {
+    fn from(transaction: &Transaction) -> ToolboxEndpointDataTransaction {
         let message = &transaction.message;
         let num_signatures =
             usize::from(message.header.num_required_signatures);
@@ -63,7 +64,7 @@ impl From<&Transaction> for ToolboxEndpointTransaction {
                 data: instruction.data.clone(),
             });
         }
-        ToolboxEndpointTransaction {
+        ToolboxEndpointDataTransaction {
             payer,
             signers: signers.into_iter().collect(),
             instructions,

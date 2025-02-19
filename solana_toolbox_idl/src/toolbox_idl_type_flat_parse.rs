@@ -141,11 +141,9 @@ impl ToolboxIdlTypeFlat {
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(match ToolboxIdlPrimitive::try_parse(idl_str) {
             Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
-            None => {
-                ToolboxIdlTypeFlat::Defined {
-                    name: idl_str.to_string(),
-                    generics: vec![],
-                }
+            None => ToolboxIdlTypeFlat::Defined {
+                name: idl_str.to_string(),
+                generics: vec![],
             },
         })
     }

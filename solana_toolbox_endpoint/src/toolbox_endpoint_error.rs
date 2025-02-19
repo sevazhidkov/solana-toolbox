@@ -1,12 +1,14 @@
 use solana_client::client_error::ClientError;
 use solana_program_test::BanksClientError;
 use solana_sdk::program_error::ProgramError;
+use solana_sdk::signature::ParseSignatureError;
 
 #[derive(Debug)]
 pub enum ToolboxEndpointError {
     BanksClient(Box<BanksClientError>),
     Client(Box<ClientError>),
     Program(Box<ProgramError>),
+    ParseSignature(ParseSignatureError),
     Bincode(bincode::Error),
     Base64Decode(base64::DecodeError),
     Io(std::io::Error),

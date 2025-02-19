@@ -85,15 +85,10 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => {
-                idl_err(
-                    &format!(
-                        "Can't use a const literal directly: {:?}",
-                        literal
-                    ),
-                    &breadcrumbs.idl(),
-                )
-            },
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
+                &format!("Can't use a const literal directly: {:?}", literal),
+                &breadcrumbs.idl(),
+            ),
         }
     }
 

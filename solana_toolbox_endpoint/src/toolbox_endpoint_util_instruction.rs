@@ -3,15 +3,15 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
+use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 impl ToolboxEndpoint {
     pub async fn simulate_instruction(
         &mut self,
         instruction: Instruction,
         payer: &Keypair,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         self.simulate_instructions_with_signers_and_compute(
             &[instruction],
             payer,
@@ -42,7 +42,7 @@ impl ToolboxEndpoint {
         instruction: Instruction,
         payer: &Keypair,
         signers: &[&Keypair],
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         self.simulate_instructions_with_signers_and_compute(
             &[instruction],
             payer,
@@ -74,7 +74,7 @@ impl ToolboxEndpoint {
         instructions: &[Instruction],
         payer: &Keypair,
         signers: &[&Keypair],
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         self.simulate_instructions_with_signers_and_compute(
             instructions,
             payer,
@@ -108,7 +108,7 @@ impl ToolboxEndpoint {
         signers: &[&Keypair],
         compute_budget_unit_limit_counter: Option<u32>,
         compute_budget_unit_price_micro_lamports: Option<u64>,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         let transaction = self
             .build_transaction_from_instructions_with_signers_and_compute(
                 instructions,

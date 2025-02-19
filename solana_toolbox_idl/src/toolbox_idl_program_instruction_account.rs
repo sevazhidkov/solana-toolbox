@@ -79,11 +79,9 @@ impl ToolboxIdlProgramInstructionAccount {
                 Some(val) => val,
             };
         Ok(Some(Pubkey::from_str(idl_instruction_account_address).map_err(
-            |err| {
-                ToolboxIdlError::InvalidPubkey {
-                    parsing: err,
-                    context: breadcrumbs.as_idl("address"),
-                }
+            |err| ToolboxIdlError::InvalidPubkey {
+                parsing: err,
+                context: breadcrumbs.as_idl("address"),
             },
         )?))
     }

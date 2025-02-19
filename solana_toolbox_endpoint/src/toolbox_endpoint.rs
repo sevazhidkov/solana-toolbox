@@ -1,11 +1,13 @@
+use std::collections::HashSet;
+
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
+use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
@@ -51,7 +53,7 @@ impl ToolboxEndpoint {
     pub async fn simulate_transaction(
         &mut self,
         transaction: &Transaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         self.proxy.simulate_transaction(transaction).await
     }
 
@@ -77,8 +79,29 @@ impl ToolboxEndpoint {
     pub async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         self.proxy.get_execution(signature).await
+    }
+
+    pub async fn search_addresses(
+        &mut self,
+        program_id: &Pubkey,
+        data_len: Option<usize>,
+        data_chunks: &[(usize, &[u8])],
+    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+        self.proxy.search_addresses(program_id, data_len, data_chunks).await
+    }
+
+    pub async fn search_signatures(
+        &mut self,
+        address: &Pubkey,
+        start_before: Option<Signature>,
+        rewind_until: Option<Signature>,
+        limit: usize,
+    ) -> Result<Vec<Signature>, ToolboxEndpointError> {
+        self.proxy
+            .search_signatures(address, start_before, rewind_until, limit)
+            .await
     }
 
     pub async fn forward_clock_unix_timestamp(

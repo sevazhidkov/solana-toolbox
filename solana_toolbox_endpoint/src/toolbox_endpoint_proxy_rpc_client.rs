@@ -1,10 +1,19 @@
+use std::collections::HashSet;
+use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
+use solana_account_decoder::UiDataSliceConfig;
 use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
+use solana_client::rpc_config::RpcAccountInfoConfig;
+use solana_client::rpc_config::RpcProgramAccountsConfig;
+use solana_client::rpc_filter::Memcmp;
+use solana_client::rpc_filter::MemcmpEncodedBytes;
+use solana_client::rpc_filter::RpcFilterType;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
@@ -16,8 +25,8 @@ use solana_transaction_status::UiReturnDataEncoding;
 use solana_transaction_status::UiTransactionEncoding;
 use solana_transaction_status::UiTransactionReturnData;
 
+use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
 const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
@@ -58,9 +67,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn simulate_transaction(
         &mut self,
         transaction: &Transaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         let outcome = self.inner.simulate_transaction(transaction).await?;
-        Ok(ToolboxEndpointExecution {
+        Ok(ToolboxEndpointDataExecution {
             slot: outcome.context.slot,
             error: outcome.value.err,
             logs: outcome.value.logs,
@@ -101,29 +110,111 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         let outcome = self
             .inner
             .get_transaction(signature, UiTransactionEncoding::Base64)
             .await?;
+        // TODO - shall we get the original transaction here ?
+        // let dada = outcome.transaction.transaction.decode();
         match outcome.transaction.meta {
-            Some(metadata) => {
-                Ok(ToolboxEndpointExecution {
-                    slot: outcome.slot,
-                    error: metadata.err,
-                    logs: metadata.log_messages.into(),
-                    return_data:
-                        ToolboxEndpointProxyRpcClient::prepare_return_data(
-                            metadata.return_data.into(),
-                        )?,
-                    units_consumed: metadata.compute_units_consumed.into(),
-                })
+            Some(metadata) => Ok(ToolboxEndpointDataExecution {
+                slot: outcome.slot,
+                error: metadata.err,
+                logs: metadata.log_messages.into(),
+                return_data:
+                    ToolboxEndpointProxyRpcClient::prepare_return_data(
+                        metadata.return_data.into(),
+                    )?,
+                units_consumed: metadata.compute_units_consumed.into(),
+            }),
+            None => Err(ToolboxEndpointError::Custom(
+                "Unknown transaction execution".to_string(),
+            )),
+        }
+    }
+
+    async fn search_addresses(
+        &mut self,
+        program_id: &Pubkey,
+        data_len: Option<usize>,
+        data_chunks: &[(usize, &[u8])],
+    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+        let mut program_accounts_filters = vec![];
+        if let Some(data_len) = data_len {
+            program_accounts_filters.push(RpcFilterType::DataSize(
+                u64::try_from(data_len).unwrap(),
+            ));
+        }
+        for (slice_offset, slice_bytes) in data_chunks {
+            program_accounts_filters.push(RpcFilterType::Memcmp(Memcmp::new(
+                *slice_offset,
+                MemcmpEncodedBytes::Base64(STANDARD.encode(slice_bytes)),
+            )));
+        }
+        let program_accounts_config = RpcProgramAccountsConfig {
+            filters: Some(program_accounts_filters),
+            account_config: RpcAccountInfoConfig {
+                encoding: None,
+                data_slice: Some(UiDataSliceConfig { offset: 0, length: 0 }),
+                commitment: None,
+                min_context_slot: None,
             },
-            None => {
-                Err(ToolboxEndpointError::Custom(
-                    "Unknown transaction execution".to_string(),
-                ))
-            },
+            with_context: None,
+        };
+        Ok(HashSet::from_iter(
+            self.inner
+                .get_program_accounts_with_config(
+                    &program_id,
+                    program_accounts_config,
+                )
+                .await?
+                .iter()
+                .map(|result| result.0),
+        ))
+    }
+
+    async fn search_signatures(
+        &mut self,
+        address: &Pubkey,
+        start_before: Option<Signature>,
+        rewind_until: Option<Signature>,
+        limit: usize,
+    ) -> Result<Vec<Signature>, ToolboxEndpointError> {
+        let mut top_signature = start_before;
+        let mut ordered_signatures = vec![];
+        loop {
+            let batch_size =
+                if ordered_signatures.is_empty() { Some(100) } else { None };
+            let signatures = self
+                .inner
+                .get_signatures_for_address_with_config(
+                    address,
+                    GetConfirmedSignaturesForAddress2Config {
+                        before: top_signature,
+                        until: None,
+                        limit: batch_size,
+                        commitment: None,
+                    },
+                )
+                .await?;
+            if signatures.is_empty() {
+                return Ok(ordered_signatures);
+            }
+            for signature in &signatures {
+                let found_signature = Signature::from_str(&signature.signature)
+                    .map_err(ToolboxEndpointError::ParseSignature)?;
+                ordered_signatures.push(found_signature);
+                if ordered_signatures.len() >= limit {
+                    return Ok(ordered_signatures);
+                }
+                if let Some(rewind_until) = rewind_until {
+                    if found_signature == rewind_until {
+                        return Ok(ordered_signatures);
+                    }
+                }
+                top_signature = Some(found_signature);
+            }
         }
     }
 

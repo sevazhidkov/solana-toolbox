@@ -1,3 +1,7 @@
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
+use std::collections::HashSet;
+
 use solana_program_test::ProgramTestBanksClientExt;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
@@ -9,8 +13,8 @@ use solana_sdk::system_instruction::transfer;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
+use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
 const SLOTS_PER_EPOCH: u64 = 432_000;
@@ -19,7 +23,9 @@ const SECONDS_PER_EPOCH: u64 = SLOTS_PER_EPOCH / SLOTS_PER_SECOND;
 
 pub struct ToolboxEndpointProxyProgramTestContext {
     inner: ProgramTestContext,
-    processed: Vec<(Signature, ToolboxEndpointExecution)>,
+    addresses_by_program_id: HashMap<Pubkey, HashSet<Pubkey>>,
+    signatures_by_address: HashMap<Pubkey, Vec<Signature>>,
+    execution_by_signature: HashMap<Signature, ToolboxEndpointDataExecution>,
 }
 
 impl ToolboxEndpointProxyProgramTestContext {
@@ -28,7 +34,9 @@ impl ToolboxEndpointProxyProgramTestContext {
     ) -> ToolboxEndpointProxyProgramTestContext {
         ToolboxEndpointProxyProgramTestContext {
             inner: program_test_context,
-            processed: Default::default(),
+            addresses_by_program_id: Default::default(),
+            signatures_by_address: Default::default(),
+            execution_by_signature: Default::default(),
         }
     }
 }
@@ -62,7 +70,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn simulate_transaction(
         &mut self,
         transaction: &Transaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         let current_slot =
             self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
         let outcome = self
@@ -71,7 +79,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .simulate_transaction(transaction.clone())
             .await?;
         if let Some(simulation_details) = outcome.simulation_details {
-            return Ok(ToolboxEndpointExecution {
+            return Ok(ToolboxEndpointDataExecution {
                 slot: current_slot,
                 error: outcome.result.transpose().err(),
                 logs: Some(simulation_details.logs),
@@ -81,7 +89,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 units_consumed: Some(simulation_details.units_consumed),
             });
         }
-        Ok(ToolboxEndpointExecution {
+        Ok(ToolboxEndpointDataExecution {
             slot: current_slot,
             error: outcome.result.transpose().err(),
             logs: None,
@@ -103,7 +111,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .process_transaction_with_metadata(transaction.clone())
             .await?;
         let execution = match outcome.metadata {
-            Some(metadata) => ToolboxEndpointExecution {
+            Some(metadata) => ToolboxEndpointDataExecution {
                 slot: current_slot,
                 error: outcome.result.err(),
                 logs: Some(metadata.log_messages),
@@ -112,7 +120,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                     .map(|return_data| return_data.data),
                 units_consumed: Some(metadata.compute_units_consumed),
             },
-            None => ToolboxEndpointExecution {
+            None => ToolboxEndpointDataExecution {
                 slot: current_slot,
                 error: outcome.result.err(),
                 logs: None,
@@ -120,7 +128,34 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 units_consumed: None,
             },
         };
-        self.processed.push((signature, execution));
+        for instruction in &transaction.message.instructions {
+            let instruction_program_id = transaction.message.account_keys
+                [usize::from(instruction.program_id_index)];
+            for instruction_account_index in &instruction.accounts {
+                let instruction_account = transaction.message.account_keys
+                    [usize::from(*instruction_account_index)];
+                match self.addresses_by_program_id.entry(instruction_program_id)
+                {
+                    Entry::Vacant(entry) => {
+                        entry.insert(HashSet::from_iter([instruction_account]));
+                    },
+                    Entry::Occupied(mut entry) => {
+                        entry.get_mut().insert(instruction_account);
+                    },
+                };
+            }
+        }
+        for account_key in &transaction.message.account_keys {
+            match self.signatures_by_address.entry(*account_key) {
+                Entry::Vacant(entry) => {
+                    entry.insert(vec![signature]);
+                },
+                Entry::Occupied(mut entry) => {
+                    entry.get_mut().push(signature);
+                },
+            };
+        }
+        self.execution_by_signature.insert(signature, execution);
         Ok(signature)
     }
 
@@ -141,16 +176,90 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
 
     async fn get_execution(
         &mut self,
-        searched_signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
-        for (signature, execution) in &self.processed {
-            if searched_signature == signature {
-                return Ok(execution.clone());
+        signature: &Signature,
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
+        self.execution_by_signature
+            .get(&signature)
+            .ok_or_else(|| {
+                ToolboxEndpointError::Custom(
+                    "Unknown execution signature".to_string(),
+                )
+            })
+            .cloned()
+    }
+
+    async fn search_addresses(
+        &mut self,
+        program_id: &Pubkey,
+        data_len: Option<usize>,
+        data_chunks: &[(usize, &[u8])],
+    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+        let mut found_addresses = HashSet::new();
+        if let Some(addresses) = self.addresses_by_program_id.get(&program_id) {
+            for address in addresses {
+                let account = self
+                    .inner
+                    .banks_client
+                    .get_account(*address)
+                    .await?
+                    .unwrap_or_default();
+                if account.owner != *program_id {
+                    continue;
+                }
+                if let Some(data_len) = data_len {
+                    if account.data.len() != data_len {
+                        continue;
+                    }
+                }
+                let mut data_match = true;
+                for (data_offset, data_slices) in data_chunks {
+                    if account.data.len() < *data_offset {
+                        data_match = false;
+                        continue;
+                    }
+                    if !account.data[*data_offset..].starts_with(data_slices) {
+                        data_match = false;
+                        continue;
+                    }
+                }
+                if data_match {
+                    found_addresses.insert(*address);
+                }
             }
         }
-        Err(ToolboxEndpointError::Custom(
-            "Unknown execution signature".to_string(),
-        ))
+        Ok(found_addresses)
+    }
+
+    async fn search_signatures(
+        &mut self,
+        address: &Pubkey,
+        start_before: Option<Signature>,
+        rewind_until: Option<Signature>,
+        limit: usize,
+    ) -> Result<Vec<Signature>, ToolboxEndpointError> {
+        let mut found_signatures = vec![];
+        if let Some(signatures) = self.signatures_by_address.get(address) {
+            let mut started = start_before.is_none();
+            for signature in signatures.iter().rev() {
+                if started {
+                    found_signatures.push(*signature);
+                }
+                if let Some(start_before) = start_before {
+                    if *signature == start_before {
+                        started = true;
+                    }
+                }
+                if let Some(rewind_until) = rewind_until {
+                    if *signature == rewind_until {
+                        break;
+                    }
+                }
+                if found_signatures.len() >= limit {
+                    break;
+                }
+            }
+        }
+        Ok(found_signatures)
     }
 
     async fn forward_clock_unix_timestamp(

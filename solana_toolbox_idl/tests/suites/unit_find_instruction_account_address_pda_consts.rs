@@ -113,7 +113,6 @@ pub async fn run() {
         Pubkey::find_program_address(pda_seeds_const_bytes, &program_id2).0;
     // Pdas based off of const string seeds
     let pda_seeds_const_string: &[&[u8]] = &[b"hello", b"world"];
-    eprintln!("pda_seeds_const_string:{:?}", pda_seeds_const_string);
     let pda_const_string1 =
         Pubkey::find_program_address(pda_seeds_const_string, &program_id1).0;
     let pda_const_string2 =

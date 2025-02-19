@@ -4743,6 +4743,7 @@ dependencies = [
  "borsh 1.5.5",
  "bytemuck",
  "serde",
+ "solana-account-decoder",
  "solana-client",
  "solana-program-runtime",
  "solana-program-test",

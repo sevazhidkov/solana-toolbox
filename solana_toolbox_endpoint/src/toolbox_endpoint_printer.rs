@@ -3,14 +3,14 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::Transaction;
 
-use crate::toolbox_endpoint_transaction::ToolboxEndpointTransaction;
+use crate::toolbox_endpoint_data_transaction::ToolboxEndpointDataTransaction;
 
 #[derive(Default)]
 pub struct ToolboxEndpointPrinter {}
 
 impl ToolboxEndpointPrinter {
     pub fn print_transaction(transaction: &Transaction) {
-        let transaction = ToolboxEndpointTransaction::from(transaction);
+        let transaction = ToolboxEndpointDataTransaction::from(transaction);
         println!("----");
         println!("transaction.payer: {:?}", transaction.payer);
         println!("----");

@@ -1,11 +1,13 @@
+use std::collections::HashSet;
+
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 
+use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 #[async_trait::async_trait]
 pub trait ToolboxEndpointProxy {
@@ -26,7 +28,7 @@ pub trait ToolboxEndpointProxy {
     async fn simulate_transaction(
         &mut self,
         transaction: &Transaction, // TODO - support versionned transactions
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError>;
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError>;
 
     async fn process_transaction(
         &mut self,
@@ -42,7 +44,22 @@ pub trait ToolboxEndpointProxy {
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError>;
+    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError>;
+
+    async fn search_addresses(
+        &mut self,
+        program_id: &Pubkey,
+        data_len: Option<usize>,
+        data_chunks: &[(usize, &[u8])],
+    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError>;
+
+    async fn search_signatures(
+        &mut self,
+        address: &Pubkey,
+        start_before: Option<Signature>,
+        rewind_until: Option<Signature>,
+        limit: usize,
+    ) -> Result<Vec<Signature>, ToolboxEndpointError>;
 
     async fn forward_clock_unix_timestamp(
         &mut self,

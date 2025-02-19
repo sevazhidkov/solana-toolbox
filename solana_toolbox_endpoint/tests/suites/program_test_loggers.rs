@@ -4,10 +4,10 @@ use solana_sdk::signer::Signer;
 use solana_sdk::system_program;
 use solana_sdk::system_transaction::create_account;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointDataTransaction;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerHistory;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_endpoint::ToolboxEndpointPrinter;
-use solana_toolbox_endpoint::ToolboxEndpointTransaction;
 
 #[tokio::test]
 pub async fn run() {
@@ -78,12 +78,14 @@ pub async fn run() {
     let transactions = logger_history.get_transactions();
     assert_eq!(2, transactions.len());
     // First the simple transfer IX happened (system program)
-    let tx0 = ToolboxEndpointTransaction::from(&transactions[0].transaction);
+    let tx0 =
+        ToolboxEndpointDataTransaction::from(&transactions[0].transaction);
     assert_eq!(1, tx0.signers.len());
     assert_eq!(1, tx0.instructions.len());
     assert_eq!(system_program::ID, tx0.instructions[0].program_id);
     // Then the create+init of the mint happened (2 IXs, 2 signers)
-    let tx1 = ToolboxEndpointTransaction::from(&transactions[1].transaction);
+    let tx1 =
+        ToolboxEndpointDataTransaction::from(&transactions[1].transaction);
     assert_eq!(2, tx1.signers.len());
     assert_eq!(2, tx1.instructions.len());
     assert_eq!(system_program::ID, tx1.instructions[0].program_id);

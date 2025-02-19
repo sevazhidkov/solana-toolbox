@@ -82,15 +82,10 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => {
-                idl_err(
-                    &format!(
-                        "Can't use a const literal directly: {:?}",
-                        literal
-                    ),
-                    &breadcrumbs.idl(),
-                )
-            },
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
+                &format!("Can't use a const literal directly: {:?}", literal),
+                &breadcrumbs.idl(),
+            ),
         }
     }
 
@@ -341,11 +336,9 @@ impl ToolboxIdlTypeFull {
                 )?;
                 data_size += data_bytes.len();
                 let data_string = String::from_utf8(data_bytes.to_vec())
-                    .map_err(|err| {
-                        ToolboxIdlError::InvalidString {
-                            parsing: err,
-                            context: context.clone(),
-                        }
+                    .map_err(|err| ToolboxIdlError::InvalidString {
+                        parsing: err,
+                        context: context.clone(),
                     })?;
                 (data_size, Value::String(data_string))
             },
