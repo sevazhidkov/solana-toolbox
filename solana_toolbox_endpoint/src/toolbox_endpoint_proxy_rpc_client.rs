@@ -74,7 +74,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
             error: outcome.value.err,
             logs: outcome.value.logs,
             return_data: ToolboxEndpointProxyRpcClient::prepare_return_data(
-                outcome.value.return_data.into(),
+                outcome.value.return_data,
             )?,
             units_consumed: outcome.value.units_consumed,
         })
@@ -152,20 +152,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
                 MemcmpEncodedBytes::Base64(STANDARD.encode(slice_bytes)),
             )));
         }
-        let program_accounts_config = RpcProgramAccountsConfig {
-            filters: Some(program_accounts_filters),
-            account_config: RpcAccountInfoConfig {
-                encoding: None,
-                data_slice: Some(UiDataSliceConfig { offset: 0, length: 0 }),
-                commitment: None,
-                min_context_slot: None,
-            },
-            with_context: None,
-        };
+        let program_accounts_config =
+            make_program_accounts_config(program_accounts_filters);
         Ok(HashSet::from_iter(
             self.inner
                 .get_program_accounts_with_config(
-                    &program_id,
+                    program_id,
                     program_accounts_config,
                 )
                 .await?
@@ -300,5 +292,37 @@ impl ToolboxEndpointProxyRpcClient {
                     .map_err(ToolboxEndpointError::Base64Decode)
             })
             .transpose()
+    }
+}
+
+fn make_account_info_config() -> RpcAccountInfoConfig {
+    RpcAccountInfoConfig {
+        encoding: None,
+        data_slice: Some(UiDataSliceConfig { offset: 0, length: 0 }),
+        commitment: None,
+        min_context_slot: None,
+    }
+}
+
+#[cfg(not(feature = "has_sort_results_field"))]
+fn make_program_accounts_config(
+    program_accounts_filters: Vec<RpcFilterType>
+) -> RpcProgramAccountsConfig {
+    RpcProgramAccountsConfig {
+        filters: Some(program_accounts_filters),
+        account_config: make_account_info_config(),
+        with_context: None,
+    }
+}
+
+#[cfg(feature = "has_sort_results_field")]
+fn make_program_accounts_config(
+    program_accounts_filters: Vec<RpcFilterType>
+) -> RpcProgramAccountsConfig {
+    RpcProgramAccountsConfig {
+        filters: Some(program_accounts_filters),
+        account_config: make_account_info_config(),
+        with_context: None,
+        sort_results: None,
     }
 }

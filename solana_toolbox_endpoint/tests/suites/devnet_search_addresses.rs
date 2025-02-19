@@ -23,7 +23,7 @@ pub async fn run() {
     // Searching accounts with no filters, will return all the program's accounts
     let search_unfiltered =
         endpoint.search_addresses(&program_id, None, &[]).await.unwrap();
-    assert!(search_unfiltered.len() > 0);
+    assert!(!search_unfiltered.is_empty());
     // Searching accounts by matching on the discriminator
     let search_by_discriminator = endpoint
         .search_addresses(&program_id, None, &[(0, &discriminator)])

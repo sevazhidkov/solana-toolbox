@@ -5,6 +5,10 @@ version = "0.1.38-solana-2.1.4"
 edition = "2021"
 license = "MIT"
 
+[features]
+has_sort_results_field = []
+default = ["has_sort_results_field"]
+
 [dependencies]
 async-trait = "0.1.83"
 

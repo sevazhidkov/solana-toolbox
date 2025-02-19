@@ -26,11 +26,11 @@ pub async fn run() {
         .unwrap();
     // Mint some token to our users
     let mut users_collaterals = vec![];
-    for i in 0..10 {
+    for (i, user) in users.iter().enumerate() {
         let user_collateral = endpoint
             .process_spl_associated_token_account_get_or_init(
                 &payer,
-                &users[i].pubkey(),
+                &user.pubkey(),
                 &collateral_mint,
             )
             .await
@@ -69,13 +69,13 @@ pub async fn run() {
         .search_addresses(
             &spl_token::ID,
             None,
-            &[(0, &collateral_mint.as_ref())],
+            &[(0, collateral_mint.as_ref())],
         )
         .await
         .unwrap();
     assert_eq!(token_accounts_addresses.len(), 10);
-    for i in 0..10 {
-        assert!(token_accounts_addresses.contains(&users_collaterals[i]))
+    for user_collateral in &users_collaterals {
+        assert!(token_accounts_addresses.contains(user_collateral))
     }
     // Find mint by size and content
     let token_mints_addresses = endpoint
@@ -95,7 +95,7 @@ pub async fn run() {
             .search_addresses(
                 &spl_token::ID,
                 None,
-                &[(0, &collateral_mint.as_ref()), (32, user.pubkey().as_ref())],
+                &[(0, collateral_mint.as_ref()), (32, user.pubkey().as_ref())],
             )
             .await
             .unwrap();
@@ -103,7 +103,7 @@ pub async fn run() {
         assert!(user_addresses.contains(&users_collaterals[i]))
     }
     // Find token account by balance
-    for i in 0..10 {
+    for (i, user_collateral) in users_collaterals.iter().enumerate() {
         let amount = 1_000_000 + u64::try_from(i).unwrap();
         let user_addresses = endpoint
             .search_addresses(
@@ -114,6 +114,6 @@ pub async fn run() {
             .await
             .unwrap();
         assert_eq!(user_addresses.len(), 1);
-        assert!(user_addresses.contains(&users_collaterals[i]))
+        assert!(user_addresses.contains(user_collateral))
     }
 }

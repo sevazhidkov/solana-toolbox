@@ -179,7 +179,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         signature: &Signature,
     ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
         self.execution_by_signature
-            .get(&signature)
+            .get(signature)
             .ok_or_else(|| {
                 ToolboxEndpointError::Custom(
                     "Unknown execution signature".to_string(),
@@ -195,7 +195,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         data_chunks: &[(usize, &[u8])],
     ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
         let mut found_addresses = HashSet::new();
-        if let Some(addresses) = self.addresses_by_program_id.get(&program_id) {
+        if let Some(addresses) = self.addresses_by_program_id.get(program_id) {
             for address in addresses {
                 let account = self
                     .inner
@@ -266,7 +266,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         &mut self,
         unix_timestamp_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        if unix_timestamp_delta <= 0 {
+        if unix_timestamp_delta == 0 {
             return Ok(());
         }
         let current_clock =
@@ -283,7 +283,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         &mut self,
         slot_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        if slot_delta <= 0 {
+        if slot_delta == 0 {
             return Ok(());
         }
         let current_clock =
@@ -300,7 +300,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         &mut self,
         epoch_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        if epoch_delta <= 0 {
+        if epoch_delta == 0 {
             return Ok(());
         }
         let current_clock =

@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::usize;
 
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;

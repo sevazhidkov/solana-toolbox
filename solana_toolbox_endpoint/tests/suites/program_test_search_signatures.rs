@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::hash::RandomState;
-use std::usize;
 
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
@@ -24,13 +23,13 @@ pub async fn run() {
     }
     // Fund each user with a base amount
     let mut fundings_signatures = vec![];
-    for i in 0..10 {
+    for user in &users {
         fundings_signatures.push(
             endpoint
                 .process_system_transfer(
                     &payer,
                     &payer,
-                    &users[i].pubkey(),
+                    &user.pubkey(),
                     1_000_000_000,
                 )
                 .await
@@ -39,12 +38,12 @@ pub async fn run() {
     }
     // Generate a dummy history of intra-user transfers
     let mut transfers_signatures = vec![];
-    for i in 0..10 {
+    for (i, user) in users.iter().enumerate() {
         transfers_signatures.push(
             endpoint
                 .process_system_transfer(
-                    &users[i],
-                    &users[i],
+                    user,
+                    user,
                     &users[(i + 1) % users.len()].pubkey(),
                     u64::try_from(i).unwrap(),
                 )
