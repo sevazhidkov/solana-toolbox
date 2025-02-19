@@ -45,10 +45,10 @@ impl ToolboxIdlTypeFlat {
         match self {
             ToolboxIdlTypeFlat::Defined { name, generics } => {
                 if generics.is_empty() {
-                    format!("{}", name)
+                    format!("@{}", name)
                 } else {
                     format!(
-                        "{}<{}>",
+                        "@{}<{}>",
                         name,
                         generics
                             .iter()
@@ -59,7 +59,7 @@ impl ToolboxIdlTypeFlat {
                 }
             },
             ToolboxIdlTypeFlat::Generic { symbol } => {
-                format!("{}", symbol)
+                format!("${}", symbol)
             },
             ToolboxIdlTypeFlat::Option { content } => {
                 format!("Option<{}>", content.describe())
@@ -86,7 +86,7 @@ impl ToolboxIdlTypeFlat {
                 )
             },
             ToolboxIdlTypeFlat::Const { literal } => {
-                format!("{}", literal)
+                format!("#{}", literal)
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
                 primitive.as_str().to_string()

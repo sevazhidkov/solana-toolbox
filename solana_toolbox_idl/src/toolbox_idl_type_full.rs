@@ -49,7 +49,7 @@ impl ToolboxIdlTypeFull {
                 primitive.as_str().to_string()
             },
             ToolboxIdlTypeFull::Const { literal } => {
-                format!("{}", literal)
+                format!("#{}", literal)
             },
         }
     }
