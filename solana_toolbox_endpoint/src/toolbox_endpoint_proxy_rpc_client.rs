@@ -173,19 +173,24 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         rewind_until: Option<Signature>,
         limit: usize,
     ) -> Result<Vec<Signature>, ToolboxEndpointError> {
-        let mut top_signature = start_before;
+        let mut oldest_known_signature = start_before;
         let mut ordered_signatures = vec![];
+        let mut retries = 0;
         loop {
-            let batch_size =
-                if ordered_signatures.is_empty() { Some(100) } else { None };
+            let batch_size = match retries {
+                0 => 10,
+                1 => 100,
+                _ => 1000,
+            };
+            retries += 1;
             let signatures = self
                 .inner
                 .get_signatures_for_address_with_config(
                     address,
                     GetConfirmedSignaturesForAddress2Config {
-                        before: top_signature,
+                        before: oldest_known_signature,
                         until: None,
-                        limit: batch_size,
+                        limit: Some(batch_size),
                         commitment: None,
                     },
                 )
@@ -205,7 +210,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
                         return Ok(ordered_signatures);
                     }
                 }
-                top_signature = Some(found_signature);
+                oldest_known_signature = Some(found_signature);
             }
         }
     }

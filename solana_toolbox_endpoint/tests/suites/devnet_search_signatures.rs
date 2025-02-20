@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::usize;
 
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
@@ -6,6 +7,7 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 
 #[tokio::test]
 pub async fn run() {
+    // TODO - test what if before Signature is unknown
     // Create the endpoint pointing to devnet
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Tests constants
@@ -27,10 +29,26 @@ pub async fn run() {
         .await
         .unwrap();
     assert!(search_until_n2.len() > 100);
-    assert_eq!(*search_until_n2.last().unwrap(), program_signature_n2);
+    assert_eq!(
+        search_until_n2[search_until_n2.len() - 1],
+        program_signature_n2
+    );
+    assert_eq!(
+        search_until_n2[search_until_n2.len() - 2],
+        program_signature_n3
+    );
+    assert_eq!(
+        search_until_n2[search_until_n2.len() - 3],
+        program_signature_n4
+    );
     // Search from before the 4th transaction all the way to the start
     let search_before_n4 = endpoint
-        .search_signatures(&program_id, Some(program_signature_n4), None, 100)
+        .search_signatures(
+            &program_id,
+            Some(program_signature_n4),
+            None,
+            usize::MAX,
+        )
         .await
         .unwrap();
     assert_eq!(search_before_n4.len(), 3);
@@ -43,11 +61,42 @@ pub async fn run() {
             &program_id,
             Some(program_signature_n4),
             Some(program_signature_n2),
-            100,
+            usize::MAX,
         )
         .await
         .unwrap();
     assert_eq!(search_before_n4_until_n2.len(), 2);
     assert_eq!(search_before_n4_until_n2[0], program_signature_n3);
     assert_eq!(search_before_n4_until_n2[1], program_signature_n2);
+    // Search from before an invalid signature (must return nothing)
+    let search_before_invalid = endpoint
+        .search_signatures(
+            &program_id,
+            Some(Signature::new_unique()),
+            None,
+            usize::MAX,
+        )
+        .await
+        .unwrap();
+    assert_eq!(search_before_invalid.len(), 0);
+    // Search until an invalid signature (must return everything)
+    let search_until_invalid = endpoint
+        .search_signatures(
+            &program_id,
+            None,
+            Some(Signature::new_unique()),
+            usize::MAX,
+        )
+        .await
+        .unwrap();
+    assert_eq!(search_until_invalid.len(), search_until_n2.len() + 1);
+    assert_eq!(
+        search_until_invalid[..search_until_invalid.len() - 1],
+        search_until_n2[..]
+    );
+    // Search with a limit
+    let search_limited =
+        endpoint.search_signatures(&program_id, None, None, 100).await.unwrap();
+    assert_eq!(search_limited.len(), 100);
+    assert_eq!(search_limited[..], search_until_n2[..100]);
 }

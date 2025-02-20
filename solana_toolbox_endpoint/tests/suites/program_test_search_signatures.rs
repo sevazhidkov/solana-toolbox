@@ -65,26 +65,26 @@ pub async fn run() {
         assert!(signatures.contains(&transfers_signatures[(i + 9) % 10]));
     }
     // Check that the payer has the proper signatures
-    let mut payer_signatures = endpoint
+    let mut search_payer = endpoint
         .search_signatures(&payer.pubkey(), None, None, usize::MAX)
         .await
         .unwrap();
-    payer_signatures.reverse();
-    assert_eq!(payer_signatures.len(), 11);
-    assert_eq!(payer_signatures[0], airdrop_signature);
-    assert_eq!(payer_signatures[1..11], fundings_signatures[..]);
+    search_payer.reverse();
+    assert_eq!(search_payer.len(), 11);
+    assert_eq!(search_payer[0], airdrop_signature);
+    assert_eq!(search_payer[1..11], fundings_signatures[..]);
     // Check the signatures on the system program
-    let mut system_unfiltered_signatures = endpoint
+    let mut search_system_unfiltered = endpoint
         .search_signatures(&system_program::ID, None, None, usize::MAX)
         .await
         .unwrap();
-    system_unfiltered_signatures.reverse();
-    assert_eq!(system_unfiltered_signatures.len(), 21);
-    assert_eq!(system_unfiltered_signatures[0], airdrop_signature);
-    assert_eq!(system_unfiltered_signatures[1..11], fundings_signatures[..]);
-    assert_eq!(system_unfiltered_signatures[11..], transfers_signatures[..]);
+    search_system_unfiltered.reverse();
+    assert_eq!(search_system_unfiltered.len(), 21);
+    assert_eq!(search_system_unfiltered[0], airdrop_signature);
+    assert_eq!(search_system_unfiltered[1..11], fundings_signatures[..]);
+    assert_eq!(search_system_unfiltered[11..], transfers_signatures[..]);
     // Check the signatures on the system program with filter
-    let mut system_filtered_signatures = endpoint
+    let mut search_system_filtered = endpoint
         .search_signatures(
             &system_program::ID,
             Some(transfers_signatures[6]),
@@ -93,8 +93,42 @@ pub async fn run() {
         )
         .await
         .unwrap();
-    system_filtered_signatures.reverse();
-    assert_eq!(system_filtered_signatures.len(), 14);
-    assert_eq!(system_filtered_signatures[..8], fundings_signatures[2..]);
-    assert_eq!(system_filtered_signatures[8..], transfers_signatures[..6]);
+    search_system_filtered.reverse();
+    assert_eq!(search_system_filtered.len(), 14);
+    assert_eq!(search_system_filtered[..8], fundings_signatures[2..]);
+    assert_eq!(search_system_filtered[8..], transfers_signatures[..6]);
+    // Search from before an invalid signature (must return nothing)
+    let search_before_invalid = endpoint
+        .search_signatures(
+            &system_program::ID,
+            Some(Signature::new_unique()),
+            None,
+            100,
+        )
+        .await
+        .unwrap();
+    assert_eq!(search_before_invalid.len(), 0);
+    // Search until an invalid signature (must return everything)
+    let mut search_until_invalid = endpoint
+        .search_signatures(
+            &system_program::ID,
+            None,
+            Some(Signature::new_unique()),
+            usize::MAX,
+        )
+        .await
+        .unwrap();
+    search_until_invalid.reverse();
+    assert_eq!(search_until_invalid, search_system_unfiltered);
+    // Search with a limit
+    let mut search_system_limited = endpoint
+        .search_signatures(&system_program::ID, None, None, 13)
+        .await
+        .unwrap();
+    search_system_limited.reverse();
+    assert_eq!(search_system_limited.len(), 13);
+    assert_eq!(
+        search_system_limited[..],
+        search_system_unfiltered[(search_system_unfiltered.len() - 13)..]
+    );
 }

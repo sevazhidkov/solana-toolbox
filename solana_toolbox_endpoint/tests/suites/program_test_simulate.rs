@@ -1,8 +1,8 @@
 use solana_sdk::instruction::InstructionError;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
-use solana_sdk::system_program;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointDataExecution;
@@ -21,7 +21,7 @@ pub async fn run() {
         &Keypair::new().pubkey(),
         100_000_000,
         42,
-        &system_program::ID,
+        &Pubkey::new_unique(),
     );
     let simulation_success =
         endpoint.simulate_instruction(instruction, &payer).await.unwrap();
@@ -45,7 +45,7 @@ pub async fn run() {
         &Keypair::new().pubkey(),
         10_000_000_000,
         42,
-        &system_program::ID,
+        &Pubkey::new_unique(),
     );
     let simulation_failure =
         endpoint.simulate_instruction(instruction, &payer).await.unwrap();
