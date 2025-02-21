@@ -46,7 +46,6 @@ struct UpdateMetadataAccountV2InstructionArgs {
     pub is_mutable: Option<bool>,
 }
 
-// TODO - support for token metadata (metaplex/2022?)
 impl ToolboxEndpoint {
     pub const SPL_TOKEN_METADATA_METAPLEX_PROGRAM_ID: Pubkey =
         pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
@@ -174,9 +173,9 @@ impl ToolboxEndpoint {
                 collection: None,
                 uses: None,
             }),
-            is_mutable: None,
             new_update_authority: None,
             primary_sale_happened: None,
+            is_mutable: None,
         }
         .serialize(&mut data)
         .map_err(ToolboxEndpointError::Io)?;
