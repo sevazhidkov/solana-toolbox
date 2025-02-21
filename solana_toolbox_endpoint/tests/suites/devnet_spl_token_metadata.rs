@@ -50,10 +50,12 @@ pub async fn run() {
             &payer,
             &mint,
             &mint_authority,
-            &metadata_authority.pubkey(),
-            "SYMBOL".to_string(),
-            "NAME".to_string(),
-            "URI".to_string(),
+            (
+                metadata_authority.pubkey(),
+                "SYMBOL".to_string(),
+                "NAME".to_string(),
+                "URI".to_string(),
+            ),
         )
         .await
         .unwrap();
@@ -75,9 +77,12 @@ pub async fn run() {
             &payer,
             &mint,
             &metadata_authority,
-            "SYMBOL2".to_string(),
-            "NAME-UPDATED".to_string(),
-            dummy_uri.to_string(),
+            (
+                metadata_authority.pubkey(),
+                "SYMBOL2".to_string(),
+                "NAME-UPDATED".to_string(),
+                dummy_uri.to_string(),
+            ),
         )
         .await
         .unwrap();

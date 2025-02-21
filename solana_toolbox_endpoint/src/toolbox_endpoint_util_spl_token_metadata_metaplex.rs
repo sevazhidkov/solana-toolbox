@@ -39,7 +39,7 @@ struct TokenMetadataMetaplexCreateArgsSimplified {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-struct UpdateMetadataAccountV2InstructionArgs {
+struct TokenMetadataMetaplexUpdateArgsSimplified {
     pub data: Option<TokenMetadataMetaplexDataArgs>,
     pub new_update_authority: Option<Pubkey>,
     pub primary_sale_happened: Option<bool>,
@@ -93,35 +93,30 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         mint: &Pubkey,
         mint_authority: &Keypair,
-        metadata_authority: &Pubkey,
-        symbol: String,
-        name: String,
-        uri: String,
+        metadata: (Pubkey, String, String, String),
     ) -> Result<Signature, ToolboxEndpointError> {
-        let mut accounts = vec![];
-        accounts.push(AccountMeta::new(
-            ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
-            false,
-        ));
-        accounts.push(AccountMeta::new_readonly(*mint, false));
-        accounts.push(AccountMeta::new_readonly(mint_authority.pubkey(), true));
-        accounts.push(AccountMeta::new_readonly(payer.pubkey(), true));
-        accounts.push(AccountMeta::new_readonly(*metadata_authority, false));
-        accounts.push(AccountMeta::new_readonly(
-            ToolboxEndpoint::SYSTEM_PROGRAM_ID,
-            false,
-        ));
-        accounts.push(AccountMeta::new_readonly(
-            ToolboxEndpoint::SYSVAR_RENT_ID,
-            false,
-        ));
+        let accounts = vec![
+            AccountMeta::new(
+                ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
+                false,
+            ),
+            AccountMeta::new_readonly(*mint, false),
+            AccountMeta::new_readonly(mint_authority.pubkey(), true),
+            AccountMeta::new_readonly(payer.pubkey(), true),
+            AccountMeta::new_readonly(metadata.0, false),
+            AccountMeta::new_readonly(
+                ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+                false,
+            ),
+            AccountMeta::new_readonly(ToolboxEndpoint::SYSVAR_RENT_ID, false),
+        ];
         let mut data = vec![];
         data.push(33);
         TokenMetadataMetaplexCreateArgsSimplified {
             data: TokenMetadataMetaplexDataArgs {
-                symbol,
-                name,
-                uri,
+                symbol: metadata.1,
+                name: metadata.2,
+                uri: metadata.3,
                 seller_fee_basis_points: 0,
                 creators: None,
                 collection: None,
@@ -150,30 +145,28 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         mint: &Pubkey,
         metadata_authority: &Keypair,
-        symbol: String,
-        name: String,
-        uri: String,
+        metadata: (Pubkey, String, String, String),
     ) -> Result<Signature, ToolboxEndpointError> {
-        let mut accounts = vec![];
-        accounts.push(AccountMeta::new(
-            ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
-            false,
-        ));
-        accounts
-            .push(AccountMeta::new_readonly(metadata_authority.pubkey(), true));
+        let accounts = vec![
+            AccountMeta::new(
+                ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
+                false,
+            ),
+            AccountMeta::new_readonly(metadata_authority.pubkey(), true),
+        ];
         let mut data = vec![];
         data.push(15);
-        UpdateMetadataAccountV2InstructionArgs {
+        TokenMetadataMetaplexUpdateArgsSimplified {
             data: Some(TokenMetadataMetaplexDataArgs {
-                symbol,
-                name,
-                uri,
+                symbol: metadata.1,
+                name: metadata.2,
+                uri: metadata.3,
                 seller_fee_basis_points: 0,
                 creators: None,
                 collection: None,
                 uses: None,
             }),
-            new_update_authority: None,
+            new_update_authority: Some(metadata.0),
             primary_sale_happened: None,
             is_mutable: None,
         }
