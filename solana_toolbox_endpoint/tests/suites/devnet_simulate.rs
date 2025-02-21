@@ -75,7 +75,7 @@ pub async fn run() {
     let simulation_returned = endpoint
         .simulate_instruction(
             ui_amount_to_amount(
-                &spl_token::ID,
+                &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
                 &pubkey!("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"),
                 "12.34",
             )

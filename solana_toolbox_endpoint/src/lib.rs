@@ -14,14 +14,16 @@ mod toolbox_endpoint_proxy_program_test_context;
 mod toolbox_endpoint_proxy_rpc_client;
 mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_consts;
-mod toolbox_endpoint_util_instruction;
+mod toolbox_endpoint_util_instruction_process;
+mod toolbox_endpoint_util_instruction_simulate;
 mod toolbox_endpoint_util_program;
+mod toolbox_endpoint_util_spl_associated_token;
 mod toolbox_endpoint_util_spl_token;
+mod toolbox_endpoint_util_spl_token_metadata_metaplex;
 mod toolbox_endpoint_util_system;
 mod toolbox_endpoint_util_sysvar;
 mod toolbox_endpoint_util_transaction;
 // TODO - support for subscriptions/websockets ?
-// TODO - support for token metadata (metaplex/2022?)
 
 pub use solana_program_test::processor as solana_program_test_processor;
 pub use toolbox_endpoint::ToolboxEndpoint;

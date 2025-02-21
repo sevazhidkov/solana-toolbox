@@ -4,8 +4,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
-use spl_associated_token_account::get_associated_token_address;
-use spl_associated_token_account::instruction::create_associated_token_account_idempotent;
 use spl_token::instruction::burn;
 use spl_token::instruction::freeze_account;
 use spl_token::instruction::initialize_account;
@@ -22,6 +20,8 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub const SPL_TOKEN_PROGRAM_ID: Pubkey = spl_token::ID;
+
     pub async fn process_spl_token_mint_new(
         &mut self,
         payer: &Keypair,
@@ -58,10 +58,10 @@ impl ToolboxEndpoint {
             rent_minimum_lamports,
             u64::try_from(rent_space)
                 .map_err(ToolboxEndpointError::TryFromInt)?,
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
         );
         let instruction_init = initialize_mint(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             &mint.pubkey(),
             mint_authority,
             mint_freeze_authority,
@@ -83,7 +83,7 @@ impl ToolboxEndpoint {
         destination_mint_authority: Option<&Pubkey>,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = set_authority(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             mint,
             destination_mint_authority,
             AuthorityType::MintTokens,
@@ -107,7 +107,7 @@ impl ToolboxEndpoint {
         amount: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = mint_to(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             mint,
             destination_token_account,
             &mint_authority.pubkey(),
@@ -130,7 +130,7 @@ impl ToolboxEndpoint {
         destination_mint_freeze_authority: Option<&Pubkey>,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = set_authority(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             mint,
             destination_mint_freeze_authority,
             AuthorityType::FreezeAccount,
@@ -153,7 +153,7 @@ impl ToolboxEndpoint {
         token_account: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = freeze_account(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             token_account,
             mint,
             &mint_freeze_authority.pubkey(),
@@ -175,7 +175,7 @@ impl ToolboxEndpoint {
         token_account: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = thaw_account(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             token_account,
             mint,
             &mint_freeze_authority.pubkey(),
@@ -198,7 +198,7 @@ impl ToolboxEndpoint {
         amount: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = transfer(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             source_token_account,
             destination_token_account,
             &owner.pubkey(),
@@ -218,7 +218,7 @@ impl ToolboxEndpoint {
         amount: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = burn(
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             source_token_account,
             mint,
             &owner.pubkey(),
@@ -245,10 +245,10 @@ impl ToolboxEndpoint {
             rent_minimum_lamports,
             u64::try_from(rent_space)
                 .map_err(ToolboxEndpointError::TryFromInt)?,
-            &spl_token::ID,
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
         );
         let instruction_init = initialize_account(
-            &spl_token::id(),
+            &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             &account.pubkey(),
             mint,
             owner,
@@ -260,27 +260,6 @@ impl ToolboxEndpoint {
         )
         .await?;
         Ok(account.pubkey())
-    }
-
-    pub async fn process_spl_associated_token_account_get_or_init(
-        &mut self,
-        payer: &Keypair,
-        owner: &Pubkey,
-        mint: &Pubkey,
-    ) -> Result<Pubkey, ToolboxEndpointError> {
-        let token_account =
-            ToolboxEndpoint::find_spl_associated_token_account(owner, mint);
-        if self.get_spl_token_account(&token_account).await?.is_some() {
-            return Ok(token_account);
-        }
-        let instruction = create_associated_token_account_idempotent(
-            &payer.pubkey(),
-            owner,
-            mint,
-            &spl_token::id(),
-        );
-        self.process_instruction(instruction, payer).await?;
-        Ok(token_account)
     }
 
     pub async fn get_spl_token_mint(
@@ -295,13 +274,6 @@ impl ToolboxEndpoint {
         token_account: &Pubkey,
     ) -> Result<Option<Account>, ToolboxEndpointError> {
         self.get_account_data_unpacked::<Account>(token_account).await
-    }
-
-    pub fn find_spl_associated_token_account(
-        owner: &Pubkey,
-        mint: &Pubkey,
-    ) -> Pubkey {
-        get_associated_token_address(owner, mint)
     }
 
     pub fn convert_spl_token_amount_to_ui_amount(

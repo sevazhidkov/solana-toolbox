@@ -63,10 +63,18 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {
+        self.get_account_data_unpacked_at(address, 0).await
+    }
+
+    pub async fn get_account_data_unpacked_at<T: Pack + IsInitialized>(
+        &mut self,
+        address: &Pubkey,
+        offset: usize,
+    ) -> Result<Option<T>, ToolboxEndpointError> {
         Ok(self
             .get_account(address)
             .await?
-            .map(|account| T::unpack(&account.data))
+            .map(|account| T::unpack(&account.data[offset..]))
             .transpose()?)
     }
 
@@ -76,9 +84,26 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {
+        self.get_account_data_bincode_deserialized_slice(address, 0, None).await
+    }
+
+    pub async fn get_account_data_bincode_deserialized_slice<
+        T: for<'a> serde::Deserialize<'a>,
+    >(
+        &mut self,
+        address: &Pubkey,
+        offset: usize,
+        length: Option<usize>,
+    ) -> Result<Option<T>, ToolboxEndpointError> {
         self.get_account(address)
             .await?
-            .map(|account| bincode::deserialize::<T>(&account.data))
+            .map(|account| {
+                bincode::deserialize::<T>(
+                    &account.data[offset
+                        ..offset
+                            + length.unwrap_or(account.data.len() - offset)],
+                )
+            })
             .transpose()
             .map_err(ToolboxEndpointError::Bincode)
     }
@@ -89,9 +114,26 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {
+        self.get_account_data_borsh_deserialized_slice(address, 0, None).await
+    }
+
+    pub async fn get_account_data_borsh_deserialized_slice<
+        T: borsh::BorshDeserialize,
+    >(
+        &mut self,
+        address: &Pubkey,
+        offset: usize,
+        length: Option<usize>,
+    ) -> Result<Option<T>, ToolboxEndpointError> {
         self.get_account(address)
             .await?
-            .map(|account| T::try_from_slice(&account.data))
+            .map(|account| {
+                T::try_from_slice(
+                    &account.data[offset
+                        ..offset
+                            + length.unwrap_or(account.data.len() - offset)],
+                )
+            })
             .transpose()
             .map_err(ToolboxEndpointError::Io)
     }
@@ -102,13 +144,7 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {
-        self.get_account(address)
-            .await?
-            .map(|account| {
-                bytemuck::try_from_bytes::<T>(&account.data).cloned()
-            })
-            .transpose()
-            .map_err(ToolboxEndpointError::PodCastError)
+        self.get_account_data_bytemuck_casted_at(address, 0).await
     }
 
     pub async fn get_account_data_bytemuck_casted_at<
@@ -121,13 +157,7 @@ impl ToolboxEndpoint {
         self.get_account(address)
             .await?
             .map(|account| {
-                let data_size = offset + std::mem::size_of::<T>();
-                if account.data.len() < data_size {
-                    return Err(ToolboxEndpointError::Custom(
-                        "Account is too small".to_string(),
-                    ));
-                }
-                bytemuck::try_from_bytes::<T>(&account.data[offset..data_size])
+                bytemuck::try_from_bytes::<T>(&account.data[offset..])
                     .cloned()
                     .map_err(ToolboxEndpointError::PodCastError)
             })

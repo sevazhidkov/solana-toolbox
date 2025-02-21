@@ -75,7 +75,12 @@ pub async fn run() {
         .unwrap();
     let simulation_returned = endpoint
         .simulate_instruction(
-            ui_amount_to_amount(&spl_token::ID, &mint, "12.34").unwrap(),
+            ui_amount_to_amount(
+                &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+                &mint,
+                "12.34",
+            )
+            .unwrap(),
             &payer,
         )
         .await

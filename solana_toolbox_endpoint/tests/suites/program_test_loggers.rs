@@ -1,7 +1,6 @@
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
-use solana_sdk::system_program;
 use solana_sdk::system_transaction::create_account;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointDataTransaction;
@@ -82,12 +81,21 @@ pub async fn run() {
         ToolboxEndpointDataTransaction::from(&transactions[0].transaction);
     assert_eq!(1, tx0.signers.len());
     assert_eq!(1, tx0.instructions.len());
-    assert_eq!(system_program::ID, tx0.instructions[0].program_id);
+    assert_eq!(
+        ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+        tx0.instructions[0].program_id
+    );
     // Then the create+init of the mint happened (2 IXs, 2 signers)
     let tx1 =
         ToolboxEndpointDataTransaction::from(&transactions[1].transaction);
     assert_eq!(2, tx1.signers.len());
     assert_eq!(2, tx1.instructions.len());
-    assert_eq!(system_program::ID, tx1.instructions[0].program_id);
-    assert_eq!(spl_token::ID, tx1.instructions[1].program_id);
+    assert_eq!(
+        ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+        tx1.instructions[0].program_id
+    );
+    assert_eq!(
+        ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+        tx1.instructions[1].program_id
+    );
 }

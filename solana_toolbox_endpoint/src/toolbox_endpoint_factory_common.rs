@@ -13,4 +13,11 @@ impl ToolboxEndpoint {
             CommitmentConfig::confirmed(),
         )
     }
+
+    pub async fn new_mainnet() -> ToolboxEndpoint {
+        ToolboxEndpoint::new_rpc_with_url_and_commitment(
+            "https://api.mainnet-beta.solana.com",
+            CommitmentConfig::confirmed(),
+        )
+    }
 }

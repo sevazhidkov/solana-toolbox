@@ -18,7 +18,6 @@ use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
-use solana_sdk::sysvar::clock;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 use solana_transaction_status::UiReturnDataEncoding;
@@ -28,6 +27,7 @@ use solana_transaction_status::UiTransactionReturnData;
 use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+use crate::ToolboxEndpoint;
 
 const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
 const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
@@ -276,7 +276,11 @@ impl ToolboxEndpointProxyRpcClient {
         &mut self
     ) -> Result<Clock, ToolboxEndpointError> {
         bincode::deserialize::<Clock>(
-            &self.inner.get_account(&clock::ID).await?.data,
+            &self
+                .inner
+                .get_account(&ToolboxEndpoint::SYSVAR_CLOCK_ID)
+                .await?
+                .data,
         )
         .map_err(ToolboxEndpointError::Bincode)
     }

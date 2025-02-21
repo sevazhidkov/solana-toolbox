@@ -6,11 +6,14 @@ use solana_sdk::system_instruction::allocate;
 use solana_sdk::system_instruction::assign;
 use solana_sdk::system_instruction::create_account;
 use solana_sdk::system_instruction::transfer;
+use solana_sdk::system_program;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub const SYSTEM_PROGRAM_ID: Pubkey = system_program::ID;
+
     pub async fn process_system_new(
         &mut self,
         payer: &Keypair,
