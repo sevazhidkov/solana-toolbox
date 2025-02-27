@@ -97,4 +97,15 @@ pub async fn run() {
         endpoint.search_signatures(&program_id, None, None, 100).await.unwrap();
     assert_eq!(search_limited.len(), 100);
     assert_eq!(search_limited[..], search_until_n2[..100]);
+    // Search invalid order
+    let search_order_invalid = endpoint
+        .search_signatures(
+            &program_id,
+            Some(program_signature_n2),
+            Some(program_signature_n4),
+            100,
+        )
+        .await
+        .unwrap();
+    assert_eq!(search_order_invalid, vec![program_signature_n1]);
 }

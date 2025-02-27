@@ -12,7 +12,7 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-struct TokenMetadataMetaplexAccountSimplified {
+struct TokenMetaplexMetadataAccountSimplified {
     pub update_authority: Pubkey,
     pub mint: Pubkey,
     pub name: String,
@@ -21,7 +21,7 @@ struct TokenMetadataMetaplexAccountSimplified {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-struct TokenMetadataMetaplexDataArgs {
+struct TokenMetaplexMetadataDataArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
@@ -32,49 +32,49 @@ struct TokenMetadataMetaplexDataArgs {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-struct TokenMetadataMetaplexCreateArgsSimplified {
-    pub data: TokenMetadataMetaplexDataArgs,
+struct TokenMetaplexMetadataCreateArgsSimplified {
+    pub data: TokenMetaplexMetadataDataArgs,
     pub is_mutable: bool,
     pub collection_details: Option<()>,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-struct TokenMetadataMetaplexUpdateArgsSimplified {
-    pub data: Option<TokenMetadataMetaplexDataArgs>,
+struct TokenMetaplexMetadataUpdateArgsSimplified {
+    pub data: Option<TokenMetaplexMetadataDataArgs>,
     pub new_update_authority: Option<Pubkey>,
     pub primary_sale_happened: Option<bool>,
     pub is_mutable: Option<bool>,
 }
 
 impl ToolboxEndpoint {
-    pub const SPL_TOKEN_METADATA_METAPLEX_PROGRAM_ID: Pubkey =
+    pub const SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID: Pubkey =
         pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 
-    pub fn find_spl_token_metadata_metaplex(mint: &Pubkey) -> Pubkey {
+    pub fn find_spl_token_metaplex_metadata(mint: &Pubkey) -> Pubkey {
         Pubkey::find_program_address(
             &[
                 b"metadata",
-                ToolboxEndpoint::SPL_TOKEN_METADATA_METAPLEX_PROGRAM_ID
+                ToolboxEndpoint::SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID
                     .as_ref(),
                 mint.as_ref(),
             ],
-            &ToolboxEndpoint::SPL_TOKEN_METADATA_METAPLEX_PROGRAM_ID,
+            &ToolboxEndpoint::SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID,
         )
         .0
     }
 
-    pub async fn get_spl_token_metadata_metaplex(
+    pub async fn get_spl_token_metaplex_metadata(
         &mut self,
         mint: &Pubkey,
     ) -> Result<Option<(Pubkey, String, String, String)>, ToolboxEndpointError>
     {
         self.get_account_data(
-            &ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
+            &ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
         )
         .await?
         .map(|data| {
             let content =
-                TokenMetadataMetaplexAccountSimplified::deserialize_reader(
+                TokenMetaplexMetadataAccountSimplified::deserialize_reader(
                     &mut &data[1..],
                 )
                 .map_err(ToolboxEndpointError::Io)?;
@@ -88,7 +88,7 @@ impl ToolboxEndpoint {
         .transpose()
     }
 
-    pub async fn process_spl_token_metadata_metaplex_create(
+    pub async fn process_spl_token_metaplex_metadata_create(
         &mut self,
         payer: &Keypair,
         mint: &Pubkey,
@@ -97,7 +97,7 @@ impl ToolboxEndpoint {
     ) -> Result<Signature, ToolboxEndpointError> {
         let accounts = vec![
             AccountMeta::new(
-                ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
+                ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
                 false,
             ),
             AccountMeta::new_readonly(*mint, false),
@@ -112,8 +112,8 @@ impl ToolboxEndpoint {
         ];
         let mut data = vec![];
         data.push(33);
-        TokenMetadataMetaplexCreateArgsSimplified {
-            data: TokenMetadataMetaplexDataArgs {
+        TokenMetaplexMetadataCreateArgsSimplified {
+            data: TokenMetaplexMetadataDataArgs {
                 symbol: metadata.1,
                 name: metadata.2,
                 uri: metadata.3,
@@ -128,19 +128,19 @@ impl ToolboxEndpoint {
         .serialize(&mut data)
         .map_err(ToolboxEndpointError::Io)?;
         let instruction = Instruction {
-            program_id: ToolboxEndpoint::SPL_TOKEN_METADATA_METAPLEX_PROGRAM_ID,
+            program_id: ToolboxEndpoint::SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID,
             accounts,
             data,
         };
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[mint_authority],
         )
         .await
     }
 
-    pub async fn process_spl_token_metadata_metaplex_update(
+    pub async fn process_spl_token_metaplex_metadata_update(
         &mut self,
         payer: &Keypair,
         mint: &Pubkey,
@@ -149,15 +149,15 @@ impl ToolboxEndpoint {
     ) -> Result<Signature, ToolboxEndpointError> {
         let accounts = vec![
             AccountMeta::new(
-                ToolboxEndpoint::find_spl_token_metadata_metaplex(mint),
+                ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
                 false,
             ),
             AccountMeta::new_readonly(metadata_authority.pubkey(), true),
         ];
         let mut data = vec![];
         data.push(15);
-        TokenMetadataMetaplexUpdateArgsSimplified {
-            data: Some(TokenMetadataMetaplexDataArgs {
+        TokenMetaplexMetadataUpdateArgsSimplified {
+            data: Some(TokenMetaplexMetadataDataArgs {
                 symbol: metadata.1,
                 name: metadata.2,
                 uri: metadata.3,
@@ -173,13 +173,13 @@ impl ToolboxEndpoint {
         .serialize(&mut data)
         .map_err(ToolboxEndpointError::Io)?;
         let instruction = Instruction {
-            program_id: ToolboxEndpoint::SPL_TOKEN_METADATA_METAPLEX_PROGRAM_ID,
+            program_id: ToolboxEndpoint::SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID,
             accounts,
             data,
         };
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[metadata_authority],
         )
         .await

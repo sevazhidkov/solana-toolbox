@@ -6,6 +6,7 @@ pub mod devnet_simulate;
 pub mod devnet_spl_token_metadata;
 pub mod devnet_sysvars;
 pub mod mainnet_spl_token_metadata;
+pub mod program_test_address_lookup_table;
 pub mod program_test_builtin_programs;
 pub mod program_test_compute_budget;
 pub mod program_test_forward_clock;

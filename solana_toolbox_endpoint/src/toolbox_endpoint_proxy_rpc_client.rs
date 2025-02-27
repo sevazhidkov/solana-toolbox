@@ -19,13 +19,13 @@ use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock::Clock;
-use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 use solana_transaction_status::UiReturnDataEncoding;
 use solana_transaction_status::UiTransactionEncoding;
 use solana_transaction_status::UiTransactionReturnData;
 
-use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 use crate::ToolboxEndpoint;
 
@@ -66,10 +66,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
 
     async fn simulate_transaction(
         &mut self,
-        transaction: &Transaction,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
-        let outcome = self.inner.simulate_transaction(transaction).await?;
-        Ok(ToolboxEndpointDataExecution {
+        versioned_transaction: VersionedTransaction,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        let outcome =
+            self.inner.simulate_transaction(&versioned_transaction).await?;
+        Ok(ToolboxEndpointExecution {
+            versioned_transaction,
             slot: outcome.context.slot,
             error: outcome.value.err,
             logs: outcome.value.logs,
@@ -82,10 +84,11 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
 
     async fn process_transaction(
         &mut self,
-        transaction: &Transaction,
+        versioned_transaction: VersionedTransaction,
     ) -> Result<Signature, ToolboxEndpointError> {
         let timer = Instant::now();
-        let signature = self.inner.send_transaction(transaction).await?;
+        let signature =
+            self.inner.send_transaction(&versioned_transaction).await?;
         loop {
             if self.inner.confirm_transaction(&signature).await? {
                 return Ok(signature);
@@ -110,15 +113,16 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         let outcome = self
             .inner
             .get_transaction(signature, UiTransactionEncoding::Base64)
             .await?;
-        // TODO - shall we get the original transaction here ?
-        // let dada = outcome.transaction.transaction.decode();
+        let versioned_transaction =
+            outcome.transaction.transaction.decode().unwrap();
         match outcome.transaction.meta {
-            Some(metadata) => Ok(ToolboxEndpointDataExecution {
+            Some(metadata) => Ok(ToolboxEndpointExecution {
+                versioned_transaction,
                 slot: outcome.slot,
                 error: metadata.err,
                 logs: metadata.log_messages.into(),
@@ -128,9 +132,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
                     )?,
                 units_consumed: metadata.compute_units_consumed.into(),
             }),
-            None => Err(ToolboxEndpointError::Custom(
-                "Unknown transaction execution".to_string(),
-            )),
+            None => Err(ToolboxEndpointError::UnknownSignature(*signature)),
         }
     }
 

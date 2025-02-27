@@ -49,24 +49,24 @@ pub async fn run() {
     // Check that the builtin program #1 works
     endpoint
         .process_instruction(
+            &payer,
             Instruction {
                 program_id: builtin1_program_id.pubkey(),
                 accounts: vec![],
                 data: vec![],
             },
-            &payer,
         )
         .await
         .unwrap();
     // Check that the builtin program #2 works
     endpoint
         .process_instruction(
+            &payer,
             Instruction {
                 program_id: builtin2_program_id.pubkey(),
                 accounts: vec![],
                 data: vec![],
             },
-            &payer,
         )
         .await
         .unwrap();

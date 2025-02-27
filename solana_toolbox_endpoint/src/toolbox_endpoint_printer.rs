@@ -1,27 +1,18 @@
 use solana_sdk::account::Account;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::transaction::Transaction;
-
-use crate::toolbox_endpoint_data_transaction::ToolboxEndpointDataTransaction;
 
 #[derive(Default)]
 pub struct ToolboxEndpointPrinter {}
 
 impl ToolboxEndpointPrinter {
-    pub fn print_transaction(transaction: &Transaction) {
-        let transaction = ToolboxEndpointDataTransaction::from(transaction);
+    pub fn print_transaction(
+        payer: &Pubkey,
+        instructions: &[Instruction],
+    ) {
         println!("----");
-        println!("transaction.payer: {:?}", transaction.payer);
-        println!("----");
-        for signer_index in 0..transaction.signers.len() {
-            println!(
-                "transaction.signers: #{:?}: {:?}",
-                signer_index + 1,
-                transaction.signers[signer_index]
-            );
-        }
-        for instruction in &transaction.instructions {
+        println!("transaction.payer: {:?}", payer);
+        for instruction in instructions {
             ToolboxEndpointPrinter::print_instruction(instruction);
         }
     }

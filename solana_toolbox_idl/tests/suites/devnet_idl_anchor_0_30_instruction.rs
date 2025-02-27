@@ -98,8 +98,8 @@ pub async fn run() {
     // Process the instructions to check if it works
     endpoint
         .process_instructions_with_signers(
-            &[instruction_pledge_create, instruction_pledge_deposit],
             &payer,
+            &[instruction_pledge_create, instruction_pledge_deposit],
             &[&user],
         )
         .await

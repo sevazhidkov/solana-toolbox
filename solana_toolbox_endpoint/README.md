@@ -69,12 +69,12 @@ endpoint
 // Then we can use the endpoint to run arbitrary transaction instructions
 endpoint
     .process_instruction(
+        &payer,
         Instruction {
             program_id: my_smart_contract::ID,
             accounts: vec![],
             data: vec![],
         },
-        &payer,
     )
     .await
     .unwrap();

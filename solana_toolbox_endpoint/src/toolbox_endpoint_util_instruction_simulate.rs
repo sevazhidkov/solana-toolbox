@@ -1,75 +1,103 @@
 use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 impl ToolboxEndpoint {
     pub async fn simulate_instruction(
         &mut self,
-        instruction: Instruction,
         payer: &Keypair,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
-        self.simulate_instructions_with_signers_and_compute(
-            &[instruction],
+        instruction: Instruction,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.simulate_instructions_with_signers_and_compute_and_lookup_table(
             payer,
+            &[instruction],
             &[],
             None,
             None,
+            &[],
         )
         .await
     }
 
     pub async fn simulate_instruction_with_signers(
         &mut self,
-        instruction: Instruction,
         payer: &Keypair,
+        instruction: Instruction,
         signers: &[&Keypair],
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
-        self.simulate_instructions_with_signers_and_compute(
-            &[instruction],
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.simulate_instructions_with_signers_and_compute_and_lookup_table(
             payer,
+            &[instruction],
             signers,
             None,
             None,
+            &[],
         )
         .await
     }
 
     pub async fn simulate_instructions_with_signers(
         &mut self,
-        instructions: &[Instruction],
         payer: &Keypair,
+        instructions: &[Instruction],
         signers: &[&Keypair],
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
-        self.simulate_instructions_with_signers_and_compute(
-            instructions,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.simulate_instructions_with_signers_and_compute_and_lookup_table(
             payer,
+            instructions,
             signers,
             None,
             None,
+            &[],
         )
         .await
     }
 
     pub async fn simulate_instructions_with_signers_and_compute(
         &mut self,
-        instructions: &[Instruction],
         payer: &Keypair,
+        instructions: &[Instruction],
         signers: &[&Keypair],
         compute_budget_unit_limit_counter: Option<u32>,
         compute_budget_unit_price_micro_lamports: Option<u64>,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
-        let transaction = self
-            .build_transaction_from_instructions_with_signers_and_compute(
-                instructions,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.simulate_instructions_with_signers_and_compute_and_lookup_table(
+            payer,
+            instructions,
+            signers,
+            compute_budget_unit_limit_counter,
+            compute_budget_unit_price_micro_lamports,
+            &[],
+        )
+        .await
+    }
+
+    pub async fn simulate_instructions_with_signers_and_compute_and_lookup_table(
+        &mut self,
+        payer: &Keypair,
+        instructions: &[Instruction],
+        signers: &[&Keypair],
+        compute_budget_unit_limit_counter: Option<u32>,
+        compute_budget_unit_price_micro_lamports: Option<u64>,
+        address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        let versioned_transaction =
+            ToolboxEndpoint::compile_versioned_transaction(
                 payer,
+                &ToolboxEndpoint::generate_instructions_with_compute_budget(
+                    instructions,
+                    compute_budget_unit_limit_counter,
+                    compute_budget_unit_price_micro_lamports,
+                ),
                 signers,
-                compute_budget_unit_limit_counter,
-                compute_budget_unit_price_micro_lamports,
+                address_lookup_tables,
+                self.get_latest_blockhash().await?,
             )
             .await?;
-        self.simulate_transaction(&transaction).await
+        self.simulate_versioned_transaction(versioned_transaction).await
     }
 }

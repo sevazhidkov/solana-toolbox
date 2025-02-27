@@ -46,7 +46,7 @@ pub async fn run() {
     // Create matatadata for mint
     let metadata_authority = Keypair::new();
     endpoint
-        .process_spl_token_metadata_metaplex_create(
+        .process_spl_token_metaplex_metadata_create(
             &payer,
             &mint,
             &mint_authority,
@@ -61,7 +61,7 @@ pub async fn run() {
         .unwrap();
     // Check that the metadata has been uploaded
     assert_eq!(
-        endpoint.get_spl_token_metadata_metaplex(&mint).await.unwrap().unwrap(),
+        endpoint.get_spl_token_metaplex_metadata(&mint).await.unwrap().unwrap(),
         (
             metadata_authority.pubkey(),
             "SYMBOL".to_string(),
@@ -70,10 +70,10 @@ pub async fn run() {
         )
     );
     // Dummy URI with an actual image in there
-    let dummy_uri = "https://raw.githubusercontent.com/crypto-vincent/solana-toolbox/refs/heads/master/solana_toolbox_endpoint/tests/fixtures/spl_token_metadata_metaplex.json";
+    let dummy_uri = "https://raw.githubusercontent.com/crypto-vincent/solana-toolbox/refs/heads/master/solana_toolbox_endpoint/tests/fixtures/spl_token_metaplex_metadata.json";
     // Update
     endpoint
-        .process_spl_token_metadata_metaplex_update(
+        .process_spl_token_metaplex_metadata_update(
             &payer,
             &mint,
             &metadata_authority,
@@ -88,7 +88,7 @@ pub async fn run() {
         .unwrap();
     // Check that the metadata has been updated
     assert_eq!(
-        endpoint.get_spl_token_metadata_metaplex(&mint).await.unwrap().unwrap(),
+        endpoint.get_spl_token_metaplex_metadata(&mint).await.unwrap().unwrap(),
         (
             metadata_authority.pubkey(),
             "SYMBOL2".to_string(),

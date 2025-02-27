@@ -28,7 +28,7 @@ impl ToolboxEndpoint {
             mint,
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
         );
-        self.process_instruction(instruction, payer).await?;
+        self.process_instruction(payer, instruction).await?;
         Ok(token_account)
     }
 

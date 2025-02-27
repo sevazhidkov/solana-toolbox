@@ -54,7 +54,7 @@ impl ToolboxEndpoint {
             u64::try_from(space).map_err(ToolboxEndpointError::TryFromInt)?,
             owner,
         );
-        self.process_instruction_with_signers(instruction, payer, &[account])
+        self.process_instruction_with_signers(payer, instruction, &[account])
             .await
     }
 
@@ -73,7 +73,7 @@ impl ToolboxEndpoint {
             u64::try_from(space).map_err(ToolboxEndpointError::TryFromInt)?,
             owner,
         );
-        self.process_instruction_with_signers(instruction, payer, &[account])
+        self.process_instruction_with_signers(payer, instruction, &[account])
             .await
     }
 
@@ -85,7 +85,7 @@ impl ToolboxEndpoint {
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = transfer(&source.pubkey(), destination, lamports);
-        self.process_instruction_with_signers(instruction, payer, &[source])
+        self.process_instruction_with_signers(payer, instruction, &[source])
             .await
     }
 
@@ -99,7 +99,7 @@ impl ToolboxEndpoint {
             &account.pubkey(),
             u64::try_from(space).map_err(ToolboxEndpointError::TryFromInt)?,
         );
-        self.process_instruction_with_signers(instruction, payer, &[account])
+        self.process_instruction_with_signers(payer, instruction, &[account])
             .await
     }
 
@@ -110,7 +110,7 @@ impl ToolboxEndpoint {
         owner: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
         let instruction = assign(&account.pubkey(), owner);
-        self.process_instruction_with_signers(instruction, payer, &[account])
+        self.process_instruction_with_signers(payer, instruction, &[account])
             .await
     }
 }

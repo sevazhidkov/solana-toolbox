@@ -14,16 +14,6 @@ impl ToolboxEndpoint {
         Ok(self.get_account_lamports(address).await?.is_some())
     }
 
-    pub async fn get_account_lamports(
-        &mut self,
-        address: &Pubkey,
-    ) -> Result<Option<u64>, ToolboxEndpointError> {
-        Ok(match self.get_balance(address).await? {
-            0 => None,
-            balance => Some(balance),
-        })
-    }
-
     pub async fn get_account_or_default(
         &mut self,
         address: &Pubkey,
@@ -36,6 +26,16 @@ impl ToolboxEndpoint {
         address: &Pubkey,
     ) -> Result<Option<Account>, ToolboxEndpointError> {
         Ok(self.get_accounts(&[*address]).await?.pop().flatten())
+    }
+
+    pub async fn get_account_lamports(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Option<u64>, ToolboxEndpointError> {
+        Ok(match self.get_balance(address).await? {
+            0 => None,
+            balance => Some(balance),
+        })
     }
 
     pub async fn get_account_owner(

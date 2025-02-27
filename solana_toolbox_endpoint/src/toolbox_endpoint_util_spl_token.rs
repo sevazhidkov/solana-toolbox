@@ -68,8 +68,8 @@ impl ToolboxEndpoint {
             mint_decimals,
         )?;
         self.process_instructions_with_signers(
-            &[instruction_create, instruction_init],
             payer,
+            &[instruction_create, instruction_init],
             &[mint],
         )
         .await
@@ -91,8 +91,8 @@ impl ToolboxEndpoint {
             &[],
         )?;
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[source_mint_authority],
         )
         .await
@@ -115,8 +115,8 @@ impl ToolboxEndpoint {
             amount,
         )?;
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[mint_authority],
         )
         .await
@@ -138,8 +138,8 @@ impl ToolboxEndpoint {
             &[],
         )?;
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[source_mint_freeze_authority],
         )
         .await
@@ -160,8 +160,8 @@ impl ToolboxEndpoint {
             &[],
         )?;
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[mint_freeze_authority],
         )
         .await
@@ -182,8 +182,8 @@ impl ToolboxEndpoint {
             &[],
         )?;
         self.process_instruction_with_signers(
-            instruction,
             payer,
+            instruction,
             &[mint_freeze_authority],
         )
         .await
@@ -205,7 +205,7 @@ impl ToolboxEndpoint {
             &[],
             amount,
         )?;
-        self.process_instruction_with_signers(instruction, payer, &[owner])
+        self.process_instruction_with_signers(payer, instruction, &[owner])
             .await
     }
 
@@ -225,7 +225,7 @@ impl ToolboxEndpoint {
             &[],
             amount,
         )?;
-        self.process_instruction_with_signers(instruction, payer, &[owner])
+        self.process_instruction_with_signers(payer, instruction, &[owner])
             .await
     }
 
@@ -254,8 +254,8 @@ impl ToolboxEndpoint {
             owner,
         )?;
         self.process_instructions_with_signers(
-            &[instruction_create, instruction_init],
             payer,
+            &[instruction_create, instruction_init],
             &[&account],
         )
         .await?;

@@ -4,10 +4,10 @@ use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
-use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 
-use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 #[async_trait::async_trait]
 pub trait ToolboxEndpointProxy {
@@ -27,12 +27,12 @@ pub trait ToolboxEndpointProxy {
 
     async fn simulate_transaction(
         &mut self,
-        transaction: &Transaction, // TODO - support versionned transactions
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError>;
+        versioned_transaction: VersionedTransaction,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError>;
 
     async fn process_transaction(
         &mut self,
-        transaction: &Transaction, // TODO - support versionned transactions
+        versioned_transaction: VersionedTransaction,
     ) -> Result<Signature, ToolboxEndpointError>;
 
     async fn request_airdrop(
@@ -44,7 +44,7 @@ pub trait ToolboxEndpointProxy {
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError>;
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError>;
 
     async fn search_addresses(
         &mut self,

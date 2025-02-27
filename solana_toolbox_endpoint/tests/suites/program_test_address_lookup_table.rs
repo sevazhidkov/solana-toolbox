@@ -1,0 +1,84 @@
+use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Keypair;
+use solana_sdk::signer::Signer;
+use solana_sdk::system_instruction::transfer;
+use solana_toolbox_endpoint::ToolboxEndpoint;
+
+#[tokio::test]
+pub async fn run() {
+    // Initialize the endpoint
+    let mut endpoint = ToolboxEndpoint::new_program_test().await;
+    // Prepare a payer
+    let payer = Keypair::new();
+    endpoint.request_airdrop(&payer.pubkey(), 200_000_000_000).await.unwrap();
+    // Create an empty lookup table
+    let address_lookup_table_authority = Keypair::new();
+    let address_lookup_table = endpoint
+        .process_address_lookup_table_new(
+            &payer,
+            &address_lookup_table_authority.pubkey(),
+        )
+        .await
+        .unwrap();
+    // Create users addresses and add them to a lookup table
+    let mut users = vec![];
+    for _ in 0..50 {
+        let user = Pubkey::new_unique();
+        endpoint
+            .process_address_lookup_table_extend(
+                &payer,
+                &address_lookup_table_authority,
+                &address_lookup_table,
+                (&[user]).to_vec(),
+            )
+            .await
+            .unwrap();
+        users.push(user);
+    }
+    // Wait a few slot
+    endpoint.forward_clock_slot(10).await.unwrap();
+    // Fetch the addresses we just uploaded
+    let address_lookup_table_addresses = endpoint
+        .get_address_lookup_table_addresses(&address_lookup_table)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(address_lookup_table_addresses, users);
+    let resolved_address_lookup_tables = endpoint
+        .resolve_address_lookup_tables(&[address_lookup_table])
+        .await
+        .unwrap()
+        .clone();
+    assert_eq!(
+        resolved_address_lookup_tables,
+        vec![(address_lookup_table, address_lookup_table_addresses)]
+    );
+    // Create a very large transaction with a lot of instructions
+    let mut instructions = vec![];
+    for user in &users {
+        instructions.push(transfer(&payer.pubkey(), user, 1_000_000_000));
+    }
+    let versioned_transaction = ToolboxEndpoint::compile_versioned_transaction(
+        &payer,
+        &instructions,
+        &[],
+        &resolved_address_lookup_tables,
+        endpoint.get_latest_blockhash().await.unwrap(),
+    )
+    .await
+    .unwrap();
+    // Check that the transaction was successful
+    let signature = endpoint
+        .process_versioned_transaction(versioned_transaction.clone())
+        .await
+        .unwrap();
+    let execution = endpoint.get_execution(&signature).await.unwrap();
+    assert_eq!(execution.versioned_transaction, versioned_transaction);
+    assert_eq!(execution.error, None);
+    assert_eq!(execution.logs, Some(vec![]));
+    assert_eq!(execution.return_data, None);
+    assert_eq!(execution.units_consumed, Some(150));
+    eprintln!("signature: {:?}", signature);
+    eprintln!("execution: {:?}", execution);
+    panic!("YOLO");
+}

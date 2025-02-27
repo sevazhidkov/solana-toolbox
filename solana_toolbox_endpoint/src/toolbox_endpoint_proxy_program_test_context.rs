@@ -5,17 +5,21 @@ use std::collections::HashSet;
 use solana_program_test::ProgramTestBanksClientExt;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
+use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::hash::Hash;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::transfer;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 
-use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
+use crate::ToolboxEndpoint;
 
 const SLOTS_PER_EPOCH: u64 = 432_000;
 const SLOTS_PER_SECOND: u64 = 2;
@@ -25,7 +29,7 @@ pub struct ToolboxEndpointProxyProgramTestContext {
     inner: ProgramTestContext,
     addresses_by_program_id: HashMap<Pubkey, HashSet<Pubkey>>,
     signatures_by_address: HashMap<Pubkey, Vec<Signature>>,
-    execution_by_signature: HashMap<Signature, ToolboxEndpointDataExecution>,
+    execution_by_signature: HashMap<Signature, ToolboxEndpointExecution>,
 }
 
 impl ToolboxEndpointProxyProgramTestContext {
@@ -69,17 +73,18 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
 
     async fn simulate_transaction(
         &mut self,
-        transaction: &Transaction,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
+        versioned_transaction: VersionedTransaction,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         let current_slot =
             self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
         let outcome = self
             .inner
             .banks_client
-            .simulate_transaction(transaction.clone())
+            .simulate_transaction(versioned_transaction.clone())
             .await?;
         if let Some(simulation_details) = outcome.simulation_details {
-            return Ok(ToolboxEndpointDataExecution {
+            return Ok(ToolboxEndpointExecution {
+                versioned_transaction,
                 slot: current_slot,
                 error: outcome.result.transpose().err(),
                 logs: Some(simulation_details.logs),
@@ -89,7 +94,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 units_consumed: Some(simulation_details.units_consumed),
             });
         }
-        Ok(ToolboxEndpointDataExecution {
+        Ok(ToolboxEndpointExecution {
+            versioned_transaction,
             slot: current_slot,
             error: outcome.result.transpose().err(),
             logs: None,
@@ -100,18 +106,22 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
 
     async fn process_transaction(
         &mut self,
-        transaction: &Transaction,
+        versioned_transaction: VersionedTransaction,
     ) -> Result<Signature, ToolboxEndpointError> {
         let current_slot =
             self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
         let signature = Signature::new_unique();
+        // TODO - should there be preflight here ?
         let outcome = self
             .inner
             .banks_client
-            .process_transaction_with_metadata(transaction.clone())
+            .process_transaction_with_metadata(versioned_transaction.clone())
             .await?;
+        let (payer, instructions) =
+            self.resolve_versioned_transaction(&versioned_transaction).await?;
         let execution = match outcome.metadata {
-            Some(metadata) => ToolboxEndpointDataExecution {
+            Some(metadata) => ToolboxEndpointExecution {
+                versioned_transaction,
                 slot: current_slot,
                 error: outcome.result.err(),
                 logs: Some(metadata.log_messages),
@@ -120,7 +130,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                     .map(|return_data| return_data.data),
                 units_consumed: Some(metadata.compute_units_consumed),
             },
-            None => ToolboxEndpointDataExecution {
+            None => ToolboxEndpointExecution {
+                versioned_transaction,
                 slot: current_slot,
                 error: outcome.result.err(),
                 logs: None,
@@ -128,32 +139,20 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 units_consumed: None,
             },
         };
-        for instruction in &transaction.message.instructions {
-            let instruction_program_id = transaction.message.account_keys
-                [usize::from(instruction.program_id_index)];
-            for instruction_account_index in &instruction.accounts {
-                let instruction_account = transaction.message.account_keys
-                    [usize::from(*instruction_account_index)];
-                match self.addresses_by_program_id.entry(instruction_program_id)
-                {
-                    Entry::Vacant(entry) => {
-                        entry.insert(HashSet::from_iter([instruction_account]));
-                    },
-                    Entry::Occupied(mut entry) => {
-                        entry.get_mut().insert(instruction_account);
-                    },
-                };
+        let mut transaction_accounts = HashSet::new();
+        transaction_accounts.insert(payer);
+        for instruction in instructions {
+            transaction_accounts.insert(instruction.program_id);
+            for instruction_account_meta in instruction.accounts {
+                transaction_accounts.insert(instruction_account_meta.pubkey);
+                self.insert_address_for_program_id(
+                    instruction.program_id,
+                    instruction_account_meta.pubkey,
+                );
             }
         }
-        for account_key in &transaction.message.account_keys {
-            match self.signatures_by_address.entry(*account_key) {
-                Entry::Vacant(entry) => {
-                    entry.insert(vec![signature]);
-                },
-                Entry::Occupied(mut entry) => {
-                    entry.get_mut().push(signature);
-                },
-            };
+        for transaction_account in transaction_accounts {
+            self.push_signature_for_address(transaction_account, signature);
         }
         self.execution_by_signature.insert(signature, execution);
         Ok(signature)
@@ -171,20 +170,16 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             Some(&self.inner.payer.pubkey()),
         );
         transaction.partial_sign(&[&self.inner.payer], latest_blockhash);
-        self.process_transaction(&transaction).await
+        self.process_transaction(transaction.into()).await
     }
 
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         self.execution_by_signature
             .get(signature)
-            .ok_or_else(|| {
-                ToolboxEndpointError::Custom(
-                    "Unknown execution signature".to_string(),
-                )
-            })
+            .ok_or_else(|| ToolboxEndpointError::UnknownSignature(*signature))
             .cloned()
     }
 
@@ -243,19 +238,19 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             for signature in signatures.iter().rev() {
                 if started {
                     found_signatures.push(*signature);
+                    if let Some(rewind_until) = rewind_until {
+                        if *signature == rewind_until {
+                            break;
+                        }
+                    }
+                    if found_signatures.len() >= limit {
+                        break;
+                    }
                 }
                 if let Some(start_before) = start_before {
                     if *signature == start_before {
                         started = true;
                     }
-                }
-                if let Some(rewind_until) = rewind_until {
-                    if *signature == rewind_until {
-                        break;
-                    }
-                }
-                if found_signatures.len() >= limit {
-                    break;
                 }
             }
         }
@@ -331,5 +326,80 @@ impl ToolboxEndpointProxyProgramTestContext {
             .await
             .map_err(ToolboxEndpointError::Io)?;
         Ok(())
+    }
+
+    fn push_signature_for_address(
+        &mut self,
+        address: Pubkey,
+        signature: Signature,
+    ) {
+        match self.signatures_by_address.entry(address) {
+            Entry::Vacant(entry) => {
+                entry.insert(vec![signature]);
+            },
+            Entry::Occupied(mut entry) => {
+                entry.get_mut().push(signature);
+            },
+        };
+    }
+
+    fn insert_address_for_program_id(
+        &mut self,
+        program_id: Pubkey,
+        address: Pubkey,
+    ) {
+        match self.addresses_by_program_id.entry(program_id) {
+            Entry::Vacant(entry) => {
+                entry.insert(HashSet::from_iter([address]));
+            },
+            Entry::Occupied(mut entry) => {
+                entry.get_mut().insert(address);
+            },
+        };
+    }
+
+    async fn get_address_lookup_table_addresses(
+        &mut self,
+        address_lookup_table: &Pubkey,
+    ) -> Result<Option<Vec<Pubkey>>, ToolboxEndpointError> {
+        match self.inner.banks_client.get_account(*address_lookup_table).await?
+        {
+            Some(account) => Ok(Some(
+                AddressLookupTable::deserialize(&account.data)?
+                    .addresses
+                    .to_vec(),
+            )),
+            None => Ok(None),
+        }
+    }
+
+    async fn resolve_versioned_transaction(
+        &mut self,
+        versioned_transaction: &VersionedTransaction,
+    ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
+        let mut resolved_address_lookup_tables = vec![];
+        if let Some(message_address_table_lookups) =
+            versioned_transaction.message.address_table_lookups()
+        {
+            for message_address_table_lookup in message_address_table_lookups {
+                let message_address_lookup_table =
+                    message_address_table_lookup.account_key;
+                if let Some(address_lookup_table_addresses) = self
+                    .get_address_lookup_table_addresses(
+                        &message_address_lookup_table,
+                    )
+                    .await?
+                {
+                    resolved_address_lookup_tables.push((
+                        message_address_lookup_table,
+                        address_lookup_table_addresses,
+                    ));
+                }
+            }
+        }
+        ToolboxEndpoint::decompile_versioned_transaction(
+            versioned_transaction,
+            &resolved_address_lookup_tables,
+        )
     }
 }

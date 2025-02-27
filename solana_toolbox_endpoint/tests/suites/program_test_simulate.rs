@@ -5,7 +5,7 @@ use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointDataExecution;
+use solana_toolbox_endpoint::ToolboxEndpointExecution;
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
@@ -16,17 +16,24 @@ pub async fn run() {
     let payer = Keypair::new();
     endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
     // Simulate an instruction that should succeed
-    let instruction = create_account(
-        &payer.pubkey(),
-        &Keypair::new().pubkey(),
-        100_000_000,
-        42,
-        &Pubkey::new_unique(),
-    );
-    let simulation_success =
-        endpoint.simulate_instruction(instruction, &payer).await.unwrap();
+    let account_success = Keypair::new();
+    let simulation_success = endpoint
+        .simulate_instruction_with_signers(
+            &payer,
+            create_account(
+                &payer.pubkey(),
+                &account_success.pubkey(),
+                100_000_000,
+                42,
+                &Pubkey::new_unique(),
+            ),
+            &[&account_success],
+        )
+        .await
+        .unwrap();
     assert_eq!(
-        ToolboxEndpointDataExecution {
+        ToolboxEndpointExecution {
+            versioned_transaction: todo!(),
             slot: 1,
             error: None,
             logs: Some(vec![
@@ -40,17 +47,24 @@ pub async fn run() {
         simulation_success
     );
     // Simulate an instruction that should fail
-    let instruction = create_account(
-        &payer.pubkey(),
-        &Keypair::new().pubkey(),
-        10_000_000_000,
-        42,
-        &Pubkey::new_unique(),
-    );
-    let simulation_failure =
-        endpoint.simulate_instruction(instruction, &payer).await.unwrap();
+    let account_failure = Keypair::new();
+    let simulation_failure = endpoint
+        .simulate_instruction_with_signers(
+            &payer,
+            create_account(
+                &payer.pubkey(),
+                &account_failure.pubkey(),
+                10_000_000_000,
+                42,
+                &Pubkey::new_unique(),
+            ),
+            &[&account_failure],
+        )
+        .await
+        .unwrap();
     assert_eq!(
-        ToolboxEndpointDataExecution {
+        ToolboxEndpointExecution {
+            versioned_transaction: todo!(),
             slot: 1,
             error: Some(TransactionError::InstructionError(
                 0,
@@ -75,18 +89,19 @@ pub async fn run() {
         .unwrap();
     let simulation_returned = endpoint
         .simulate_instruction(
+            &payer,
             ui_amount_to_amount(
                 &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
                 &mint,
                 "12.34",
             )
             .unwrap(),
-            &payer,
         )
         .await
         .unwrap();
     assert_eq!(
-        ToolboxEndpointDataExecution {
+        ToolboxEndpointExecution {
+            versioned_transaction: todo!(),
             slot: 1,
             error: None,
             logs: Some(vec![

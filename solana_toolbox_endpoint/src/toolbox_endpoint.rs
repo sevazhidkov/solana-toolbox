@@ -5,9 +5,10 @@ use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 
-use crate::toolbox_endpoint_data_execution::ToolboxEndpointDataExecution;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
@@ -52,20 +53,35 @@ impl ToolboxEndpoint {
 
     pub async fn simulate_transaction(
         &mut self,
-        transaction: &Transaction,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
-        self.proxy.simulate_transaction(transaction).await
+        transaction: Transaction,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.simulate_versioned_transaction(transaction.into()).await
+    }
+
+    pub async fn simulate_versioned_transaction(
+        &mut self,
+        versioned_transaction: VersionedTransaction,
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        self.proxy.simulate_transaction(versioned_transaction).await
     }
 
     pub async fn process_transaction(
         &mut self,
-        transaction: &Transaction,
+        transaction: Transaction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let result = self.proxy.process_transaction(transaction).await;
+        self.process_versioned_transaction(transaction.into()).await
+    }
+
+    pub async fn process_versioned_transaction(
+        &mut self,
+        versioned_transaction: VersionedTransaction,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let signature =
+            self.proxy.process_transaction(versioned_transaction).await?;
         for logger in &self.loggers {
-            logger.on_transaction(transaction, &result).await;
+            logger.on_signature(&signature).await;
         }
-        result
+        Ok(signature)
     }
 
     pub async fn request_airdrop(
@@ -79,7 +95,7 @@ impl ToolboxEndpoint {
     pub async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointDataExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         self.proxy.get_execution(signature).await
     }
 

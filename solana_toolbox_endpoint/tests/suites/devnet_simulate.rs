@@ -18,19 +18,22 @@ pub async fn run() {
         Keypair::from_seed(b"This is a dummy devnet payer used for simulation")
             .unwrap();
     // Simulate an instruction that should succeed
+    let account_success = Keypair::new();
     let simulation_success = endpoint
-        .simulate_instruction(
+        .simulate_instruction_with_signers(
+            &payer,
             create_account(
                 &payer.pubkey(),
-                &Keypair::new().pubkey(),
+                &account_success.pubkey(),
                 100_000_000,
                 42,
                 &Pubkey::new_unique(),
             ),
-            &payer,
+            &[&account_success],
         )
         .await
         .unwrap();
+    // TODO - check versioned transaction
     assert_eq!(simulation_success.error, None);
     assert_eq!(
         simulation_success.logs,
@@ -42,16 +45,18 @@ pub async fn run() {
     assert_eq!(simulation_success.return_data, None);
     assert_eq!(simulation_success.units_consumed, Some(150));
     // Simulate an instruction that should fail
+    let account_failure = Keypair::new();
     let simulation_failure = endpoint
-        .simulate_instruction(
+        .simulate_instruction_with_signers(
+            &payer,
             create_account(
                 &payer.pubkey(),
-                &Keypair::new().pubkey(),
+                &account_failure.pubkey(),
                 100_000_000_000,
                 42,
                 &Pubkey::new_unique(),
             ),
-            &payer,
+            &[&account_failure],
         )
         .await
         .unwrap();
@@ -74,13 +79,13 @@ pub async fn run() {
     // Simulate an intreuction with return data
     let simulation_returned = endpoint
         .simulate_instruction(
+            &payer,
             ui_amount_to_amount(
                 &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
                 &pubkey!("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"),
                 "12.34",
             )
             .unwrap(),
-            &payer,
         )
         .await
         .unwrap();

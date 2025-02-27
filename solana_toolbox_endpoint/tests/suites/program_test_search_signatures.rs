@@ -1,3 +1,5 @@
+use std::usize;
+
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
@@ -90,7 +92,7 @@ pub async fn run() {
     assert_eq!(search_system_unfiltered[..10], transfers_signatures[..]);
     assert_eq!(search_system_unfiltered[10..20], fundings_signatures[..]);
     assert_eq!(search_system_unfiltered[20], airdrop_signature);
-    // Check the signatures on the system program with filter
+    // Check the signatures on the system program with a tight filter
     let search_system_filtered = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
@@ -132,4 +134,16 @@ pub async fn run() {
         .unwrap();
     assert_eq!(search_system_limited.len(), 13);
     assert_eq!(search_system_limited[..], search_system_unfiltered[..13]);
+    // Search invalid order
+    let search_order_invalid = endpoint
+        .search_signatures(
+            &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+            Some(fundings_signatures[5]),
+            Some(transfers_signatures[5]),
+            usize::MAX,
+        )
+        .await
+        .unwrap();
+    assert_eq!(search_order_invalid[..4], fundings_signatures[6..]);
+    assert_eq!(search_order_invalid[4], airdrop_signature);
 }

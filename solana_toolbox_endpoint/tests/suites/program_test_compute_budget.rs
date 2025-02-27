@@ -17,8 +17,8 @@ pub async fn run() {
         transfer(&payer.pubkey(), &destination.pubkey(), 1_000_000_000);
     endpoint
         .process_instructions_with_signers_and_compute(
-            &[instruction],
             &payer,
+            &[instruction],
             &[&payer],
             Some(1_000_000),
             Some(42_000_000), // in micro-lamports equals 42 lamports/unit
