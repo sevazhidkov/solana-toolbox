@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use solana_sdk::instruction::CompiledInstruction;
+use solana_sdk::instruction::AccountMeta;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::instruction::InstructionError;
-use solana_sdk::message::MessageHeader;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionError;
@@ -18,33 +18,40 @@ pub async fn run() {
         endpoint.get_execution(&signature_success).await.unwrap();
     // Check that the execution details are correct
     assert_eq!(
-        execution_success.versioned_transaction.message.header(),
-        &MessageHeader {
-            num_required_signatures: 2,
-            num_readonly_signed_accounts: 1,
-            num_readonly_unsigned_accounts: 1,
-        }
+        execution_success.payer,
+        Pubkey::from_str("Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi")
+            .unwrap()
     );
     assert_eq!(
-        execution_success.versioned_transaction.message.static_account_keys(),
-        vec![
-            Pubkey::from_str("Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi")
-                .unwrap(),
-            Pubkey::from_str("aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC")
-                .unwrap(),
-            Pubkey::from_str("UbgH7eSCxgbr7EWk3LYSA1tVCpX617oefgcgzZu5uvV")
-                .unwrap(),
-            Pubkey::from_str("GbT1xUWY1ABi71UjjcUKbHrupYjf8nrwrijt3TjGaK2K")
-                .unwrap(),
-            Pubkey::from_str("CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu")
-                .unwrap(),
-        ]
-    );
-    assert_eq!(
-        execution_success.versioned_transaction.message.instructions(),
-        vec![CompiledInstruction {
-            program_id_index: 4,
-            accounts: vec![1, 2, 3],
+        execution_success.instructions,
+        vec![Instruction {
+            program_id: Pubkey::from_str(
+                "CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu"
+            )
+            .unwrap(),
+            accounts: vec![
+                AccountMeta::new_readonly(
+                    Pubkey::from_str(
+                        "aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC"
+                    )
+                    .unwrap(),
+                    true
+                ),
+                AccountMeta::new(
+                    Pubkey::from_str(
+                        "UbgH7eSCxgbr7EWk3LYSA1tVCpX617oefgcgzZu5uvV"
+                    )
+                    .unwrap(),
+                    false
+                ),
+                AccountMeta::new(
+                    Pubkey::from_str(
+                        "GbT1xUWY1ABi71UjjcUKbHrupYjf8nrwrijt3TjGaK2K"
+                    )
+                    .unwrap(),
+                    false,
+                ),
+            ],
             data: vec![
                 103, 14, 206, 193, 142, 223, 227, 9, 1, 0, 128, 198, 164, 126,
                 141, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 100, 1, 100, 1, 0, 1,
@@ -52,7 +59,7 @@ pub async fn run() {
                 35, 151, 130, 31, 176, 170, 150, 67, 130, 247, 239, 215, 150,
                 138, 197, 129, 249, 3, 133
             ],
-        }],
+        }]
     );
     assert_eq!(execution_success.slot, 331437116);
     assert_eq!(execution_success.error, None);
@@ -78,25 +85,13 @@ pub async fn run() {
         endpoint.get_execution(&signature_failure).await.unwrap();
     // Check that the execution details are correct
     assert_eq!(
-        execution_failure.versioned_transaction.message.header(),
-        &MessageHeader {
-            num_required_signatures: 3,
-            num_readonly_signed_accounts: 1,
-            num_readonly_unsigned_accounts: 10,
-        }
+        execution_failure.payer,
+        Pubkey::from_str("Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi")
+            .unwrap()
     );
-    assert_eq!(
-        execution_failure
-            .versioned_transaction
-            .message
-            .static_account_keys()
-            .len(),
-        22,
-    );
-    assert_eq!(
-        execution_failure.versioned_transaction.message.instructions().len(),
-        2,
-    );
+    assert_eq!(execution_failure.instructions.len(), 2);
+    assert_eq!(execution_failure.instructions[0].accounts.len(), 6);
+    assert_eq!(execution_failure.instructions[1].accounts.len(), 21);
     assert_eq!(execution_failure.slot, 356222939);
     assert_eq!(
         execution_failure.error,
@@ -134,4 +129,50 @@ pub async fn run() {
         "Program CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu failed: custom program error: 0xbc4".to_string()
     ]));
     assert_eq!(execution_failure.units_consumed, Some(33086));
+    // Lookup a transaction that uses lookup addresses tables
+    let signature_tables= Signature::from_str("2MZyi9uezffec3YyAHpkC33r8Nmgwf3cBHKH1Y9H4EHfoKtZ8sQEKVCHF2Rwb17qQCrUDXS1u1wpNnxgz79U6yWY").unwrap();
+    let execution_tables =
+        endpoint.get_execution(&signature_tables).await.unwrap();
+    // Check that the execution details are correct
+    assert_eq!(
+        execution_tables.payer,
+        Pubkey::from_str("8sQEYJA7f5k3LrTDDkRDj46tWayc1fAdhurh61BtfUxF")
+            .unwrap()
+    );
+    assert_eq!(execution_tables.instructions.len(), 50);
+    for instruction_table in execution_tables.instructions {
+        assert_eq!(instruction_table.program_id, Pubkey::default());
+        assert_eq!(instruction_table.accounts.len(), 2);
+        assert_eq!(
+            instruction_table.accounts[0].pubkey,
+            execution_tables.payer
+        );
+        assert_eq!(instruction_table.accounts[0].is_signer, true);
+        assert_eq!(instruction_table.accounts[0].is_writable, true);
+        assert_eq!(instruction_table.accounts[1].is_signer, false);
+        assert_eq!(instruction_table.accounts[1].is_writable, true);
+        assert_eq!(
+            instruction_table.data,
+            [2, 0, 0, 0, 0, 152, 13, 0, 0, 0, 0, 0]
+        );
+    }
+    assert_eq!(
+        execution_tables.logs,
+        Some({
+            let mut expected_logs = vec![];
+            for _ in 0..50 {
+                expected_logs.push(
+                    "Program 11111111111111111111111111111111 invoke [1]"
+                        .to_string(),
+                );
+                expected_logs.push(
+                    "Program 11111111111111111111111111111111 success"
+                        .to_string(),
+                );
+            }
+            expected_logs
+        })
+    );
+    assert_eq!(execution_tables.return_data, None);
+    assert_eq!(execution_tables.units_consumed, Some(7500));
 }

@@ -76,12 +76,12 @@ impl ToolboxEndpoint {
         &mut self,
         versioned_transaction: VersionedTransaction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let signature =
+        let processing =
             self.proxy.process_transaction(versioned_transaction).await?;
         for logger in &self.loggers {
-            logger.on_signature(&signature).await;
+            logger.on_signature(&processing.0).await;
         }
-        Ok(signature)
+        Ok(processing.0)
     }
 
     pub async fn request_airdrop(
@@ -89,7 +89,7 @@ impl ToolboxEndpoint {
         to: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.proxy.request_airdrop(to, lamports).await
+        Ok(self.proxy.request_airdrop(to, lamports).await?.0)
     }
 
     pub async fn get_execution(

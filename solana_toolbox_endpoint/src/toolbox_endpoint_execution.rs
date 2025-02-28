@@ -1,9 +1,11 @@
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
-use solana_sdk::transaction::VersionedTransaction;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointExecution {
-    pub versioned_transaction: VersionedTransaction,
+    pub payer: Pubkey,
+    pub instructions: Vec<Instruction>,
     pub slot: u64,
     pub error: Option<TransactionError>,
     pub logs: Option<Vec<String>>,

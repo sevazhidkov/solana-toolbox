@@ -23,6 +23,8 @@ mod toolbox_idl_type_full_deserialize;
 mod toolbox_idl_type_full_hydrate;
 mod toolbox_idl_type_full_serialize;
 mod toolbox_idl_utils;
+// TODO - handle events from logs ?
+// TODO - support for uploading IDLs ?
 
 pub use toolbox_idl::ToolboxIdl;
 pub use toolbox_idl_account::ToolboxIdlAccount;

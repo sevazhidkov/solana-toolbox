@@ -14,6 +14,7 @@ impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrinter {
         &self,
         signature: &Signature,
     ) {
+        // TODO - fix this, maybe return execution during confirmation ?
         // println!("---------------------------- TRANSACTION PROCESSED -----------------------------");
         // ToolboxEndpointPrinter::print_transaction(transaction);
         // println!("----");

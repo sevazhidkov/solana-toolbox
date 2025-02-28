@@ -94,7 +94,8 @@ impl ToolboxEndpoint {
                 None,
             );
         }
-        program_test.start_with_context().await.into()
+        let context = program_test.start_with_context().await;
+        context.into()
     }
 }
 

@@ -3,6 +3,7 @@ use solana_program_test::BanksClientError;
 use solana_sdk::instruction::InstructionError;
 use solana_sdk::message::CompileError;
 use solana_sdk::program_error::ProgramError;
+use solana_sdk::pubkey::ParsePubkeyError;
 use solana_sdk::signature::ParseSignatureError;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::SignerError;
@@ -15,9 +16,11 @@ pub enum ToolboxEndpointError {
     Instruction(Box<InstructionError>),
     Compile(Box<CompileError>),
     Signer(Box<SignerError>),
+    ParsePubkey(ParsePubkeyError),
     ParseSignature(ParseSignatureError),
     UnknownSignature(Signature),
     Bincode(bincode::Error),
+    Bs58Decode(bs58::decode::Error),
     Base64Decode(base64::DecodeError),
     Io(std::io::Error),
     PodCastError(bytemuck::PodCastError),
@@ -59,5 +62,11 @@ impl From<CompileError> for ToolboxEndpointError {
 impl From<SignerError> for ToolboxEndpointError {
     fn from(source: SignerError) -> Self {
         ToolboxEndpointError::Signer(Box::new(source))
+    }
+}
+
+impl From<ParsePubkeyError> for ToolboxEndpointError {
+    fn from(source: ParsePubkeyError) -> Self {
+        ToolboxEndpointError::ParsePubkey(source)
     }
 }

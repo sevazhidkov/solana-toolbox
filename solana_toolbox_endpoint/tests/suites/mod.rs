@@ -1,3 +1,4 @@
+pub mod devnet_address_lookup_table;
 pub mod devnet_get_execution;
 pub mod devnet_program;
 pub mod devnet_search_addresses;

@@ -19,4 +19,8 @@ pub async fn run() {
         ((rent.minimum_balance(0) / rent.lamports_per_byte_year) as f64
             / rent.exemption_threshold) as u64
     );
+    // Read the slot_hashes sysvar and check the default values
+    let slot_hashes = endpoint.get_sysvar_slot_hashes().await.unwrap();
+    assert_eq!(1, slot_hashes.len());
+    assert_eq!(0, slot_hashes.first().unwrap().0);
 }

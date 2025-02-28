@@ -1,6 +1,9 @@
+use solana_sdk::address_lookup_table::instruction;
 use solana_sdk::address_lookup_table::instruction::close_lookup_table;
 use solana_sdk::address_lookup_table::instruction::create_lookup_table;
+use solana_sdk::address_lookup_table::instruction::deactivate_lookup_table;
 use solana_sdk::address_lookup_table::instruction::extend_lookup_table;
+use solana_sdk::address_lookup_table::instruction::freeze_lookup_table;
 use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -39,10 +42,6 @@ impl ToolboxEndpoint {
             Some(data) => {
                 let address_lookup_table =
                     AddressLookupTable::deserialize(&data)?;
-                eprintln!(
-                    "address_lookup_table.meta: {:?}",
-                    address_lookup_table.meta
-                );
                 Ok(Some(address_lookup_table.addresses.to_vec()))
             },
             None => Ok(None),
@@ -52,12 +51,24 @@ impl ToolboxEndpoint {
     pub async fn process_address_lookup_table_new(
         &mut self,
         payer: &Keypair,
-        authority: &Pubkey,
+        authority: &Keypair,
+        lookup_addresses: &[Pubkey],
     ) -> Result<Pubkey, ToolboxEndpointError> {
-        let clock = self.get_sysvar_clock().await?;
-        let (instruction, address_lookup_table) =
-            create_lookup_table(*authority, payer.pubkey(), clock.epoch);
+        let slot_hashes = self.get_sysvar_slot_hashes().await?;
+        let most_recent_slot = slot_hashes.first().unwrap().0;
+        let (instruction, address_lookup_table) = create_lookup_table(
+            authority.pubkey(),
+            payer.pubkey(),
+            most_recent_slot,
+        );
         self.process_instruction(payer, instruction).await?;
+        self.process_address_lookup_table_extend(
+            &payer,
+            authority,
+            &address_lookup_table,
+            lookup_addresses,
+        )
+        .await?;
         Ok(address_lookup_table)
     }
 
@@ -66,14 +77,45 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         address_lookup_table: &Pubkey,
-        lookup_addresses: Vec<Pubkey>,
+        lookup_addresses: &[Pubkey],
+    ) -> Result<(), ToolboxEndpointError> {
+        for lookup_addresses_chunk in lookup_addresses.chunks(27) {
+            let instruction = extend_lookup_table(
+                *address_lookup_table,
+                authority.pubkey(),
+                Some(payer.pubkey()),
+                lookup_addresses_chunk.to_vec(),
+            );
+            self.process_instruction_with_signers(
+                payer,
+                instruction,
+                &[authority],
+            )
+            .await?;
+        }
+        Ok(())
+    }
+
+    pub async fn process_address_lookup_table_freeze(
+        &mut self,
+        payer: &Keypair,
+        authority: &Keypair,
+        address_lookup_table: &Pubkey,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let instruction = extend_lookup_table(
-            *address_lookup_table,
-            authority.pubkey(),
-            Some(payer.pubkey()),
-            lookup_addresses,
-        );
+        let instruction =
+            freeze_lookup_table(*address_lookup_table, authority.pubkey());
+        self.process_instruction_with_signers(payer, instruction, &[authority])
+            .await
+    }
+
+    pub async fn process_address_lookup_table_deactivate(
+        &mut self,
+        payer: &Keypair,
+        authority: &Keypair,
+        address_lookup_table: &Pubkey,
+    ) -> Result<Signature, ToolboxEndpointError> {
+        let instruction =
+            deactivate_lookup_table(*address_lookup_table, authority.pubkey());
         self.process_instruction_with_signers(payer, instruction, &[authority])
             .await
     }
@@ -92,5 +134,22 @@ impl ToolboxEndpoint {
         );
         self.process_instruction_with_signers(payer, instruction, &[authority])
             .await
+    }
+
+    pub async fn process_address_lookup_table_postfix(
+        &mut self,
+        payer: &Keypair,
+        authority: &Keypair,
+        address_lookup_table: &Pubkey,
+    ) -> Result<(), ToolboxEndpointError> {
+        self.forward_clock_slot(1).await?;
+        self.process_address_lookup_table_extend(
+            &payer,
+            &authority,
+            address_lookup_table,
+            &[Pubkey::default()],
+        )
+        .await?;
+        Ok(())
     }
 }

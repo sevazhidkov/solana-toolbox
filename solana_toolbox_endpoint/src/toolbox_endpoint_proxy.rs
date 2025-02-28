@@ -33,13 +33,13 @@ pub trait ToolboxEndpointProxy {
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<Signature, ToolboxEndpointError>;
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>;
 
     async fn request_airdrop(
         &mut self,
         address: &Pubkey,
         lamports: u64,
-    ) -> Result<Signature, ToolboxEndpointError>;
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>;
 
     async fn get_execution(
         &mut self,

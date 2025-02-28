@@ -101,11 +101,14 @@ pub async fn run() {
     let search_order_invalid = endpoint
         .search_signatures(
             &program_id,
-            Some(program_signature_n2),
+            Some(program_signature_n3),
             Some(program_signature_n4),
             100,
         )
         .await
         .unwrap();
-    assert_eq!(search_order_invalid, vec![program_signature_n1]);
+    assert_eq!(
+        search_order_invalid,
+        vec![program_signature_n2, program_signature_n1]
+    );
 }

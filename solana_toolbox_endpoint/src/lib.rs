@@ -11,6 +11,7 @@ mod toolbox_endpoint_printer;
 mod toolbox_endpoint_proxy;
 mod toolbox_endpoint_proxy_program_test_context;
 mod toolbox_endpoint_proxy_rpc_client;
+mod toolbox_endpoint_proxy_rpc_client_get_transaction;
 mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_address_lookup_table;
 mod toolbox_endpoint_util_consts;
@@ -26,8 +27,6 @@ mod toolbox_endpoint_util_sysvar;
 mod toolbox_endpoint_util_transaction;
 mod toolbox_endpoint_util_versioned_transaction;
 // TODO - support for subscriptions/websockets ?
-// TODO - handle events from logs ?
-// TODO - support for uploading IDLs ?
 // TODO - better API for landed but failed TXs
 
 pub use solana_program_test::processor as solana_program_test_processor;

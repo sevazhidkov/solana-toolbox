@@ -17,23 +17,26 @@ pub async fn run() {
     endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
     // Simulate an instruction that should succeed
     let account_success = Keypair::new();
+    let instruction_success = create_account(
+        &payer.pubkey(),
+        &account_success.pubkey(),
+        100_000_000,
+        42,
+        &Pubkey::new_unique(),
+    );
     let simulation_success = endpoint
         .simulate_instruction_with_signers(
             &payer,
-            create_account(
-                &payer.pubkey(),
-                &account_success.pubkey(),
-                100_000_000,
-                42,
-                &Pubkey::new_unique(),
-            ),
+            instruction_success.clone(),
             &[&account_success],
         )
         .await
         .unwrap();
     assert_eq!(
+        simulation_success,
         ToolboxEndpointExecution {
-            versioned_transaction: todo!(),
+            payer: payer.pubkey(),
+            instructions: vec![instruction_success],
             slot: 1,
             error: None,
             logs: Some(vec![
@@ -44,27 +47,29 @@ pub async fn run() {
             return_data: None,
             units_consumed: Some(150),
         },
-        simulation_success
     );
     // Simulate an instruction that should fail
     let account_failure = Keypair::new();
+    let instruction_failure = create_account(
+        &payer.pubkey(),
+        &account_failure.pubkey(),
+        10_000_000_000,
+        42,
+        &Pubkey::new_unique(),
+    );
     let simulation_failure = endpoint
         .simulate_instruction_with_signers(
             &payer,
-            create_account(
-                &payer.pubkey(),
-                &account_failure.pubkey(),
-                10_000_000_000,
-                42,
-                &Pubkey::new_unique(),
-            ),
+            instruction_failure.clone(),
             &[&account_failure],
         )
         .await
         .unwrap();
     assert_eq!(
+        simulation_failure,
         ToolboxEndpointExecution {
-            versioned_transaction: todo!(),
+            payer: payer.pubkey(),
+            instructions: vec![instruction_failure],
             slot: 1,
             error: Some(TransactionError::InstructionError(
                 0,
@@ -80,28 +85,27 @@ pub async fn run() {
             return_data: None,
             units_consumed: Some(150),
         },
-        simulation_failure
     );
     // Simulate an intreuction with return data
     let mint = endpoint
         .process_spl_token_mint_new(&payer, &payer.pubkey(), None, 6)
         .await
         .unwrap();
+    let instruction_returned = ui_amount_to_amount(
+        &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+        &mint,
+        "12.34",
+    )
+    .unwrap();
     let simulation_returned = endpoint
-        .simulate_instruction(
-            &payer,
-            ui_amount_to_amount(
-                &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
-                &mint,
-                "12.34",
-            )
-            .unwrap(),
-        )
+        .simulate_instruction(&payer, instruction_returned.clone())
         .await
         .unwrap();
     assert_eq!(
+        simulation_returned,
         ToolboxEndpointExecution {
-            versioned_transaction: todo!(),
+            payer: payer.pubkey(),
+            instructions: vec![instruction_returned],
             slot: 1,
             error: None,
             logs: Some(vec![
@@ -114,6 +118,5 @@ pub async fn run() {
             return_data: Some(12_340_000u64.to_le_bytes().to_vec()),
             units_consumed: Some(3034),
         },
-        simulation_returned
     );
 }

@@ -11,15 +11,16 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
+use solana_sdk::slot_hashes::SlotHashes;
 use solana_sdk::system_instruction::transfer;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::VersionedTransaction;
 
+use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
-use crate::ToolboxEndpoint;
 
 const SLOTS_PER_EPOCH: u64 = 432_000;
 const SLOTS_PER_SECOND: u64 = 2;
@@ -82,9 +83,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .banks_client
             .simulate_transaction(versioned_transaction.clone())
             .await?;
+        let (payer, instructions) =
+            self.resolve_versioned_transaction(&versioned_transaction).await?;
         if let Some(simulation_details) = outcome.simulation_details {
             return Ok(ToolboxEndpointExecution {
-                versioned_transaction,
+                payer,
+                instructions,
                 slot: current_slot,
                 error: outcome.result.transpose().err(),
                 logs: Some(simulation_details.logs),
@@ -95,7 +99,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             });
         }
         Ok(ToolboxEndpointExecution {
-            versioned_transaction,
+            payer,
+            instructions,
             slot: current_slot,
             error: outcome.result.transpose().err(),
             logs: None,
@@ -107,7 +112,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
         let current_slot =
             self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
         let signature = Signature::new_unique();
@@ -117,33 +123,14 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .banks_client
             .process_transaction_with_metadata(versioned_transaction.clone())
             .await?;
+
         let (payer, instructions) =
             self.resolve_versioned_transaction(&versioned_transaction).await?;
-        let execution = match outcome.metadata {
-            Some(metadata) => ToolboxEndpointExecution {
-                versioned_transaction,
-                slot: current_slot,
-                error: outcome.result.err(),
-                logs: Some(metadata.log_messages),
-                return_data: metadata
-                    .return_data
-                    .map(|return_data| return_data.data),
-                units_consumed: Some(metadata.compute_units_consumed),
-            },
-            None => ToolboxEndpointExecution {
-                versioned_transaction,
-                slot: current_slot,
-                error: outcome.result.err(),
-                logs: None,
-                return_data: None,
-                units_consumed: None,
-            },
-        };
         let mut transaction_accounts = HashSet::new();
         transaction_accounts.insert(payer);
-        for instruction in instructions {
+        for instruction in &instructions {
             transaction_accounts.insert(instruction.program_id);
-            for instruction_account_meta in instruction.accounts {
+            for instruction_account_meta in &instruction.accounts {
                 transaction_accounts.insert(instruction_account_meta.pubkey);
                 self.insert_address_for_program_id(
                     instruction.program_id,
@@ -154,15 +141,38 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         for transaction_account in transaction_accounts {
             self.push_signature_for_address(transaction_account, signature);
         }
-        self.execution_by_signature.insert(signature, execution);
-        Ok(signature)
+        let execution = match outcome.metadata {
+            Some(metadata) => ToolboxEndpointExecution {
+                payer,
+                instructions,
+                slot: current_slot,
+                error: outcome.result.err(),
+                logs: Some(metadata.log_messages),
+                return_data: metadata
+                    .return_data
+                    .map(|return_data| return_data.data),
+                units_consumed: Some(metadata.compute_units_consumed),
+            },
+            None => ToolboxEndpointExecution {
+                payer,
+                instructions,
+                slot: current_slot,
+                error: outcome.result.err(),
+                logs: None,
+                return_data: None,
+                units_consumed: None,
+            },
+        };
+        self.execution_by_signature.insert(signature, execution.clone());
+        Ok((signature, execution))
     }
 
     async fn request_airdrop(
         &mut self,
         to: &Pubkey,
         lamports: u64,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
         let instruction = transfer(&self.inner.payer.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
         let mut transaction = Transaction::new_with_payer(
@@ -271,7 +281,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         forwarded_clock.unix_timestamp +=
             i64::try_from(unix_timestamp_delta).unwrap();
         forwarded_clock.epoch += unix_timestamp_delta / SECONDS_PER_EPOCH;
-        self.update_clock(&forwarded_clock).await
+        self.update_slot(&forwarded_clock).await
     }
 
     async fn forward_clock_slot(
@@ -288,7 +298,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         forwarded_clock.unix_timestamp +=
             i64::try_from(slot_delta / SLOTS_PER_SECOND).unwrap();
         forwarded_clock.epoch += slot_delta / SLOTS_PER_EPOCH;
-        self.update_clock(&forwarded_clock).await
+        self.update_slot(&forwarded_clock).await
     }
 
     async fn forward_clock_epoch(
@@ -305,26 +315,29 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         forwarded_clock.unix_timestamp +=
             i64::try_from(epoch_delta * SECONDS_PER_EPOCH).unwrap();
         forwarded_clock.epoch += epoch_delta;
-        self.update_clock(&forwarded_clock).await
+        self.update_slot(&forwarded_clock).await
     }
 }
 
 impl ToolboxEndpointProxyProgramTestContext {
-    async fn update_clock(
+    async fn update_slot(
         &mut self,
-        clock: &Clock,
+        new_clock: &Clock,
     ) -> Result<(), ToolboxEndpointError> {
-        self.inner.set_sysvar::<Clock>(clock);
-        self.update_blockhash().await
-    }
-
-    async fn update_blockhash(&mut self) -> Result<(), ToolboxEndpointError> {
-        self.inner.last_blockhash = self
+        let old_hash = self.inner.last_blockhash;
+        let old_clock = self.inner.banks_client.get_sysvar::<Clock>().await?;
+        let new_hash = self
             .inner
             .banks_client
-            .get_new_latest_blockhash(&self.inner.last_blockhash)
+            .get_new_latest_blockhash(&old_hash)
             .await
             .map_err(ToolboxEndpointError::Io)?;
+        let mut slot_hashes =
+            self.inner.banks_client.get_sysvar::<SlotHashes>().await?;
+        slot_hashes.add(old_clock.slot, old_hash);
+        self.inner.set_sysvar(&slot_hashes);
+        self.inner.set_sysvar(new_clock);
+        self.inner.last_blockhash = new_hash;
         Ok(())
     }
 
@@ -357,8 +370,10 @@ impl ToolboxEndpointProxyProgramTestContext {
             },
         };
     }
+}
 
-    async fn get_address_lookup_table_addresses(
+impl ToolboxEndpointProxyProgramTestContext {
+    pub async fn get_address_lookup_table_addresses(
         &mut self,
         address_lookup_table: &Pubkey,
     ) -> Result<Option<Vec<Pubkey>>, ToolboxEndpointError> {
@@ -369,11 +384,11 @@ impl ToolboxEndpointProxyProgramTestContext {
                     .addresses
                     .to_vec(),
             )),
-            None => Ok(None),
+            _ => Ok(None),
         }
     }
 
-    async fn resolve_versioned_transaction(
+    pub async fn resolve_versioned_transaction(
         &mut self,
         versioned_transaction: &VersionedTransaction,
     ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {

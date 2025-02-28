@@ -1,5 +1,6 @@
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
+use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::transfer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -7,10 +8,12 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
-    let mut endpoint = ToolboxEndpoint::new_program_test().await;
+    let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Prepare a payer
-    let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
+    let payer = Keypair::from_seed(
+        b"This is a dummy devnet payer for address lookup table testing",
+    ) // 8sQEYJA7f5k3LrTDDkRDj46tWayc1fAdhurh61BtfUxF
+    .unwrap();
     // Compute minimum rent amount
     let rent = endpoint.get_sysvar_rent().await.unwrap();
     let minimum_lamports = rent.minimum_balance(0);
@@ -45,15 +48,6 @@ pub async fn run() {
         resolved_address_lookup_tables,
         vec![(address_lookup_table, address_lookup_table_addresses)]
     );
-    // Program-test has a bug that requires us to postfix the address lookup table
-    endpoint
-        .process_address_lookup_table_postfix(
-            &payer,
-            &address_lookup_table_authority,
-            &address_lookup_table,
-        )
-        .await
-        .unwrap();
     // Create a very large transaction with a lot of instructions
     let mut instructions = vec![];
     for user in &users {

@@ -16,31 +16,26 @@ pub async fn run() {
     // Run an instruction that should succeed
     let account_success = Keypair::new();
     let program_success = Pubkey::new_unique();
-    let transaction_success = ToolboxEndpoint::compile_transaction(
-        &payer,
-        &[create_account(
-            &payer.pubkey(),
-            &account_success.pubkey(),
-            100_000_000,
-            42,
-            &program_success,
-        )],
-        &[&account_success],
-        endpoint.get_latest_blockhash().await.unwrap(),
-    )
-    .await
-    .unwrap();
+    let instruction_success = create_account(
+        &payer.pubkey(),
+        &account_success.pubkey(),
+        100_000_000,
+        42,
+        &program_success,
+    );
     let signature_success = endpoint
-        .process_transaction(transaction_success.clone())
+        .process_instruction_with_signers(
+            &payer,
+            instruction_success.clone(),
+            &[&account_success],
+        )
         .await
         .unwrap();
     // Check that we get the expected failure
     let execution_success =
         endpoint.get_execution(&signature_success).await.unwrap();
-    assert_eq!(
-        execution_success.versioned_transaction,
-        transaction_success.into()
-    );
+    assert_eq!(execution_success.payer, payer.pubkey());
+    assert_eq!(execution_success.instructions, vec![instruction_success]);
     assert_eq!(execution_success.slot, 1);
     assert_eq!(execution_success.error, None);
     assert_eq!(
@@ -55,31 +50,26 @@ pub async fn run() {
     // Run an instruction that should fail
     let account_failure = Keypair::new();
     let program_failure = Pubkey::new_unique();
-    let transaction_failure = ToolboxEndpoint::compile_transaction(
-        &payer,
-        &[create_account(
-            &payer.pubkey(),
-            &account_failure.pubkey(),
-            10_000_000_000,
-            42,
-            &program_failure,
-        )],
-        &[&account_failure],
-        endpoint.get_latest_blockhash().await.unwrap(),
-    )
-    .await
-    .unwrap();
+    let instruction_failure = create_account(
+        &payer.pubkey(),
+        &account_failure.pubkey(),
+        10_000_000_000,
+        42,
+        &program_failure,
+    );
     let signature_failure = endpoint
-        .process_transaction(transaction_failure.clone())
+        .process_instruction_with_signers(
+            &payer,
+            instruction_failure.clone(),
+            &[&account_failure],
+        )
         .await
         .unwrap();
     // Check that we get the expected failure
     let execution_failure =
         endpoint.get_execution(&signature_failure).await.unwrap();
-    assert_eq!(
-        execution_failure.versioned_transaction,
-        transaction_failure.into()
-    );
+    assert_eq!(execution_failure.payer, payer.pubkey());
+    assert_eq!(execution_failure.instructions, vec![instruction_failure]);
     assert_eq!(execution_failure.slot, 1);
     assert_eq!(
         execution_failure.error,
@@ -92,10 +82,11 @@ pub async fn run() {
         execution_failure.logs,
         Some(vec![
             "Program 11111111111111111111111111111111 invoke [1]"
-            .to_string(),
-        "Transfer: insufficient lamports 1899980000, need 10000000000"
-            .to_string(),
-            "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
-])
+                .to_string(),
+            "Transfer: insufficient lamports 1899980000, need 10000000000"
+                .to_string(),
+            "Program 11111111111111111111111111111111 failed: custom program error: 0x1"
+                .to_string(),
+        ])
     );
 }

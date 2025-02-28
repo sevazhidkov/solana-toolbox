@@ -21,16 +21,15 @@ use solana_sdk::signature::Signature;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::VersionedTransaction;
 use solana_transaction_status::UiReturnDataEncoding;
-use solana_transaction_status::UiTransactionEncoding;
 use solana_transaction_status::UiTransactionReturnData;
 
+use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
-use crate::ToolboxEndpoint;
 
 const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
-const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(10);
+const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(30);
 
 pub struct ToolboxEndpointProxyRpcClient {
     inner: RpcClient,
@@ -68,10 +67,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         &mut self,
         versioned_transaction: VersionedTransaction,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+        // TODO - support generating Execution struct during simulation
         let outcome =
             self.inner.simulate_transaction(&versioned_transaction).await?;
         Ok(ToolboxEndpointExecution {
-            versioned_transaction,
+            payer: todo!(),
+            instructions: todo!(),
             slot: outcome.context.slot,
             error: outcome.value.err,
             logs: outcome.value.logs,
@@ -85,55 +86,36 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<Signature, ToolboxEndpointError> {
-        let timer = Instant::now();
-        let signature =
-            self.inner.send_transaction(&versioned_transaction).await?;
-        loop {
-            if self.inner.confirm_transaction(&signature).await? {
-                return Ok(signature);
-            }
-            if timer.elapsed() > WAIT_TIMEOUT_DURATION {
-                return Err(ToolboxEndpointError::Timeout(
-                    "Waiting confirmation",
-                ));
-            }
-            sleep(WAIT_SLEEP_DURATION)
-        }
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
+        self.spin_until_signature_execution(
+            &self.inner.send_transaction(&versioned_transaction).await?,
+        )
+        .await
     }
 
     async fn request_airdrop(
         &mut self,
         to: &Pubkey,
         lamports: u64,
-    ) -> Result<Signature, ToolboxEndpointError> {
-        Ok(self.inner.request_airdrop(to, lamports).await?)
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
+        self.spin_until_signature_execution(
+            &self.inner.request_airdrop(to, lamports).await?,
+        )
+        .await
     }
 
     async fn get_execution(
         &mut self,
         signature: &Signature,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
-        let outcome = self
-            .inner
-            .get_transaction(signature, UiTransactionEncoding::Base64)
-            .await?;
-        let versioned_transaction =
-            outcome.transaction.transaction.decode().unwrap();
-        match outcome.transaction.meta {
-            Some(metadata) => Ok(ToolboxEndpointExecution {
-                versioned_transaction,
-                slot: outcome.slot,
-                error: metadata.err,
-                logs: metadata.log_messages.into(),
-                return_data:
-                    ToolboxEndpointProxyRpcClient::prepare_return_data(
-                        metadata.return_data.into(),
-                    )?,
-                units_consumed: metadata.compute_units_consumed.into(),
-            }),
-            None => Err(ToolboxEndpointError::UnknownSignature(*signature)),
-        }
+        ToolboxEndpointProxyRpcClient::get_transaction_execution(
+            &self.inner,
+            signature,
+        )
+        .await?
+        .ok_or_else(|| ToolboxEndpointError::UnknownSignature(*signature))
     }
 
     async fn search_addresses(
@@ -274,6 +256,31 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
 }
 
 impl ToolboxEndpointProxyRpcClient {
+    async fn spin_until_signature_execution(
+        &mut self,
+        signature: &Signature,
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
+        let timer = Instant::now();
+        loop {
+            if let Some(execution) =
+                ToolboxEndpointProxyRpcClient::get_transaction_execution(
+                    &self.inner,
+                    signature,
+                )
+                .await?
+            {
+                return Ok((*signature, execution));
+            }
+            if timer.elapsed() > WAIT_TIMEOUT_DURATION {
+                return Err(ToolboxEndpointError::Timeout(
+                    "Waiting confirmation",
+                ));
+            }
+            sleep(WAIT_SLEEP_DURATION)
+        }
+    }
+
     async fn get_sysvar_clock(
         &mut self
     ) -> Result<Clock, ToolboxEndpointError> {
@@ -287,7 +294,8 @@ impl ToolboxEndpointProxyRpcClient {
         .map_err(ToolboxEndpointError::Bincode)
     }
 
-    fn prepare_return_data(
+    // TODO - this could be a in a different file ?
+    pub(crate) fn prepare_return_data(
         return_data: Option<UiTransactionReturnData>
     ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
         return_data
@@ -306,6 +314,7 @@ impl ToolboxEndpointProxyRpcClient {
     }
 }
 
+// TODO - this could be in a dedicated file?
 fn make_account_info_config() -> RpcAccountInfoConfig {
     RpcAccountInfoConfig {
         encoding: None,

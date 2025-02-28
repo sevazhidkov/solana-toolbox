@@ -52,6 +52,59 @@ impl ToolboxEndpoint {
         versioned_transaction: &VersionedTransaction,
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
     ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
+        let mut known_address_lookup_tables_addresses = HashMap::new();
+        for resolved_address_lookup_table in resolved_address_lookup_tables {
+            known_address_lookup_tables_addresses.insert(
+                resolved_address_lookup_table.0,
+                &resolved_address_lookup_table.1[..],
+            );
+        }
+        let mut loaded_addresses_writable = vec![];
+        let mut loaded_addresses_readonly = vec![];
+        if let Some(message_address_table_lookups) =
+            versioned_transaction.message.address_table_lookups()
+        {
+            for message_address_table_lookup in message_address_table_lookups {
+                let known_address_lookup_table_addresses =
+                    known_address_lookup_tables_addresses
+                        .get(&message_address_table_lookup.account_key)
+                        .ok_or(CompileError::AddressTableLookupIndexOverflow)?;
+                for loaded_addresses_writable_index in
+                    &message_address_table_lookup.writable_indexes
+                {
+                    loaded_addresses_writable.push(
+                        *known_address_lookup_table_addresses
+                            .get(usize::from(*loaded_addresses_writable_index))
+                            .ok_or(
+                                CompileError::AddressTableLookupIndexOverflow,
+                            )?,
+                    );
+                }
+                for loaded_addresses_readonly_index in
+                    &message_address_table_lookup.readonly_indexes
+                {
+                    loaded_addresses_readonly.push(
+                        *known_address_lookup_table_addresses
+                            .get(usize::from(*loaded_addresses_readonly_index))
+                            .ok_or(
+                                CompileError::AddressTableLookupIndexOverflow,
+                            )?,
+                    );
+                }
+            }
+        }
+        ToolboxEndpoint::decompile_versioned_transaction_with_loaded_addresses(
+            versioned_transaction,
+            &loaded_addresses_writable,
+            &loaded_addresses_readonly,
+        )
+    }
+
+    pub fn decompile_versioned_transaction_with_loaded_addresses(
+        versioned_transaction: &VersionedTransaction,
+        loaded_addresses_writable: &[Pubkey],
+        loaded_addresses_readonly: &[Pubkey],
+    ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
         let header = versioned_transaction.message.header();
         let static_signatures_count =
             usize::from(header.num_required_signatures);
@@ -91,54 +144,13 @@ impl ToolboxEndpoint {
                     .ok_or(CompileError::AccountIndexOverflow)?,
             );
         }
-        let mut known_address_lookup_tables_addresses = HashMap::new();
-        for resolved_address_lookup_table in resolved_address_lookup_tables {
-            known_address_lookup_tables_addresses.insert(
-                resolved_address_lookup_table.0,
-                &resolved_address_lookup_table.1[..],
-            );
-        }
-        let mut dynamic_writable = vec![];
-        let mut dynamic_readonly = vec![];
-        if let Some(message_address_table_lookups) =
-            versioned_transaction.message.address_table_lookups()
-        {
-            for message_address_table_lookup in message_address_table_lookups {
-                let known_address_lookup_table_addresses =
-                    known_address_lookup_tables_addresses
-                        .get(&message_address_table_lookup.account_key)
-                        .ok_or(CompileError::AddressTableLookupIndexOverflow)?;
-                for dynamic_writable_index in
-                    &message_address_table_lookup.writable_indexes
-                {
-                    dynamic_writable.push(
-                        *known_address_lookup_table_addresses
-                            .get(usize::from(*dynamic_writable_index))
-                            .ok_or(
-                                CompileError::AddressTableLookupIndexOverflow,
-                            )?,
-                    );
-                }
-                for dynamic_readonly_index in
-                    &message_address_table_lookup.readonly_indexes
-                {
-                    dynamic_readonly.push(
-                        *known_address_lookup_table_addresses
-                            .get(usize::from(*dynamic_readonly_index))
-                            .ok_or(
-                                CompileError::AddressTableLookupIndexOverflow,
-                            )?,
-                    );
-                }
-            }
-        }
-        for dynamic_readonly in &dynamic_readonly {
-            readonly.insert(*dynamic_readonly);
+        for loaded_address_readonly in loaded_addresses_readonly {
+            readonly.insert(*loaded_address_readonly);
         }
         let mut all_accounts = vec![];
         all_accounts.extend_from_slice(static_accounts);
-        all_accounts.append(&mut dynamic_writable);
-        all_accounts.append(&mut dynamic_readonly);
+        all_accounts.extend_from_slice(loaded_addresses_writable);
+        all_accounts.extend_from_slice(loaded_addresses_readonly);
         let mut instructions = vec![];
         for instruction in versioned_transaction.message.instructions() {
             let instruction_program_id = *all_accounts

@@ -36,4 +36,11 @@ pub async fn run() {
     );
     assert_eq!(clock_03.slot + 432_000, clock_04.slot);
     assert_eq!(clock_03.epoch + 1, clock_04.epoch);
+    // Check final slot hashes sysvar
+    let slot_hashes = endpoint.get_sysvar_slot_hashes().await.unwrap();
+    assert_eq!(slot_hashes.len(), 4);
+    assert_eq!(slot_hashes[0].0, 91001);
+    assert_eq!(slot_hashes[1].0, 84001);
+    assert_eq!(slot_hashes[2].0, 1);
+    assert_eq!(slot_hashes[3].0, 0);
 }
