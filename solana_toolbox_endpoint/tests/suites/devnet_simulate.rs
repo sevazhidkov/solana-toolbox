@@ -74,13 +74,14 @@ pub async fn run() {
             InstructionError::Custom(1)
         ))
     );
-    assert_eq!(simulation_failure.logs, Some(vec![
-        "Program 11111111111111111111111111111111 invoke [1]"
-            .to_string(),
-        "Transfer: insufficient lamports 10064209200, need 100000000000"
-            .to_string(),
+    assert_eq!(
+        simulation_failure.logs,
+        Some(vec![
+            "Program 11111111111111111111111111111111 invoke [1]".to_string(),
+            "Transfer: insufficient lamports 10064209200, need 100000000000".to_string(),
             "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
-    ]));
+        ])
+    );
     assert_eq!(simulation_failure.return_data, None);
     assert_eq!(simulation_failure.units_consumed, Some(150));
     // Simulate an intreuction with return data
@@ -106,7 +107,7 @@ pub async fn run() {
             "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3034 of 200000 compute units".to_string(),
             "Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA IEu8AAAAAAA=".to_string(),
             "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success".to_string(),
-    ])
+        ])
     );
     assert_eq!(
         simulation_returned.return_data,

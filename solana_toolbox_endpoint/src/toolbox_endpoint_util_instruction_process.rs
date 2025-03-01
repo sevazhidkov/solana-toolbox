@@ -12,13 +12,14 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instruction: Instruction,
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.process_instructions_with_signers_and_compute_and_lookup_table(
+        self.process_instructions_with_options(
             payer,
             &[instruction],
             &[],
             None,
             None,
             &[],
+            false,
         )
         .await
     }
@@ -29,13 +30,14 @@ impl ToolboxEndpoint {
         instruction: Instruction,
         signers: &[&Keypair],
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.process_instructions_with_signers_and_compute_and_lookup_table(
+        self.process_instructions_with_options(
             payer,
             &[instruction],
             signers,
             None,
             None,
             &[],
+            false,
         )
         .await
     }
@@ -46,44 +48,27 @@ impl ToolboxEndpoint {
         instructions: &[Instruction],
         signers: &[&Keypair],
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.process_instructions_with_signers_and_compute_and_lookup_table(
+        self.process_instructions_with_options(
             payer,
             instructions,
             signers,
             None,
             None,
             &[],
+            false,
         )
         .await
     }
 
-    pub async fn process_instructions_with_signers_and_compute(
+    pub async fn process_instructions_with_options(
         &mut self,
         payer: &Keypair,
         instructions: &[Instruction],
         signers: &[&Keypair],
         compute_budget_unit_limit_counter: Option<u32>,
         compute_budget_unit_price_micro_lamports: Option<u64>,
-    ) -> Result<Signature, ToolboxEndpointError> {
-        self.process_instructions_with_signers_and_compute_and_lookup_table(
-            payer,
-            instructions,
-            signers,
-            compute_budget_unit_limit_counter,
-            compute_budget_unit_price_micro_lamports,
-            &[],
-        )
-        .await
-    }
-
-    pub async fn process_instructions_with_signers_and_compute_and_lookup_table(
-        &mut self,
-        payer: &Keypair,
-        instructions: &[Instruction],
-        signers: &[&Keypair],
-        compute_budget_unit_limit_counter: Option<u32>,
-        compute_budget_unit_price_micro_lamports: Option<u64>,
-        address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
+        resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
+        skip_preflight: bool,
     ) -> Result<Signature, ToolboxEndpointError> {
         let versioned_transaction =
             ToolboxEndpoint::compile_versioned_transaction(
@@ -94,10 +79,14 @@ impl ToolboxEndpoint {
                     compute_budget_unit_price_micro_lamports,
                 ),
                 signers,
-                address_lookup_tables,
+                resolved_address_lookup_tables,
                 self.get_latest_blockhash().await?,
             )
             .await?;
-        self.process_versioned_transaction(versioned_transaction).await
+        self.process_versioned_transaction(
+            versioned_transaction,
+            skip_preflight,
+        )
+        .await
     }
 }

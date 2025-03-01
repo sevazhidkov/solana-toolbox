@@ -70,7 +70,7 @@ pub async fn run() {
     .unwrap();
     // Check that the transaction was successful
     let signature = endpoint
-        .process_versioned_transaction(versioned_transaction.clone())
+        .process_versioned_transaction(versioned_transaction.clone(), false)
         .await
         .unwrap();
     let execution = endpoint.get_execution(&signature).await.unwrap();

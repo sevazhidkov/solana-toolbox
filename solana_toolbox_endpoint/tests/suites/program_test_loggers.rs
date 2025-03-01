@@ -5,7 +5,6 @@ use solana_sdk::system_transaction::create_account;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerHistory;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_endpoint::ToolboxEndpointPrinter;
 
 #[tokio::test]
 pub async fn run() {
@@ -60,42 +59,48 @@ pub async fn run() {
             .unwrap()
             .decimals,
     );
-    // TODO - fix this
     // Custom manual TX printing (no execution)
-    // ToolboxEndpointPrinter::print_transaction(&create_account(
-    // &payer,
-    // &Keypair::new(),
-    // endpoint.get_latest_blockhash().await.unwrap(),
-    // 42_000_000,
-    // 420,
-    // &Pubkey::new_from_array([
-    // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-    // 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-    // ]),
-    // ));
+    let (decompiled_payer, decompiled_instructions) =
+        ToolboxEndpoint::decompile_transaction(&create_account(
+            &payer,
+            &Keypair::new(),
+            endpoint.get_latest_blockhash().await.unwrap(),
+            42_000_000,
+            420,
+            &Pubkey::new_from_array([
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            ]),
+        ))
+        .unwrap();
+    assert_eq!(decompiled_payer, payer.pubkey());
+    ToolboxEndpoint::print_instructions(&decompiled_instructions);
     // Check the content of the logger's buffer history
-    // let transactions = logger_history.get_transactions();
-    // assert_eq!(2, transactions.len());
-    // First the simple transfer IX happened (system program)
-    // let tx0 =
-    // ToolboxEndpointDataTransaction::from(&transactions[0].transaction);
-    // assert_eq!(1, tx0.signers.len());
-    // assert_eq!(1, tx0.instructions.len());
-    // assert_eq!(
-    // ToolboxEndpoint::SYSTEM_PROGRAM_ID,
-    // tx0.instructions[0].program_id
-    // );
+    let processed = logger_history.get_processed();
+    assert_eq!(3, processed.len());
+    // First the payer's airdrop
+    let exec0 = &processed[0].1;
+    assert_eq!(1, exec0.instructions.len());
+    assert_eq!(
+        ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+        exec0.instructions[0].program_id
+    );
+    // Then the simple transfer IX happened (system program)
+    let exec1 = &processed[1].1;
+    assert_eq!(1, exec1.instructions.len());
+    assert_eq!(
+        ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+        exec1.instructions[0].program_id
+    );
     // Then the create+init of the mint happened (2 IXs, 2 signers)
-    // let tx1 =
-    // ToolboxEndpointDataTransaction::from(&transactions[1].transaction);
-    // assert_eq!(2, tx1.signers.len());
-    // assert_eq!(2, tx1.instructions.len());
-    // assert_eq!(
-    // ToolboxEndpoint::SYSTEM_PROGRAM_ID,
-    // tx1.instructions[0].program_id
-    // );
-    // assert_eq!(
-    // ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
-    // tx1.instructions[1].program_id
-    // );
+    let exec2 = &processed[2].1;
+    assert_eq!(2, exec2.instructions.len());
+    assert_eq!(
+        ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+        exec2.instructions[0].program_id
+    );
+    assert_eq!(
+        ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+        exec2.instructions[1].program_id
+    );
 }

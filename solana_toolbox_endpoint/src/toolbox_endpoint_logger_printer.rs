@@ -1,37 +1,25 @@
 use solana_sdk::signature::Signature;
-use solana_sdk::transaction::Transaction;
 
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint::ToolboxEndpoint;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
-use crate::toolbox_endpoint_printer::ToolboxEndpointPrinter;
 
 #[derive(Default)]
 pub struct ToolboxEndpointLoggerPrinter {}
 
 #[async_trait::async_trait]
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrinter {
-    async fn on_signature(
+    async fn on_processed(
         &self,
-        signature: &Signature,
+        processed: &(Signature, ToolboxEndpointExecution),
     ) {
-        // TODO - fix this, maybe return execution during confirmation ?
-        // println!("---------------------------- TRANSACTION PROCESSED -----------------------------");
-        // ToolboxEndpointPrinter::print_transaction(transaction);
-        // println!("----");
-        // match result {
-        // Ok(signature) => {
-        // println!("transaction.result: OK");
-        // if *signature != Signature::default() {
-        // println!("transaction.signature: {:?}", signature)
-        // }
-        // },
-        // Err(error) => {
-        // println!("transaction.result: FAIL");
-        // println!("transaction.error: {:?}", error)
-        // },
-        // };
-        // println!("----");
-        // ToolboxEndpointPrinter::print_backtrace("from");
-        // println!();
+        println!("---------------------------- TRANSACTION PROCESSED -----------------------------");
+        println!("----");
+        println!("signature: {:?}", processed.0);
+        println!("----");
+        ToolboxEndpoint::print_execution(&processed.1);
+        println!("----");
+        ToolboxEndpoint::print_backtrace("from");
+        println!();
     }
 }

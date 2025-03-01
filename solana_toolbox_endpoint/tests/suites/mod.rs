@@ -1,5 +1,6 @@
 pub mod devnet_address_lookup_table;
 pub mod devnet_get_execution;
+pub mod devnet_preflight;
 pub mod devnet_program;
 pub mod devnet_search_addresses;
 pub mod devnet_search_signatures;
@@ -13,6 +14,7 @@ pub mod program_test_compute_budget;
 pub mod program_test_forward_clock;
 pub mod program_test_get_execution;
 pub mod program_test_loggers;
+pub mod program_test_preflight;
 pub mod program_test_program;
 pub mod program_test_search_addresses;
 pub mod program_test_search_signatures;

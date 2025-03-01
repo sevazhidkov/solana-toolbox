@@ -1,19 +1,12 @@
 use std::collections::HashSet;
-use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use solana_account_decoder::UiDataSliceConfig;
 use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
-use solana_client::rpc_config::RpcAccountInfoConfig;
-use solana_client::rpc_config::RpcProgramAccountsConfig;
-use solana_client::rpc_filter::Memcmp;
-use solana_client::rpc_filter::MemcmpEncodedBytes;
-use solana_client::rpc_filter::RpcFilterType;
+use solana_client::rpc_config::RpcSendTransactionConfig;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
@@ -67,29 +60,33 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         &mut self,
         versioned_transaction: VersionedTransaction,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
-        // TODO - support generating Execution struct during simulation
-        let outcome =
-            self.inner.simulate_transaction(&versioned_transaction).await?;
-        Ok(ToolboxEndpointExecution {
-            payer: todo!(),
-            instructions: todo!(),
-            slot: outcome.context.slot,
-            error: outcome.value.err,
-            logs: outcome.value.logs,
-            return_data: ToolboxEndpointProxyRpcClient::prepare_return_data(
-                outcome.value.return_data,
-            )?,
-            units_consumed: outcome.value.units_consumed,
-        })
+        ToolboxEndpointProxyRpcClient::simulate_transaction_using_rpc(
+            &self.inner,
+            versioned_transaction,
+        )
+        .await
     }
 
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        skip_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
     {
-        self.spin_until_signature_execution(
-            &self.inner.send_transaction(&versioned_transaction).await?,
+        self.wait_until_execution(
+            &self
+                .inner
+                .send_transaction_with_config(
+                    &versioned_transaction,
+                    RpcSendTransactionConfig {
+                        skip_preflight,
+                        preflight_commitment: None,
+                        encoding: None,
+                        max_retries: None,
+                        min_context_slot: None,
+                    },
+                )
+                .await?,
         )
         .await
     }
@@ -100,7 +97,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         lamports: u64,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
     {
-        self.spin_until_signature_execution(
+        self.wait_until_execution(
             &self.inner.request_airdrop(to, lamports).await?,
         )
         .await
@@ -110,7 +107,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         &mut self,
         signature: &Signature,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
-        ToolboxEndpointProxyRpcClient::get_transaction_execution(
+        ToolboxEndpointProxyRpcClient::get_execution_using_rpc(
             &self.inner,
             signature,
         )
@@ -124,30 +121,13 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
     ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
-        let mut program_accounts_filters = vec![];
-        if let Some(data_len) = data_len {
-            program_accounts_filters.push(RpcFilterType::DataSize(
-                u64::try_from(data_len).unwrap(),
-            ));
-        }
-        for (slice_offset, slice_bytes) in data_chunks {
-            program_accounts_filters.push(RpcFilterType::Memcmp(Memcmp::new(
-                *slice_offset,
-                MemcmpEncodedBytes::Base64(STANDARD.encode(slice_bytes)),
-            )));
-        }
-        let program_accounts_config =
-            make_program_accounts_config(program_accounts_filters);
-        Ok(HashSet::from_iter(
-            self.inner
-                .get_program_accounts_with_config(
-                    program_id,
-                    program_accounts_config,
-                )
-                .await?
-                .iter()
-                .map(|result| result.0),
-        ))
+        ToolboxEndpointProxyRpcClient::search_addresses_using_rpc(
+            &self.inner,
+            program_id,
+            data_len,
+            data_chunks,
+        )
+        .await
     }
 
     async fn search_signatures(
@@ -157,46 +137,14 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         rewind_until: Option<Signature>,
         limit: usize,
     ) -> Result<Vec<Signature>, ToolboxEndpointError> {
-        let mut oldest_known_signature = start_before;
-        let mut ordered_signatures = vec![];
-        let mut retries = 0;
-        loop {
-            let batch_size = match retries {
-                0 => 10,
-                1 => 100,
-                _ => 1000,
-            };
-            retries += 1;
-            let signatures = self
-                .inner
-                .get_signatures_for_address_with_config(
-                    address,
-                    GetConfirmedSignaturesForAddress2Config {
-                        before: oldest_known_signature,
-                        until: None,
-                        limit: Some(batch_size),
-                        commitment: None,
-                    },
-                )
-                .await?;
-            if signatures.is_empty() {
-                return Ok(ordered_signatures);
-            }
-            for signature in &signatures {
-                let found_signature = Signature::from_str(&signature.signature)
-                    .map_err(ToolboxEndpointError::ParseSignature)?;
-                ordered_signatures.push(found_signature);
-                if ordered_signatures.len() >= limit {
-                    return Ok(ordered_signatures);
-                }
-                if let Some(rewind_until) = rewind_until {
-                    if found_signature == rewind_until {
-                        return Ok(ordered_signatures);
-                    }
-                }
-                oldest_known_signature = Some(found_signature);
-            }
-        }
+        ToolboxEndpointProxyRpcClient::search_signatures_using_rpc(
+            &self.inner,
+            address,
+            start_before,
+            rewind_until,
+            limit,
+        )
+        .await
     }
 
     async fn forward_clock_unix_timestamp(
@@ -256,7 +204,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
 }
 
 impl ToolboxEndpointProxyRpcClient {
-    async fn spin_until_signature_execution(
+    async fn wait_until_execution(
         &mut self,
         signature: &Signature,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
@@ -264,7 +212,7 @@ impl ToolboxEndpointProxyRpcClient {
         let timer = Instant::now();
         loop {
             if let Some(execution) =
-                ToolboxEndpointProxyRpcClient::get_transaction_execution(
+                ToolboxEndpointProxyRpcClient::get_execution_using_rpc(
                     &self.inner,
                     signature,
                 )
@@ -294,8 +242,7 @@ impl ToolboxEndpointProxyRpcClient {
         .map_err(ToolboxEndpointError::Bincode)
     }
 
-    // TODO - this could be a in a different file ?
-    pub(crate) fn prepare_return_data(
+    pub(crate) fn decode_transaction_return_data(
         return_data: Option<UiTransactionReturnData>
     ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
         return_data
@@ -311,38 +258,5 @@ impl ToolboxEndpointProxyRpcClient {
                     .map_err(ToolboxEndpointError::Base64Decode)
             })
             .transpose()
-    }
-}
-
-// TODO - this could be in a dedicated file?
-fn make_account_info_config() -> RpcAccountInfoConfig {
-    RpcAccountInfoConfig {
-        encoding: None,
-        data_slice: Some(UiDataSliceConfig { offset: 0, length: 0 }),
-        commitment: None,
-        min_context_slot: None,
-    }
-}
-
-#[cfg(not(feature = "has_sort_results_field"))]
-fn make_program_accounts_config(
-    program_accounts_filters: Vec<RpcFilterType>
-) -> RpcProgramAccountsConfig {
-    RpcProgramAccountsConfig {
-        filters: Some(program_accounts_filters),
-        account_config: make_account_info_config(),
-        with_context: None,
-    }
-}
-
-#[cfg(feature = "has_sort_results_field")]
-fn make_program_accounts_config(
-    program_accounts_filters: Vec<RpcFilterType>
-) -> RpcProgramAccountsConfig {
-    RpcProgramAccountsConfig {
-        filters: Some(program_accounts_filters),
-        account_config: make_account_info_config(),
-        with_context: None,
-        sort_results: None,
     }
 }

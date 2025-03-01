@@ -27,7 +27,7 @@ impl ToolboxEndpoint {
         Ok(transaction)
     }
 
-    pub async fn decompile_transaction(
+    pub fn decompile_transaction(
         transaction: &Transaction
     ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
         let header = transaction.message.header;
@@ -77,13 +77,11 @@ impl ToolboxEndpoint {
                     .ok_or(CompileError::AccountIndexOverflow)?;
                 let account_is_readonly = readonly.contains(&account);
                 let account_is_signer = signers.contains(&account);
-                instruction_accounts.push(
-                    if account_is_readonly {
-                        AccountMeta::new_readonly(*account, account_is_signer)
-                    } else {
-                        AccountMeta::new(*account, account_is_signer)
-                    },
-                );
+                instruction_accounts.push(if account_is_readonly {
+                    AccountMeta::new_readonly(*account, account_is_signer)
+                } else {
+                    AccountMeta::new(*account, account_is_signer)
+                });
             }
             instructions.push(Instruction {
                 program_id: instruction_program_id,

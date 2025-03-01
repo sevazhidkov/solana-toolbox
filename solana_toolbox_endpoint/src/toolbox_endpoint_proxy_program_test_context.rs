@@ -112,18 +112,28 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        skip_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
     {
-        let current_slot =
-            self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
-        let signature = Signature::new_unique();
-        // TODO - should there be preflight here ?
+        if !skip_preflight {
+            match self
+                .inner
+                .banks_client
+                .simulate_transaction(versioned_transaction.clone())
+                .await?
+                .result
+            {
+                Some(Err(error)) => {
+                    return Err(error.into());
+                },
+                _ => {},
+            };
+        }
         let outcome = self
             .inner
             .banks_client
             .process_transaction_with_metadata(versioned_transaction.clone())
             .await?;
-
         let (payer, instructions) =
             self.resolve_versioned_transaction(&versioned_transaction).await?;
         let mut transaction_accounts = HashSet::new();
@@ -138,6 +148,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 );
             }
         }
+        let current_slot =
+            self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
+        let signature = Signature::new_unique();
         for transaction_account in transaction_accounts {
             self.push_signature_for_address(transaction_account, signature);
         }
@@ -180,7 +193,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             Some(&self.inner.payer.pubkey()),
         );
         transaction.partial_sign(&[&self.inner.payer], latest_blockhash);
-        self.process_transaction(transaction.into()).await
+        self.process_transaction(transaction.into(), false).await
     }
 
     async fn get_execution(

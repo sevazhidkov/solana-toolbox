@@ -58,10 +58,14 @@ pub async fn run() {
         &program_failure,
     );
     let signature_failure = endpoint
-        .process_instruction_with_signers(
+        .process_instructions_with_options(
             &payer,
-            instruction_failure.clone(),
+            &[instruction_failure.clone()],
             &[&account_failure],
+            None,
+            None,
+            &[],
+            true, // skip preflight to allow failed signature
         )
         .await
         .unwrap();
@@ -81,12 +85,9 @@ pub async fn run() {
     assert_eq!(
         execution_failure.logs,
         Some(vec![
-            "Program 11111111111111111111111111111111 invoke [1]"
-                .to_string(),
-            "Transfer: insufficient lamports 1899980000, need 10000000000"
-                .to_string(),
-            "Program 11111111111111111111111111111111 failed: custom program error: 0x1"
-                .to_string(),
+            "Program 11111111111111111111111111111111 invoke [1]".to_string(),
+            "Transfer: insufficient lamports 1899980000, need 10000000000".to_string(),
+            "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
         ])
     );
 }

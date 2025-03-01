@@ -4,11 +4,12 @@ use std::sync::RwLockReadGuard;
 
 use solana_sdk::signature::Signature;
 
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 
 #[derive(Debug, Clone, Default)]
 pub struct ToolboxEndpointLoggerHistory {
-    signatures: Arc<RwLock<Vec<Signature>>>,
+    processed: Arc<RwLock<Vec<(Signature, ToolboxEndpointExecution)>>>,
 }
 
 impl ToolboxEndpointLoggerHistory {
@@ -16,17 +17,19 @@ impl ToolboxEndpointLoggerHistory {
         ToolboxEndpointLoggerHistory { ..Default::default() }
     }
 
-    pub fn get_signatures(&self) -> RwLockReadGuard<Vec<Signature>> {
-        self.signatures.read().unwrap()
+    pub fn get_processed(
+        &self
+    ) -> RwLockReadGuard<Vec<(Signature, ToolboxEndpointExecution)>> {
+        self.processed.read().unwrap()
     }
 }
 
 #[async_trait::async_trait]
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerHistory {
-    async fn on_signature(
+    async fn on_processed(
         &self,
-        signature: &Signature,
+        processed: &(Signature, ToolboxEndpointExecution),
     ) {
-        self.signatures.write().unwrap().push(*signature);
+        self.processed.write().unwrap().push(processed.clone());
     }
 }

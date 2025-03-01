@@ -1,4 +1,3 @@
-use solana_sdk::address_lookup_table::instruction;
 use solana_sdk::address_lookup_table::instruction::close_lookup_table;
 use solana_sdk::address_lookup_table::instruction::create_lookup_table;
 use solana_sdk::address_lookup_table::instruction::deactivate_lookup_table;
@@ -38,14 +37,20 @@ impl ToolboxEndpoint {
         &mut self,
         address_lookup_table: &Pubkey,
     ) -> Result<Option<Vec<Pubkey>>, ToolboxEndpointError> {
-        match self.get_account_data(address_lookup_table).await? {
-            Some(data) => {
-                let address_lookup_table =
-                    AddressLookupTable::deserialize(&data)?;
-                Ok(Some(address_lookup_table.addresses.to_vec()))
-            },
-            None => Ok(None),
-        }
+        self.get_account_data(address_lookup_table)
+            .await?
+            .map(|data| {
+                ToolboxEndpoint::parse_address_lookup_table_addresses(&data)
+            })
+            .transpose()
+    }
+
+    pub fn parse_address_lookup_table_addresses(
+        address_lookup_table_data: &[u8]
+    ) -> Result<Vec<Pubkey>, ToolboxEndpointError> {
+        Ok(AddressLookupTable::deserialize(&address_lookup_table_data)?
+            .addresses
+            .to_vec())
     }
 
     pub async fn process_address_lookup_table_new(

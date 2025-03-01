@@ -68,20 +68,25 @@ impl ToolboxEndpoint {
     pub async fn process_transaction(
         &mut self,
         transaction: Transaction,
+        skip_preflight: bool,
     ) -> Result<Signature, ToolboxEndpointError> {
-        self.process_versioned_transaction(transaction.into()).await
+        self.process_versioned_transaction(transaction.into(), skip_preflight)
+            .await
     }
 
     pub async fn process_versioned_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        skip_preflight: bool,
     ) -> Result<Signature, ToolboxEndpointError> {
-        let processing =
-            self.proxy.process_transaction(versioned_transaction).await?;
+        let processed = self
+            .proxy
+            .process_transaction(versioned_transaction, skip_preflight)
+            .await?;
         for logger in &self.loggers {
-            logger.on_signature(&processing.0).await;
+            logger.on_processed(&processed).await;
         }
-        Ok(processing.0)
+        Ok(processed.0) // TODO - return also the execution
     }
 
     pub async fn request_airdrop(
@@ -89,7 +94,11 @@ impl ToolboxEndpoint {
         to: &Pubkey,
         lamports: u64,
     ) -> Result<Signature, ToolboxEndpointError> {
-        Ok(self.proxy.request_airdrop(to, lamports).await?.0)
+        let processed = self.proxy.request_airdrop(to, lamports).await?;
+        for logger in &self.loggers {
+            logger.on_processed(&processed).await;
+        }
+        Ok(processed.0)
     }
 
     pub async fn get_execution(

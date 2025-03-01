@@ -7,15 +7,17 @@ use solana_sdk::pubkey::ParsePubkeyError;
 use solana_sdk::signature::ParseSignatureError;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::SignerError;
+use solana_sdk::transaction::TransactionError;
 
 #[derive(Debug)]
 pub enum ToolboxEndpointError {
     BanksClient(Box<BanksClientError>),
     Client(Box<ClientError>),
-    Program(Box<ProgramError>),
-    Instruction(Box<InstructionError>),
-    Compile(Box<CompileError>),
-    Signer(Box<SignerError>),
+    Program(ProgramError),
+    Transaction(TransactionError),
+    Instruction(InstructionError),
+    Compile(CompileError),
+    Signer(SignerError),
     ParsePubkey(ParsePubkeyError),
     ParseSignature(ParseSignatureError),
     UnknownSignature(Signature),
@@ -43,25 +45,31 @@ impl From<ClientError> for ToolboxEndpointError {
 
 impl From<ProgramError> for ToolboxEndpointError {
     fn from(source: ProgramError) -> Self {
-        ToolboxEndpointError::Program(Box::new(source))
+        ToolboxEndpointError::Program(source)
+    }
+}
+
+impl From<TransactionError> for ToolboxEndpointError {
+    fn from(source: TransactionError) -> Self {
+        ToolboxEndpointError::Transaction(source)
     }
 }
 
 impl From<InstructionError> for ToolboxEndpointError {
     fn from(source: InstructionError) -> Self {
-        ToolboxEndpointError::Instruction(Box::new(source))
+        ToolboxEndpointError::Instruction(source)
     }
 }
 
 impl From<CompileError> for ToolboxEndpointError {
     fn from(source: CompileError) -> Self {
-        ToolboxEndpointError::Compile(Box::new(source))
+        ToolboxEndpointError::Compile(source)
     }
 }
 
 impl From<SignerError> for ToolboxEndpointError {
     fn from(source: SignerError) -> Self {
-        ToolboxEndpointError::Signer(Box::new(source))
+        ToolboxEndpointError::Signer(source)
     }
 }
 

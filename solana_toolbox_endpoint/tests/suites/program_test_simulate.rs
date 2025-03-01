@@ -76,11 +76,9 @@ pub async fn run() {
                 InstructionError::Custom(1)
             )),
             logs: Some(vec![
-                "Program 11111111111111111111111111111111 invoke [1]"
-                    .to_string(),
-                "Transfer: insufficient lamports 1999990000, need 10000000000"
-                    .to_string(),
-                    "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
+                "Program 11111111111111111111111111111111 invoke [1]".to_string(),
+                "Transfer: insufficient lamports 1999990000, need 10000000000".to_string(),
+                "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
             ]),
             return_data: None,
             units_consumed: Some(150),

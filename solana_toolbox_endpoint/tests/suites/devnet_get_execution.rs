@@ -63,7 +63,8 @@ pub async fn run() {
     );
     assert_eq!(execution_success.slot, 331437116);
     assert_eq!(execution_success.error, None);
-    assert_eq!(execution_success.logs, Some(vec!["Program CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu invoke [1]".to_string(),
+    assert_eq!(execution_success.logs, Some(vec![
+        "Program CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu invoke [1]".to_string(),
         "Program log: Instruction: EditCredixLpDepository".to_string(),
         "Program log: [edit_credix_lp_depository] redeemable_amount_under_management_cap 1000000000000000".to_string(),
         "Program data: VLmeHPpGFbABBxHkOFdazXcCVOO9clXol1r6iYRUlnAVxl1seeH10g7nsnflXErybGyB9GAZa8H1Dc/TK4ulIu9YB3O1HQUWrACAxqR+jQMAAAAAAAAAAAA=".to_string(),

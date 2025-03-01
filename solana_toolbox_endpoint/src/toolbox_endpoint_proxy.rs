@@ -33,6 +33,7 @@ pub trait ToolboxEndpointProxy {
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        skip_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>;
 
     async fn request_airdrop(

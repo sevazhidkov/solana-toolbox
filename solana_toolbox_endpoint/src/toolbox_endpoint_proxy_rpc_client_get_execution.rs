@@ -4,7 +4,6 @@ use std::str::FromStr;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
-use serde_json::Value;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_request::RpcRequest;
 use solana_sdk::instruction::AccountMeta;
@@ -15,9 +14,9 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionError;
 use solana_transaction_status::UiTransactionReturnData;
 
+use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
-use crate::ToolboxEndpointError;
-use crate::ToolboxEndpointExecution;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -75,7 +74,7 @@ struct GetTransactionResponseMetaLoadedAddresses {
 }
 
 impl ToolboxEndpointProxyRpcClient {
-    pub(crate) async fn get_transaction_execution(
+    pub(crate) async fn get_execution_using_rpc(
         rpc_client: &RpcClient,
         signature: &Signature,
     ) -> Result<Option<ToolboxEndpointExecution>, ToolboxEndpointError> {
@@ -190,9 +189,10 @@ impl ToolboxEndpointProxyRpcClient {
             slot: response.slot,
             error: response.meta.err,
             logs: response.meta.log_messages,
-            return_data: ToolboxEndpointProxyRpcClient::prepare_return_data(
-                response.meta.return_data,
-            )?,
+            return_data:
+                ToolboxEndpointProxyRpcClient::decode_transaction_return_data(
+                    response.meta.return_data,
+                )?,
             units_consumed: response.meta.compute_units_consumed,
         }))
     }
