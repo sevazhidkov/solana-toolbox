@@ -4,11 +4,14 @@ use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::transfer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
+    // Create a print logger
+    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Prepare a payer
     let payer = Keypair::from_seed(
         b"This is a dummy devnet payer for address lookup table testing",
@@ -60,7 +63,6 @@ pub async fn run() {
         &resolved_address_lookup_tables,
         endpoint.get_latest_blockhash().await.unwrap(),
     )
-    .await
     .unwrap();
     // Check that the transaction was successful
     let signature = endpoint

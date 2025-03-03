@@ -66,7 +66,6 @@ pub async fn run() {
         &resolved_address_lookup_tables,
         endpoint.get_latest_blockhash().await.unwrap(),
     )
-    .await
     .unwrap();
     // Check that the transaction was successful
     let signature = endpoint

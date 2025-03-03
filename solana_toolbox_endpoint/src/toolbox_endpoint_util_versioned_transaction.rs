@@ -17,7 +17,7 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
-    pub async fn compile_versioned_transaction(
+    pub fn compile_versioned_transaction(
         payer: &Keypair,
         instructions: &[Instruction],
         signers: &[&Keypair],

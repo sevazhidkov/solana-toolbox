@@ -77,8 +77,7 @@ impl ToolboxEndpoint {
                 signers,
                 resolved_address_lookup_tables,
                 self.get_latest_blockhash().await?,
-            )
-            .await?;
+            )?;
         self.simulate_versioned_transaction(versioned_transaction).await
     }
 }
