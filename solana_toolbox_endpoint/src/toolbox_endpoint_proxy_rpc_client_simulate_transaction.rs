@@ -1,14 +1,16 @@
-use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_client::rpc_config::RpcSimulateTransactionConfig;
 use solana_sdk::transaction::VersionedTransaction;
+use solana_transaction_status::UiTransactionEncoding;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
+use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn simulate_transaction_using_rpc(
-        rpc_client: &RpcClient,
+        &mut self,
         versioned_transaction: VersionedTransaction,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         let mut resolved_address_lookup_tables = vec![];
@@ -19,9 +21,15 @@ impl ToolboxEndpointProxyRpcClient {
                 let address_lookup_table_key = address_table_lookup.account_key;
                 let address_lookup_table_addresses =
                     ToolboxEndpoint::parse_address_lookup_table_addresses(
-                        &rpc_client
+                        &self
                             .get_account(&address_lookup_table_key)
                             .await?
+                            .ok_or_else(|| {
+                                ToolboxEndpointError::AccountDoesNotExist(
+                                    address_lookup_table_key,
+                                    "Address Lookup Table".to_string(),
+                                )
+                            })?
                             .data,
                     )?;
                 resolved_address_lookup_tables.push((
@@ -35,8 +43,21 @@ impl ToolboxEndpointProxyRpcClient {
                 &versioned_transaction,
                 &resolved_address_lookup_tables,
             )?;
-        let outcome =
-            rpc_client.simulate_transaction(&versioned_transaction).await?;
+        let outcome = self
+            .inner
+            .simulate_transaction_with_config(
+                &versioned_transaction,
+                RpcSimulateTransactionConfig {
+                    sig_verify: true,
+                    replace_recent_blockhash: false,
+                    commitment: Some(self.get_commitment()),
+                    encoding: Some(UiTransactionEncoding::Base64),
+                    accounts: None,
+                    min_context_slot: None,
+                    inner_instructions: false,
+                },
+            )
+            .await?;
         Ok(ToolboxEndpointExecution {
             payer,
             instructions,

@@ -9,10 +9,13 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
+    // Make a payer
+    let payer = Keypair::new();
+    endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
     // Make sure invalid transactions return an error
     let user = Keypair::new();
     endpoint
-        .process_system_transfer(&user, &user, &user.pubkey(), 1_000_000_000)
+        .process_system_transfer(&payer, &user, &user.pubkey(), 1_000_000_000)
         .await
         .unwrap_err();
 }

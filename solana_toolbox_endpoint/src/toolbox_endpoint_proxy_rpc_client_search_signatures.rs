@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
@@ -10,7 +9,7 @@ use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn search_signatures_using_rpc(
-        rpc_client: &RpcClient,
+        &mut self,
         address: &Pubkey,
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
@@ -26,14 +25,15 @@ impl ToolboxEndpointProxyRpcClient {
                 _ => 1000,
             };
             retries += 1;
-            let signatures = rpc_client
+            let signatures = self
+                .inner
                 .get_signatures_for_address_with_config(
                     address,
                     GetConfirmedSignaturesForAddress2Config {
                         before: oldest_known_signature,
                         until: None,
                         limit: Some(batch_size),
-                        commitment: None,
+                        commitment: Some(self.get_commitment()),
                     },
                 )
                 .await?;

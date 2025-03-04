@@ -7,13 +7,6 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
-    pub async fn get_account_exists(
-        &mut self,
-        address: &Pubkey,
-    ) -> Result<bool, ToolboxEndpointError> {
-        Ok(self.get_account_lamports(address).await?.is_some())
-    }
-
     pub async fn get_account_or_default(
         &mut self,
         address: &Pubkey,
@@ -21,11 +14,11 @@ impl ToolboxEndpoint {
         Ok(self.get_account(address).await?.unwrap_or_default())
     }
 
-    pub async fn get_account(
+    pub async fn get_account_exists(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<Account>, ToolboxEndpointError> {
-        Ok(self.get_accounts(&[*address]).await?.pop().flatten())
+    ) -> Result<bool, ToolboxEndpointError> {
+        Ok(self.get_account_lamports(address).await?.is_some())
     }
 
     pub async fn get_account_lamports(

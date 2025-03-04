@@ -68,11 +68,12 @@ pub async fn run() {
     )
     .unwrap();
     // Check that the transaction was successful
-    let signature = endpoint
+    let processed = endpoint
         .process_versioned_transaction(versioned_transaction.clone(), false)
         .await
         .unwrap();
-    let execution = endpoint.get_execution(&signature).await.unwrap();
+    let execution = endpoint.get_execution(&processed.0).await.unwrap();
+    assert_eq!(execution, processed.1);
     assert_eq!(execution.payer, payer.pubkey());
     assert_eq!(execution.instructions, instructions);
     assert_eq!(execution.error, None);

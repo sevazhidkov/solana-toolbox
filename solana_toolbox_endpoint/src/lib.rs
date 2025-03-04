@@ -14,6 +14,7 @@ mod toolbox_endpoint_proxy_rpc_client_get_execution;
 mod toolbox_endpoint_proxy_rpc_client_search_addresses;
 mod toolbox_endpoint_proxy_rpc_client_search_signatures;
 mod toolbox_endpoint_proxy_rpc_client_simulate_transaction;
+mod toolbox_endpoint_proxy_rpc_client_utils;
 mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_address_lookup_table;
 mod toolbox_endpoint_util_consts;
@@ -29,8 +30,6 @@ mod toolbox_endpoint_util_system;
 mod toolbox_endpoint_util_sysvar;
 mod toolbox_endpoint_util_transaction;
 mod toolbox_endpoint_util_versioned_transaction;
-// TODO - support for subscriptions/websockets ?
-// TODO - double check commitment levels in all the RPC calls
 
 pub use solana_program_test::processor as solana_program_test_processor;
 pub use toolbox_endpoint::ToolboxEndpoint;

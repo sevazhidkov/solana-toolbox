@@ -23,7 +23,10 @@ impl ToolboxEndpoint {
         )
         .await?
         .ok_or_else(|| {
-            ToolboxEndpointError::Custom("sysvar clock not found".to_string())
+            ToolboxEndpointError::AccountDoesNotExist(
+                ToolboxEndpoint::SYSVAR_CLOCK_ID,
+                "Sysvar Clock".to_string(),
+            )
         })
     }
 
@@ -35,7 +38,10 @@ impl ToolboxEndpoint {
         )
         .await?
         .ok_or_else(|| {
-            ToolboxEndpointError::Custom("sysvar rent not found".to_string())
+            ToolboxEndpointError::AccountDoesNotExist(
+                ToolboxEndpoint::SYSVAR_RENT_ID,
+                "Sysvar Rent".to_string(),
+            )
         })
     }
 
@@ -48,8 +54,9 @@ impl ToolboxEndpoint {
             )
             .await?
             .ok_or_else(|| {
-                ToolboxEndpointError::Custom(
-                    "sysvar slot_hashes not found".to_string(),
+                ToolboxEndpointError::AccountDoesNotExist(
+                    ToolboxEndpoint::SYSVAR_SLOT_HASHES,
+                    "Sysvar SlotHashes".to_string(),
                 )
             })?;
         Ok(slot_hashes.slot_hashes().to_vec())

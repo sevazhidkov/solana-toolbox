@@ -3,7 +3,6 @@ use anchor_lang::ToAccountMetas;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_anchor::ToolboxAnchor;
@@ -19,13 +18,13 @@ impl ToolboxAnchor {
         accounts: Accounts,
         payload: Payload,
         payer: &Keypair,
-    ) -> Result<Signature, ToolboxAnchorError> {
+    ) -> Result<(), ToolboxAnchorError> {
         let instruction = Instruction {
             program_id,
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        Ok(endpoint.process_instruction(instruction, payer).await?)
+        Ok(endpoint.process_instruction(payer, instruction).await?)
     }
 
     pub async fn process_instruction_with_signers<
@@ -38,14 +37,14 @@ impl ToolboxAnchor {
         payload: Payload,
         payer: &Keypair,
         signers: &[&Keypair],
-    ) -> Result<Signature, ToolboxAnchorError> {
+    ) -> Result<(), ToolboxAnchorError> {
         let instruction = Instruction {
             program_id,
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
         Ok(endpoint
-            .process_instruction_with_signers(instruction, payer, signers)
+            .process_instruction_with_signers(payer, instruction, signers)
             .await?)
     }
 }

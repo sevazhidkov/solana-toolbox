@@ -20,6 +20,11 @@ pub trait ToolboxEndpointProxy {
         address: &Pubkey,
     ) -> Result<u64, ToolboxEndpointError>;
 
+    async fn get_account(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Option<Account>, ToolboxEndpointError>;
+
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],

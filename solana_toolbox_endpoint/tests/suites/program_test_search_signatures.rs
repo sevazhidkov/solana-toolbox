@@ -5,52 +5,54 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointLoggerHistory;
 
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
-    // Generate a bunch of accounts we'll use to generate an history
+    // Add an history logger to keep track of signatures being executed
+    let logger_history = ToolboxEndpointLoggerHistory::new();
+    endpoint.add_logger(Box::new(logger_history.clone()));
+    // Create a funded payer
     let payer = Keypair::new();
-    let airdrop_signature = endpoint
-        .request_airdrop(&payer.pubkey(), 1_000_000_000_000)
-        .await
-        .unwrap();
+    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000_000).await.unwrap();
+    // Generate a bunch of accounts we'll use to generate an history
     let mut users = vec![];
     for _ in 0..10 {
         users.push(Keypair::new());
     }
     let receiver = Pubkey::new_unique();
     // Fund each user with a base amount and save the history
-    let mut fundings_signatures = vec![];
     for user in &users {
-        fundings_signatures.push(
-            endpoint
-                .process_system_transfer(
-                    &payer,
-                    &payer,
-                    &user.pubkey(),
-                    1_000_000_000,
-                )
-                .await
-                .unwrap(),
-        );
+        endpoint
+            .process_system_transfer(
+                &payer,
+                &payer,
+                &user.pubkey(),
+                1_000_000_000,
+            )
+            .await
+            .unwrap();
     }
     // Generate a dummy history of transfers and save the history
-    let mut transfers_signatures = vec![];
     for (idx, user) in users.iter().enumerate() {
-        transfers_signatures.push(
-            endpoint
-                .process_system_transfer(
-                    user,
-                    user,
-                    &receiver,
-                    u64::try_from(idx).unwrap() + 100_000_000,
-                )
-                .await
-                .unwrap(),
-        );
+        endpoint
+            .process_system_transfer(
+                user,
+                user,
+                &receiver,
+                u64::try_from(idx).unwrap() + 100_000_000,
+            )
+            .await
+            .unwrap();
     }
+    // Collect the in-order list of signatures we just generated
+    let signatures_oldest_to_newest = logger_history
+        .get_processed()
+        .iter()
+        .map(|processed| processed.0)
+        .collect::<Vec<_>>();
     // Check that every user has the correct signatures
     for idx in 0..10 {
         let search_user = endpoint
@@ -58,26 +60,25 @@ pub async fn run() {
             .await
             .unwrap();
         assert_eq!(search_user.len(), 2);
-        assert_eq!(search_user[0], transfers_signatures[idx]);
-        assert_eq!(search_user[1], fundings_signatures[idx]);
+        assert_eq!(search_user[0], signatures_oldest_to_newest[1 + 10 + idx]);
+        assert_eq!(search_user[1], signatures_oldest_to_newest[1 + idx]);
     }
-    // After that we will be comparing signatures with rewinding history slices
-    fundings_signatures.reverse();
-    transfers_signatures.reverse();
+    // Put the signatures in the descening order
+    let signatures_newest_to_oldest =
+        signatures_oldest_to_newest.into_iter().rev().collect::<Vec<_>>();
     // Check that the payer has the proper signatures
     let search_payer = endpoint
         .search_signatures(&payer.pubkey(), None, None, usize::MAX)
         .await
         .unwrap();
     assert_eq!(search_payer.len(), 11);
-    assert_eq!(search_payer[..10], fundings_signatures[..]);
-    assert_eq!(search_payer[10], airdrop_signature);
+    assert_eq!(search_payer[..], signatures_newest_to_oldest[10..]);
     // Check that every receiver has all the transfers
     let search_receiver = endpoint
         .search_signatures(&receiver, None, None, usize::MAX)
         .await
         .unwrap();
-    assert_eq!(search_receiver, transfers_signatures);
+    assert_eq!(search_receiver, signatures_newest_to_oldest[..10]);
     // Check the signatures on the system program
     let search_system_unfiltered = endpoint
         .search_signatures(
@@ -89,22 +90,19 @@ pub async fn run() {
         .await
         .unwrap();
     assert_eq!(search_system_unfiltered.len(), 21);
-    assert_eq!(search_system_unfiltered[..10], transfers_signatures[..]);
-    assert_eq!(search_system_unfiltered[10..20], fundings_signatures[..]);
-    assert_eq!(search_system_unfiltered[20], airdrop_signature);
+    assert_eq!(search_system_unfiltered, signatures_newest_to_oldest);
     // Check the signatures on the system program with a tight filter
     let search_system_filtered = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
-            Some(transfers_signatures[6]),
-            Some(fundings_signatures[2]),
+            Some(signatures_newest_to_oldest[6]),
+            Some(signatures_newest_to_oldest[18]),
             usize::MAX,
         )
         .await
         .unwrap();
-    assert_eq!(search_system_filtered.len(), 6);
-    assert_eq!(search_system_filtered[..3], transfers_signatures[7..]);
-    assert_eq!(search_system_filtered[3..], fundings_signatures[..3]);
+    assert_eq!(search_system_filtered.len(), 12);
+    assert_eq!(search_system_filtered[..], signatures_newest_to_oldest[7..19]);
     // Search from before an invalid signature (must return nothing)
     let search_before_invalid = endpoint
         .search_signatures(
@@ -138,12 +136,11 @@ pub async fn run() {
     let search_order_invalid = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
-            Some(fundings_signatures[5]),
-            Some(transfers_signatures[5]),
+            Some(signatures_newest_to_oldest[18]),
+            Some(signatures_newest_to_oldest[6]),
             usize::MAX,
         )
         .await
         .unwrap();
-    assert_eq!(search_order_invalid[..4], fundings_signatures[6..]);
-    assert_eq!(search_order_invalid[4], airdrop_signature);
+    assert_eq!(search_order_invalid[..], signatures_newest_to_oldest[19..]);
 }

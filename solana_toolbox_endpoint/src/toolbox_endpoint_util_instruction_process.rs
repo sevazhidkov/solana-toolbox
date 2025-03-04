@@ -5,13 +5,15 @@ use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
+use crate::ToolboxEndpointExecution;
 
 impl ToolboxEndpoint {
     pub async fn process_instruction(
         &mut self,
         payer: &Keypair,
         instruction: Instruction,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
         self.process_instructions_with_options(
             payer,
             &[instruction],
@@ -29,7 +31,8 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instruction: Instruction,
         signers: &[&Keypair],
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
         self.process_instructions_with_options(
             payer,
             &[instruction],
@@ -47,7 +50,8 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instructions: &[Instruction],
         signers: &[&Keypair],
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
         self.process_instructions_with_options(
             payer,
             instructions,
@@ -69,7 +73,8 @@ impl ToolboxEndpoint {
         compute_budget_unit_price_micro_lamports: Option<u64>,
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
         skip_preflight: bool,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
+    {
         let versioned_transaction =
             ToolboxEndpoint::compile_versioned_transaction(
                 payer,

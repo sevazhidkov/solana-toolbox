@@ -10,7 +10,6 @@ use solana_sdk::bpf_loader_upgradeable::write;
 use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
@@ -162,7 +161,7 @@ impl ToolboxEndpoint {
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         program_bytecode_len: usize,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let rent_space = UpgradeableLoaderState::size_of_program();
         let rent_minimum_lamports =
             self.get_sysvar_rent().await?.minimum_balance(rent_space);
@@ -180,7 +179,8 @@ impl ToolboxEndpoint {
             &instruction_deploy,
             &[program_id, program_authority],
         )
-        .await
+        .await?;
+        Ok(())
     }
 
     pub async fn process_program_buffer_upgrade(
@@ -190,7 +190,7 @@ impl ToolboxEndpoint {
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction_upgrade = upgrade(
             program_id,
             program_buffer,
@@ -202,7 +202,8 @@ impl ToolboxEndpoint {
             instruction_upgrade,
             &[program_authority],
         )
-        .await
+        .await?;
+        Ok(())
     }
 
     pub async fn process_program_buffer_close(
@@ -211,7 +212,7 @@ impl ToolboxEndpoint {
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let program_authority_address = &program_authority.pubkey();
         let instruction_close = close_any(
             program_buffer,
@@ -224,7 +225,8 @@ impl ToolboxEndpoint {
             instruction_close,
             &[program_authority],
         )
-        .await
+        .await?;
+        Ok(())
     }
 
     pub async fn process_program_deploy(
@@ -262,14 +264,15 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         program_id: &Pubkey,
         program_bytecode_len_added: usize,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction_extend = extend_program(
             program_id,
             Some(&payer.pubkey()),
             u32::try_from(program_bytecode_len_added)
                 .map_err(ToolboxEndpointError::TryFromInt)?,
         );
-        self.process_instruction(payer, instruction_extend).await
+        self.process_instruction(payer, instruction_extend).await?;
+        Ok(())
     }
 
     pub async fn process_program_upgrade(
@@ -284,9 +287,9 @@ impl ToolboxEndpoint {
             match self.get_program_bytecode(program_id).await? {
                 Some(program_bytecode) => program_bytecode.len(),
                 None => {
-                    return Err(ToolboxEndpointError::Custom(
-                        "Cannot upgrade a program that doesn't exist yet"
-                            .to_string(),
+                    return Err(ToolboxEndpointError::AccountDoesNotExist(
+                        *program_id,
+                        "Program Id".to_string(),
                     ))
                 },
             };
@@ -323,7 +326,7 @@ impl ToolboxEndpoint {
         program_id: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let program_data =
             &ToolboxEndpoint::find_program_data_from_program_id(program_id);
         let program_authority_address = &program_authority.pubkey();
@@ -338,6 +341,7 @@ impl ToolboxEndpoint {
             instruction_close,
             &[program_authority],
         )
-        .await
+        .await?;
+        Ok(())
     }
 }

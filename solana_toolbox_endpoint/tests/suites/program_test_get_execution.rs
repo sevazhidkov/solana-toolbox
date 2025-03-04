@@ -23,7 +23,7 @@ pub async fn run() {
         42,
         &program_success,
     );
-    let signature_success = endpoint
+    let processed_success = endpoint
         .process_instruction_with_signers(
             &payer,
             instruction_success.clone(),
@@ -33,7 +33,8 @@ pub async fn run() {
         .unwrap();
     // Check that we get the expected failure
     let execution_success =
-        endpoint.get_execution(&signature_success).await.unwrap();
+        endpoint.get_execution(&processed_success.0).await.unwrap();
+    assert_eq!(execution_success, processed_success.1);
     assert_eq!(execution_success.payer, payer.pubkey());
     assert_eq!(execution_success.instructions, vec![instruction_success]);
     assert_eq!(execution_success.slot, 1);
@@ -57,7 +58,7 @@ pub async fn run() {
         42,
         &program_failure,
     );
-    let signature_failure = endpoint
+    let processed_failure = endpoint
         .process_instructions_with_options(
             &payer,
             &[instruction_failure.clone()],
@@ -71,7 +72,8 @@ pub async fn run() {
         .unwrap();
     // Check that we get the expected failure
     let execution_failure =
-        endpoint.get_execution(&signature_failure).await.unwrap();
+        endpoint.get_execution(&processed_failure.0).await.unwrap();
+    assert_eq!(execution_failure, processed_failure.1);
     assert_eq!(execution_failure.payer, payer.pubkey());
     assert_eq!(execution_failure.instructions, vec![instruction_failure]);
     assert_eq!(execution_failure.slot, 1);

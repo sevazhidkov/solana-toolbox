@@ -5,7 +5,6 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
@@ -94,7 +93,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         mint_authority: &Keypair,
         metadata: (Pubkey, String, String, String),
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let accounts = vec![
             AccountMeta::new(
                 ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
@@ -137,7 +136,8 @@ impl ToolboxEndpoint {
             instruction,
             &[mint_authority],
         )
-        .await
+        .await?;
+        Ok(())
     }
 
     pub async fn process_spl_token_metaplex_metadata_update(
@@ -146,7 +146,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         metadata_authority: &Keypair,
         metadata: (Pubkey, String, String, String),
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let accounts = vec![
             AccountMeta::new(
                 ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
@@ -182,6 +182,7 @@ impl ToolboxEndpoint {
             instruction,
             &[metadata_authority],
         )
-        .await
+        .await?;
+        Ok(())
     }
 }

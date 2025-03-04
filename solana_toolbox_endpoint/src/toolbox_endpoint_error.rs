@@ -4,6 +4,7 @@ use solana_sdk::instruction::InstructionError;
 use solana_sdk::message::CompileError;
 use solana_sdk::program_error::ProgramError;
 use solana_sdk::pubkey::ParsePubkeyError;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::ParseSignatureError;
 use solana_sdk::signature::Signature;
 use solana_sdk::signer::SignerError;
@@ -21,6 +22,7 @@ pub enum ToolboxEndpointError {
     ParsePubkey(ParsePubkeyError),
     ParseSignature(ParseSignatureError),
     UnknownSignature(Signature),
+    AccountDoesNotExist(Pubkey, String),
     Bincode(bincode::Error),
     Bs58Decode(bs58::decode::Error),
     Base64Decode(base64::DecodeError),

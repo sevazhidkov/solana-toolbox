@@ -6,7 +6,6 @@ use solana_sdk::address_lookup_table::instruction::freeze_lookup_table;
 use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signature;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
@@ -24,8 +23,9 @@ impl ToolboxEndpoint {
                 self.get_address_lookup_table_addresses(address_lookup_table)
                     .await?
                     .ok_or_else(|| {
-                        ToolboxEndpointError::Custom(
-                            "Address lookup table not found".to_string(),
+                        ToolboxEndpointError::AccountDoesNotExist(
+                            *address_lookup_table,
+                            "Address Lookup Table".to_string(),
                         )
                     })?,
             ))
@@ -106,11 +106,12 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         address_lookup_table: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction =
             freeze_lookup_table(*address_lookup_table, authority.pubkey());
         self.process_instruction_with_signers(payer, instruction, &[authority])
-            .await
+            .await?;
+        Ok(())
     }
 
     pub async fn process_address_lookup_table_deactivate(
@@ -118,11 +119,12 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         address_lookup_table: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction =
             deactivate_lookup_table(*address_lookup_table, authority.pubkey());
         self.process_instruction_with_signers(payer, instruction, &[authority])
-            .await
+            .await?;
+        Ok(())
     }
 
     pub async fn process_address_lookup_table_close(
@@ -131,14 +133,15 @@ impl ToolboxEndpoint {
         authority: &Keypair,
         address_lookup_table: &Pubkey,
         spill: &Pubkey,
-    ) -> Result<Signature, ToolboxEndpointError> {
+    ) -> Result<(), ToolboxEndpointError> {
         let instruction = close_lookup_table(
             *address_lookup_table,
             authority.pubkey(),
             *spill,
         );
         self.process_instruction_with_signers(payer, instruction, &[authority])
-            .await
+            .await?;
+        Ok(())
     }
 
     pub async fn process_address_lookup_table_postfix(

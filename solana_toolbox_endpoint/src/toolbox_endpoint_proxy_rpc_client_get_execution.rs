@@ -4,7 +4,6 @@ use std::str::FromStr;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_request::RpcRequest;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
@@ -75,16 +74,17 @@ struct GetTransactionResponseMetaLoadedAddresses {
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn get_execution_using_rpc(
-        rpc_client: &RpcClient,
+        &mut self,
         signature: &Signature,
     ) -> Result<Option<ToolboxEndpointExecution>, ToolboxEndpointError> {
-        let response = match rpc_client
+        let response = match self
+            .inner
             .send::<Option<GetTransactionResponse>>(
                 RpcRequest::GetTransaction,
                 json!([
                     signature.to_string(),
                     {
-                        "commitment": rpc_client.commitment().commitment.to_string(),
+                        "commitment": self.get_commitment().commitment.to_string(),
                         "encoding": "json",
                         "maxSupportedTransactionVersion": 0,
                     },
@@ -167,13 +167,11 @@ impl ToolboxEndpointProxyRpcClient {
                     .ok_or(CompileError::AccountIndexOverflow)?;
                 let account_is_readonly = readonly.contains(&account);
                 let account_is_signer = signers.contains(&account);
-                instruction_accounts.push(
-                    if account_is_readonly {
-                        AccountMeta::new_readonly(*account, account_is_signer)
-                    } else {
-                        AccountMeta::new(*account, account_is_signer)
-                    },
-                );
+                instruction_accounts.push(if account_is_readonly {
+                    AccountMeta::new_readonly(*account, account_is_signer)
+                } else {
+                    AccountMeta::new(*account, account_is_signer)
+                });
             }
             instructions.push(Instruction {
                 program_id: instruction_program_id,

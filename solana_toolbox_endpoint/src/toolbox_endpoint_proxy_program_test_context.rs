@@ -61,6 +61,13 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         Ok(self.inner.banks_client.get_balance(*address).await?)
     }
 
+    async fn get_account(
+        &mut self,
+        address: &Pubkey,
+    ) -> Result<Option<Account>, ToolboxEndpointError> {
+        Ok(self.inner.banks_client.get_account(*address).await?)
+    }
+
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
@@ -390,8 +397,7 @@ impl ToolboxEndpointProxyProgramTestContext {
         &mut self,
         address_lookup_table: &Pubkey,
     ) -> Result<Option<Vec<Pubkey>>, ToolboxEndpointError> {
-        match self.inner.banks_client.get_account(*address_lookup_table).await?
-        {
+        match self.get_account(address_lookup_table).await? {
             Some(account) => Ok(Some(
                 AddressLookupTable::deserialize(&account.data)?
                     .addresses
