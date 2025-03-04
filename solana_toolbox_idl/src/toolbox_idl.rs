@@ -45,7 +45,7 @@ impl ToolboxIdl {
     }
 
     pub fn find_for_program_id(
-        program_id: &Pubkey
+        program_id: &Pubkey,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Pubkey::create_with_seed(&base, "anchor:idl", program_id)
@@ -53,7 +53,7 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_account(
-        account: &Account
+        account: &Account,
     ) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let discriminator = ToolboxIdl::DISCRIMINATOR;
@@ -105,7 +105,7 @@ impl ToolboxIdl {
     }
 
     pub fn try_from_value(
-        value: &Value
+        value: &Value,
     ) -> Result<ToolboxIdl, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;

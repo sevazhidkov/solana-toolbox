@@ -7,37 +7,25 @@ pub struct ToolboxIdlBreadcrumbs {
 }
 
 impl ToolboxIdlBreadcrumbs {
-    pub fn with_idl(
-        &self,
-        value: &str,
-    ) -> ToolboxIdlBreadcrumbs {
+    pub fn with_idl(&self, value: &str) -> ToolboxIdlBreadcrumbs {
         ToolboxIdlBreadcrumbs {
             idl: format!("{}:{}", self.idl, value),
             val: self.val.clone(),
         }
     }
 
-    pub fn with_val(
-        &self,
-        value: &str,
-    ) -> ToolboxIdlBreadcrumbs {
+    pub fn with_val(&self, value: &str) -> ToolboxIdlBreadcrumbs {
         ToolboxIdlBreadcrumbs {
             idl: self.idl.clone(),
             val: format!("{}:{}", self.val, value),
         }
     }
 
-    pub fn as_idl(
-        &self,
-        value: &str,
-    ) -> ToolboxIdlContext {
+    pub fn as_idl(&self, value: &str) -> ToolboxIdlContext {
         ToolboxIdlContext::new(&format!("{}.{}.!", self.idl, value), &self.val)
     }
 
-    pub fn as_val(
-        &self,
-        value: &str,
-    ) -> ToolboxIdlContext {
+    pub fn as_val(&self, value: &str) -> ToolboxIdlContext {
         ToolboxIdlContext::new(&self.idl, &format!("{}.{}.!", self.val, value))
     }
 

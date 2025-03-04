@@ -16,7 +16,7 @@ impl ToolboxEndpoint {
     pub const SYSVAR_SLOT_HASHES: Pubkey = slot_hashes::ID;
 
     pub async fn get_sysvar_clock(
-        &mut self
+        &mut self,
     ) -> Result<Clock, ToolboxEndpointError> {
         self.get_account_data_bincode_deserialized(
             &ToolboxEndpoint::SYSVAR_CLOCK_ID,
@@ -31,7 +31,7 @@ impl ToolboxEndpoint {
     }
 
     pub async fn get_sysvar_rent(
-        &mut self
+        &mut self,
     ) -> Result<Rent, ToolboxEndpointError> {
         self.get_account_data_bincode_deserialized(
             &ToolboxEndpoint::SYSVAR_RENT_ID,
@@ -46,7 +46,7 @@ impl ToolboxEndpoint {
     }
 
     pub async fn get_sysvar_slot_hashes(
-        &mut self
+        &mut self,
     ) -> Result<Vec<(u64, Hash)>, ToolboxEndpointError> {
         let slot_hashes: SlotHashes = self
             .get_account_data_bincode_deserialized(

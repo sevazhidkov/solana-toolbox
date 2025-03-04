@@ -14,11 +14,13 @@ pub struct ToolboxEndpointLoggerHistory {
 
 impl ToolboxEndpointLoggerHistory {
     pub fn new() -> ToolboxEndpointLoggerHistory {
-        ToolboxEndpointLoggerHistory { ..Default::default() }
+        ToolboxEndpointLoggerHistory {
+            ..Default::default()
+        }
     }
 
     pub fn get_processed(
-        &self
+        &self,
     ) -> RwLockReadGuard<Vec<(Signature, ToolboxEndpointExecution)>> {
         self.processed.read().unwrap()
     }

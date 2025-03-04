@@ -87,7 +87,8 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         account,
-        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
+        idl.decompile_account(&idl.compile_account(&account).unwrap())
+            .unwrap()
     );
     // Prepare an account contents
     let account = ToolboxIdlAccount {
@@ -112,6 +113,7 @@ pub async fn run() {
     // Decompile the account content and check that it matches the original
     assert_eq!(
         account,
-        idl.decompile_account(&idl.compile_account(&account).unwrap()).unwrap()
+        idl.decompile_account(&idl.compile_account(&account).unwrap())
+            .unwrap()
     );
 }

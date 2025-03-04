@@ -21,8 +21,10 @@ pub async fn run() {
             .unwrap()
             .to_bytes();
     // Searching accounts with no filters, will return all the program's accounts
-    let search_unfiltered =
-        endpoint.search_addresses(&program_id, None, &[]).await.unwrap();
+    let search_unfiltered = endpoint
+        .search_addresses(&program_id, None, &[])
+        .await
+        .unwrap();
     assert!(!search_unfiltered.is_empty());
     // Searching accounts by matching on the discriminator
     let search_by_discriminator = endpoint
@@ -32,8 +34,10 @@ pub async fn run() {
     assert!(search_by_discriminator.len() < search_unfiltered.len());
     assert_eq!(search_by_discriminator.len(), 5);
     // Searching accounts by matching the exact account size
-    let search_by_data_len =
-        endpoint.search_addresses(&program_id, Some(680), &[]).await.unwrap();
+    let search_by_data_len = endpoint
+        .search_addresses(&program_id, Some(680), &[])
+        .await
+        .unwrap();
     assert_eq!(search_by_discriminator, search_by_data_len);
     // Searching accounts by matching a public key from the data content
     let search_by_data_blob1 = endpoint

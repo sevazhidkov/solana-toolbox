@@ -59,10 +59,7 @@ impl ToolboxEndpoint {
         ToolboxEndpoint::print_data("> instruction.data", &instruction.data);
     }
 
-    pub fn print_account(
-        address: &Pubkey,
-        account: &Option<Account>,
-    ) {
+    pub fn print_account(address: &Pubkey, account: &Option<Account>) {
         println!("account.address: {:?}", address);
         let account = account.clone().unwrap_or_default();
         println!("account.lamports: {:?}", account.lamports);
@@ -71,10 +68,7 @@ impl ToolboxEndpoint {
         ToolboxEndpoint::print_data("account.data", &account.data);
     }
 
-    pub fn print_data(
-        prefix: &str,
-        data: &[u8],
-    ) {
+    pub fn print_data(prefix: &str, data: &[u8]) {
         let data_len = data.len();
         println!("{}.len: {:?} bytes", prefix, data_len);
         let data_packing = 16;

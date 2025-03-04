@@ -11,8 +11,10 @@ pub async fn run() {
     let usdc_mint =
         Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
             .unwrap();
-    let usdc_metaplex_metadata =
-        endpoint.get_spl_token_metaplex_metadata(&usdc_mint).await.unwrap();
+    let usdc_metaplex_metadata = endpoint
+        .get_spl_token_metaplex_metadata(&usdc_mint)
+        .await
+        .unwrap();
     assert_eq!(
         usdc_metaplex_metadata.unwrap(),
         (
@@ -27,8 +29,10 @@ pub async fn run() {
     let sbr_mint =
         Pubkey::from_str("Saber2gLauYim4Mvftnrasomsv6NvAuncvMEZwcLpD1")
             .unwrap();
-    let sbr_metaplex_metadata =
-        endpoint.get_spl_token_metaplex_metadata(&sbr_mint).await.unwrap();
+    let sbr_metaplex_metadata = endpoint
+        .get_spl_token_metaplex_metadata(&sbr_mint)
+        .await
+        .unwrap();
     assert_eq!(
         sbr_metaplex_metadata.unwrap(),
         (

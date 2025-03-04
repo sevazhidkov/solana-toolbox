@@ -15,7 +15,7 @@ impl ToolboxIdl {
     }
 
     pub fn compute_instruction_discriminator(
-        instruction_name: &str
+        instruction_name: &str,
     ) -> Vec<u8> {
         let mut hasher = Sha256::new();
         hasher.update(format!("global:{}", instruction_name));

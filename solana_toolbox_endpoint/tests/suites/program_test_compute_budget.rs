@@ -9,7 +9,10 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
+    endpoint
+        .request_airdrop(&payer.pubkey(), 2_000_000_000)
+        .await
+        .unwrap();
     // Unique wallet
     let destination = Keypair::new();
     // Send a custom compute budget instruction
@@ -33,6 +36,10 @@ pub async fn run() {
             - 1_000_000_000 // Transfered lamports
             - 5_000 // Transaction fees
             - 42_000_000, // 1_000_000 units * 42 lamports price/per unit
-        endpoint.get_account_lamports(&payer.pubkey()).await.unwrap().unwrap()
+        endpoint
+            .get_account_lamports(&payer.pubkey())
+            .await
+            .unwrap()
+            .unwrap()
     );
 }

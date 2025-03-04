@@ -55,7 +55,7 @@ impl ToolboxEndpoint {
     }
 
     pub async fn new_program_test_with_builtin_programs(
-        builtin_programs: &[ToolboxEndpointProgramTestBuiltinProgram]
+        builtin_programs: &[ToolboxEndpointProgramTestBuiltinProgram],
     ) -> ToolboxEndpoint {
         ToolboxEndpoint::new_program_test_with_builtin_and_preloaded_programs(
             builtin_programs,
@@ -65,7 +65,7 @@ impl ToolboxEndpoint {
     }
 
     pub async fn new_program_test_with_preloaded_programs(
-        preloaded_programs: &[ToolboxEndpointProgramTestPreloadedProgram]
+        preloaded_programs: &[ToolboxEndpointProgramTestPreloadedProgram],
     ) -> ToolboxEndpoint {
         ToolboxEndpoint::new_program_test_with_builtin_and_preloaded_programs(
             &[],

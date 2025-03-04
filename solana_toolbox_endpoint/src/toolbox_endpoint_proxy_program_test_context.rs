@@ -35,7 +35,7 @@ pub struct ToolboxEndpointProxyProgramTestContext {
 
 impl ToolboxEndpointProxyProgramTestContext {
     pub fn new(
-        program_test_context: ProgramTestContext
+        program_test_context: ProgramTestContext,
     ) -> ToolboxEndpointProxyProgramTestContext {
         ToolboxEndpointProxyProgramTestContext {
             inner: program_test_context,
@@ -49,7 +49,7 @@ impl ToolboxEndpointProxyProgramTestContext {
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn get_latest_blockhash(
-        &mut self
+        &mut self,
     ) -> Result<Hash, ToolboxEndpointError> {
         Ok(self.inner.last_blockhash)
     }
@@ -90,8 +90,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .banks_client
             .simulate_transaction(versioned_transaction.clone())
             .await?;
-        let (payer, instructions) =
-            self.resolve_versioned_transaction(&versioned_transaction).await?;
+        let (payer, instructions) = self
+            .resolve_versioned_transaction(&versioned_transaction)
+            .await?;
         if let Some(simulation_details) = outcome.simulation_details {
             return Ok(ToolboxEndpointExecution {
                 payer,
@@ -141,8 +142,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .banks_client
             .process_transaction_with_metadata(versioned_transaction.clone())
             .await?;
-        let (payer, instructions) =
-            self.resolve_versioned_transaction(&versioned_transaction).await?;
+        let (payer, instructions) = self
+            .resolve_versioned_transaction(&versioned_transaction)
+            .await?;
         let mut transaction_accounts = HashSet::new();
         transaction_accounts.insert(payer);
         for instruction in &instructions {
@@ -183,7 +185,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 units_consumed: None,
             },
         };
-        self.execution_by_signature.insert(signature, execution.clone());
+        self.execution_by_signature
+            .insert(signature, execution.clone());
         Ok((signature, execution))
     }
 

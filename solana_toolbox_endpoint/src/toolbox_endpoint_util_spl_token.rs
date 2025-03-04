@@ -280,7 +280,8 @@ impl ToolboxEndpoint {
         &mut self,
         token_account: &Pubkey,
     ) -> Result<Option<Account>, ToolboxEndpointError> {
-        self.get_account_data_unpacked::<Account>(token_account).await
+        self.get_account_data_unpacked::<Account>(token_account)
+            .await
     }
 
     pub fn convert_spl_token_amount_to_ui_amount(

@@ -78,12 +78,14 @@ impl ToolboxIdlProgramInstructionAccount {
                 None => return Ok(None),
                 Some(val) => val,
             };
-        Ok(Some(Pubkey::from_str(idl_instruction_account_address).map_err(
-            |err| ToolboxIdlError::InvalidPubkey {
-                parsing: err,
-                context: breadcrumbs.as_idl("address"),
-            },
-        )?))
+        Ok(Some(
+            Pubkey::from_str(idl_instruction_account_address).map_err(
+                |err| ToolboxIdlError::InvalidPubkey {
+                    parsing: err,
+                    context: breadcrumbs.as_idl("address"),
+                },
+            )?,
+        ))
     }
 
     fn try_parse_pda(

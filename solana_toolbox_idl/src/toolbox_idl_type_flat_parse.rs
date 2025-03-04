@@ -270,7 +270,9 @@ impl ToolboxIdlTypeFlat {
             enum_variants
                 .push((enum_variant_name.to_string(), enum_variant_fields));
         }
-        Ok(ToolboxIdlTypeFlat::Enum { variants: enum_variants })
+        Ok(ToolboxIdlTypeFlat::Enum {
+            variants: enum_variants,
+        })
     }
 }
 

@@ -192,11 +192,15 @@ pub async fn run() {
                     ),
                     (
                         "generic1".to_string(),
-                        ToolboxIdlTypeFlat::Generic { symbol: "G".to_string() },
+                        ToolboxIdlTypeFlat::Generic {
+                            symbol: "G".to_string()
+                        },
                     ),
                     (
                         "generic2".to_string(),
-                        ToolboxIdlTypeFlat::Generic { symbol: "G".to_string() },
+                        ToolboxIdlTypeFlat::Generic {
+                            symbol: "G".to_string()
+                        },
                     )
                 ])
             }

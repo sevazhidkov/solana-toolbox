@@ -13,7 +13,7 @@ impl ToolboxEndpointProxyRpcClient {
     }
 
     pub(crate) fn decode_transaction_return_data(
-        return_data: Option<UiTransactionReturnData>
+        return_data: Option<UiTransactionReturnData>,
     ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
         return_data
             .map(|return_data| {

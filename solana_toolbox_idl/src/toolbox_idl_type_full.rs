@@ -2,13 +2,28 @@ use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
-    Option { content: Box<ToolboxIdlTypeFull> },
-    Vec { items: Box<ToolboxIdlTypeFull> },
-    Array { items: Box<ToolboxIdlTypeFull>, length: usize },
-    Struct { fields: ToolboxIdlTypeFullFields },
-    Enum { variants: Vec<(String, ToolboxIdlTypeFullFields)> },
-    Const { literal: usize },
-    Primitive { primitive: ToolboxIdlPrimitive },
+    Option {
+        content: Box<ToolboxIdlTypeFull>,
+    },
+    Vec {
+        items: Box<ToolboxIdlTypeFull>,
+    },
+    Array {
+        items: Box<ToolboxIdlTypeFull>,
+        length: usize,
+    },
+    Struct {
+        fields: ToolboxIdlTypeFullFields,
+    },
+    Enum {
+        variants: Vec<(String, ToolboxIdlTypeFullFields)>,
+    },
+    Const {
+        literal: usize,
+    },
+    Primitive {
+        primitive: ToolboxIdlPrimitive,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]

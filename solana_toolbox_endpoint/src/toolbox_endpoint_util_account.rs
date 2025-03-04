@@ -35,7 +35,10 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<Pubkey>, ToolboxEndpointError> {
-        Ok(self.get_account(address).await?.map(|account| account.owner))
+        Ok(self
+            .get_account(address)
+            .await?
+            .map(|account| account.owner))
     }
 
     pub async fn get_account_data(
@@ -49,7 +52,10 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<bool>, ToolboxEndpointError> {
-        Ok(self.get_account(address).await?.map(|account| account.executable))
+        Ok(self
+            .get_account(address)
+            .await?
+            .map(|account| account.executable))
     }
 
     pub async fn get_account_data_unpacked<T: Pack + IsInitialized>(
@@ -77,7 +83,8 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {
-        self.get_account_data_bincode_deserialized_slice(address, 0, None).await
+        self.get_account_data_bincode_deserialized_slice(address, 0, None)
+            .await
     }
 
     pub async fn get_account_data_bincode_deserialized_slice<
@@ -107,7 +114,8 @@ impl ToolboxEndpoint {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<T>, ToolboxEndpointError> {
-        self.get_account_data_borsh_deserialized_slice(address, 0, None).await
+        self.get_account_data_borsh_deserialized_slice(address, 0, None)
+            .await
     }
 
     pub async fn get_account_data_borsh_deserialized_slice<

@@ -63,7 +63,11 @@ pub async fn run() {
     )
     .0;
     let repayment_schedule = Pubkey::find_program_address(
-        &[global_market_state.as_ref(), deal.as_ref(), b"repayment-schedule"],
+        &[
+            global_market_state.as_ref(),
+            deal.as_ref(),
+            b"repayment-schedule",
+        ],
         &program_id,
     )
     .0;
@@ -98,23 +102,33 @@ pub async fn run() {
     // Check the outcomes
     assert_eq!(
         global_market_state,
-        *initialize_market_accounts_addresses.get("globalMarketState").unwrap()
+        *initialize_market_accounts_addresses
+            .get("globalMarketState")
+            .unwrap()
     );
     assert_eq!(
         market_admins,
-        *initialize_market_accounts_addresses.get("marketAdmins").unwrap()
+        *initialize_market_accounts_addresses
+            .get("marketAdmins")
+            .unwrap()
     );
     assert_eq!(
         program_state,
-        *initialize_market_accounts_addresses.get("programState").unwrap()
+        *initialize_market_accounts_addresses
+            .get("programState")
+            .unwrap()
     );
     assert_eq!(
         signing_authority,
-        *initialize_market_accounts_addresses.get("signingAuthority").unwrap()
+        *initialize_market_accounts_addresses
+            .get("signingAuthority")
+            .unwrap()
     );
     assert_eq!(
         lp_token_mint,
-        *initialize_market_accounts_addresses.get("lpTokenMint").unwrap()
+        *initialize_market_accounts_addresses
+            .get("lpTokenMint")
+            .unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
     let open_deal_accounts_addresses = idl
@@ -152,6 +166,8 @@ pub async fn run() {
     );
     assert_eq!(
         repayment_schedule,
-        *open_deal_accounts_addresses.get("repaymentSchedule").unwrap()
+        *open_deal_accounts_addresses
+            .get("repaymentSchedule")
+            .unwrap()
     );
 }

@@ -40,8 +40,11 @@ pub async fn run() {
     // Read the program state content using the IDL
     let program_state =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
-    let program_state_account =
-        idl.get_account(&mut endpoint, &program_state).await.unwrap().unwrap();
+    let program_state_account = idl
+        .get_account(&mut endpoint, &program_state)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!("ProgramState", program_state_account.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
@@ -58,11 +61,19 @@ pub async fn run() {
         &program_id,
     )
     .0;
-    let market_admins_account =
-        idl.get_account(&mut endpoint, &market_admins).await.unwrap().unwrap();
+    let market_admins_account = idl
+        .get_account(&mut endpoint, &market_admins)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!("MarketAdmins", market_admins_account.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        market_admins_account.state.get("multisig").unwrap().as_str().unwrap()
+        market_admins_account
+            .state
+            .get("multisig")
+            .unwrap()
+            .as_str()
+            .unwrap()
     );
 }

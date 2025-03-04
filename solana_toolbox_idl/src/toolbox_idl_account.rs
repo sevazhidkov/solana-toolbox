@@ -123,10 +123,7 @@ impl ToolboxIdl {
         })
     }
 
-    pub fn guess_account_name(
-        &self,
-        account_data: &[u8],
-    ) -> Option<&str> {
+    pub fn guess_account_name(&self, account_data: &[u8]) -> Option<&str> {
         for (program_account_name, program_account) in &self.program_accounts {
             if account_data.starts_with(&program_account.discriminator) {
                 return Some(program_account_name);

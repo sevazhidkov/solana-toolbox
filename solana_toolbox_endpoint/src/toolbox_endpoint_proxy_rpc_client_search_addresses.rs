@@ -50,11 +50,14 @@ impl ToolboxEndpointProxyRpcClient {
 }
 
 fn make_account_info_config(
-    commitment: CommitmentConfig
+    commitment: CommitmentConfig,
 ) -> RpcAccountInfoConfig {
     RpcAccountInfoConfig {
         encoding: None,
-        data_slice: Some(UiDataSliceConfig { offset: 0, length: 0 }),
+        data_slice: Some(UiDataSliceConfig {
+            offset: 0,
+            length: 0,
+        }),
         commitment: Some(commitment),
         min_context_slot: None,
     }

@@ -93,7 +93,9 @@ impl ToolboxIdl {
         for (program_instruction_name, program_instruction) in
             &self.program_instructions
         {
-            if instruction.data.starts_with(&program_instruction.discriminator)
+            if instruction
+                .data
+                .starts_with(&program_instruction.discriminator)
             {
                 return Some(program_instruction_name);
             }

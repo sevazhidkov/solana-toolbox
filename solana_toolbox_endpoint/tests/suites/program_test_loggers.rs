@@ -17,7 +17,10 @@ pub async fn run() {
     endpoint.add_logger(Box::new(logger_history.clone()));
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 2_000_000_000).await.unwrap();
+    endpoint
+        .request_airdrop(&payer.pubkey(), 2_000_000_000)
+        .await
+        .unwrap();
     // Unique wallet
     let destination = Keypair::new();
     // Send a simple transfer instruction
@@ -35,7 +38,11 @@ pub async fn run() {
         2_000_000_000 // Original payer airdrop
             - 1_000_000_000 // Transfered lamports
             - 5_000, // Transaction fees
-        endpoint.get_account_lamports(&payer.pubkey()).await.unwrap().unwrap()
+        endpoint
+            .get_account_lamports(&payer.pubkey())
+            .await
+            .unwrap()
+            .unwrap()
     );
     // Create a dummy mint
     let mint = Keypair::new();

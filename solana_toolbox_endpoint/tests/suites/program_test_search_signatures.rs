@@ -16,7 +16,10 @@ pub async fn run() {
     endpoint.add_logger(Box::new(logger_history.clone()));
     // Create a funded payer
     let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000_000).await.unwrap();
+    endpoint
+        .request_airdrop(&payer.pubkey(), 1_000_000_000_000)
+        .await
+        .unwrap();
     // Generate a bunch of accounts we'll use to generate an history
     let mut users = vec![];
     for _ in 0..10 {
@@ -64,8 +67,10 @@ pub async fn run() {
         assert_eq!(search_user[1], signatures_oldest_to_newest[1 + idx]);
     }
     // Put the signatures in the descening order
-    let signatures_newest_to_oldest =
-        signatures_oldest_to_newest.into_iter().rev().collect::<Vec<_>>();
+    let signatures_newest_to_oldest = signatures_oldest_to_newest
+        .into_iter()
+        .rev()
+        .collect::<Vec<_>>();
     // Check that the payer has the proper signatures
     let search_payer = endpoint
         .search_signatures(&payer.pubkey(), None, None, usize::MAX)
@@ -102,7 +107,10 @@ pub async fn run() {
         .await
         .unwrap();
     assert_eq!(search_system_filtered.len(), 12);
-    assert_eq!(search_system_filtered[..], signatures_newest_to_oldest[7..19]);
+    assert_eq!(
+        search_system_filtered[..],
+        signatures_newest_to_oldest[7..19]
+    );
     // Search from before an invalid signature (must return nothing)
     let search_before_invalid = endpoint
         .search_signatures(

@@ -8,7 +8,10 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Generate a bunch of accounts we'll use to generate an history
     let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
+    endpoint
+        .request_airdrop(&payer.pubkey(), 1_000_000_000)
+        .await
+        .unwrap();
     let mut users = vec![];
     for _ in 0..10 {
         users.push(Keypair::new());

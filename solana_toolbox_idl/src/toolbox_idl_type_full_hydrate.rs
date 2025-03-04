@@ -118,7 +118,9 @@ impl ToolboxIdlTypeFull {
                         )?,
                     ));
                 }
-                ToolboxIdlTypeFull::Enum { variants: variants_full }
+                ToolboxIdlTypeFull::Enum {
+                    variants: variants_full,
+                }
             },
             ToolboxIdlTypeFlat::Generic { symbol } => idl_map_get_key_or_else(
                 generics_by_symbol,
@@ -130,7 +132,9 @@ impl ToolboxIdlTypeFull {
                 ToolboxIdlTypeFull::Const { literal: *literal }
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
-                ToolboxIdlTypeFull::Primitive { primitive: primitive.clone() }
+                ToolboxIdlTypeFull::Primitive {
+                    primitive: primitive.clone(),
+                }
             },
         })
     }

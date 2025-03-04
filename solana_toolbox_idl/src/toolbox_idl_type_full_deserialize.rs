@@ -228,19 +228,31 @@ impl ToolboxIdlTypeFull {
         Ok(match primitive {
             ToolboxIdlPrimitive::U8 => {
                 let int = idl_u8_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::U16 => {
                 let int = idl_u16_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::U32 => {
                 let int = idl_u32_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::U64 => {
                 let int = idl_u64_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::U128 => {
                 let int = idl_u128_from_bytes_at(data, data_offset, context)?;
@@ -253,19 +265,31 @@ impl ToolboxIdlTypeFull {
             },
             ToolboxIdlPrimitive::I8 => {
                 let int = idl_i8_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::I16 => {
                 let int = idl_i16_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::I32 => {
                 let int = idl_i32_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::I64 => {
                 let int = idl_i64_from_bytes_at(data, data_offset, context)?;
-                (std::mem::size_of_val(&int), Value::Number(Number::from(int)))
+                (
+                    std::mem::size_of_val(&int),
+                    Value::Number(Number::from(int)),
+                )
             },
             ToolboxIdlPrimitive::I128 => {
                 let int = idl_i128_from_bytes_at(data, data_offset, context)?;

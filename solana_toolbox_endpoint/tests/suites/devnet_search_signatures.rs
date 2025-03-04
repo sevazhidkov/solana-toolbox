@@ -93,8 +93,10 @@ pub async fn run() {
         search_until_n2[..]
     );
     // Search with a limit
-    let search_limited =
-        endpoint.search_signatures(&program_id, None, None, 100).await.unwrap();
+    let search_limited = endpoint
+        .search_signatures(&program_id, None, None, 100)
+        .await
+        .unwrap();
     assert_eq!(search_limited.len(), 100);
     assert_eq!(search_limited[..], search_until_n2[..100]);
     // Search invalid order

@@ -10,7 +10,10 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
+    endpoint
+        .request_airdrop(&payer.pubkey(), 1_000_000_000)
+        .await
+        .unwrap();
     // Compute minimum rent amount
     let rent = endpoint.get_sysvar_rent().await.unwrap();
     let minimum_lamports = rent.minimum_balance(0);

@@ -35,8 +35,16 @@ impl ToolboxIdlProgramInstruction {
             println!(
                 "instruction.accounts: #{:03}: {}{} {}{}",
                 instruction_account.index,
-                if instruction_account.is_writable { "W" } else { "R" },
-                if instruction_account.is_signer { "S" } else { "-" },
+                if instruction_account.is_writable {
+                    "W"
+                } else {
+                    "R"
+                },
+                if instruction_account.is_signer {
+                    "S"
+                } else {
+                    "-"
+                },
                 instruction_account.name,
                 if instruction_account.address.is_some()
                     || instruction_account.pda.is_some()

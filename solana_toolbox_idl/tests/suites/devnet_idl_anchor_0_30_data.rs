@@ -25,21 +25,39 @@ pub async fn run() {
     let campaign = campaign_pda.0;
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly
-    let campaign_account =
-        idl.get_account(&mut endpoint, &campaign).await.unwrap().unwrap();
+    let campaign_account = idl
+        .get_account(&mut endpoint, &campaign)
+        .await
+        .unwrap()
+        .unwrap();
     // Check that the account was parsed properly and values matches
     assert_eq!("Campaign", campaign_account.name);
     assert_eq!(
         u64::from(campaign_bump),
-        campaign_account.state.get("bump").unwrap().as_u64().unwrap()
+        campaign_account
+            .state
+            .get("bump")
+            .unwrap()
+            .as_u64()
+            .unwrap()
     );
     assert_eq!(
         campaign_index,
-        campaign_account.state.get("index").unwrap().as_u64().unwrap()
+        campaign_account
+            .state
+            .get("index")
+            .unwrap()
+            .as_u64()
+            .unwrap()
     );
     assert_eq!(
         "Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9",
-        campaign_account.state.get("authority").unwrap().as_str().unwrap()
+        campaign_account
+            .state
+            .get("authority")
+            .unwrap()
+            .as_str()
+            .unwrap()
     );
     assert_eq!(
         "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",

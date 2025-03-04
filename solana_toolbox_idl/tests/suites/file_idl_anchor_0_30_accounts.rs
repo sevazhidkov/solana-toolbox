@@ -71,7 +71,9 @@ pub async fn run() {
     );
     assert_eq!(
         campaign_collateral,
-        *campaign_create_accounts_addresses.get("campaign_collateral").unwrap()
+        *campaign_create_accounts_addresses
+            .get("campaign_collateral")
+            .unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
     let campaign_extract_accounts_addresses = idl
@@ -154,7 +156,9 @@ pub async fn run() {
     // Check outcome
     assert_eq!(
         campaign_collateral,
-        *pledge_deposit_accounts_addresses.get("campaign_collateral").unwrap()
+        *pledge_deposit_accounts_addresses
+            .get("campaign_collateral")
+            .unwrap()
     );
     assert_eq!(
         pledge,

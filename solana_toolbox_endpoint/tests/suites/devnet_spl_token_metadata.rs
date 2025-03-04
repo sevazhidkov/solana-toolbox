@@ -61,7 +61,11 @@ pub async fn run() {
         .unwrap();
     // Check that the metadata has been uploaded
     assert_eq!(
-        endpoint.get_spl_token_metaplex_metadata(&mint).await.unwrap().unwrap(),
+        endpoint
+            .get_spl_token_metaplex_metadata(&mint)
+            .await
+            .unwrap()
+            .unwrap(),
         (
             metadata_authority.pubkey(),
             "SYMBOL".to_string(),
@@ -88,7 +92,11 @@ pub async fn run() {
         .unwrap();
     // Check that the metadata has been updated
     assert_eq!(
-        endpoint.get_spl_token_metaplex_metadata(&mint).await.unwrap().unwrap(),
+        endpoint
+            .get_spl_token_metaplex_metadata(&mint)
+            .await
+            .unwrap()
+            .unwrap(),
         (
             metadata_authority.pubkey(),
             "SYMBOL2".to_string(),

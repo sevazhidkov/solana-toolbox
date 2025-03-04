@@ -12,7 +12,7 @@ use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 #[async_trait::async_trait]
 pub trait ToolboxEndpointProxy {
     async fn get_latest_blockhash(
-        &mut self
+        &mut self,
     ) -> Result<Hash, ToolboxEndpointError>;
 
     async fn get_balance(

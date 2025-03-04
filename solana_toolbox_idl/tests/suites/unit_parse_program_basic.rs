@@ -98,8 +98,10 @@ pub async fn run() {
     // Assert that both versions are equivalent
     assert_eq!(idl_shortened, idl_standard);
     // Assert instruction was parsed correctly
-    let my_instruction =
-        idl_standard.program_instructions.get("my_instruction").unwrap();
+    let my_instruction = idl_standard
+        .program_instructions
+        .get("my_instruction")
+        .unwrap();
     assert_eq!("my_instruction", my_instruction.name);
     assert_eq!("payer", my_instruction.accounts[0].name);
     assert_eq!("authority", my_instruction.accounts[1].name);

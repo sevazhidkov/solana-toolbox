@@ -113,7 +113,9 @@ pub async fn run() {
                         name: "Other".to_string(),
                         generics: vec![]
                     },
-                    ToolboxIdlTypeFlat::Generic { symbol: "G".to_string() },
+                    ToolboxIdlTypeFlat::Generic {
+                        symbol: "G".to_string()
+                    },
                 ])
             }
         }

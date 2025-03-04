@@ -46,7 +46,7 @@ impl ToolboxEndpoint {
     }
 
     pub fn parse_address_lookup_table_addresses(
-        address_lookup_table_data: &[u8]
+        address_lookup_table_data: &[u8],
     ) -> Result<Vec<Pubkey>, ToolboxEndpointError> {
         Ok(AddressLookupTable::deserialize(&address_lookup_table_data)?
             .addresses

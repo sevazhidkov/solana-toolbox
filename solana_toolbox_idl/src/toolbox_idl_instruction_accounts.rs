@@ -63,7 +63,10 @@ impl ToolboxIdl {
         }
         let mut instruction_accounts_addresses = HashMap::new();
         for (program_instruction_account, instruction_account_meta) in
-            program_instruction.accounts.iter().zip(instruction_accounts.iter())
+            program_instruction
+                .accounts
+                .iter()
+                .zip(instruction_accounts.iter())
         {
             instruction_accounts_addresses.insert(
                 program_instruction_account.name.to_string(),

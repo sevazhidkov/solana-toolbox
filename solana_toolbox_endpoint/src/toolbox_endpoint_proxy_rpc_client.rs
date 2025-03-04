@@ -37,7 +37,7 @@ impl ToolboxEndpointProxyRpcClient {
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_latest_blockhash(
-        &mut self
+        &mut self,
     ) -> Result<Hash, ToolboxEndpointError> {
         Ok(self
             .inner
@@ -99,7 +99,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         &mut self,
         versioned_transaction: VersionedTransaction,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
-        self.simulate_transaction_using_rpc(versioned_transaction).await
+        self.simulate_transaction_using_rpc(versioned_transaction)
+            .await
     }
 
     async fn process_transaction(
@@ -161,7 +162,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
     ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
-        self.search_addresses_using_rpc(program_id, data_len, data_chunks).await
+        self.search_addresses_using_rpc(program_id, data_len, data_chunks)
+            .await
     }
 
     async fn search_signatures(
@@ -187,7 +189,8 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         let until_unix_timestamp =
             self.get_sysvar_clock().await?.unix_timestamp
                 + (unix_timestamp_delta as i64);
-        self.wait_until_clock(Some(until_unix_timestamp), None, None).await
+        self.wait_until_clock(Some(until_unix_timestamp), None, None)
+            .await
     }
 
     async fn forward_clock_slot(
@@ -261,7 +264,7 @@ impl ToolboxEndpointProxyRpcClient {
     }
 
     async fn get_sysvar_clock(
-        &mut self
+        &mut self,
     ) -> Result<Clock, ToolboxEndpointError> {
         bincode::deserialize::<Clock>(
             &self

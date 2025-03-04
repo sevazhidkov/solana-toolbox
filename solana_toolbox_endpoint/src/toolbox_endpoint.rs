@@ -19,20 +19,20 @@ pub struct ToolboxEndpoint {
 
 impl From<Box<dyn ToolboxEndpointProxy>> for ToolboxEndpoint {
     fn from(proxy: Box<dyn ToolboxEndpointProxy>) -> Self {
-        Self { proxy, loggers: vec![] }
+        Self {
+            proxy,
+            loggers: vec![],
+        }
     }
 }
 
 impl ToolboxEndpoint {
-    pub fn add_logger(
-        &mut self,
-        logger: Box<dyn ToolboxEndpointLogger>,
-    ) {
+    pub fn add_logger(&mut self, logger: Box<dyn ToolboxEndpointLogger>) {
         self.loggers.push(logger);
     }
 
     pub async fn get_latest_blockhash(
-        &mut self
+        &mut self,
     ) -> Result<Hash, ToolboxEndpointError> {
         self.proxy.get_latest_blockhash().await
     }
@@ -62,7 +62,8 @@ impl ToolboxEndpoint {
         &mut self,
         transaction: Transaction,
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
-        self.simulate_versioned_transaction(transaction.into()).await
+        self.simulate_versioned_transaction(transaction.into())
+            .await
     }
 
     pub async fn simulate_versioned_transaction(
@@ -124,7 +125,9 @@ impl ToolboxEndpoint {
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
     ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
-        self.proxy.search_addresses(program_id, data_len, data_chunks).await
+        self.proxy
+            .search_addresses(program_id, data_len, data_chunks)
+            .await
     }
 
     pub async fn search_signatures(
@@ -143,7 +146,9 @@ impl ToolboxEndpoint {
         &mut self,
         unix_timestamp_delta: u64,
     ) -> Result<(), ToolboxEndpointError> {
-        self.proxy.forward_clock_unix_timestamp(unix_timestamp_delta).await
+        self.proxy
+            .forward_clock_unix_timestamp(unix_timestamp_delta)
+            .await
     }
 
     pub async fn forward_clock_slot(

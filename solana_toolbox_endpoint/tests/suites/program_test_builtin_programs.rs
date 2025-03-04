@@ -45,7 +45,10 @@ pub async fn run() {
         .await;
     // Prepare a payer
     let payer = Keypair::new();
-    endpoint.request_airdrop(&payer.pubkey(), 1_000_000_000).await.unwrap();
+    endpoint
+        .request_airdrop(&payer.pubkey(), 1_000_000_000)
+        .await
+        .unwrap();
     // Check that the builtin program #1 works
     endpoint
         .process_instruction(
