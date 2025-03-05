@@ -1,4 +1,4 @@
-use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
@@ -22,7 +22,7 @@ pub enum ToolboxIdlTypeFull {
         literal: usize,
     },
     Primitive {
-        primitive: ToolboxIdlPrimitive,
+        primitive: ToolboxIdlTypePrimitive,
     },
 }
 

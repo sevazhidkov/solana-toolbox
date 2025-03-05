@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use serde_json::Map;
 use serde_json::Value;
+use sha2::Digest;
+use sha2::Sha256;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -77,7 +79,9 @@ impl ToolboxIdlProgramAccount {
                 &breadcrumbs.idl(),
             );
         }
-        Ok(ToolboxIdl::compute_account_discriminator(idl_account_name))
+        let mut hasher = Sha256::new();
+        hasher.update(format!("account:{}", idl_account_name));
+        Ok(hasher.finalize()[..8].to_vec())
     }
 
     fn try_parse_data_type_flat(

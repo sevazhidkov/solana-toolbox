@@ -1,9 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramType;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
@@ -63,27 +63,27 @@ pub async fn run() {
             type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unamed(vec![
                     ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlPrimitive::U8
+                        primitive: ToolboxIdlTypePrimitive::U8
                     },
                     ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlPrimitive::U64
+                        primitive: ToolboxIdlTypePrimitive::U64
                     },
                     ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlPrimitive::String
+                        primitive: ToolboxIdlTypePrimitive::String
                     },
                     ToolboxIdlTypeFlat::Vec {
                         items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U8,
+                            primitive: ToolboxIdlTypePrimitive::U8,
                         }),
                     },
                     ToolboxIdlTypeFlat::Vec {
                         items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U8,
+                            primitive: ToolboxIdlTypePrimitive::U8,
                         }),
                     },
                     ToolboxIdlTypeFlat::Array {
                         items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U32,
+                            primitive: ToolboxIdlTypePrimitive::U32,
                         }),
                         length: Box::new(ToolboxIdlTypeFlat::Const {
                             literal: 4
@@ -91,7 +91,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlat::Array {
                         items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U32,
+                            primitive: ToolboxIdlTypePrimitive::U32,
                         }),
                         length: Box::new(ToolboxIdlTypeFlat::Const {
                             literal: 4

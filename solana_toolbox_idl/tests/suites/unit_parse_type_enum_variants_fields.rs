@@ -1,9 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramType;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
@@ -85,7 +85,8 @@ pub async fn run() {
                                 ToolboxIdlTypeFlat::Vec {
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
-                                            primitive: ToolboxIdlPrimitive::U8,
+                                            primitive:
+                                                ToolboxIdlTypePrimitive::U8,
                                         }
                                     )
                                 },
@@ -102,19 +103,19 @@ pub async fn run() {
                         "Unamed".to_string(),
                         ToolboxIdlTypeFlatFields::Unamed(vec![
                             ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::U64,
+                                primitive: ToolboxIdlTypePrimitive::U64,
                             },
                             ToolboxIdlTypeFlat::Vec {
                                 items: Box::new(
                                     ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlPrimitive::U8,
+                                        primitive: ToolboxIdlTypePrimitive::U8,
                                     }
                                 )
                             },
                             ToolboxIdlTypeFlat::Vec {
                                 items: Box::new(
                                     ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlPrimitive::U8,
+                                        primitive: ToolboxIdlTypePrimitive::U8,
                                     }
                                 )
                             },

@@ -5,9 +5,9 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
@@ -229,7 +229,7 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_primitive(
-        primitive: &ToolboxIdlPrimitive,
+        primitive: &ToolboxIdlTypePrimitive,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
@@ -261,55 +261,55 @@ impl ToolboxIdlTypeFull {
             };
         }
         match primitive {
-            ToolboxIdlPrimitive::U8 => {
+            ToolboxIdlTypePrimitive::U8 => {
                 write_data_using_u_number!(u8);
             },
-            ToolboxIdlPrimitive::U16 => {
+            ToolboxIdlTypePrimitive::U16 => {
                 write_data_using_u_number!(u16);
             },
-            ToolboxIdlPrimitive::U32 => {
+            ToolboxIdlTypePrimitive::U32 => {
                 write_data_using_u_number!(u32);
             },
-            ToolboxIdlPrimitive::U64 => {
+            ToolboxIdlTypePrimitive::U64 => {
                 write_data_using_u_number!(u64);
             },
-            ToolboxIdlPrimitive::U128 => {
+            ToolboxIdlTypePrimitive::U128 => {
                 let value_integer = idl_as_u128_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<u128>(
                     &value_integer,
                 ));
             },
-            ToolboxIdlPrimitive::I8 => {
+            ToolboxIdlTypePrimitive::I8 => {
                 write_data_using_i_number!(i8);
             },
-            ToolboxIdlPrimitive::I16 => {
+            ToolboxIdlTypePrimitive::I16 => {
                 write_data_using_i_number!(i16);
             },
-            ToolboxIdlPrimitive::I32 => {
+            ToolboxIdlTypePrimitive::I32 => {
                 write_data_using_i_number!(i32);
             },
-            ToolboxIdlPrimitive::I64 => {
+            ToolboxIdlTypePrimitive::I64 => {
                 write_data_using_i_number!(i64);
             },
-            ToolboxIdlPrimitive::I128 => {
+            ToolboxIdlTypePrimitive::I128 => {
                 let value_integer = idl_as_i128_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<i128>(
                     &value_integer,
                 ));
             },
-            ToolboxIdlPrimitive::F32 => {
+            ToolboxIdlTypePrimitive::F32 => {
                 let value_floating = idl_as_f64_or_else(value, context)? as f32;
                 data.extend_from_slice(bytemuck::bytes_of::<f32>(
                     &value_floating,
                 ));
             },
-            ToolboxIdlPrimitive::F64 => {
+            ToolboxIdlTypePrimitive::F64 => {
                 let value_floating = idl_as_f64_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<f64>(
                     &value_floating,
                 ));
             },
-            ToolboxIdlPrimitive::Bytes => {
+            ToolboxIdlTypePrimitive::Bytes => {
                 let values = idl_as_array_or_else(value, context)?;
                 let value_bytes = idl_as_bytes_or_else(values, context)?;
                 if deserializable {
@@ -319,14 +319,14 @@ impl ToolboxIdlTypeFull {
                 }
                 data.extend_from_slice(&value_bytes);
             },
-            ToolboxIdlPrimitive::Boolean => {
+            ToolboxIdlTypePrimitive::Boolean => {
                 data.push(if idl_as_bool_or_else(value, context)? {
                     1
                 } else {
                     0
                 });
             },
-            ToolboxIdlPrimitive::String => {
+            ToolboxIdlTypePrimitive::String => {
                 let value_str = idl_as_str_or_else(value, context)?;
                 if deserializable {
                     data.extend_from_slice(bytemuck::bytes_of::<u32>(
@@ -335,7 +335,7 @@ impl ToolboxIdlTypeFull {
                 }
                 data.extend_from_slice(value_str.as_bytes());
             },
-            ToolboxIdlPrimitive::PublicKey => {
+            ToolboxIdlTypePrimitive::PublicKey => {
                 let value_str = idl_as_str_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(
                     &Pubkey::from_str(value_str).map_err(|err| {

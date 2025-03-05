@@ -1,4 +1,4 @@
-use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlat {
@@ -29,7 +29,7 @@ pub enum ToolboxIdlTypeFlat {
         literal: usize, // TODO - what other kind of consts can be supported ?
     },
     Primitive {
-        primitive: ToolboxIdlPrimitive,
+        primitive: ToolboxIdlTypePrimitive,
     },
 }
 

@@ -1,9 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramType;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
@@ -49,26 +49,26 @@ pub async fn run() {
                     (
                         "u8".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U8
+                            primitive: ToolboxIdlTypePrimitive::U8
                         }
                     ),
                     (
                         "u64".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U64
+                            primitive: ToolboxIdlTypePrimitive::U64
                         }
                     ),
                     (
                         "string".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::String
+                            primitive: ToolboxIdlTypePrimitive::String
                         }
                     ),
                     (
                         "vec1_u8".to_string(),
                         ToolboxIdlTypeFlat::Vec {
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::U8,
+                                primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
                     ),
@@ -76,7 +76,7 @@ pub async fn run() {
                         "vec2_u8".to_string(),
                         ToolboxIdlTypeFlat::Vec {
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::U8,
+                                primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
                     ),
@@ -86,7 +86,7 @@ pub async fn run() {
                             items: Box::new(ToolboxIdlTypeFlat::Vec {
                                 items: Box::new(
                                     ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlPrimitive::U8,
+                                        primitive: ToolboxIdlTypePrimitive::U8,
                                     }
                                 ),
                             }),
@@ -98,7 +98,7 @@ pub async fn run() {
                             items: Box::new(ToolboxIdlTypeFlat::Vec {
                                 items: Box::new(
                                     ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlPrimitive::U8,
+                                        primitive: ToolboxIdlTypePrimitive::U8,
                                     }
                                 ),
                             }),
@@ -108,7 +108,7 @@ pub async fn run() {
                         "array1_u32_4".to_string(),
                         ToolboxIdlTypeFlat::Array {
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::U32,
+                                primitive: ToolboxIdlTypePrimitive::U32,
                             }),
                             length: Box::new(ToolboxIdlTypeFlat::Const {
                                 literal: 4
@@ -119,7 +119,7 @@ pub async fn run() {
                         "array2_u32_4".to_string(),
                         ToolboxIdlTypeFlat::Array {
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::U32,
+                                primitive: ToolboxIdlTypePrimitive::U32,
                             }),
                             length: Box::new(ToolboxIdlTypeFlat::Const {
                                 literal: 4
@@ -178,7 +178,7 @@ pub async fn run() {
                         "option1_f32".to_string(),
                         ToolboxIdlTypeFlat::Option {
                             content: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::F32,
+                                primitive: ToolboxIdlTypePrimitive::F32,
                             })
                         }
                     ),
@@ -186,7 +186,7 @@ pub async fn run() {
                         "option2_f32".to_string(),
                         ToolboxIdlTypeFlat::Option {
                             content: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::F32,
+                                primitive: ToolboxIdlTypePrimitive::F32,
                             })
                         }
                     ),

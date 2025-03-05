@@ -3,9 +3,9 @@ use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
@@ -139,7 +139,7 @@ impl ToolboxIdlTypeFlat {
         idl_str: &str,
         _breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        Ok(match ToolboxIdlPrimitive::try_parse(idl_str) {
+        Ok(match ToolboxIdlTypePrimitive::try_parse(idl_str) {
             Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
             None => ToolboxIdlTypeFlat::Defined {
                 name: idl_str.to_string(),

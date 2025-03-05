@@ -19,7 +19,10 @@ pub async fn run() {
                             }
                         },
                     },
-                    {"name": "unamed", "type": "MyStructUnamed"},
+                    {
+                        "name": "unamed",
+                        "type": "MyStructUnamed"
+                    },
                 ]
             },
         },

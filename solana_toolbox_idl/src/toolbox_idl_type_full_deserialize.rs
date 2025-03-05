@@ -4,9 +4,9 @@ use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_primitive::ToolboxIdlPrimitive;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_f32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_f64_from_bytes_at;
@@ -219,42 +219,42 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_deserialize_primitive(
-        primitive: &ToolboxIdlPrimitive,
+        primitive: &ToolboxIdlTypePrimitive,
         data: &[u8],
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
         let context = &breadcrumbs.val();
         Ok(match primitive {
-            ToolboxIdlPrimitive::U8 => {
+            ToolboxIdlTypePrimitive::U8 => {
                 let int = idl_u8_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::U16 => {
+            ToolboxIdlTypePrimitive::U16 => {
                 let int = idl_u16_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::U32 => {
+            ToolboxIdlTypePrimitive::U32 => {
                 let int = idl_u32_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::U64 => {
+            ToolboxIdlTypePrimitive::U64 => {
                 let int = idl_u64_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::U128 => {
+            ToolboxIdlTypePrimitive::U128 => {
                 let int = idl_u128_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
@@ -263,35 +263,35 @@ impl ToolboxIdlTypeFull {
                     ),
                 )
             },
-            ToolboxIdlPrimitive::I8 => {
+            ToolboxIdlTypePrimitive::I8 => {
                 let int = idl_i8_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::I16 => {
+            ToolboxIdlTypePrimitive::I16 => {
                 let int = idl_i16_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::I32 => {
+            ToolboxIdlTypePrimitive::I32 => {
                 let int = idl_i32_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::I64 => {
+            ToolboxIdlTypePrimitive::I64 => {
                 let int = idl_i64_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
                     Value::Number(Number::from(int)),
                 )
             },
-            ToolboxIdlPrimitive::I128 => {
+            ToolboxIdlTypePrimitive::I128 => {
                 let int = idl_i128_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&int),
@@ -300,7 +300,7 @@ impl ToolboxIdlTypeFull {
                     ),
                 )
             },
-            ToolboxIdlPrimitive::F32 => {
+            ToolboxIdlTypePrimitive::F32 => {
                 let float =
                     idl_f32_from_bytes_at(data, data_offset, context)? as f64;
                 (
@@ -310,7 +310,7 @@ impl ToolboxIdlTypeFull {
                     ),
                 )
             },
-            ToolboxIdlPrimitive::F64 => {
+            ToolboxIdlTypePrimitive::F64 => {
                 let float = idl_f64_from_bytes_at(data, data_offset, context)?;
                 (
                     std::mem::size_of_val(&float),
@@ -319,7 +319,7 @@ impl ToolboxIdlTypeFull {
                     ),
                 )
             },
-            ToolboxIdlPrimitive::Bytes => {
+            ToolboxIdlTypePrimitive::Bytes => {
                 let data_length =
                     idl_u32_from_bytes_at(data, data_offset, context)?;
                 let mut data_size = std::mem::size_of_val(&data_length);
@@ -339,13 +339,13 @@ impl ToolboxIdlTypeFull {
                 }
                 (data_size, Value::Array(data))
             },
-            ToolboxIdlPrimitive::Boolean => {
+            ToolboxIdlTypePrimitive::Boolean => {
                 let data_flag =
                     idl_u8_from_bytes_at(data, data_offset, context)?;
                 let data_size = std::mem::size_of_val(&data_flag);
                 (data_size, Value::Bool(data_flag != 0))
             },
-            ToolboxIdlPrimitive::String => {
+            ToolboxIdlTypePrimitive::String => {
                 let data_length =
                     idl_u32_from_bytes_at(data, data_offset, context)?;
                 let mut data_size = std::mem::size_of_val(&data_length);
@@ -366,7 +366,7 @@ impl ToolboxIdlTypeFull {
                     })?;
                 (data_size, Value::String(data_string))
             },
-            ToolboxIdlPrimitive::PublicKey => {
+            ToolboxIdlTypePrimitive::PublicKey => {
                 let data_pubkey =
                     idl_pubkey_from_bytes_at(data, data_offset, context)?;
                 let data_size = std::mem::size_of_val(&data_pubkey);

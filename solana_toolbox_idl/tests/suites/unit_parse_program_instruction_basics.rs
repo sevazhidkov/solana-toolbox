@@ -2,13 +2,13 @@ use std::vec;
 
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramInstruction;
 use solana_toolbox_idl::ToolboxIdlProgramInstructionAccount;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypeFullFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
@@ -130,7 +130,7 @@ pub async fn run() {
                     "arg".to_string(),
                     ToolboxIdlTypeFlat::Vec {
                         items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U8
+                            primitive: ToolboxIdlTypePrimitive::U8
                         }),
                     },
                 )])
@@ -140,7 +140,7 @@ pub async fn run() {
                     "arg".to_string(),
                     ToolboxIdlTypeFull::Vec {
                         items: Box::new(ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlPrimitive::U8
+                            primitive: ToolboxIdlTypePrimitive::U8
                         }),
                     },
                 )])

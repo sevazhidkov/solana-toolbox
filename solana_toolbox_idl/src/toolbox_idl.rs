@@ -33,6 +33,9 @@ pub struct ToolboxIdl {
 }
 
 impl ToolboxIdl {
+    pub const DISCRIMINATOR: &[u8] =
+        &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
+
     pub async fn get_for_program_id(
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,

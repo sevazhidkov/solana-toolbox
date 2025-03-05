@@ -1,11 +1,11 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlPrimitive;
 use solana_toolbox_idl::ToolboxIdlProgramAccount;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypeFullFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
@@ -89,17 +89,17 @@ pub async fn run() {
                     ToolboxIdlTypeFlat::Defined {
                         name: "MyDefinedEnum".to_string(),
                         generics: vec![ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlPrimitive::U8
+                            primitive: ToolboxIdlTypePrimitive::U8
                         }]
                     },
                     ToolboxIdlTypeFlat::Defined {
                         name: "MyDefinedStruct".to_string(),
                         generics: vec![
                             ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::F32
+                                primitive: ToolboxIdlTypePrimitive::F32
                             },
                             ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::F64
+                                primitive: ToolboxIdlTypePrimitive::F64
                             },
                         ]
                     },
@@ -107,7 +107,7 @@ pub async fn run() {
                         name: "MyArray".to_string(),
                         generics: vec![
                             ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlPrimitive::I8
+                                primitive: ToolboxIdlTypePrimitive::I8
                             },
                             ToolboxIdlTypeFlat::Const { literal: 4 },
                         ]
@@ -125,7 +125,7 @@ pub async fn run() {
                                         items: Box::new(
                                             ToolboxIdlTypeFull::Primitive {
                                                 primitive:
-                                                    ToolboxIdlPrimitive::U8
+                                                    ToolboxIdlTypePrimitive::U8
                                             }
                                         )
                                     },
@@ -135,7 +135,7 @@ pub async fn run() {
                                 "CaseB".to_string(),
                                 ToolboxIdlTypeFullFields::Unamed(vec![
                                     ToolboxIdlTypeFull::Primitive {
-                                        primitive: ToolboxIdlPrimitive::U8
+                                        primitive: ToolboxIdlTypePrimitive::U8
                                     }
                                 ])
                             ),
@@ -148,7 +148,8 @@ pub async fn run() {
                                 ToolboxIdlTypeFull::Option {
                                     content: Box::new(
                                         ToolboxIdlTypeFull::Primitive {
-                                            primitive: ToolboxIdlPrimitive::F64
+                                            primitive:
+                                                ToolboxIdlTypePrimitive::F64
                                         }
                                     )
                                 }
@@ -158,7 +159,8 @@ pub async fn run() {
                                 ToolboxIdlTypeFull::Vec {
                                     items: Box::new(
                                         ToolboxIdlTypeFull::Primitive {
-                                            primitive: ToolboxIdlPrimitive::F32
+                                            primitive:
+                                                ToolboxIdlTypePrimitive::F32
                                         }
                                     )
                                 },
@@ -167,7 +169,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFull::Array {
                         items: Box::new(ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlPrimitive::I8
+                            primitive: ToolboxIdlTypePrimitive::I8
                         }),
                         length: 4
                     }

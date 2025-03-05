@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use serde_json::Map;
 use serde_json::Value;
+use sha2::Digest;
+use sha2::Sha256;
 
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -111,9 +113,9 @@ impl ToolboxIdlProgramInstruction {
                     &breadcrumbs.as_val("discriminator"),
                 )?
             } else {
-                ToolboxIdl::compute_instruction_discriminator(
-                    idl_instruction_name,
-                )
+                let mut hasher = Sha256::new();
+                hasher.update(format!("global:{}", idl_instruction_name));
+                hasher.finalize()[..8].to_vec()
             },
         )
     }
