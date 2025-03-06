@@ -18,8 +18,6 @@ impl ToolboxEndpoint {
             payer,
             &[instruction],
             &[],
-            None,
-            None,
             &[],
             false,
         )
@@ -37,8 +35,6 @@ impl ToolboxEndpoint {
             payer,
             &[instruction],
             signers,
-            None,
-            None,
             &[],
             false,
         )
@@ -56,8 +52,6 @@ impl ToolboxEndpoint {
             payer,
             instructions,
             signers,
-            None,
-            None,
             &[],
             false,
         )
@@ -69,8 +63,6 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instructions: &[Instruction],
         signers: &[&Keypair],
-        compute_budget_unit_limit_counter: Option<u32>,
-        compute_budget_unit_price_micro_lamports: Option<u64>,
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
         skip_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
@@ -78,11 +70,7 @@ impl ToolboxEndpoint {
         let versioned_transaction =
             ToolboxEndpoint::compile_versioned_transaction(
                 payer,
-                &ToolboxEndpoint::generate_instructions_with_compute_budget(
-                    instructions,
-                    compute_budget_unit_limit_counter,
-                    compute_budget_unit_price_micro_lamports,
-                ),
+                instructions,
                 signers,
                 resolved_address_lookup_tables,
                 self.get_latest_blockhash().await?,

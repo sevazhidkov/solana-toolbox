@@ -39,7 +39,7 @@ impl ToolboxEndpoint {
         let versioned_transaction = VersionedTransaction::try_new(
             VersionedMessage::V0(Message::try_compile(
                 &payer.pubkey(),
-                &instructions,
+                instructions,
                 &address_lookup_table_accounts,
                 recent_blockhash,
             )?),
@@ -161,8 +161,8 @@ impl ToolboxEndpoint {
                 let account = all_accounts
                     .get(usize::from(*account_index))
                     .ok_or(CompileError::AccountIndexOverflow)?;
-                let account_is_readonly = readonly.contains(&account);
-                let account_is_signer = signers.contains(&account);
+                let account_is_readonly = readonly.contains(account);
+                let account_is_signer = signers.contains(account);
                 instruction_accounts.push(if account_is_readonly {
                     AccountMeta::new_readonly(*account, account_is_signer)
                 } else {

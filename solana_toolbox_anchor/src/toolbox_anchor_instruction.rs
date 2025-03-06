@@ -24,7 +24,8 @@ impl ToolboxAnchor {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        Ok(endpoint.process_instruction(payer, instruction).await?)
+        endpoint.process_instruction(payer, instruction).await?;
+        Ok(())
     }
 
     pub async fn process_instruction_with_signers<
@@ -43,8 +44,9 @@ impl ToolboxAnchor {
             accounts: accounts.to_account_metas(None),
             data: payload.data(),
         };
-        Ok(endpoint
+        endpoint
             .process_instruction_with_signers(payer, instruction, signers)
-            .await?)
+            .await?;
+        Ok(())
     }
 }

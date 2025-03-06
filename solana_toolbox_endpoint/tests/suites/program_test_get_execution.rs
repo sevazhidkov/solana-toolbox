@@ -66,10 +66,8 @@ pub async fn run() {
             &payer,
             &[instruction_failure.clone()],
             &[&account_failure],
-            None,
-            None,
             &[],
-            true, // skip preflight to allow failed signature
+            true, // skip preflight to allow failed signature to land
         )
         .await
         .unwrap();

@@ -6,12 +6,13 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 pub async fn run() {
     // Initialize the endpoint
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
-    // Generate a bunch of accounts we'll use to generate an history
+    // Prepare a payer
     let payer = Keypair::new();
     endpoint
         .request_airdrop(&payer.pubkey(), 1_000_000_000)
         .await
         .unwrap();
+    // Generate a bunch of accounts we'll use to generate an history
     let mut users = vec![];
     for _ in 0..10 {
         users.push(Keypair::new());

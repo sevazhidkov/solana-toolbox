@@ -136,6 +136,7 @@ impl ToolboxEndpointProxyRpcClient {
                     .ok_or(CompileError::AccountIndexOverflow)?,
             );
         }
+        // TODO - this part could be synthetized (it's written 3 times)
         let mut loaded_addresses_writable = vec![];
         let mut loaded_addresses_readonly = vec![];
         if let Some(loaded_addresses) = &response.meta.loaded_addresses {
@@ -165,8 +166,8 @@ impl ToolboxEndpointProxyRpcClient {
                 let account = all_accounts
                     .get(usize::from(*account_index))
                     .ok_or(CompileError::AccountIndexOverflow)?;
-                let account_is_readonly = readonly.contains(&account);
-                let account_is_signer = signers.contains(&account);
+                let account_is_readonly = readonly.contains(account);
+                let account_is_signer = signers.contains(account);
                 instruction_accounts.push(if account_is_readonly {
                     AccountMeta::new_readonly(*account, account_is_signer)
                 } else {

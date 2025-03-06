@@ -20,7 +20,7 @@ impl ToolboxEndpoint {
         recent_blockhash: Hash,
     ) -> Result<Transaction, ToolboxEndpointError> {
         let mut transaction =
-            Transaction::new_with_payer(&instructions, Some(&payer.pubkey()));
+            Transaction::new_with_payer(instructions, Some(&payer.pubkey()));
         let mut keypairs = signers.to_vec();
         keypairs.push(payer);
         transaction.partial_sign(&keypairs, recent_blockhash);
@@ -75,8 +75,8 @@ impl ToolboxEndpoint {
                 let account = accounts
                     .get(usize::from(*account_index))
                     .ok_or(CompileError::AccountIndexOverflow)?;
-                let account_is_readonly = readonly.contains(&account);
-                let account_is_signer = signers.contains(&account);
+                let account_is_readonly = readonly.contains(account);
+                let account_is_signer = signers.contains(account);
                 instruction_accounts.push(if account_is_readonly {
                     AccountMeta::new_readonly(*account, account_is_signer)
                 } else {

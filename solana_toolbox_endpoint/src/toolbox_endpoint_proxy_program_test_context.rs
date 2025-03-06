@@ -124,18 +124,15 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
     {
         if !skip_preflight {
-            match self
+            if let Some(Err(error)) = self
                 .inner
                 .banks_client
                 .simulate_transaction(versioned_transaction.clone())
                 .await?
                 .result
             {
-                Some(Err(error)) => {
-                    return Err(error.into());
-                },
-                _ => {},
-            };
+                return Err(error.into());
+            }
         }
         let outcome = self
             .inner

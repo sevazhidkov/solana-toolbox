@@ -1,0 +1,15 @@
+[package]
+name = "solana_toolbox_cli"
+description = "Toolbox for interacting with programs through CLI"
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4.5.31", features = ["derive"] }
+solana-sdk = "=2.1.14"
+solana_toolbox_endpoint = "=0.2.0-solana-2.1.14"
+solana_toolbox_idl = "=0.2.0-solana-2.1.14"
+
+[dev-dependencies]
+tokio = "1.42.0"

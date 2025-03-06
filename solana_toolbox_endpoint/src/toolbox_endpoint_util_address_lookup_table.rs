@@ -48,7 +48,7 @@ impl ToolboxEndpoint {
     pub fn parse_address_lookup_table_addresses(
         address_lookup_table_data: &[u8],
     ) -> Result<Vec<Pubkey>, ToolboxEndpointError> {
-        Ok(AddressLookupTable::deserialize(&address_lookup_table_data)?
+        Ok(AddressLookupTable::deserialize(address_lookup_table_data)?
             .addresses
             .to_vec())
     }
@@ -68,7 +68,7 @@ impl ToolboxEndpoint {
         );
         self.process_instruction(payer, instruction).await?;
         self.process_address_lookup_table_extend(
-            &payer,
+            payer,
             authority,
             &address_lookup_table,
             lookup_addresses,
@@ -152,8 +152,8 @@ impl ToolboxEndpoint {
     ) -> Result<(), ToolboxEndpointError> {
         self.forward_clock_slot(1).await?;
         self.process_address_lookup_table_extend(
-            &payer,
-            &authority,
+            payer,
+            authority,
             address_lookup_table,
             &[Pubkey::default()],
         )

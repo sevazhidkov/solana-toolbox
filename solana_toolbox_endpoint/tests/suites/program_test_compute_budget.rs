@@ -21,10 +21,12 @@ pub async fn run() {
     endpoint
         .process_instructions_with_options(
             &payer,
-            &[instruction],
+            &ToolboxEndpoint::generate_instructions_with_compute_budget(
+                &[instruction],
+                Some(2_000_000), // Heavy increase in compute unit limit
+                Some(42_000_000), // in micro-lamports equals 42 lamports/unit
+            ),
             &[&payer],
-            Some(1_000_000),
-            Some(42_000_000), // in micro-lamports equals 42 lamports/unit
             &[],
             false,
         )
@@ -35,7 +37,7 @@ pub async fn run() {
         2_000_000_000 // Original payer airdrop
             - 1_000_000_000 // Transfered lamports
             - 5_000 // Transaction fees
-            - 42_000_000, // 1_000_000 units * 42 lamports price/per unit
+            - 84_000_000, // 2_000_000 units * 42 lamports price/per unit
         endpoint
             .get_account_lamports(&payer.pubkey())
             .await
