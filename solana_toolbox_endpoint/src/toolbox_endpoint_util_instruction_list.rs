@@ -6,25 +6,22 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 impl ToolboxEndpoint {
     pub fn generate_instructions_with_compute_budget(
         instructions: &[Instruction],
-        compute_budget_unit_limit_counter: Option<u32>,
-        compute_budget_unit_price_micro_lamports: Option<u64>,
+        paid_compute_units: Option<u32>,
+        micro_lamport_price_per_unit: Option<u64>,
     ) -> Vec<Instruction> {
         let mut generated_instructions = vec![];
-        if let Some(compute_budget_unit_limit_counter) =
-            compute_budget_unit_limit_counter
-        {
+        if let Some(paid_compute_units) = paid_compute_units {
             generated_instructions.push(
                 ComputeBudgetInstruction::set_compute_unit_limit(
-                    compute_budget_unit_limit_counter,
+                    paid_compute_units,
                 ),
             );
         }
-        if let Some(compute_budget_unit_price_micro_lamports) =
-            compute_budget_unit_price_micro_lamports
+        if let Some(micro_lamport_price_per_unit) = micro_lamport_price_per_unit
         {
             generated_instructions.push(
                 ComputeBudgetInstruction::set_compute_unit_price(
-                    compute_budget_unit_price_micro_lamports,
+                    micro_lamport_price_per_unit,
                 ),
             );
         }

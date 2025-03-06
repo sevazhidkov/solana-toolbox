@@ -7,24 +7,27 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 pub async fn run() {
     // Initialize the endpoint
     let mut endpoint = ToolboxEndpoint::new_program_test().await;
+    // Amounts
+    let airdrop_lamports = 2_000_000_000;
+    let transfer_lamports = 1_000_000_000;
+    let paid_compute_units = 555_555;
+    let micro_lamport_price_per_unit = 4_200_000;
     // Prepare a payer
     let payer = Keypair::new();
     endpoint
-        .request_airdrop(&payer.pubkey(), 2_000_000_000)
+        .request_airdrop(&payer.pubkey(), airdrop_lamports)
         .await
         .unwrap();
     // Unique wallet
-    let destination = Keypair::new();
-    // Send a custom compute budget instruction
-    let instruction =
-        transfer(&payer.pubkey(), &destination.pubkey(), 1_000_000_000);
-    endpoint
+    let destination = Keypair::new().pubkey();
+    // Send a custom transaction with compute budget customized
+    let (_, execution) = endpoint
         .process_instructions_with_options(
             &payer,
             &ToolboxEndpoint::generate_instructions_with_compute_budget(
-                &[instruction],
-                Some(2_000_000), // Heavy increase in compute unit limit
-                Some(42_000_000), // in micro-lamports equals 42 lamports/unit
+                &[transfer(&payer.pubkey(), &destination, transfer_lamports)],
+                Some(paid_compute_units),
+                Some(micro_lamport_price_per_unit),
             ),
             &[&payer],
             &[],
@@ -32,12 +35,24 @@ pub async fn run() {
         )
         .await
         .unwrap();
+    // Check the execution result
+    assert_eq!(Some(450), execution.units_consumed);
+    // Check where the lamports are
+    assert_eq!(
+        transfer_lamports,
+        endpoint
+            .get_account_lamports(&destination)
+            .await
+            .unwrap()
+            .unwrap()
+    );
     // Check the payer's lamport balance
     assert_eq!(
-        2_000_000_000 // Original payer airdrop
-            - 1_000_000_000 // Transfered lamports
-            - 5_000 // Transaction fees
-            - 84_000_000, // 2_000_000 units * 42 lamports price/per unit
+        airdrop_lamports
+            - transfer_lamports
+            - ToolboxEndpoint::LAMPORTS_PER_SIGNATURE
+            - (u64::from(paid_compute_units) * micro_lamport_price_per_unit
+                / 1_000_000),
         endpoint
             .get_account_lamports(&payer.pubkey())
             .await

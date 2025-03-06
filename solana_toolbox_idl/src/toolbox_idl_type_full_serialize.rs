@@ -311,7 +311,7 @@ impl ToolboxIdlTypeFull {
             },
             ToolboxIdlTypePrimitive::Bytes => {
                 let values = idl_as_array_or_else(value, context)?;
-                let value_bytes = idl_as_bytes_or_else(&values, context)?;
+                let value_bytes = idl_as_bytes_or_else(values, context)?;
                 if deserializable {
                     data.extend_from_slice(bytemuck::bytes_of::<u32>(
                         &u32::try_from(value_bytes.len()).unwrap(),
