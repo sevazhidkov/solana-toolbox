@@ -3,6 +3,7 @@ use std::num::TryFromIntError;
 use std::string::FromUtf8Error;
 
 use solana_sdk::pubkey::ParsePubkeyError;
+use solana_sdk::pubkey::PubkeyError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
 
 use crate::toolbox_idl_context::ToolboxIdlContext;
@@ -10,7 +11,7 @@ use crate::toolbox_idl_context::ToolboxIdlContext;
 #[derive(Debug)]
 pub enum ToolboxIdlError {
     ToolboxEndpoint(ToolboxEndpointError),
-    Pubkey(solana_sdk::pubkey::PubkeyError),
+    Pubkey(PubkeyError),
     Inflate(String),
     SerdeJson(serde_json::Error),
     InvalidDiscriminator {

@@ -5,7 +5,6 @@ use serde_json::Value;
 use sha2::Digest;
 use sha2::Sha256;
 
-use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
