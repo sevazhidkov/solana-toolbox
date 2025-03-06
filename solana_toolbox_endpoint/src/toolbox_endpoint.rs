@@ -66,10 +66,10 @@ impl ToolboxEndpoint {
             .await
     }
 
+    // TODO - should this support no-sig-verify somehow ?
     pub async fn simulate_versioned_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-        //ignore_signatures: bool, // TODO - support SIG verify/replace_recent
     ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
         self.proxy.simulate_transaction(versioned_transaction).await
     }
