@@ -1,0 +1,57 @@
+use std::str::FromStr;
+
+use clap::Args;
+use serde_json::{json, Map, Value};
+use solana_sdk::signature::{Keypair, Signature};
+use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_idl::ToolboxIdl;
+
+use crate::toolbox_cli_error::ToolboxCliError;
+
+#[derive(Debug, Clone, Args)]
+pub struct ToolboxCliCommandIdlDecompiledExecutionJsonArgs {
+    signature: String,
+}
+
+impl ToolboxCliCommandIdlDecompiledExecutionJsonArgs {
+    pub async fn process(
+        &self,
+        endpoint: &mut ToolboxEndpoint,
+        _payer: &Keypair,
+    ) -> Result<(), ToolboxCliError> {
+        let signature = Signature::from_str(&self.signature).unwrap();
+        let execution = endpoint.get_execution(&signature).await?;
+        let mut decompiled_instructions = vec![];
+        for instruction in execution.instructions {
+            let idl = ToolboxIdl::get_for_program_id(
+                endpoint,
+                &instruction.program_id,
+            )
+            .await?
+            .unwrap(); // TODO - handle unwrap
+            decompiled_instructions
+                .push(idl.decompile_instruction(&instruction)?);
+        }
+        let json = json!({
+            "payer": execution.payer.to_string(),
+            "instructions": decompiled_instructions.into_iter().map(|decompiled_instruction| {
+                json!({
+                    "program_id": decompiled_instruction.program_id.to_string(),
+                    "name": decompiled_instruction.name,
+                    "accounts_addresses": Value::Object(Map::from_iter(
+                        decompiled_instruction.accounts_addresses.into_iter().map(|account_address_entry| {
+                            (account_address_entry.0, Value::String(account_address_entry.1.to_string()))
+                        })
+                    )),
+                    "args": decompiled_instruction.args,
+                })
+            }).collect::<Vec<_>>(),
+            "logs": execution.logs,
+            "error": execution.error, // TODO - could parse the error using the code
+            "return_data": execution.return_data,
+            "units_consumed": execution.units_consumed,
+        });
+        println!("{}", serde_json::to_string(&json)?);
+        Ok(())
+    }
+}

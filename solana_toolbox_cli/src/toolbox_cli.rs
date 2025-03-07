@@ -3,9 +3,14 @@ use clap::Subcommand;
 use solana_sdk::signature::Keypair;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_cli_account::ToolboxCliAccountArgs;
+use crate::toolbox_cli_command_get_account_json::ToolboxCliCommandGetAccountJsonArgs;
+use crate::toolbox_cli_command_get_execution_json::ToolboxCliCommandGetExecutionJsonArgs;
+use crate::toolbox_cli_command_idl_decompiled_account_json::ToolboxCliCommandIdlDecompiledAccountJsonArgs;
+use crate::toolbox_cli_command_idl_decompiled_execution_json::ToolboxCliCommandIdlDecompiledExecutionJsonArgs;
+use crate::toolbox_cli_command_inspect_account::ToolboxCliCommandInspectAccountArgs;
+use crate::toolbox_cli_command_search_addresses_json::ToolboxCliCommandSearchAddressesJsonArgs;
+use crate::toolbox_cli_command_search_signatures_json::ToolboxCliCommandSearchSignaturesJsonArgs;
 use crate::toolbox_cli_error::ToolboxCliError;
-use crate::toolbox_cli_idl::ToolboxCliIdlArgs;
 
 #[derive(Debug, Clone, Parser)]
 pub struct ToolboxCliArgs {
@@ -23,8 +28,13 @@ impl ToolboxCliArgs {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
-    Account(ToolboxCliAccountArgs),
-    Idl(ToolboxCliIdlArgs),
+    GetAccountJson(ToolboxCliCommandGetAccountJsonArgs),
+    GetExecutionJson(ToolboxCliCommandGetExecutionJsonArgs),
+    IdlDecompiledAccountJson(ToolboxCliCommandIdlDecompiledAccountJsonArgs),
+    IdlDecompiledExecutionJson(ToolboxCliCommandIdlDecompiledExecutionJsonArgs),
+    InspectAccount(ToolboxCliCommandInspectAccountArgs),
+    SearchAddressesJson(ToolboxCliCommandSearchAddressesJsonArgs),
+    SearchSignaturesJson(ToolboxCliCommandSearchSignaturesJsonArgs),
 }
 
 impl ToolboxCliCommand {
@@ -34,10 +44,27 @@ impl ToolboxCliCommand {
         payer: &Keypair,
     ) -> Result<(), ToolboxCliError> {
         match self {
-            ToolboxCliCommand::Account(args) => {
+            ToolboxCliCommand::GetAccountJson(args) => {
                 args.process(endpoint, payer).await
             },
-            ToolboxCliCommand::Idl(args) => args.process(endpoint, payer).await,
+            ToolboxCliCommand::GetExecutionJson(args) => {
+                args.process(endpoint, payer).await
+            },
+            ToolboxCliCommand::IdlDecompiledAccountJson(args) => {
+                args.process(endpoint, payer).await
+            },
+            ToolboxCliCommand::IdlDecompiledExecutionJson(args) => {
+                args.process(endpoint, payer).await
+            },
+            ToolboxCliCommand::InspectAccount(args) => {
+                args.process(endpoint, payer).await
+            },
+            ToolboxCliCommand::SearchAddressesJson(args) => {
+                args.process(endpoint, payer).await
+            },
+            ToolboxCliCommand::SearchSignaturesJson(args) => {
+                args.process(endpoint, payer).await
+            },
         }
     }
 }
