@@ -1,17 +1,16 @@
+mod toolbox_cli;
+mod toolbox_cli_account;
+mod toolbox_cli_account_inspect;
+mod toolbox_cli_account_state;
+mod toolbox_cli_error;
+mod toolbox_cli_idl;
+
 use clap::Parser;
 
-#[derive(Parser, Debug)]
-#[command(name = "solana_toolbox_cli")]
-enum Cli {
-    account: CliAccount,
-}
+use crate::toolbox_cli::ToolboxCliArgs;
+use crate::toolbox_cli_error::ToolboxCliError;
 
-enum CliAccount {
-    address: String,
-}
-
-fn main() {
-    let cli = Cli::parse();
-
-    eprintln("cli: {:#?}", cli);
+#[tokio::main]
+async fn main() -> Result<(), ToolboxCliError> {
+    ToolboxCliArgs::parse().process().await
 }

@@ -14,6 +14,7 @@ tasks:
       - task fmt_endpoint
       - task fmt_idl
       - task fmt_anchor
+      - task fmt_cli
 
   # Testing
   test:
@@ -21,6 +22,7 @@ tasks:
       - task test_endpoint
       - task test_idl
       - task test_anchor
+      - task test_cli
 
   # Linting (clippy)
   lint:
@@ -28,6 +30,7 @@ tasks:
       - task lint_endpoint
       - task lint_idl
       - task lint_anchor
+      - task lint_cli
 
   # Publish to cargo
   publish:
@@ -102,6 +105,23 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
     cmds:
       - cp Cargo-solana-1.18.26-anchor-0.30.1.toml Cargo.toml
+      - cargo +nightly clippy
+          --all-targets
+          -- -D warnings
+          --allow=clippy::bool_assert_comparison
+
+  # Sub-crate CLI
+  fmt_cli:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_cli"
+    cmds:
+      - cargo +nightly fmt
+  test_cli:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_cli"
+    cmds:
+      - cargo test {{ .CLI_ARGS }}
+  lint_cli:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_cli"
+    cmds:
       - cargo +nightly clippy
           --all-targets
           -- -D warnings
