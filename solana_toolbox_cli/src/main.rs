@@ -1,11 +1,13 @@
 mod toolbox_cli;
-mod toolbox_cli_command_get_account_json;
-mod toolbox_cli_command_get_execution_json;
-mod toolbox_cli_command_idl_decompiled_account_json;
-mod toolbox_cli_command_idl_decompiled_execution_json;
+mod toolbox_cli_command_get_account;
+mod toolbox_cli_command_get_execution;
+mod toolbox_cli_command_idl_decompile_account;
+mod toolbox_cli_command_idl_decompile_execution;
+mod toolbox_cli_command_idl_describe;
+mod toolbox_cli_command_idl_process_instruction;
 mod toolbox_cli_command_inspect_account;
-mod toolbox_cli_command_search_addresses_json;
-mod toolbox_cli_command_search_signatures_json;
+mod toolbox_cli_command_search_addresses;
+mod toolbox_cli_command_search_signatures;
 mod toolbox_cli_error;
 
 use clap::Parser;

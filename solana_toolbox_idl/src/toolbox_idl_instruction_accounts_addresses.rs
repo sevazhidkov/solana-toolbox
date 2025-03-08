@@ -219,7 +219,7 @@ fn idl_instruction_account_pda_resolve(
     Ok(Pubkey::find_program_address(&pda_seeds_slices, &pda_program_id).0)
 }
 
-// TODO - naming fix
+// TODO - naming fix (could be in the program_instruction_account impl)
 fn idl_instruction_account_blob_resolve(
     idl: &ToolboxIdl,
     program_instruction_account_blob: &ToolboxIdlProgramInstructionAccountBlob,

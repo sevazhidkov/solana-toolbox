@@ -3,23 +3,21 @@ use std::str::FromStr;
 use clap::Args;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandSearchAddressesJsonArgs {
+pub struct ToolboxCliCommandSearchAddressesArgs {
     program_address: String,
     data_len: Option<usize>,
     // TODO - this should support memcpm
 }
 
-impl ToolboxCliCommandSearchAddressesJsonArgs {
+impl ToolboxCliCommandSearchAddressesArgs {
     pub async fn process(
         &self,
         endpoint: &mut ToolboxEndpoint,
-        _payer: &Keypair,
     ) -> Result<(), ToolboxCliError> {
         let program_address = Pubkey::from_str(&self.program_address).unwrap();
         let addresses = endpoint

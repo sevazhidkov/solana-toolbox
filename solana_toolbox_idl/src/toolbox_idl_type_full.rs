@@ -60,11 +60,11 @@ impl ToolboxIdlTypeFull {
                         .join("/")
                 )
             },
-            ToolboxIdlTypeFull::Primitive { primitive } => {
-                primitive.as_str().to_string()
-            },
             ToolboxIdlTypeFull::Const { literal } => {
                 format!("#{}", literal)
+            },
+            ToolboxIdlTypeFull::Primitive { primitive } => {
+                primitive.as_str().to_string()
             },
         }
     }

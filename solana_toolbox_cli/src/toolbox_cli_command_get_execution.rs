@@ -2,25 +2,24 @@ use std::str::FromStr;
 
 use clap::Args;
 use serde_json::json;
-use solana_sdk::signature::{Keypair, Signature};
+use solana_sdk::signature::Signature;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandGetExecutionJsonArgs {
+pub struct ToolboxCliCommandGetExecutionArgs {
     signature: String,
 }
 
-impl ToolboxCliCommandGetExecutionJsonArgs {
+impl ToolboxCliCommandGetExecutionArgs {
     pub async fn process(
         &self,
         endpoint: &mut ToolboxEndpoint,
-        _payer: &Keypair,
     ) -> Result<(), ToolboxCliError> {
         let signature = Signature::from_str(&self.signature)?;
         let execution = endpoint.get_execution(&signature).await?;
-        let json = &json!({
+        let json = json!({
             "payer": execution.payer.to_string(),
             "instructions": execution.instructions.iter().map(|instruction| {
                 json!({

@@ -1,69 +1,84 @@
 use clap::Parser;
 use clap::Subcommand;
-use solana_sdk::signature::Keypair;
+use solana_sdk::commitment_config::CommitmentConfig;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_cli_command_get_account_json::ToolboxCliCommandGetAccountJsonArgs;
-use crate::toolbox_cli_command_get_execution_json::ToolboxCliCommandGetExecutionJsonArgs;
-use crate::toolbox_cli_command_idl_decompiled_account_json::ToolboxCliCommandIdlDecompiledAccountJsonArgs;
-use crate::toolbox_cli_command_idl_decompiled_execution_json::ToolboxCliCommandIdlDecompiledExecutionJsonArgs;
+use crate::toolbox_cli_command_get_account::ToolboxCliCommandGetAccountArgs;
+use crate::toolbox_cli_command_get_execution::ToolboxCliCommandGetExecutionArgs;
+use crate::toolbox_cli_command_idl_decompile_account::ToolboxCliCommandIdlDecompileAccountArgs;
+use crate::toolbox_cli_command_idl_decompile_execution::ToolboxCliCommandIdlDecompileExecutionArgs;
+use crate::toolbox_cli_command_idl_describe::ToolboxCliCommandIdlDescribeArgs;
+use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
 use crate::toolbox_cli_command_inspect_account::ToolboxCliCommandInspectAccountArgs;
-use crate::toolbox_cli_command_search_addresses_json::ToolboxCliCommandSearchAddressesJsonArgs;
-use crate::toolbox_cli_command_search_signatures_json::ToolboxCliCommandSearchSignaturesJsonArgs;
+use crate::toolbox_cli_command_search_addresses::ToolboxCliCommandSearchAddressesArgs;
+use crate::toolbox_cli_command_search_signatures::ToolboxCliCommandSearchSignaturesArgs;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Parser)]
 pub struct ToolboxCliArgs {
+    #[arg(short, long)]
+    cluster: Option<String>,
     #[command(subcommand)]
     command: ToolboxCliCommand,
 }
 
 impl ToolboxCliArgs {
     pub async fn process(&self) -> Result<(), ToolboxCliError> {
-        let mut endpoint = ToolboxEndpoint::new_devnet().await; // TODO - proper endpoint
-        let payer = Keypair::new(); // TODO - get local wallet
-        self.command.process(&mut endpoint, &payer).await
+        // TODO - proper endpoint selection
+        let mut endpoint = match &self.cluster {
+            None => ToolboxEndpoint::new_devnet().await,
+            Some(cluster) => ToolboxEndpoint::new_rpc_with_url_and_commitment(
+                &cluster,
+                CommitmentConfig::confirmed(),
+            ),
+        };
+        self.command.process(&mut endpoint).await
     }
 }
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
-    GetAccountJson(ToolboxCliCommandGetAccountJsonArgs),
-    GetExecutionJson(ToolboxCliCommandGetExecutionJsonArgs),
-    IdlDecompiledAccountJson(ToolboxCliCommandIdlDecompiledAccountJsonArgs),
-    IdlDecompiledExecutionJson(ToolboxCliCommandIdlDecompiledExecutionJsonArgs),
+    GetAccount(ToolboxCliCommandGetAccountArgs),
+    GetExecution(ToolboxCliCommandGetExecutionArgs),
+    IdlDecompileAccount(ToolboxCliCommandIdlDecompileAccountArgs),
+    IdlDecompileExecution(ToolboxCliCommandIdlDecompileExecutionArgs),
+    IdlProcessInstruction(ToolboxCliCommandIdlProcessInstructionArgs),
+    IdlDescribe(ToolboxCliCommandIdlDescribeArgs),
     InspectAccount(ToolboxCliCommandInspectAccountArgs),
-    SearchAddressesJson(ToolboxCliCommandSearchAddressesJsonArgs),
-    SearchSignaturesJson(ToolboxCliCommandSearchSignaturesJsonArgs),
+    SearchAddresses(ToolboxCliCommandSearchAddressesArgs),
+    SearchSignaturesJson(ToolboxCliCommandSearchSignaturesArgs),
 }
 
 impl ToolboxCliCommand {
     pub async fn process(
         &self,
         endpoint: &mut ToolboxEndpoint,
-        payer: &Keypair,
     ) -> Result<(), ToolboxCliError> {
         match self {
-            ToolboxCliCommand::GetAccountJson(args) => {
-                args.process(endpoint, payer).await
+            ToolboxCliCommand::GetAccount(args) => args.process(endpoint).await,
+            ToolboxCliCommand::GetExecution(args) => {
+                args.process(endpoint).await
             },
-            ToolboxCliCommand::GetExecutionJson(args) => {
-                args.process(endpoint, payer).await
+            ToolboxCliCommand::IdlDecompileAccount(args) => {
+                args.process(endpoint).await
             },
-            ToolboxCliCommand::IdlDecompiledAccountJson(args) => {
-                args.process(endpoint, payer).await
+            ToolboxCliCommand::IdlDecompileExecution(args) => {
+                args.process(endpoint).await
             },
-            ToolboxCliCommand::IdlDecompiledExecutionJson(args) => {
-                args.process(endpoint, payer).await
+            ToolboxCliCommand::IdlDescribe(args) => {
+                args.process(endpoint).await
+            },
+            ToolboxCliCommand::IdlProcessInstruction(args) => {
+                args.process(endpoint).await
             },
             ToolboxCliCommand::InspectAccount(args) => {
-                args.process(endpoint, payer).await
+                args.process(endpoint).await
             },
-            ToolboxCliCommand::SearchAddressesJson(args) => {
-                args.process(endpoint, payer).await
+            ToolboxCliCommand::SearchAddresses(args) => {
+                args.process(endpoint).await
             },
             ToolboxCliCommand::SearchSignaturesJson(args) => {
-                args.process(endpoint, payer).await
+                args.process(endpoint).await
             },
         }
     }

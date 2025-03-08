@@ -76,6 +76,10 @@ impl ToolboxIdlTypeFull {
                     &breadcrumbs.with_idl("enum"),
                 )
             },
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
+                &format!("Can't use a const literal directly: {:?}", literal),
+                &breadcrumbs.idl(),
+            ),
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 ToolboxIdlTypeFull::try_serialize_primitive(
                     primitive,
@@ -85,10 +89,6 @@ impl ToolboxIdlTypeFull {
                     breadcrumbs,
                 )
             },
-            ToolboxIdlTypeFull::Const { literal } => idl_err(
-                &format!("Can't use a const literal directly: {:?}", literal),
-                &breadcrumbs.idl(),
-            ),
         }
     }
 

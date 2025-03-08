@@ -1,4 +1,5 @@
-use solana_sdk::{pubkey::ParsePubkeyError, signature::ParseSignatureError};
+use solana_sdk::pubkey::ParsePubkeyError;
+use solana_sdk::signature::ParseSignatureError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
 use solana_toolbox_idl::ToolboxIdlError;
 
@@ -9,6 +10,7 @@ pub enum ToolboxCliError {
     ParsePubkey(ParsePubkeyError),
     ParseSignature(ParseSignatureError),
     SerdeJson(serde_json::Error),
+    Custom(String),
 }
 
 impl From<ToolboxEndpointError> for ToolboxCliError {

@@ -1,23 +1,24 @@
 use std::str::FromStr;
 
 use clap::Args;
-use serde_json::{json, Map, Value};
-use solana_sdk::signature::{Keypair, Signature};
+use serde_json::json;
+use serde_json::Map;
+use serde_json::Value;
+use solana_sdk::signature::Signature;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlDecompiledExecutionJsonArgs {
+pub struct ToolboxCliCommandIdlDecompileExecutionArgs {
     signature: String,
 }
 
-impl ToolboxCliCommandIdlDecompiledExecutionJsonArgs {
+impl ToolboxCliCommandIdlDecompileExecutionArgs {
     pub async fn process(
         &self,
         endpoint: &mut ToolboxEndpoint,
-        _payer: &Keypair,
     ) -> Result<(), ToolboxCliError> {
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
