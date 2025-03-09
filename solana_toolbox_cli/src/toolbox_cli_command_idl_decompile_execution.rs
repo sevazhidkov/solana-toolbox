@@ -4,11 +4,12 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
+use solana_cli_config::Config;
 use solana_sdk::signature::Signature;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
 
 use crate::toolbox_cli_error::ToolboxCliError;
+use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlDecompileExecutionArgs {
@@ -18,14 +19,15 @@ pub struct ToolboxCliCommandIdlDecompileExecutionArgs {
 impl ToolboxCliCommandIdlDecompileExecutionArgs {
     pub async fn process(
         &self,
-        endpoint: &mut ToolboxEndpoint,
+        config: &Config,
     ) -> Result<(), ToolboxCliError> {
+        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
         let mut decompiled_instructions = vec![];
         for instruction in execution.instructions {
             let idl = ToolboxIdl::get_for_program_id(
-                endpoint,
+                &mut endpoint,
                 &instruction.program_id,
             )
             .await?

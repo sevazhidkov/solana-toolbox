@@ -9,6 +9,7 @@ mod toolbox_cli_command_inspect_account;
 mod toolbox_cli_command_search_addresses;
 mod toolbox_cli_command_search_signatures;
 mod toolbox_cli_error;
+mod toolbox_cli_utils;
 
 use clap::Parser;
 

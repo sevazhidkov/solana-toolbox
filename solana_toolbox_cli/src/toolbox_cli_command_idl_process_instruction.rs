@@ -6,36 +6,43 @@ use clap::ValueHint;
 use serde_json::from_str;
 use serde_json::json;
 use serde_json::Value;
+use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlInstruction;
 
 use crate::toolbox_cli_error::ToolboxCliError;
+use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlProcessInstructionArgs {
     program_address: String,
     name: String,
     args: String,
-    #[arg(short, long, value_delimiter(','))]
+    #[arg(value_delimiter(','))]
     accounts: Vec<String>,
     #[arg(short, long, value_hint(ValueHint::FilePath))]
-    payer: String,
+    payer: Option<String>,
 }
 
 impl ToolboxCliCommandIdlProcessInstructionArgs {
     pub async fn process(
         &self,
-        endpoint: &mut ToolboxEndpoint,
+        config: &Config,
     ) -> Result<(), ToolboxCliError> {
+        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
+        let payer = ToolboxCliUtils::load_keypair(
+            self.payer.as_ref().unwrap_or(&config.keypair_path),
+        )?;
+
         let program_address = Pubkey::from_str(&self.program_address).unwrap();
-        let idl = ToolboxIdl::get_for_program_id(endpoint, &program_address)
-            .await?
-            .unwrap(); // TODO - handle unwrap
+        let idl =
+            ToolboxIdl::get_for_program_id(&mut endpoint, &program_address)
+                .await?
+                .unwrap(); // TODO - handle unwrap
 
         let args = from_str::<Value>(&self.args)?;
 
@@ -51,9 +58,6 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
             }
         }
 
-        // TODO - signers and accounts can be merged ?
-        let payer = read_keypair_file(&self.payer).unwrap();
-
         let mut accounts_addresses = HashMap::new();
         for account in &accounts {
             accounts_addresses.insert(
@@ -67,7 +71,7 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
 
         let instruction = idl
             .resolve_instruction(
-                endpoint,
+                &mut endpoint,
                 &ToolboxIdlInstruction {
                     program_id: program_address,
                     name: self.name.to_string(),

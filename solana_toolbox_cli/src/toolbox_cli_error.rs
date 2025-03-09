@@ -1,3 +1,6 @@
+use std::io;
+
+use solana_sdk::commitment_config::ParseCommitmentLevelError;
 use solana_sdk::pubkey::ParsePubkeyError;
 use solana_sdk::signature::ParseSignatureError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
@@ -9,7 +12,9 @@ pub enum ToolboxCliError {
     ToolboxIdl(ToolboxIdlError),
     ParsePubkey(ParsePubkeyError),
     ParseSignature(ParseSignatureError),
+    ParseCommitmentLevel(ParseCommitmentLevelError),
     SerdeJson(serde_json::Error),
+    Io(io::Error),
     Custom(String),
 }
 
@@ -37,8 +42,20 @@ impl From<ParseSignatureError> for ToolboxCliError {
     }
 }
 
+impl From<ParseCommitmentLevelError> for ToolboxCliError {
+    fn from(source: ParseCommitmentLevelError) -> Self {
+        ToolboxCliError::ParseCommitmentLevel(source)
+    }
+}
+
 impl From<serde_json::Error> for ToolboxCliError {
     fn from(source: serde_json::Error) -> Self {
         ToolboxCliError::SerdeJson(source)
+    }
+}
+
+impl From<io::Error> for ToolboxCliError {
+    fn from(source: io::Error) -> Self {
+        ToolboxCliError::Io(source)
     }
 }

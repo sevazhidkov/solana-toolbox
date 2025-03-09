@@ -1,10 +1,11 @@
 use std::str::FromStr;
 
 use clap::Args;
+use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_error::ToolboxCliError;
+use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandInspectAccountArgs {
@@ -14,8 +15,9 @@ pub struct ToolboxCliCommandInspectAccountArgs {
 impl ToolboxCliCommandInspectAccountArgs {
     pub async fn process(
         &self,
-        endpoint: &mut ToolboxEndpoint,
+        config: &Config,
     ) -> Result<(), ToolboxCliError> {
+        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
         let address = Pubkey::from_str(&self.address)?; // TODO - handle parsing errors
         let account = endpoint.get_account_or_default(&address).await?;
         println!("+{:-^78}+", "Addr");

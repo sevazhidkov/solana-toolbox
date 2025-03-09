@@ -1,6 +1,11 @@
+use std::str::FromStr;
+
 use clap::Parser;
 use clap::Subcommand;
+use solana_cli_config::Config;
+use solana_cli_config::CONFIG_FILE;
 use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::signature::read_keypair_file;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_command_get_account::ToolboxCliCommandGetAccountArgs;
@@ -17,22 +22,24 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Parser)]
 pub struct ToolboxCliArgs {
     #[arg(short, long)]
-    cluster: Option<String>,
+    config: Option<String>,
     #[command(subcommand)]
     command: ToolboxCliCommand,
 }
 
 impl ToolboxCliArgs {
     pub async fn process(&self) -> Result<(), ToolboxCliError> {
-        // TODO - proper endpoint selection
-        let mut endpoint = match &self.cluster {
-            None => ToolboxEndpoint::new_devnet().await,
-            Some(cluster) => ToolboxEndpoint::new_rpc_with_url_and_commitment(
-                &cluster,
-                CommitmentConfig::confirmed(),
-            ),
-        };
-        self.command.process(&mut endpoint).await
+        let config = Config::load(
+            self.config
+                .as_ref()
+                .or(CONFIG_FILE.as_ref())
+                .ok_or_else(|| {
+                    ToolboxCliError::Custom(
+                        "Could not find solana config file".to_string(),
+                    )
+                })?,
+        )?;
+        self.command.process(&config).await
     }
 }
 
@@ -52,33 +59,29 @@ pub enum ToolboxCliCommand {
 impl ToolboxCliCommand {
     pub async fn process(
         &self,
-        endpoint: &mut ToolboxEndpoint,
+        config: &Config,
     ) -> Result<(), ToolboxCliError> {
         match self {
-            ToolboxCliCommand::GetAccount(args) => args.process(endpoint).await,
-            ToolboxCliCommand::GetExecution(args) => {
-                args.process(endpoint).await
-            },
+            ToolboxCliCommand::GetAccount(args) => args.process(config).await,
+            ToolboxCliCommand::GetExecution(args) => args.process(config).await,
             ToolboxCliCommand::IdlDecompileAccount(args) => {
-                args.process(endpoint).await
+                args.process(config).await
             },
             ToolboxCliCommand::IdlDecompileExecution(args) => {
-                args.process(endpoint).await
+                args.process(config).await
             },
-            ToolboxCliCommand::IdlDescribe(args) => {
-                args.process(endpoint).await
-            },
+            ToolboxCliCommand::IdlDescribe(args) => args.process(config).await,
             ToolboxCliCommand::IdlProcessInstruction(args) => {
-                args.process(endpoint).await
+                args.process(config).await
             },
             ToolboxCliCommand::InspectAccount(args) => {
-                args.process(endpoint).await
+                args.process(config).await
             },
             ToolboxCliCommand::SearchAddresses(args) => {
-                args.process(endpoint).await
+                args.process(config).await
             },
             ToolboxCliCommand::SearchSignaturesJson(args) => {
-                args.process(endpoint).await
+                args.process(config).await
             },
         }
     }

@@ -2,11 +2,12 @@ use std::str::FromStr;
 
 use clap::Args;
 use serde_json::json;
+use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_error::ToolboxCliError;
+use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandSearchSignaturesArgs {
@@ -19,8 +20,9 @@ pub struct ToolboxCliCommandSearchSignaturesArgs {
 impl ToolboxCliCommandSearchSignaturesArgs {
     pub async fn process(
         &self,
-        endpoint: &mut ToolboxEndpoint,
+        config: &Config,
     ) -> Result<(), ToolboxCliError> {
+        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
         let with_address = Pubkey::from_str(&self.with_address).unwrap();
         let start_before = self
             .start_before_signature

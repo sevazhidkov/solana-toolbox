@@ -4,11 +4,12 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
+use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
 
 use crate::toolbox_cli_error::ToolboxCliError;
+use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlDescribeArgs {
@@ -18,12 +19,14 @@ pub struct ToolboxCliCommandIdlDescribeArgs {
 impl ToolboxCliCommandIdlDescribeArgs {
     pub async fn process(
         &self,
-        endpoint: &mut ToolboxEndpoint,
+        config: &Config,
     ) -> Result<(), ToolboxCliError> {
+        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
         let program_address = Pubkey::from_str(&self.program_address).unwrap();
-        let idl = ToolboxIdl::get_for_program_id(endpoint, &program_address)
-            .await?
-            .unwrap(); // TODO - handle unwrap
+        let idl =
+            ToolboxIdl::get_for_program_id(&mut endpoint, &program_address)
+                .await?
+                .unwrap(); // TODO - handle unwrap
         let json_instructions = idl
             .program_instructions
             .values()
