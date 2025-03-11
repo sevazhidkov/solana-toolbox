@@ -6,14 +6,14 @@ use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlAccount;
-use solana_toolbox_idl::ToolboxIdlInstruction;
+use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
         read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap();
-    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
+    let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();
     // Important account addresses
     let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
@@ -50,7 +50,7 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let campaign_create_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "campaign_create".to_string(),
                 accounts_addresses: HashMap::from([
@@ -78,7 +78,7 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let campaign_extract_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "campaign_extract".to_string(),
                 accounts_addresses: HashMap::from([
@@ -110,7 +110,7 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let pledge_create_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "pledge_create".to_string(),
                 accounts_addresses: HashMap::from([
@@ -131,7 +131,7 @@ pub async fn run() {
     // Generate all missing IX accounts with just the minimum information
     let pledge_deposit_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "pledge_deposit".to_string(),
                 accounts_addresses: HashMap::from([

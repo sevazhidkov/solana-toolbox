@@ -3,12 +3,12 @@ use std::collections::HashMap;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlInstruction;
+use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl = ToolboxIdl::try_from_value(&json!({
+    let idl = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],
@@ -55,7 +55,7 @@ pub async fn run() {
     let dummy_pda =
         Pubkey::find_program_address(dummy_seeds, &dummy_program_id).0;
     // The instruction we'll use
-    let instruction = ToolboxIdlInstruction {
+    let instruction = ToolboxIdlTransactionInstruction {
         program_id: dummy_program_id,
         name: "my_instruction".to_string(),
         accounts_addresses: HashMap::new(),

@@ -7,7 +7,7 @@ pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
         read_to_string("./tests/fixtures/idl_anchor_broken.json").unwrap();
-    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
+    let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();
     // Lookup instructions and print them
     for program_instruction in idl.program_instructions.values() {
         program_instruction.print();
@@ -17,7 +17,7 @@ pub async fn run() {
         program_account.print();
     }
     // Lookup types and print them
-    for program_type in idl.program_types.values() {
+    for program_type in idl.program_typedefs.values() {
         program_type.print();
     }
     // Lookup errors and print them

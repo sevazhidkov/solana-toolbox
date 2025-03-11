@@ -5,7 +5,7 @@ use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
-use crate::ToolboxEndpointExecution;
+use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 impl ToolboxEndpoint {
     pub async fn process_instruction(

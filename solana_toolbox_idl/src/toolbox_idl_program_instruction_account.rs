@@ -1,17 +1,23 @@
+use std::collections::HashMap;
 use std::str::FromStr;
 
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_instruction_account_pda::ToolboxIdlProgramInstructionAccountPda;
+use crate::toolbox_idl_transaction_instruction::ToolboxIdlTransactionInstruction;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
+use crate::ToolboxIdlProgramAccount;
+use crate::ToolboxIdlProgramInstruction;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgramInstructionAccount {
@@ -25,7 +31,7 @@ pub struct ToolboxIdlProgramInstructionAccount {
 }
 
 impl ToolboxIdlProgramInstructionAccount {
-    pub(crate) fn try_parse(
+    pub fn try_parse(
         idl_instruction_account_index: usize,
         idl_instruction_account: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -104,5 +110,34 @@ impl ToolboxIdlProgramInstructionAccount {
             idl_instruction_account_pda,
             breadcrumbs,
         )
+    }
+
+    // TODO - should this be in a different file?
+    pub fn try_resolve(
+        &self,
+        program_instruction: &ToolboxIdlProgramInstruction,
+        program_accounts: &HashMap<String, ToolboxIdlProgramAccount>,
+        transaction_instruction: &ToolboxIdlTransactionInstruction, // TODO - can those params be better scoepd ?
+        transaction_instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<Pubkey, ToolboxIdlError> {
+        if let Some(instruction_account_address) =
+            transaction_instruction.accounts_addresses.get(&self.name)
+        {
+            return Ok(*instruction_account_address);
+        }
+        if let Some(program_instruction_account_address) = &self.address {
+            return Ok(*program_instruction_account_address);
+        }
+        if let Some(program_instruction_account_pda) = &self.pda {
+            return program_instruction_account_pda.try_resolve(
+                program_instruction,
+                program_accounts,
+                transaction_instruction,
+                transaction_instruction_accounts,
+                &breadcrumbs.with_idl("pda"),
+            );
+        }
+        idl_err("Unresolvable account", &breadcrumbs.as_idl("@"))
     }
 }

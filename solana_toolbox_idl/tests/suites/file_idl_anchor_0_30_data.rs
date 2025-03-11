@@ -11,7 +11,7 @@ pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
         read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap();
-    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
+    let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();
     // Prepare instruction args
     let mut instruction_args_metadata_bytes = vec![];
     for index in 0..512 {

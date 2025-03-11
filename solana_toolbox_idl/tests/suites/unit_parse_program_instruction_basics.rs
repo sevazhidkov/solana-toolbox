@@ -4,16 +4,16 @@ use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
 use solana_toolbox_idl::ToolboxIdlProgramInstruction;
 use solana_toolbox_idl::ToolboxIdlProgramInstructionAccount;
-use solana_toolbox_idl::ToolboxIdlTypeFlat;
-use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
-use solana_toolbox_idl::ToolboxIdlTypeFull;
-use solana_toolbox_idl::ToolboxIdlTypeFullFields;
-use solana_toolbox_idl::ToolboxIdlTypePrimitive;
+use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
+use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlProgramTypeFull;
+use solana_toolbox_idl::ToolboxIdlProgramTypeFullFields;
+use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdl::try_from_value(&json!({
+    let idl1 = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -31,7 +31,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdl::try_from_value(&json!({
+    let idl2 = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -48,7 +48,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdl::try_from_value(&json!({
+    let idl3 = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [195, 241, 184, 14, 127, 155, 68, 53],
@@ -65,7 +65,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdl::try_from_value(&json!({
+    let idl4 = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "accounts": [
@@ -125,22 +125,22 @@ pub async fn run() {
                     pda: None
                 },
             ],
-            data_type_flat: ToolboxIdlTypeFlat::Struct {
-                fields: ToolboxIdlTypeFlatFields::Named(vec![(
+            data_type_flat: ToolboxIdlProgramTypeFlat::Struct {
+                fields: ToolboxIdlProgramTypeFlatFields::Named(vec![(
                     "arg".to_string(),
-                    ToolboxIdlTypeFlat::Vec {
-                        items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
+                    ToolboxIdlProgramTypeFlat::Vec {
+                        items: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
+                            primitive: ToolboxIdlProgramTypePrimitive::U8
                         }),
                     },
                 )])
             },
-            data_type_full: ToolboxIdlTypeFull::Struct {
-                fields: ToolboxIdlTypeFullFields::Named(vec![(
+            data_type_full: ToolboxIdlProgramTypeFull::Struct {
+                fields: ToolboxIdlProgramTypeFullFields::Named(vec![(
                     "arg".to_string(),
-                    ToolboxIdlTypeFull::Vec {
-                        items: Box::new(ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
+                    ToolboxIdlProgramTypeFull::Vec {
+                        items: Box::new(ToolboxIdlProgramTypeFull::Primitive {
+                            primitive: ToolboxIdlProgramTypePrimitive::U8
                         }),
                     },
                 )])

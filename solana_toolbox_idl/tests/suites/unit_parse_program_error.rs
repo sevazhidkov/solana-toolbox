@@ -5,7 +5,7 @@ use solana_toolbox_idl::ToolboxIdlProgramError;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdl::try_from_value(&json!({
+    let idl1 = ToolboxIdl::try_parse_from_value(&json!({
         "errors": [
             {
                 "name": "MyError",
@@ -15,7 +15,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdl::try_from_value(&json!({
+    let idl2 = ToolboxIdl::try_parse_from_value(&json!({
         "errors": [
             {
                 "name": "MyError",
@@ -24,7 +24,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdl::try_from_value(&json!({
+    let idl3 = ToolboxIdl::try_parse_from_value(&json!({
         "errors": {
             "MyError": {
                 "code": 42,
@@ -33,7 +33,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdl::try_from_value(&json!({
+    let idl4 = ToolboxIdl::try_parse_from_value(&json!({
         "errors": {
             "MyError": 42,
         },

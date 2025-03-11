@@ -1,12 +1,7 @@
-use std::str::FromStr;
-
 use clap::Parser;
 use clap::Subcommand;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
-use solana_sdk::commitment_config::CommitmentConfig;
-use solana_sdk::signature::read_keypair_file;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_command_get_account::ToolboxCliCommandGetAccountArgs;
 use crate::toolbox_cli_command_get_execution::ToolboxCliCommandGetExecutionArgs;
@@ -14,6 +9,7 @@ use crate::toolbox_cli_command_idl_decompile_account::ToolboxCliCommandIdlDecomp
 use crate::toolbox_cli_command_idl_decompile_execution::ToolboxCliCommandIdlDecompileExecutionArgs;
 use crate::toolbox_cli_command_idl_describe::ToolboxCliCommandIdlDescribeArgs;
 use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
+use crate::toolbox_cli_command_idl_resolve_instruction_accounts::ToolboxCliCommandIdlResolveInstructionAccountsArgs;
 use crate::toolbox_cli_command_inspect_account::ToolboxCliCommandInspectAccountArgs;
 use crate::toolbox_cli_command_search_addresses::ToolboxCliCommandSearchAddressesArgs;
 use crate::toolbox_cli_command_search_signatures::ToolboxCliCommandSearchSignaturesArgs;
@@ -43,14 +39,18 @@ impl ToolboxCliArgs {
     }
 }
 
+// TODO - command to download JSON IDL
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
     GetAccount(ToolboxCliCommandGetAccountArgs),
     GetExecution(ToolboxCliCommandGetExecutionArgs),
     IdlDecompileAccount(ToolboxCliCommandIdlDecompileAccountArgs),
     IdlDecompileExecution(ToolboxCliCommandIdlDecompileExecutionArgs),
-    IdlProcessInstruction(ToolboxCliCommandIdlProcessInstructionArgs),
     IdlDescribe(ToolboxCliCommandIdlDescribeArgs),
+    IdlProcessInstruction(ToolboxCliCommandIdlProcessInstructionArgs),
+    IdlResolveInstructionAccounts(
+        ToolboxCliCommandIdlResolveInstructionAccountsArgs,
+    ),
     InspectAccount(ToolboxCliCommandInspectAccountArgs),
     SearchAddresses(ToolboxCliCommandSearchAddressesArgs),
     SearchSignaturesJson(ToolboxCliCommandSearchSignaturesArgs),
@@ -72,6 +72,9 @@ impl ToolboxCliCommand {
             },
             ToolboxCliCommand::IdlDescribe(args) => args.process(config).await,
             ToolboxCliCommand::IdlProcessInstruction(args) => {
+                args.process(config).await
+            },
+            ToolboxCliCommand::IdlResolveInstructionAccounts(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::InspectAccount(args) => {

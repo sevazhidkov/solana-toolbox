@@ -8,14 +8,14 @@ use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlInstruction;
+use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
         read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap();
-    let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
+    let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();
     // Important account addresses
     let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
@@ -53,7 +53,7 @@ pub async fn run() {
     // Resolve missing instruction accounts
     let instruction_accounts_addresses = idl
         .find_instruction_accounts_addresses(
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "campaign_create".to_string(),
                 accounts_addresses: instruction_accounts_addresses.clone(),
@@ -64,7 +64,7 @@ pub async fn run() {
         .unwrap();
     // Actually generate the instruction
     let instruction = idl
-        .compile_instruction(&ToolboxIdlInstruction {
+        .compile_instruction(&ToolboxIdlTransactionInstruction {
             program_id,
             name: "campaign_create".to_string(),
             accounts_addresses: instruction_accounts_addresses.clone(),

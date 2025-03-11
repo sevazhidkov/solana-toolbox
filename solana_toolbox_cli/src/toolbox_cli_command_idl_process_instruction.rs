@@ -12,7 +12,7 @@ use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlInstruction;
+use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
@@ -47,6 +47,10 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
         let args = from_str::<Value>(&self.args)?;
 
         let mut accounts = HashMap::new();
+        accounts.insert(
+            "payer".to_string(),
+            KeypairOrPubkey::Keypair(payer.insecure_clone()),
+        );
         for account in &self.accounts {
             let parts = account.split(":").collect::<Vec<_>>();
             if let [key, value] = parts[..] {
@@ -72,7 +76,7 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
         let instruction = idl
             .resolve_instruction(
                 &mut endpoint,
-                &ToolboxIdlInstruction {
+                &ToolboxIdlTransactionInstruction {
                     program_id: program_address,
                     name: self.name.to_string(),
                     accounts_addresses,
@@ -92,23 +96,31 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
             .process_instruction_with_signers(&payer, instruction, &signers)
             .await?;
 
-        let json = json!({
-            "signature": signature.to_string(),
-            "execution": {
-                "payer": execution.payer.to_string(),
-                "instructions": execution.instructions.iter().map(|instruction| {
-                    json!({
-                        "program_id": instruction.program_id.to_string(),
-                        "accounts": instruction.accounts.iter().map(|account| {
+        let json_execution_instructions = execution
+            .instructions
+            .iter()
+            .map(|instruction| {
+                json!({
+                    "program_id": instruction.program_id.to_string(),
+                    "accounts": instruction.accounts.iter()
+                        .map(|account| {
                             json!({
                                 "address": account.pubkey.to_string(),
                                 "is_signer": account.is_signer,
                                 "is_writable": account.is_writable,
                             })
-                        }).collect::<Vec<_>>(),
-                        "data": instruction.data,
-                    })
-                }).collect::<Vec<_>>(),
+                        })
+                        .collect::<Vec<_>>(),
+                    "data": instruction.data,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let json = json!({
+            "signature": signature.to_string(),
+            "execution": {
+                "payer": execution.payer.to_string(),
+                "instructions": json_execution_instructions,
                 "logs": execution.logs,
                 "error": execution.error,
                 "return_data": execution.return_data,

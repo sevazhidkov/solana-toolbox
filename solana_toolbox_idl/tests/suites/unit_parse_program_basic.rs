@@ -4,7 +4,7 @@ use solana_toolbox_idl::ToolboxIdl;
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl_standard = ToolboxIdl::try_from_value(&json!({
+    let idl_standard = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -57,7 +57,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Create an IDL on the fly
-    let idl_shortened = ToolboxIdl::try_from_value(&json!({
+    let idl_shortened = ToolboxIdl::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "accounts": [
@@ -117,7 +117,7 @@ pub async fn run() {
         my_account.data_type_flat.describe()
     );
     // Assert struct was parsed correctly
-    let my_struct = idl_standard.program_types.get("MyStruct").unwrap();
+    let my_struct = idl_standard.program_typedefs.get("MyStruct").unwrap();
     assert_eq!("MyStruct", my_struct.name);
     assert_eq!(
         "Struct{addr:pubkey,name:string}",

@@ -1,12 +1,12 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlProgramType;
-use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlProgramTypedef;
+use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
 
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdl::try_from_value(&json!({
+    let idl1 = ToolboxIdl::try_parse_from_value(&json!({
         "types": [
             {
                 "name": "MyEnum",
@@ -15,7 +15,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdl::try_from_value(&json!({
+    let idl2 = ToolboxIdl::try_parse_from_value(&json!({
         "types": [
             {
                 "name": "MyEnum",
@@ -24,7 +24,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdl::try_from_value(&json!({
+    let idl3 = ToolboxIdl::try_parse_from_value(&json!({
         "types": {
             "MyEnum": {
                 "type": { "variants": [] }
@@ -32,7 +32,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdl::try_from_value(&json!({
+    let idl4 = ToolboxIdl::try_parse_from_value(&json!({
         "types": {
             "MyEnum": { "variants": [] },
         },
@@ -44,11 +44,11 @@ pub async fn run() {
     assert_eq!(idl1, idl4);
     // Assert that the content is correct
     assert_eq!(
-        idl1.program_types.get("MyEnum").unwrap(),
-        &ToolboxIdlProgramType {
+        idl1.program_typedefs.get("MyEnum").unwrap(),
+        &ToolboxIdlProgramTypedef {
             name: "MyEnum".to_string(),
             generics: vec![],
-            type_flat: ToolboxIdlTypeFlat::Enum { variants: vec![] }
+            type_flat: ToolboxIdlProgramTypeFlat::Enum { variants: vec![] }
         }
     )
 }

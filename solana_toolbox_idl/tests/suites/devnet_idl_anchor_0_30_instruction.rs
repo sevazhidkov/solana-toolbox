@@ -9,7 +9,7 @@ use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlInstruction;
+use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -27,7 +27,7 @@ pub async fn run() {
     let campaign_index = 3u64;
     let campaign = idl
         .find_instruction_account_address(
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "campaign_create".to_string(),
                 accounts_addresses: HashMap::from_iter([]),
@@ -65,7 +65,7 @@ pub async fn run() {
     let instruction_pledge_create = idl
         .resolve_instruction(
             &mut endpoint,
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "pledge_create".to_string(),
                 accounts_addresses: HashMap::from_iter([
@@ -81,7 +81,7 @@ pub async fn run() {
     let instruction_pledge_deposit = idl
         .resolve_instruction(
             &mut endpoint,
-            &ToolboxIdlInstruction {
+            &ToolboxIdlTransactionInstruction {
                 program_id,
                 name: "pledge_deposit".to_string(),
                 accounts_addresses: HashMap::from_iter([

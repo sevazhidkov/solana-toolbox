@@ -13,7 +13,7 @@ pub async fn run() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Parse IDL from file JSON directly
-    let idl = ToolboxIdl::try_from_str(
+    let idl = ToolboxIdl::try_parse_from_str(
         &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
     )
     .unwrap();

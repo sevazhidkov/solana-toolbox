@@ -35,7 +35,7 @@ We can create our IDL object in different ways:
 ```rust
 // Parse IDL from file JSON string directly
 let idl_string = read_to_string("./my_idl.json").unwrap();
-let idl = ToolboxIdl::try_from_str(&idl_string).unwrap();
+let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();
 // Fetch an IDL from an endpoint and a program_id
 let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
     .await
@@ -78,7 +78,7 @@ let account = idl
 // We can generate an instruction from JSON args data and account addresses
 let instruction = idl
     .compile_instruction(
-        &ToolboxIdlInstruction {
+        &ToolboxIdlTransactionInstruction {
             program_id,
             name: "my_instruction".to_string(),
             accounts_addresses: HashMap::from_iter([
@@ -93,7 +93,7 @@ let instruction = idl
 let instruction = idl
     .resolve_instruction(
         &mut endpoint, // See solana_toolbox_endpoint crate
-        &ToolboxIdlInstruction {
+        &ToolboxIdlTransactionInstruction {
             program_id,
             name: "my_instruction".to_string(),
             accounts_addresses: HashMap::from_iter([

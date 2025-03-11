@@ -31,6 +31,7 @@ impl ToolboxCliCommandIdlDescribeArgs {
             .program_instructions
             .values()
             .map(|program_instruction| {
+                let mut program_instruction_accounts_resolvables = vec![];
                 let mut program_instruction_accounts_unresolvables = vec![];
                 let mut program_instruction_accounts_signers = vec![];
                 for program_instruction_account in &program_instruction.accounts
@@ -39,6 +40,9 @@ impl ToolboxCliCommandIdlDescribeArgs {
                         && program_instruction_account.address.is_none()
                     {
                         program_instruction_accounts_unresolvables
+                            .push(program_instruction_account.name.to_string());
+                    } else {
+                        program_instruction_accounts_resolvables
                             .push(program_instruction_account.name.to_string());
                     }
                     if program_instruction_account.is_signer {
@@ -52,6 +56,7 @@ impl ToolboxCliCommandIdlDescribeArgs {
                         "args": program_instruction.data_type_flat.describe(),
                         "accounts": program_instruction_accounts_unresolvables,
                         "signers": program_instruction_accounts_signers,
+                        "resolvables": program_instruction_accounts_resolvables,
                     }),
                 )
             })
@@ -67,7 +72,7 @@ impl ToolboxCliCommandIdlDescribeArgs {
             })
             .collect::<Vec<_>>();
         let json_types = idl
-            .program_types
+            .program_typedefs
             .values()
             .map(|program_type| {
                 (

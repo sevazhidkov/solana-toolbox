@@ -35,20 +35,29 @@ impl ToolboxCliCommandIdlDecompileExecutionArgs {
             decompiled_instructions
                 .push(idl.decompile_instruction(&instruction)?);
         }
-        let json = json!({
-            "payer": execution.payer.to_string(),
-            "instructions": decompiled_instructions.into_iter().map(|decompiled_instruction| {
+        let json_instructions = decompiled_instructions
+            .into_iter()
+            .map(|decompiled_instruction| {
+                let json_accounts_addresses = decompiled_instruction
+                    .accounts_addresses
+                    .into_iter()
+                    .map(|account_address_entry| {
+                        (
+                            account_address_entry.0,
+                            Value::String(account_address_entry.1.to_string()),
+                        )
+                    });
                 json!({
                     "program_id": decompiled_instruction.program_id.to_string(),
                     "name": decompiled_instruction.name,
-                    "accounts_addresses": Value::Object(Map::from_iter(
-                        decompiled_instruction.accounts_addresses.into_iter().map(|account_address_entry| {
-                            (account_address_entry.0, Value::String(account_address_entry.1.to_string()))
-                        })
-                    )),
+                    "accounts_addresses": Value::Object(Map::from_iter(json_accounts_addresses)),
                     "args": decompiled_instruction.args,
                 })
-            }).collect::<Vec<_>>(),
+            })
+            .collect::<Vec<_>>();
+        let json = json!({
+            "payer": execution.payer.to_string(),
+            "instructions": json_instructions,
             "logs": execution.logs,
             "error": execution.error, // TODO - could parse the error using the code
             "return_data": execution.return_data,
