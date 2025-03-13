@@ -1,8 +1,8 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 
 #[tokio::test]
 pub async fn run() {
@@ -11,6 +11,10 @@ pub async fn run() {
         "types": [
             {
                 "name": "MyStruct",
+                "generics": [
+                    { "name": "A" },
+                    { "name": "B" },
+                ],
                 "type": { "fields": [] }
             },
         ],
@@ -20,22 +24,43 @@ pub async fn run() {
         "types": [
             {
                 "name": "MyStruct",
+                "generics": [
+                    { "name": "A" },
+                    { "name": "B" },
+                ],
                 "fields": [],
             },
         ],
     }))
     .unwrap();
     let idl3 = ToolboxIdl::try_parse_from_value(&json!({
+        "types": [
+            {
+                "name": "MyStruct",
+                "generics": ["A", "B"],
+                "fields": [],
+            },
+        ],
+    }))
+    .unwrap();
+    let idl4 = ToolboxIdl::try_parse_from_value(&json!({
         "types": {
             "MyStruct": {
+                "generics": [
+                    { "name": "A" },
+                    { "name": "B" },
+                ],
                 "type": { "fields": [] }
             },
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl5 = ToolboxIdl::try_parse_from_value(&json!({
         "types": {
-            "MyStruct": { "fields": [] },
+            "MyStruct": {
+                "generics": ["A", "B"],
+                "fields": []
+            },
         },
     }))
     .unwrap();
@@ -43,12 +68,13 @@ pub async fn run() {
     assert_eq!(idl1, idl2);
     assert_eq!(idl1, idl3);
     assert_eq!(idl1, idl4);
+    assert_eq!(idl1, idl5);
     // Assert that the content is correct
     assert_eq!(
         idl1.program_typedefs.get("MyStruct").unwrap(),
         &ToolboxIdlProgramTypedef {
             name: "MyStruct".to_string(),
-            generics: vec![],
+            generics: vec!["A".to_string(), "B".to_string()],
             type_flat: ToolboxIdlProgramTypeFlat::Struct {
                 fields: ToolboxIdlProgramTypeFlatFields::None
             }

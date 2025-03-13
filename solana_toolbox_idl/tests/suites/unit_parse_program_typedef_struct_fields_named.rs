@@ -1,9 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
+use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 
 #[tokio::test]
 pub async fn run() {
@@ -67,17 +67,23 @@ pub async fn run() {
                     (
                         "vec1_u8".to_string(),
                         ToolboxIdlProgramTypeFlat::Vec {
-                            items: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::U8,
-                            }),
+                            items: Box::new(
+                                ToolboxIdlProgramTypeFlat::Primitive {
+                                    primitive:
+                                        ToolboxIdlProgramTypePrimitive::U8,
+                                }
+                            ),
                         }
                     ),
                     (
                         "vec2_u8".to_string(),
                         ToolboxIdlProgramTypeFlat::Vec {
-                            items: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::U8,
-                            }),
+                            items: Box::new(
+                                ToolboxIdlProgramTypeFlat::Primitive {
+                                    primitive:
+                                        ToolboxIdlProgramTypePrimitive::U8,
+                                }
+                            ),
                         }
                     ),
                     (
@@ -86,7 +92,8 @@ pub async fn run() {
                             items: Box::new(ToolboxIdlProgramTypeFlat::Vec {
                                 items: Box::new(
                                     ToolboxIdlProgramTypeFlat::Primitive {
-                                        primitive: ToolboxIdlProgramTypePrimitive::U8,
+                                        primitive:
+                                            ToolboxIdlProgramTypePrimitive::U8,
                                     }
                                 ),
                             }),
@@ -98,7 +105,8 @@ pub async fn run() {
                             items: Box::new(ToolboxIdlProgramTypeFlat::Vec {
                                 items: Box::new(
                                     ToolboxIdlProgramTypeFlat::Primitive {
-                                        primitive: ToolboxIdlProgramTypePrimitive::U8,
+                                        primitive:
+                                            ToolboxIdlProgramTypePrimitive::U8,
                                     }
                                 ),
                             }),
@@ -107,23 +115,29 @@ pub async fn run() {
                     (
                         "array1_u32_4".to_string(),
                         ToolboxIdlProgramTypeFlat::Array {
-                            items: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::U32,
-                            }),
-                            length: Box::new(ToolboxIdlProgramTypeFlat::Const {
-                                literal: 4
-                            }),
+                            items: Box::new(
+                                ToolboxIdlProgramTypeFlat::Primitive {
+                                    primitive:
+                                        ToolboxIdlProgramTypePrimitive::U32,
+                                }
+                            ),
+                            length: Box::new(
+                                ToolboxIdlProgramTypeFlat::Const { literal: 4 }
+                            ),
                         }
                     ),
                     (
                         "array2_u32_4".to_string(),
                         ToolboxIdlProgramTypeFlat::Array {
-                            items: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::U32,
-                            }),
-                            length: Box::new(ToolboxIdlProgramTypeFlat::Const {
-                                literal: 4
-                            }),
+                            items: Box::new(
+                                ToolboxIdlProgramTypeFlat::Primitive {
+                                    primitive:
+                                        ToolboxIdlProgramTypePrimitive::U32,
+                                }
+                            ),
+                            length: Box::new(
+                                ToolboxIdlProgramTypeFlat::Const { literal: 4 }
+                            ),
                         }
                     ),
                     (
@@ -177,17 +191,23 @@ pub async fn run() {
                     (
                         "option1_f32".to_string(),
                         ToolboxIdlProgramTypeFlat::Option {
-                            content: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::F32,
-                            })
+                            content: Box::new(
+                                ToolboxIdlProgramTypeFlat::Primitive {
+                                    primitive:
+                                        ToolboxIdlProgramTypePrimitive::F32,
+                                }
+                            )
                         }
                     ),
                     (
                         "option2_f32".to_string(),
                         ToolboxIdlProgramTypeFlat::Option {
-                            content: Box::new(ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::F32,
-                            })
+                            content: Box::new(
+                                ToolboxIdlProgramTypeFlat::Primitive {
+                                    primitive:
+                                        ToolboxIdlProgramTypePrimitive::F32,
+                                }
+                            )
                         }
                     ),
                     (

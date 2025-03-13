@@ -1,9 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
+use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 
 #[tokio::test]
 pub async fn run() {

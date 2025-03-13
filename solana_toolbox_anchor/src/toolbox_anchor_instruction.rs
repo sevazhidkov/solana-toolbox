@@ -9,6 +9,21 @@ use crate::toolbox_anchor::ToolboxAnchor;
 use crate::toolbox_anchor_error::ToolboxAnchorError;
 
 impl ToolboxAnchor {
+    pub fn build_instruction<
+        Accounts: ToAccountMetas,
+        Payload: InstructionData,
+    >(
+        program_id: Pubkey,
+        accounts: Accounts,
+        payload: Payload,
+    ) -> Instruction {
+        Instruction {
+            program_id,
+            accounts: accounts.to_account_metas(None),
+            data: payload.data(),
+        }
+    }
+
     pub async fn process_instruction<
         Accounts: ToAccountMetas,
         Payload: InstructionData,
@@ -19,12 +34,12 @@ impl ToolboxAnchor {
         payload: Payload,
         payer: &Keypair,
     ) -> Result<(), ToolboxAnchorError> {
-        let instruction = Instruction {
-            program_id,
-            accounts: accounts.to_account_metas(None),
-            data: payload.data(),
-        };
-        endpoint.process_instruction(payer, instruction).await?;
+        endpoint
+            .process_instruction(
+                payer,
+                ToolboxAnchor::build_instruction(program_id, accounts, payload),
+            )
+            .await?;
         Ok(())
     }
 
@@ -39,13 +54,12 @@ impl ToolboxAnchor {
         payer: &Keypair,
         signers: &[&Keypair],
     ) -> Result<(), ToolboxAnchorError> {
-        let instruction = Instruction {
-            program_id,
-            accounts: accounts.to_account_metas(None),
-            data: payload.data(),
-        };
         endpoint
-            .process_instruction_with_signers(payer, instruction, signers)
+            .process_instruction_with_signers(
+                payer,
+                ToolboxAnchor::build_instruction(program_id, accounts, payload),
+                signers,
+            )
             .await?;
         Ok(())
     }

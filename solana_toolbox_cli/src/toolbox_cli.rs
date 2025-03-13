@@ -39,6 +39,7 @@ impl ToolboxCliArgs {
     }
 }
 
+// TODO - command to generate IX data for DAO use ?
 // TODO - command to download JSON IDL
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {

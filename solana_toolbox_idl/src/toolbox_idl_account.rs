@@ -7,11 +7,16 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
+// TODO - should this be named IdlChainAccount or smthg ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
+    // pub program_account: ToolboxIdlProgramAccount,
+    // pub program_id: Pubkey, // TODO - this should be a thing ?
+    // TODO - should we just store the program account here with IDL ?
     pub name: String,
     pub state: Value,
 }
@@ -95,15 +100,10 @@ impl ToolboxIdl {
         account_data: &[u8],
     ) -> Result<ToolboxIdlAccount, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let account_name = idl_ok_or_else(
-            self.guess_account_name(account_data),
-            "Could not guess account name",
-            &breadcrumbs.as_val("account_name"),
-        )?;
-        let program_account = idl_map_get_key_or_else(
-            &self.program_accounts,
-            account_name,
-            &breadcrumbs.as_idl("$program_accounts"),
+        let program_account = idl_ok_or_else(
+            self.guess_program_account(account_data),
+            "Could not guess program account",
+            &breadcrumbs.as_val("idl.program_accounts"),
         )?;
         if !account_data.starts_with(&program_account.discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
@@ -115,18 +115,21 @@ impl ToolboxIdl {
             program_account.data_type_full.try_deserialize(
                 account_data,
                 program_account.discriminator.len(),
-                &breadcrumbs.with_idl(account_name),
+                &breadcrumbs.with_idl(&program_account.name),
             )?;
         Ok(ToolboxIdlAccount {
-            name: account_name.to_string(),
+            name: program_account.name.to_string(),
             state: account_state,
         })
     }
 
-    pub fn guess_account_name(&self, account_data: &[u8]) -> Option<&str> {
-        for (program_account_name, program_account) in &self.program_accounts {
+    pub fn guess_program_account(
+        &self,
+        account_data: &[u8],
+    ) -> Option<&ToolboxIdlProgramAccount> {
+        for program_account in self.program_accounts.values() {
             if account_data.starts_with(&program_account.discriminator) {
-                return Some(program_account_name);
+                return Some(program_account);
             }
         }
         None

@@ -7,11 +7,13 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_utils::{idl_map_get_key_or_else, idl_ok_or_else};
-use crate::ToolboxIdlProgramInstruction;
+use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
+use crate::toolbox_idl_utils::idl_ok_or_else;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlTransactionInstruction {
+    // TODO - should this contain the program_instruction ?
     pub program_id: Pubkey,
     pub name: String,
     pub accounts_addresses: HashMap<String, Pubkey>,

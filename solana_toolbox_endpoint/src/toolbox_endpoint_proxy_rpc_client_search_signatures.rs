@@ -42,7 +42,7 @@ impl ToolboxEndpointProxyRpcClient {
             }
             for signature in &signatures {
                 let found_signature = Signature::from_str(&signature.signature)
-                    .map_err(ToolboxEndpointError::ParseSignature)?;
+                    .map_err(ToolboxEndpointError::ParseSignature)?; // TODO - map not need any map_err
                 ordered_signatures.push(found_signature);
                 if ordered_signatures.len() >= limit {
                     return Ok(ordered_signatures);

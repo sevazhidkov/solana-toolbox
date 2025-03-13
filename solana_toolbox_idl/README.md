@@ -32,7 +32,7 @@ Note: see `solana_toolbox_endpoint` crate for interacting with a RPC or ProgramT
 
 We can create our IDL object in different ways:
 
-```rust
+```rust // TODO - API NEEDS TO BE UPDATED
 // Parse IDL from file JSON string directly
 let idl_string = read_to_string("./my_idl.json").unwrap();
 let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();

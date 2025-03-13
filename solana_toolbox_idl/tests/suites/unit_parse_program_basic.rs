@@ -107,7 +107,7 @@ pub async fn run() {
     assert_eq!("authority", my_instruction.accounts[1].name);
     assert_eq!(
         "Struct{index:u32,id:i64}",
-        my_instruction.data_type_flat.describe()
+        my_instruction.args_type_flat.describe()
     );
     // Assert account was parsed correctly
     let my_account = idl_standard.program_accounts.get("MyAccount").unwrap();

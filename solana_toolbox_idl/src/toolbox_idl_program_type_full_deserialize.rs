@@ -377,7 +377,7 @@ impl ToolboxIdlProgramTypeFull {
 }
 
 impl ToolboxIdlProgramTypeFullFields {
-    fn try_deserialize(
+    pub fn try_deserialize(
         &self,
         data: &[u8],
         data_offset: usize,

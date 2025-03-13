@@ -125,7 +125,7 @@ pub async fn run() {
                     pda: None
                 },
             ],
-            data_type_flat: ToolboxIdlProgramTypeFlat::Struct {
+            args_type_flat: ToolboxIdlProgramTypeFlat::Struct {
                 fields: ToolboxIdlProgramTypeFlatFields::Named(vec![(
                     "arg".to_string(),
                     ToolboxIdlProgramTypeFlat::Vec {
@@ -135,7 +135,7 @@ pub async fn run() {
                     },
                 )])
             },
-            data_type_full: ToolboxIdlProgramTypeFull::Struct {
+            args_type_full: ToolboxIdlProgramTypeFull::Struct {
                 fields: ToolboxIdlProgramTypeFullFields::Named(vec![(
                     "arg".to_string(),
                     ToolboxIdlProgramTypeFull::Vec {

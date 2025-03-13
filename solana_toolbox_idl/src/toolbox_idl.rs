@@ -24,6 +24,7 @@ use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
+// TODO - this should be named IdlProgram ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdl {
     pub program_typedefs: HashMap<String, ToolboxIdlProgramTypedef>,
@@ -37,6 +38,7 @@ impl ToolboxIdl {
     pub const DISCRIMINATOR: &[u8] =
         &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
 
+    // TODO - provide standard implementation for basic contracts such as spl_token and system, and compute_budget ?
     pub async fn get_for_program_id(
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
@@ -180,9 +182,9 @@ impl ToolboxIdl {
             program_instructions.insert(
                 idl_instruction_name.to_string(),
                 ToolboxIdlProgramInstruction::try_parse(
-                    program_typedefs,
                     idl_instruction_name,
                     idl_instruction,
+                    program_typedefs,
                     &breadcrumbs,
                 )?,
             );
@@ -207,9 +209,9 @@ impl ToolboxIdl {
             program_accounts.insert(
                 idl_account_name.to_string(),
                 ToolboxIdlProgramAccount::try_parse(
-                    program_typedefs,
                     idl_account_name,
                     idl_account,
+                    program_typedefs,
                     &breadcrumbs,
                 )?,
             );

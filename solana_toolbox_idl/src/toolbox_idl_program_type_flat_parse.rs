@@ -294,7 +294,7 @@ impl ToolboxIdlProgramTypeFlat {
 }
 
 impl ToolboxIdlProgramTypeFlatFields {
-    fn try_parse(
+    pub fn try_parse(
         idl_fields: &[Value],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypeFlatFields, ToolboxIdlError> {

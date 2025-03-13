@@ -352,7 +352,7 @@ impl ToolboxIdlProgramTypeFull {
 }
 
 impl ToolboxIdlProgramTypeFullFields {
-    fn try_serialize(
+    pub fn try_serialize(
         &self,
         value: &Value,
         data: &mut Vec<u8>,

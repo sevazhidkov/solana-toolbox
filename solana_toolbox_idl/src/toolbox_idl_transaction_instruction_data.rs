@@ -14,7 +14,7 @@ impl ToolboxIdl {
         let mut native_instruction_data = vec![];
         native_instruction_data
             .extend_from_slice(&program_instruction.discriminator);
-        program_instruction.data_type_full.try_serialize(
+        program_instruction.args_type_full_fields.try_serialize(
             transaction_instruction_args,
             &mut native_instruction_data,
             true,
@@ -37,7 +37,7 @@ impl ToolboxIdl {
             });
         }
         let (_, transaction_instruction_args) =
-            program_instruction.data_type_full.try_deserialize(
+            program_instruction.args_type_full_fields.try_deserialize(
                 native_instruction_data,
                 program_instruction.discriminator.len(),
                 &breadcrumbs.with_val("args"),

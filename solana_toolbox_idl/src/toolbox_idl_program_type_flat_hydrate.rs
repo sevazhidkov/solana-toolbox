@@ -11,25 +11,23 @@ use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
-// TODO - should this be an api on the type flat instead ?
-impl ToolboxIdlProgramTypeFull {
+impl ToolboxIdlProgramTypeFlat {
     pub fn try_hydrate(
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
+        &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlProgramTypeFull>,
-        program_type_flat: &ToolboxIdlProgramTypeFlat,
+        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypeFull, ToolboxIdlError> {
-        Ok(match program_type_flat {
+        Ok(match self {
             ToolboxIdlProgramTypeFlat::Defined {
                 name,
                 generics: generics_flat,
             } => {
                 let mut generics_full = vec![];
                 for generic_flat in generics_flat {
-                    generics_full.push(ToolboxIdlProgramTypeFull::try_hydrate(
-                        program_typedefs,
+                    generics_full.push(generic_flat.try_hydrate(
                         generics_by_symbol,
-                        generic_flat,
+                        program_typedefs,
                         breadcrumbs,
                     )?);
                 }
@@ -51,29 +49,26 @@ impl ToolboxIdlProgramTypeFull {
                     generics_by_symbol
                         .insert(generic_name.to_string(), generic_full);
                 }
-                ToolboxIdlProgramTypeFull::try_hydrate(
-                    program_typedefs,
+                program_typedef.type_flat.try_hydrate(
                     &generics_by_symbol,
-                    &program_typedef.type_flat,
+                    program_typedefs,
                     breadcrumbs,
                 )?
             },
             ToolboxIdlProgramTypeFlat::Option {
                 content: content_flat,
             } => ToolboxIdlProgramTypeFull::Option {
-                content: Box::new(ToolboxIdlProgramTypeFull::try_hydrate(
-                    program_typedefs,
+                content: Box::new(content_flat.try_hydrate(
                     generics_by_symbol,
-                    content_flat,
+                    program_typedefs,
                     breadcrumbs,
                 )?),
             },
             ToolboxIdlProgramTypeFlat::Vec { items: items_flat } => {
                 ToolboxIdlProgramTypeFull::Vec {
-                    items: Box::new(ToolboxIdlProgramTypeFull::try_hydrate(
-                        program_typedefs,
+                    items: Box::new(items_flat.try_hydrate(
                         generics_by_symbol,
-                        items_flat,
+                        program_typedefs,
                         breadcrumbs,
                     )?),
                 }
@@ -82,20 +77,19 @@ impl ToolboxIdlProgramTypeFull {
                 items: items_flat,
                 length: length_flat,
             } => ToolboxIdlProgramTypeFull::Array {
-                items: Box::new(ToolboxIdlProgramTypeFull::try_hydrate(
-                    program_typedefs,
+                items: Box::new(items_flat.try_hydrate(
                     generics_by_symbol,
-                    items_flat,
+                    program_typedefs,
                     breadcrumbs,
                 )?),
                 length: *idl_ok_or_else(
-                    ToolboxIdlProgramTypeFull::try_hydrate(
-                        program_typedefs,
-                        generics_by_symbol,
-                        length_flat,
-                        breadcrumbs,
-                    )?
-                    .as_const_literal(),
+                    length_flat
+                        .try_hydrate(
+                            generics_by_symbol,
+                            program_typedefs,
+                            breadcrumbs,
+                        )?
+                        .as_const_literal(),
                     "expected a const literal",
                     &breadcrumbs.idl(),
                 )?,
@@ -103,10 +97,9 @@ impl ToolboxIdlProgramTypeFull {
             ToolboxIdlProgramTypeFlat::Struct {
                 fields: fields_flat,
             } => ToolboxIdlProgramTypeFull::Struct {
-                fields: ToolboxIdlProgramTypeFullFields::try_hydrate(
-                    program_typedefs,
+                fields: fields_flat.try_hydrate(
                     generics_by_symbol,
-                    fields_flat,
+                    program_typedefs,
                     breadcrumbs,
                 )?,
             },
@@ -117,10 +110,9 @@ impl ToolboxIdlProgramTypeFull {
                 for (variant_name, variant_flat_fields) in variants_flat {
                     variants_full.push((
                         variant_name.to_string(),
-                        ToolboxIdlProgramTypeFullFields::try_hydrate(
-                            program_typedefs,
+                        variant_flat_fields.try_hydrate(
                             generics_by_symbol,
-                            variant_flat_fields,
+                            program_typedefs,
                             breadcrumbs,
                         )?,
                     ));
@@ -149,24 +141,22 @@ impl ToolboxIdlProgramTypeFull {
     }
 }
 
-// TODO - some naming of variable in there needs some work probably
-impl ToolboxIdlProgramTypeFullFields {
+impl ToolboxIdlProgramTypeFlatFields {
     pub fn try_hydrate(
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
+        &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlProgramTypeFull>,
-        type_flat_fields: &ToolboxIdlProgramTypeFlatFields,
+        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypeFullFields, ToolboxIdlError> {
-        Ok(match type_flat_fields {
+        Ok(match self {
             ToolboxIdlProgramTypeFlatFields::Named(fields) => {
                 let mut fields_full = vec![];
-                for (field_name, type_flat) in fields {
+                for (field_name, field_type_flat) in fields {
                     fields_full.push((
                         field_name.to_string(),
-                        ToolboxIdlProgramTypeFull::try_hydrate(
-                            program_typedefs,
+                        field_type_flat.try_hydrate(
                             generics_by_symbol,
-                            type_flat,
+                            program_typedefs,
                             breadcrumbs,
                         )?,
                     ));
@@ -176,14 +166,11 @@ impl ToolboxIdlProgramTypeFullFields {
             ToolboxIdlProgramTypeFlatFields::Unamed(fields) => {
                 let mut fields_type_full = vec![];
                 for field_type_flat in fields {
-                    fields_type_full.push(
-                        ToolboxIdlProgramTypeFull::try_hydrate(
-                            program_typedefs,
-                            generics_by_symbol,
-                            field_type_flat,
-                            breadcrumbs,
-                        )?,
-                    );
+                    fields_type_full.push(field_type_flat.try_hydrate(
+                        generics_by_symbol,
+                        program_typedefs,
+                        breadcrumbs,
+                    )?);
                 }
                 ToolboxIdlProgramTypeFullFields::Unamed(fields_type_full)
             },
