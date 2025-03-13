@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
 use serde_json::Value;
+use solana_sdk::account::Account;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
@@ -12,12 +14,62 @@ use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
+use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
+use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
+use crate::toolbox_idl_utils::idl_slice_from_bytes;
+use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 use crate::ToolboxIdlProgramRoot;
 
 impl ToolboxIdlProgramRoot {
+    pub fn try_from_account(
+        account: &Account,
+    ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {
+        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
+        let discriminator = ToolboxIdlProgramRoot::DISCRIMINATOR;
+        if !account.data.starts_with(discriminator) {
+            return Err(ToolboxIdlError::InvalidDiscriminator {
+                expected: discriminator.to_vec(),
+                found: account.data.to_vec(),
+            });
+        }
+        let authority_offset = discriminator.len();
+        let authority = idl_pubkey_from_bytes_at(
+            &account.data,
+            authority_offset,
+            &breadcrumbs.as_val("authority"),
+        )?;
+        let length_offset =
+            authority_offset + std::mem::size_of_val(&authority);
+        let length = idl_u32_from_bytes_at(
+            &account.data,
+            length_offset,
+            &breadcrumbs.as_val("length"),
+        )?;
+        let content_offset = length_offset + std::mem::size_of_val(&length);
+        let content = idl_slice_from_bytes(
+            &account.data,
+            content_offset,
+            idl_map_err_invalid_integer(
+                usize::try_from(length),
+                &breadcrumbs.as_val("length"),
+            )?,
+            &breadcrumbs.as_val("content"),
+        )?;
+        let content_encoded =
+            inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
+        let content_decoded =
+            String::from_utf8(content_encoded).map_err(|err| {
+                ToolboxIdlError::InvalidString {
+                    parsing: err,
+                    context: breadcrumbs.as_val("content"),
+                }
+            })?;
+        ToolboxIdlProgramRoot::try_parse_from_str(&content_decoded)
+    }
+
     pub fn try_parse_from_str(
         content: &str,
     ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {

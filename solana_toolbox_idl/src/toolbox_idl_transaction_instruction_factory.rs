@@ -45,7 +45,7 @@ impl ToolboxIdlProgramRoot {
     pub async fn try_resolve(
         &self,
         endpoint: &mut ToolboxEndpoint,
-    ) -> Result<ToolboxIdlTransactionInstructionFull, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTransactionInstruction, ToolboxIdlError> {
         let mut transaction_instruction_accounts_addresses =
             transaction_instruction.accounts_addresses.clone();
         let mut instruction_accounts = self

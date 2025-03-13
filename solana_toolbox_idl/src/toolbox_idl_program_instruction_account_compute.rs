@@ -10,27 +10,25 @@ use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::ToolboxIdlAccount;
+
 use crate::ToolboxIdlBreadcrumbs;
 use crate::ToolboxIdlError;
-use crate::ToolboxIdlProgramAccount;
 use crate::ToolboxIdlProgramInstructionAccount;
 use crate::ToolboxIdlProgramInstructionAccountPda;
 use crate::ToolboxIdlProgramInstructionAccountPdaBlob;
 use crate::ToolboxIdlProgramTypeFullFields;
-use crate::ToolboxIdlTransactionInstruction;
 
 impl ToolboxIdlProgramInstructionAccount {
     pub fn try_compute(
         &self,
-        program_accounts: &HashMap<String, ToolboxIdlProgramAccount>,
-        program_instruction_args_type_full: &ToolboxIdlProgramTypeFull,
-        transaction_instruction: &ToolboxIdlTransactionInstruction,
-        transaction_instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
+        program_id: Pubkey,
+        accounts_addresses: &HashMap<String, Pubkey>,
+        accounts: &HashMap<String, (ToolboxIdlProgramTypeFull, Value)>,
+        args: &(ToolboxIdlProgramTypeFull, Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         if let Some(instruction_account_address) =
-            transaction_instruction.accounts_addresses.get(&self.name)
+            accounts_addresses.get(&self.name)
         {
             return Ok(*instruction_account_address);
         }
@@ -39,10 +37,10 @@ impl ToolboxIdlProgramInstructionAccount {
         }
         if let Some(program_instruction_account_pda) = &self.pda {
             return program_instruction_account_pda.try_compute(
-                program_accounts,
-                program_instruction_args_type_full,
-                transaction_instruction,
-                transaction_instruction_accounts,
+                program_id,
+                accounts_addresses,
+                accounts,
+                args,
                 &breadcrumbs.with_idl("pda"),
             );
         }
@@ -53,28 +51,26 @@ impl ToolboxIdlProgramInstructionAccount {
 impl ToolboxIdlProgramInstructionAccountPda {
     pub fn try_compute(
         &self,
-        program_accounts: &HashMap<String, ToolboxIdlProgramAccount>,
-        program_instruction_args_type_full: &ToolboxIdlProgramTypeFull,
-        transaction_instruction: &ToolboxIdlTransactionInstruction,
-        transaction_instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
+        program_id: Pubkey,
+        accounts_addresses: &HashMap<String, Pubkey>,
+        accounts: &HashMap<String, (ToolboxIdlProgramTypeFull, Value)>,
+        args: &(ToolboxIdlProgramTypeFull, Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let mut pda_seeds_bytes = vec![];
         for pda_seed_blob in &self.seeds {
             pda_seeds_bytes.push(pda_seed_blob.try_compute(
-                program_accounts,
-                program_instruction_args_type_full,
-                transaction_instruction,
-                transaction_instruction_accounts,
+                accounts_addresses,
+                accounts,
+                args,
                 breadcrumbs,
             )?);
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
             let pda_program_id_bytes = pda_program_blob.try_compute(
-                program_accounts,
-                program_instruction_args_type_full,
-                transaction_instruction,
-                transaction_instruction_accounts,
+                accounts_addresses,
+                accounts,
+                args,
                 &breadcrumbs.with_idl("program"),
             )?;
             Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
@@ -86,7 +82,7 @@ impl ToolboxIdlProgramInstructionAccountPda {
                 },
             )?)
         } else {
-            transaction_instruction.program_id
+            program_id
         };
         let mut pda_seeds_slices = vec![];
         for pda_seed_bytes in pda_seeds_bytes.iter() {
@@ -99,10 +95,9 @@ impl ToolboxIdlProgramInstructionAccountPda {
 impl ToolboxIdlProgramInstructionAccountPdaBlob {
     pub fn try_compute(
         &self,
-        program_accounts: &HashMap<String, ToolboxIdlProgramAccount>,
-        program_instruction_args_type_full: &ToolboxIdlProgramTypeFull,
-        transaction_instruction: &ToolboxIdlTransactionInstruction,
-        transaction_instruction_accounts: &HashMap<String, ToolboxIdlAccount>,
+        accounts_addresses: &HashMap<String, Pubkey>,
+        accounts: &HashMap<String, (ToolboxIdlProgramTypeFull, Value)>,
+        args: &(ToolboxIdlProgramTypeFull, Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         match self {
@@ -113,40 +108,34 @@ impl ToolboxIdlProgramInstructionAccountPdaBlob {
                 let idl_blob_parts = Vec::from_iter(path.split("."));
                 if idl_blob_parts.len() == 1 {
                     return idl_map_get_key_or_else(
-                        &transaction_instruction.accounts_addresses,
+                        &accounts_addresses,
                         path,
                         &breadcrumbs.val(),
                     )
                     .map(|address| address.to_bytes().to_vec());
                 }
-                let transaction_instruction_account_name = idl_blob_parts[0];
-                let transaction_instruction_account = idl_map_get_key_or_else(
-                    transaction_instruction_accounts,
-                    idl_blob_parts[0],
-                    &breadcrumbs.as_val("transaction_instruction_accounts"),
-                )?;
-                let program_account = idl_map_get_key_or_else(
-                    &program_accounts,
-                    &transaction_instruction_account.name,
-                    &breadcrumbs.as_idl("$program_accounts"),
-                )?;
+                let (account_data_type_full, account_state) =
+                    idl_map_get_key_or_else(
+                        accounts,
+                        idl_blob_parts[0],
+                        &breadcrumbs.as_val("instruction_accounts_state"),
+                    )?;
                 ToolboxIdlProgramInstructionAccountPdaBlob::try_compute_path_data(
-                    &program_account.data_type_full,
-                    &transaction_instruction_account.state,
+                    account_data_type_full,
+                    account_state,
                     &idl_blob_parts[1..],
                     &breadcrumbs
-                        .with_idl(&program_account.name)
-                        .with_val(transaction_instruction_account_name),
+                        .with_val(idl_blob_parts[0]),
                 )
             },
             ToolboxIdlProgramInstructionAccountPdaBlob::Arg { path } => {
                 let idl_blob_parts = Vec::from_iter(path.split("."));
+                let (data_type_full, args) = args;
                 ToolboxIdlProgramInstructionAccountPdaBlob::try_compute_path_data(
-                    &program_instruction_args_type_full,
-                    &transaction_instruction.args,
+                    data_type_full,
+                    args,
                     &idl_blob_parts,
                     &breadcrumbs
-                        .with_idl(&transaction_instruction.name)
                         .with_idl("args"),
                 )
             },
