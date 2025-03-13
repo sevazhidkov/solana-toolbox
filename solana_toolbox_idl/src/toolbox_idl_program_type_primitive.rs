@@ -12,7 +12,7 @@ pub enum ToolboxIdlProgramTypePrimitive {
     I128,
     F32,
     F64,
-    Bytes,
+    Bytes, // TODO - what's the usecase for this ?
     Boolean,
     String,
     PublicKey,

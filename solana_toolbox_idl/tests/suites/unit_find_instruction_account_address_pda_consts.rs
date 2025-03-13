@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
@@ -12,7 +12,7 @@ pub async fn run() {
     let program_id1 = Pubkey::new_unique();
     let program_id2 = Pubkey::new_unique();
     // Create IDLs on the fly
-    let idl1 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl1 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],
@@ -66,7 +66,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl2 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl2 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],

@@ -1,5 +1,5 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
@@ -8,7 +8,7 @@ use solana_toolbox_idl::ToolboxIdlProgramTypedef;
 #[tokio::test]
 pub async fn run() {
     // Create IDL checking different formats
-    let idl = ToolboxIdl::try_parse_from_value(&json!({
+    let idl = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "types": {
             "MyStruct": {
                 "fields": [
@@ -40,7 +40,7 @@ pub async fn run() {
     .unwrap();
     // Assert that the content is correct
     assert_eq!(
-        idl.program_typedefs.get("MyStruct").unwrap(),
+        idl.typedefs.get("MyStruct").unwrap(),
         &ToolboxIdlProgramTypedef {
             name: "MyStruct".to_string(),
             generics: vec![],

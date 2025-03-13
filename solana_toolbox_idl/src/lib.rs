@@ -1,9 +1,9 @@
-mod toolbox_idl;
 mod toolbox_idl_account;
 mod toolbox_idl_breadcrumbs;
 mod toolbox_idl_context;
 mod toolbox_idl_error;
 mod toolbox_idl_program_account;
+mod toolbox_idl_program_account_json;
 mod toolbox_idl_program_account_parse;
 mod toolbox_idl_program_error;
 mod toolbox_idl_program_instruction;
@@ -13,6 +13,9 @@ mod toolbox_idl_program_instruction_account_json;
 mod toolbox_idl_program_instruction_account_parse;
 mod toolbox_idl_program_instruction_json;
 mod toolbox_idl_program_instruction_parse;
+mod toolbox_idl_program_root;
+mod toolbox_idl_program_root_json;
+mod toolbox_idl_program_root_parse;
 mod toolbox_idl_program_type_flat;
 mod toolbox_idl_program_type_flat_hydrate;
 mod toolbox_idl_program_type_flat_json;
@@ -29,8 +32,8 @@ mod toolbox_idl_transaction_instruction_factory;
 mod toolbox_idl_utils;
 // TODO - handle events from logs ?
 // TODO - support for uploading IDLs ?
+// TODO - shall decouplee from ToolboxEndpoint ??
 
-pub use toolbox_idl::ToolboxIdl;
 pub use toolbox_idl_account::ToolboxIdlAccount;
 pub use toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 pub use toolbox_idl_context::ToolboxIdlContext;
@@ -41,6 +44,7 @@ pub use toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
 pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
 pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountPda;
 pub use toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountPdaBlob;
+pub use toolbox_idl_program_root::ToolboxIdlProgramRoot;
 pub use toolbox_idl_program_type_flat::ToolboxIdlProgramTypeFlat;
 pub use toolbox_idl_program_type_flat::ToolboxIdlProgramTypeFlatFields;
 pub use toolbox_idl_program_type_full::ToolboxIdlProgramTypeFull;

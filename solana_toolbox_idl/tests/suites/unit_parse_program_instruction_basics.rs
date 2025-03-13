@@ -1,7 +1,7 @@
 use std::vec;
 
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 use solana_toolbox_idl::ToolboxIdlProgramInstruction;
 use solana_toolbox_idl::ToolboxIdlProgramInstructionAccount;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
@@ -13,7 +13,7 @@ use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl1 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -31,7 +31,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl2 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -48,7 +48,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl3 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [195, 241, 184, 14, 127, 155, 68, 53],
@@ -65,7 +65,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl4 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "accounts": [
@@ -87,7 +87,7 @@ pub async fn run() {
     assert_eq!(idl1, idl4);
     // Assert that the content is correct
     assert_eq!(
-        idl1.program_instructions.get("my_instruction").unwrap(),
+        idl1.instructions.get("my_instruction").unwrap(),
         &ToolboxIdlProgramInstruction {
             name: "my_instruction".to_string(),
             discriminator: vec![195, 241, 184, 14, 127, 155, 68, 53],

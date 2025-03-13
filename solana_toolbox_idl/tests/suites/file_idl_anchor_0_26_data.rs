@@ -2,7 +2,7 @@ use std::fs::read_to_string;
 
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 use solana_toolbox_idl::ToolboxIdlAccount;
 
 #[tokio::test]
@@ -10,7 +10,7 @@ pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
         read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap();
-    let idl = ToolboxIdl::try_parse_from_str(&idl_string).unwrap();
+    let idl = ToolboxIdlProgramRoot::try_parse_from_str(&idl_string).unwrap();
     // Prepare instruction args
     let instruction_args_value = json!({
         "globalMarketSeed": "SEED",

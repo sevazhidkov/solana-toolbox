@@ -4,14 +4,14 @@ use std::vec;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_program_root::ToolboxIdlProgramRoot;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::ToolboxIdlProgramInstruction;
 
-impl ToolboxIdl {
+impl ToolboxIdlProgramRoot {
     pub fn compile_transaction_instruction_accounts(
         program_instruction: &ToolboxIdlProgramInstruction,
         transaction_instruction_accounts_addresses: &HashMap<String, Pubkey>,

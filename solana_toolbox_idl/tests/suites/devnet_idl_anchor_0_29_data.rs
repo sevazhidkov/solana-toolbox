@@ -2,7 +2,7 @@ use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 
 #[tokio::test]
 pub async fn run() {
@@ -12,7 +12,7 @@ pub async fn run() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
-    let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &program_id)
+    let idl = ToolboxIdlProgramRoot::get_for_program_id(&mut endpoint, &program_id)
         .await
         .unwrap()
         .unwrap();

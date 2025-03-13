@@ -4,10 +4,10 @@ use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
+use crate::toolbox_idl_program_root::ToolboxIdlProgramRoot;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
 
@@ -21,7 +21,7 @@ pub struct ToolboxIdlAccount {
     pub state: Value,
 }
 
-impl ToolboxIdl {
+impl ToolboxIdlProgramRoot {
     pub async fn get_accounts_by_name(
         &self,
         endpoint: &mut ToolboxEndpoint,
@@ -80,7 +80,7 @@ impl ToolboxIdl {
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let program_account = idl_map_get_key_or_else(
-            &self.program_accounts,
+            &self.accounts,
             &account.name,
             &breadcrumbs.as_idl("$program_accounts"),
         )?;
@@ -121,17 +121,5 @@ impl ToolboxIdl {
             name: program_account.name.to_string(),
             state: account_state,
         })
-    }
-
-    pub fn guess_program_account(
-        &self,
-        account_data: &[u8],
-    ) -> Option<&ToolboxIdlProgramAccount> {
-        for program_account in self.program_accounts.values() {
-            if account_data.starts_with(&program_account.discriminator) {
-                return Some(program_account);
-            }
-        }
-        None
     }
 }

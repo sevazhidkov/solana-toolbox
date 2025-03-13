@@ -26,7 +26,7 @@ pub enum ToolboxIdlProgramTypeFlat {
         variants: Vec<(String, ToolboxIdlProgramTypeFlatFields)>,
     },
     Const {
-        literal: usize, // TODO - what other kind of consts can be supported ?
+        literal: usize,
     },
     Primitive {
         primitive: ToolboxIdlProgramTypePrimitive,

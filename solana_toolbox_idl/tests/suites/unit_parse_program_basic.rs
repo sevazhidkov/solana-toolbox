@@ -1,10 +1,10 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl_standard = ToolboxIdl::try_parse_from_value(&json!({
+    let idl_standard = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -57,7 +57,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Create an IDL on the fly
-    let idl_shortened = ToolboxIdl::try_parse_from_value(&json!({
+    let idl_shortened = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "accounts": [
@@ -98,10 +98,8 @@ pub async fn run() {
     // Assert that both versions are equivalent
     assert_eq!(idl_shortened, idl_standard);
     // Assert instruction was parsed correctly
-    let my_instruction = idl_standard
-        .program_instructions
-        .get("my_instruction")
-        .unwrap();
+    let my_instruction =
+        idl_standard.instructions.get("my_instruction").unwrap();
     assert_eq!("my_instruction", my_instruction.name);
     assert_eq!("payer", my_instruction.accounts[0].name);
     assert_eq!("authority", my_instruction.accounts[1].name);
@@ -110,21 +108,21 @@ pub async fn run() {
         my_instruction.args_type_flat.describe()
     );
     // Assert account was parsed correctly
-    let my_account = idl_standard.program_accounts.get("MyAccount").unwrap();
+    let my_account = idl_standard.accounts.get("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
     assert_eq!(
         "Struct{field1:u64,field2:u32}",
         my_account.data_type_flat.describe()
     );
     // Assert struct was parsed correctly
-    let my_struct = idl_standard.program_typedefs.get("MyStruct").unwrap();
+    let my_struct = idl_standard.typedefs.get("MyStruct").unwrap();
     assert_eq!("MyStruct", my_struct.name);
     assert_eq!(
         "Struct{addr:pubkey,name:string}",
         my_struct.type_flat.describe()
     );
     // Assert error was parsed correctly
-    let my_error = idl_standard.program_errors.get("MyError").unwrap();
+    let my_error = idl_standard.errors.get("MyError").unwrap();
     assert_eq!(4242, my_error.code);
     assert_eq!("MyError", my_error.name);
     assert_eq!("My error message", my_error.msg);

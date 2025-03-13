@@ -38,8 +38,8 @@ impl ToolboxIdlProgramAccount {
             )?;
         let program_account_data_type_full =
             ToolboxIdlProgramAccount::try_parse_data_type_full(
-                program_typedefs,
                 &program_account_data_type_flat,
+                program_typedefs,
                 breadcrumbs,
             )?;
         Ok(ToolboxIdlProgramAccount {
@@ -94,8 +94,8 @@ impl ToolboxIdlProgramAccount {
     }
 
     fn try_parse_data_type_full(
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
         data_type_flat: &ToolboxIdlProgramTypeFlat,
+        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlProgramTypeFull, ToolboxIdlError> {
         data_type_flat.try_hydrate(

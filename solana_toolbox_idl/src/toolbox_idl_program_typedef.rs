@@ -15,6 +15,7 @@ pub struct ToolboxIdlProgramTypedef {
     pub type_flat: ToolboxIdlProgramTypeFlat,
 }
 
+// TODO - separate into different files
 impl ToolboxIdlProgramTypedef {
     pub fn try_parse(
         idl_typedef_name: &str,

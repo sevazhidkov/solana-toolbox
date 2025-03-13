@@ -1,11 +1,11 @@
 use serde_json::Value;
 
-use crate::toolbox_idl::ToolboxIdl;
+use crate::toolbox_idl_program_root::ToolboxIdlProgramRoot;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::ToolboxIdlProgramInstruction;
 
-impl ToolboxIdl {
+impl ToolboxIdlProgramRoot {
     pub fn compile_transaction_instruction_data(
         program_instruction: &ToolboxIdlProgramInstruction,
         transaction_instruction_args: &Value,

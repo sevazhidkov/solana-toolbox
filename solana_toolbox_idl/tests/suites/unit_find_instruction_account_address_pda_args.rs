@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl = ToolboxIdl::try_parse_from_value(&json!({
+    let idl = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],

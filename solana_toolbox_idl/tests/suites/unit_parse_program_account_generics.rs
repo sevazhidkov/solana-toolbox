@@ -1,5 +1,5 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlProgramRoot;
 use solana_toolbox_idl::ToolboxIdlProgramAccount;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
 use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
@@ -10,7 +10,7 @@ use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdl::try_parse_from_value(&json!({
+    let idl1 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
         "accounts": {
             "MyAccount": {
                 "discriminator": [77],
@@ -80,7 +80,7 @@ pub async fn run() {
     .unwrap();
     // Assert that the content is correct
     assert_eq!(
-        idl1.program_accounts.get("MyAccount").unwrap(),
+        idl1.accounts.get("MyAccount").unwrap(),
         &ToolboxIdlProgramAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![77],

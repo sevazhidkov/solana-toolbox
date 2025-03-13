@@ -6,15 +6,15 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_idl::ToolboxIdl;
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_program_root::ToolboxIdlProgramRoot;
 use crate::toolbox_idl_transaction_instruction::ToolboxIdlTransactionInstruction;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
-impl ToolboxIdl {
+impl ToolboxIdlProgramRoot {
     // pub async fn resolve_instruction(
     // &self,
     // endpoint: &mut ToolboxEndpoint,
@@ -56,7 +56,7 @@ impl ToolboxIdl {
             .await?;
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let program_instruction = idl_map_get_key_or_else(
-            &self.program_instructions,
+            &self.instructions,
             &transaction_instruction.name,
             &breadcrumbs.as_idl("$program_instructions"),
         )?;
@@ -109,7 +109,7 @@ impl ToolboxIdl {
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let program_instruction = idl_map_get_key_or_else(
-            &self.program_instructions,
+            &self.instructions,
             &instruction.name,
             &breadcrumbs.as_idl("$program_instructions"),
         )?;
@@ -141,7 +141,7 @@ impl ToolboxIdl {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let program_instruction = idl_map_get_key_or_else(
-            &self.program_instructions,
+            &self.instructions,
             &instruction.name,
             &breadcrumbs.as_idl("$program_instructions"),
         )?;

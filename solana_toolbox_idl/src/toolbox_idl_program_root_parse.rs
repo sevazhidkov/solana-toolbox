@@ -1,12 +1,8 @@
 use std::collections::HashMap;
 
-use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
 use serde_json::Value;
-use solana_sdk::account::Account;
-use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
@@ -16,127 +12,51 @@ use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
 use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
-use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
-use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
-use crate::toolbox_idl_utils::idl_slice_from_bytes;
-use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
+use crate::ToolboxIdlProgramRoot;
 
-// TODO - this should be named IdlProgram ?
-#[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxIdl {
-    pub program_typedefs: HashMap<String, ToolboxIdlProgramTypedef>,
-    pub program_instructions: HashMap<String, ToolboxIdlProgramInstruction>,
-    pub program_accounts: HashMap<String, ToolboxIdlProgramAccount>,
-    pub program_errors: HashMap<String, ToolboxIdlProgramError>,
-}
-
-// TODO - expose a to_json capability
-impl ToolboxIdl {
-    pub const DISCRIMINATOR: &[u8] =
-        &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
-
-    // TODO - provide standard implementation for basic contracts such as spl_token and system, and compute_budget ?
-    pub async fn get_for_program_id(
-        endpoint: &mut ToolboxEndpoint,
-        program_id: &Pubkey,
-    ) -> Result<Option<ToolboxIdl>, ToolboxIdlError> {
-        endpoint
-            .get_account(&ToolboxIdl::find_for_program_id(program_id)?)
-            .await?
-            .map(|account| ToolboxIdl::try_from_account(&account))
-            .transpose()
-    }
-
-    pub fn find_for_program_id(
-        program_id: &Pubkey,
-    ) -> Result<Pubkey, ToolboxIdlError> {
-        let base = Pubkey::find_program_address(&[], program_id).0;
-        Pubkey::create_with_seed(&base, "anchor:idl", program_id)
-            .map_err(ToolboxIdlError::Pubkey)
-    }
-
-    // TODO - take account_data and/or allow output into a string ?
-    pub fn try_from_account(
-        account: &Account,
-    ) -> Result<ToolboxIdl, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let discriminator = ToolboxIdl::DISCRIMINATOR;
-        if !account.data.starts_with(discriminator) {
-            return Err(ToolboxIdlError::InvalidDiscriminator {
-                expected: discriminator.to_vec(),
-                found: account.data.to_vec(),
-            });
-        }
-        let authority_offset = discriminator.len();
-        let authority = idl_pubkey_from_bytes_at(
-            &account.data,
-            authority_offset,
-            &breadcrumbs.as_val("authority"),
-        )?;
-        let length_offset =
-            authority_offset + std::mem::size_of_val(&authority);
-        let length = idl_u32_from_bytes_at(
-            &account.data,
-            length_offset,
-            &breadcrumbs.as_val("length"),
-        )?;
-        let content_offset = length_offset + std::mem::size_of_val(&length);
-        let content = idl_slice_from_bytes(
-            &account.data,
-            content_offset,
-            idl_map_err_invalid_integer(
-                usize::try_from(length),
-                &breadcrumbs.as_val("length"),
-            )?,
-            &breadcrumbs.as_val("content"),
-        )?;
-        let content_encoded =
-            inflate_bytes_zlib(content).map_err(ToolboxIdlError::Inflate)?;
-        let content_decoded =
-            String::from_utf8(content_encoded).map_err(|err| {
-                ToolboxIdlError::InvalidString {
-                    parsing: err,
-                    context: breadcrumbs.as_val("content"),
-                }
-            })?;
-        ToolboxIdl::try_parse_from_str(&content_decoded)
-    }
-
+impl ToolboxIdlProgramRoot {
     pub fn try_parse_from_str(
         content: &str,
-    ) -> Result<ToolboxIdl, ToolboxIdlError> {
-        ToolboxIdl::try_parse_from_value(
+    ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {
+        ToolboxIdlProgramRoot::try_parse_from_value(
             &from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?,
         )
     }
 
     pub fn try_parse_from_value(
         value: &Value,
-    ) -> Result<ToolboxIdl, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
         let program_typedefs =
-            ToolboxIdl::try_parse_program_typedefs(idl_root, breadcrumbs)?;
-        let program_instructions = ToolboxIdl::try_parse_program_instructions(
-            &program_typedefs,
+            ToolboxIdlProgramRoot::try_parse_program_typedefs(
+                idl_root,
+                breadcrumbs,
+            )?;
+        let program_instructions =
+            ToolboxIdlProgramRoot::try_parse_program_instructions(
+                &program_typedefs,
+                idl_root,
+                breadcrumbs,
+            )?;
+        let program_accounts =
+            ToolboxIdlProgramRoot::try_parse_program_accounts(
+                &program_typedefs,
+                idl_root,
+                breadcrumbs,
+            )?;
+        let program_errors = ToolboxIdlProgramRoot::try_parse_program_errors(
             idl_root,
             breadcrumbs,
         )?;
-        let program_accounts = ToolboxIdl::try_parse_program_accounts(
-            &program_typedefs,
-            idl_root,
-            breadcrumbs,
-        )?;
-        let program_errors =
-            ToolboxIdl::try_parse_program_errors(idl_root, breadcrumbs)?;
-        Ok(ToolboxIdl {
-            program_typedefs,
-            program_instructions,
-            program_accounts,
-            program_errors,
+        Ok(ToolboxIdlProgramRoot {
+            typedefs: program_typedefs,
+            instructions: program_instructions,
+            accounts: program_accounts,
+            errors: program_errors,
         })
     }
 
@@ -147,7 +67,7 @@ impl ToolboxIdl {
     {
         let mut program_typedefs = HashMap::new();
         for (idl_type_name, idl_type, breadcrumbs) in
-            ToolboxIdl::root_collection_scoped_named_values(
+            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
                 idl_root,
                 "types",
                 breadcrumbs,
@@ -173,7 +93,7 @@ impl ToolboxIdl {
     {
         let mut program_instructions = HashMap::new();
         for (idl_instruction_name, idl_instruction, breadcrumbs) in
-            ToolboxIdl::root_collection_scoped_named_values(
+            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
                 idl_root,
                 "instructions",
                 breadcrumbs,
@@ -200,7 +120,7 @@ impl ToolboxIdl {
     {
         let mut program_accounts = HashMap::new();
         for (idl_account_name, idl_account, breadcrumbs) in
-            ToolboxIdl::root_collection_scoped_named_values(
+            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
                 idl_root,
                 "accounts",
                 breadcrumbs,
@@ -225,7 +145,7 @@ impl ToolboxIdl {
     ) -> Result<HashMap<String, ToolboxIdlProgramError>, ToolboxIdlError> {
         let mut program_errors = HashMap::new();
         for (idl_error_name, idl_error, breadcrumbs) in
-            ToolboxIdl::root_collection_scoped_named_values(
+            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
                 idl_root,
                 "errors",
                 breadcrumbs,

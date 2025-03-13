@@ -1,3 +1,4 @@
+use serde_json::json;
 use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -42,5 +43,24 @@ impl ToolboxIdlProgramError {
         }
         // TODO - better error handling
         idl_err("Unparsable error", &breadcrumbs.as_idl("@"))
+    }
+
+    pub fn as_json(&self, backward_compatibility: bool) -> Value {
+        if backward_compatibility {
+            json!({
+                "name": self.name,
+                "code": self.code,
+                "msg": self.msg
+            })
+        } else {
+            if self.msg.is_empty() {
+                json!({
+                    "code": self.code,
+                    "msg": self.msg
+                })
+            } else {
+                json!(self.code)
+            }
+        }
     }
 }
