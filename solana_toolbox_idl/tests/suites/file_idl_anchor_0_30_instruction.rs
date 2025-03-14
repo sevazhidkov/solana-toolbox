@@ -7,7 +7,7 @@ use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_idl::ToolboxIdlProgramRoot;
+use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
@@ -15,7 +15,7 @@ pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_string =
         read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap();
-    let idl = ToolboxIdlProgramRoot::try_parse_from_str(&idl_string).unwrap();
+    let idl = ToolboxIdlProgram::try_parse_from_str(&idl_string).unwrap();
     // Important account addresses
     let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();

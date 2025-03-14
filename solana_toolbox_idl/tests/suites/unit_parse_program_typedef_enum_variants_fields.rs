@@ -1,14 +1,14 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlProgramRoot;
-use solana_toolbox_idl::ToolboxIdlProgramTypeFlat;
-use solana_toolbox_idl::ToolboxIdlProgramTypeFlatFields;
-use solana_toolbox_idl::ToolboxIdlProgramTypePrimitive;
-use solana_toolbox_idl::ToolboxIdlProgramTypedef;
+use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
+use solana_toolbox_idl::ToolboxIdlTypedef;
 
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyEnum": {
                 "variants": [
@@ -34,7 +34,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl2 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyEnum": {
                 "variants": [
@@ -65,35 +65,35 @@ pub async fn run() {
     // Assert that the content is correct
     assert_eq!(
         idl1.typedefs.get("MyEnum").unwrap(),
-        &ToolboxIdlProgramTypedef {
+        &ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
             generics: vec![],
-            type_flat: ToolboxIdlProgramTypeFlat::Enum {
+            type_flat: ToolboxIdlTypeFlat::Enum {
                 variants: vec![
                     (
                         "Named".to_string(),
-                        ToolboxIdlProgramTypeFlatFields::Named(vec![
+                        ToolboxIdlTypeFlatFields::Named(vec![
                             (
                                 "f1".to_string(),
-                                ToolboxIdlProgramTypeFlat::Defined {
+                                ToolboxIdlTypeFlat::Defined {
                                     name: "Other".to_string(),
                                     generics: vec![]
                                 },
                             ),
                             (
                                 "f2".to_string(),
-                                ToolboxIdlProgramTypeFlat::Vec {
+                                ToolboxIdlTypeFlat::Vec {
                                     items: Box::new(
-                                        ToolboxIdlProgramTypeFlat::Primitive {
+                                        ToolboxIdlTypeFlat::Primitive {
                                             primitive:
-                                                ToolboxIdlProgramTypePrimitive::U8,
+                                                ToolboxIdlTypePrimitive::U8,
                                         }
                                     )
                                 },
                             ),
                             (
                                 "f3".to_string(),
-                                ToolboxIdlProgramTypeFlat::Generic {
+                                ToolboxIdlTypeFlat::Generic {
                                     symbol: "G".to_string()
                                 },
                             ),
@@ -101,27 +101,27 @@ pub async fn run() {
                     ),
                     (
                         "Unamed".to_string(),
-                        ToolboxIdlProgramTypeFlatFields::Unamed(vec![
-                            ToolboxIdlProgramTypeFlat::Primitive {
-                                primitive: ToolboxIdlProgramTypePrimitive::U64,
+                        ToolboxIdlTypeFlatFields::Unamed(vec![
+                            ToolboxIdlTypeFlat::Primitive {
+                                primitive: ToolboxIdlTypePrimitive::U64,
                             },
-                            ToolboxIdlProgramTypeFlat::Vec {
+                            ToolboxIdlTypeFlat::Vec {
                                 items: Box::new(
-                                    ToolboxIdlProgramTypeFlat::Primitive {
-                                        primitive: ToolboxIdlProgramTypePrimitive::U8,
+                                    ToolboxIdlTypeFlat::Primitive {
+                                        primitive: ToolboxIdlTypePrimitive::U8,
                                     }
                                 )
                             },
-                            ToolboxIdlProgramTypeFlat::Vec {
+                            ToolboxIdlTypeFlat::Vec {
                                 items: Box::new(
-                                    ToolboxIdlProgramTypeFlat::Primitive {
-                                        primitive: ToolboxIdlProgramTypePrimitive::U8,
+                                    ToolboxIdlTypeFlat::Primitive {
+                                        primitive: ToolboxIdlTypePrimitive::U8,
                                     }
                                 )
                             },
                         ]),
                     ),
-                    ("Empty".to_string(), ToolboxIdlProgramTypeFlatFields::None),
+                    ("Empty".to_string(), ToolboxIdlTypeFlatFields::None),
                 ]
             }
         }

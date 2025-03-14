@@ -5,9 +5,9 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_program_type_full::ToolboxIdlProgramTypeFull;
-use crate::toolbox_idl_program_type_full::ToolboxIdlProgramTypeFullFields;
-use crate::toolbox_idl_program_type_primitive::ToolboxIdlProgramTypePrimitive;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
@@ -21,7 +21,7 @@ use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
-impl ToolboxIdlProgramTypeFull {
+impl ToolboxIdlTypeFull {
     pub fn try_serialize(
         &self,
         value: &Value,
@@ -30,8 +30,8 @@ impl ToolboxIdlProgramTypeFull {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         match self {
-            ToolboxIdlProgramTypeFull::Option { content } => {
-                ToolboxIdlProgramTypeFull::try_serialize_option(
+            ToolboxIdlTypeFull::Option { content } => {
+                ToolboxIdlTypeFull::try_serialize_option(
                     content,
                     value,
                     data,
@@ -39,8 +39,8 @@ impl ToolboxIdlProgramTypeFull {
                     &breadcrumbs.with_idl("option"),
                 )
             },
-            ToolboxIdlProgramTypeFull::Vec { items } => {
-                ToolboxIdlProgramTypeFull::try_serialize_vec(
+            ToolboxIdlTypeFull::Vec { items } => {
+                ToolboxIdlTypeFull::try_serialize_vec(
                     items,
                     value,
                     data,
@@ -48,8 +48,8 @@ impl ToolboxIdlProgramTypeFull {
                     &breadcrumbs.with_idl("vec"),
                 )
             },
-            ToolboxIdlProgramTypeFull::Array { items, length } => {
-                ToolboxIdlProgramTypeFull::try_serialize_array(
+            ToolboxIdlTypeFull::Array { items, length } => {
+                ToolboxIdlTypeFull::try_serialize_array(
                     items,
                     *length,
                     value,
@@ -58,8 +58,8 @@ impl ToolboxIdlProgramTypeFull {
                     &breadcrumbs.with_idl("array"),
                 )
             },
-            ToolboxIdlProgramTypeFull::Struct { fields } => {
-                ToolboxIdlProgramTypeFull::try_serialize_struct(
+            ToolboxIdlTypeFull::Struct { fields } => {
+                ToolboxIdlTypeFull::try_serialize_struct(
                     fields,
                     value,
                     data,
@@ -67,8 +67,8 @@ impl ToolboxIdlProgramTypeFull {
                     &breadcrumbs.with_idl("struct"),
                 )
             },
-            ToolboxIdlProgramTypeFull::Enum { variants } => {
-                ToolboxIdlProgramTypeFull::try_serialize_enum(
+            ToolboxIdlTypeFull::Enum { variants } => {
+                ToolboxIdlTypeFull::try_serialize_enum(
                     variants,
                     value,
                     data,
@@ -76,12 +76,12 @@ impl ToolboxIdlProgramTypeFull {
                     &breadcrumbs.with_idl("enum"),
                 )
             },
-            ToolboxIdlProgramTypeFull::Const { literal } => idl_err(
+            ToolboxIdlTypeFull::Const { literal } => idl_err(
                 &format!("Can't use a const literal directly: {:?}", literal),
                 &breadcrumbs.idl(),
             ),
-            ToolboxIdlProgramTypeFull::Primitive { primitive } => {
-                ToolboxIdlProgramTypeFull::try_serialize_primitive(
+            ToolboxIdlTypeFull::Primitive { primitive } => {
+                ToolboxIdlTypeFull::try_serialize_primitive(
                     primitive,
                     value,
                     data,
@@ -93,7 +93,7 @@ impl ToolboxIdlProgramTypeFull {
     }
 
     fn try_serialize_option(
-        option_content: &ToolboxIdlProgramTypeFull,
+        option_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
@@ -114,7 +114,7 @@ impl ToolboxIdlProgramTypeFull {
     }
 
     fn try_serialize_vec(
-        vec_items: &ToolboxIdlProgramTypeFull,
+        vec_items: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
@@ -139,7 +139,7 @@ impl ToolboxIdlProgramTypeFull {
     }
 
     fn try_serialize_array(
-        array_items: &ToolboxIdlProgramTypeFull,
+        array_items: &ToolboxIdlTypeFull,
         array_length: usize,
         value: &Value,
         data: &mut Vec<u8>,
@@ -171,13 +171,13 @@ impl ToolboxIdlProgramTypeFull {
     }
 
     fn try_serialize_struct(
-        struct_fields: &ToolboxIdlProgramTypeFullFields,
+        struct_fields: &ToolboxIdlTypeFullFields,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        ToolboxIdlProgramTypeFullFields::try_serialize(
+        ToolboxIdlTypeFullFields::try_serialize(
             struct_fields,
             value,
             data,
@@ -187,7 +187,7 @@ impl ToolboxIdlProgramTypeFull {
     }
 
     fn try_serialize_enum(
-        enum_variants: &[(String, ToolboxIdlProgramTypeFullFields)],
+        enum_variants: &[(String, ToolboxIdlTypeFullFields)],
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
@@ -213,7 +213,7 @@ impl ToolboxIdlProgramTypeFull {
         {
             if enum_variant.0 == value_enum {
                 data.push(u8::try_from(enum_variant_index).unwrap());
-                return ToolboxIdlProgramTypeFullFields::try_serialize(
+                return ToolboxIdlTypeFullFields::try_serialize(
                     &enum_variant.1,
                     value_fields,
                     data,
@@ -229,7 +229,7 @@ impl ToolboxIdlProgramTypeFull {
     }
 
     fn try_serialize_primitive(
-        primitive: &ToolboxIdlProgramTypePrimitive,
+        primitive: &ToolboxIdlTypePrimitive,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
@@ -261,55 +261,55 @@ impl ToolboxIdlProgramTypeFull {
             };
         }
         match primitive {
-            ToolboxIdlProgramTypePrimitive::U8 => {
+            ToolboxIdlTypePrimitive::U8 => {
                 write_data_using_u_number!(u8);
             },
-            ToolboxIdlProgramTypePrimitive::U16 => {
+            ToolboxIdlTypePrimitive::U16 => {
                 write_data_using_u_number!(u16);
             },
-            ToolboxIdlProgramTypePrimitive::U32 => {
+            ToolboxIdlTypePrimitive::U32 => {
                 write_data_using_u_number!(u32);
             },
-            ToolboxIdlProgramTypePrimitive::U64 => {
+            ToolboxIdlTypePrimitive::U64 => {
                 write_data_using_u_number!(u64);
             },
-            ToolboxIdlProgramTypePrimitive::U128 => {
+            ToolboxIdlTypePrimitive::U128 => {
                 let value_integer = idl_as_u128_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<u128>(
                     &value_integer,
                 ));
             },
-            ToolboxIdlProgramTypePrimitive::I8 => {
+            ToolboxIdlTypePrimitive::I8 => {
                 write_data_using_i_number!(i8);
             },
-            ToolboxIdlProgramTypePrimitive::I16 => {
+            ToolboxIdlTypePrimitive::I16 => {
                 write_data_using_i_number!(i16);
             },
-            ToolboxIdlProgramTypePrimitive::I32 => {
+            ToolboxIdlTypePrimitive::I32 => {
                 write_data_using_i_number!(i32);
             },
-            ToolboxIdlProgramTypePrimitive::I64 => {
+            ToolboxIdlTypePrimitive::I64 => {
                 write_data_using_i_number!(i64);
             },
-            ToolboxIdlProgramTypePrimitive::I128 => {
+            ToolboxIdlTypePrimitive::I128 => {
                 let value_integer = idl_as_i128_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<i128>(
                     &value_integer,
                 ));
             },
-            ToolboxIdlProgramTypePrimitive::F32 => {
+            ToolboxIdlTypePrimitive::F32 => {
                 let value_floating = idl_as_f64_or_else(value, context)? as f32;
                 data.extend_from_slice(bytemuck::bytes_of::<f32>(
                     &value_floating,
                 ));
             },
-            ToolboxIdlProgramTypePrimitive::F64 => {
+            ToolboxIdlTypePrimitive::F64 => {
                 let value_floating = idl_as_f64_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<f64>(
                     &value_floating,
                 ));
             },
-            ToolboxIdlProgramTypePrimitive::Bytes => {
+            ToolboxIdlTypePrimitive::Bytes => {
                 let values = idl_as_array_or_else(value, context)?;
                 let value_bytes = idl_as_bytes_or_else(values, context)?;
                 if deserializable {
@@ -319,14 +319,14 @@ impl ToolboxIdlProgramTypeFull {
                 }
                 data.extend_from_slice(&value_bytes);
             },
-            ToolboxIdlProgramTypePrimitive::Boolean => {
+            ToolboxIdlTypePrimitive::Boolean => {
                 data.push(if idl_as_bool_or_else(value, context)? {
                     1
                 } else {
                     0
                 });
             },
-            ToolboxIdlProgramTypePrimitive::String => {
+            ToolboxIdlTypePrimitive::String => {
                 let value_str = idl_as_str_or_else(value, context)?;
                 if deserializable {
                     data.extend_from_slice(bytemuck::bytes_of::<u32>(
@@ -335,7 +335,7 @@ impl ToolboxIdlProgramTypeFull {
                 }
                 data.extend_from_slice(value_str.as_bytes());
             },
-            ToolboxIdlProgramTypePrimitive::PublicKey => {
+            ToolboxIdlTypePrimitive::PublicKey => {
                 let value_str = idl_as_str_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(
                     &Pubkey::from_str(value_str).map_err(|err| {
@@ -351,7 +351,7 @@ impl ToolboxIdlProgramTypeFull {
     }
 }
 
-impl ToolboxIdlProgramTypeFullFields {
+impl ToolboxIdlTypeFullFields {
     pub fn try_serialize(
         &self,
         value: &Value,
@@ -360,7 +360,7 @@ impl ToolboxIdlProgramTypeFullFields {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         match self {
-            ToolboxIdlProgramTypeFullFields::Named(fields) => {
+            ToolboxIdlTypeFullFields::Named(fields) => {
                 let value = idl_as_object_or_else(value, &breadcrumbs.val())?;
                 for (name, field) in fields {
                     let value_field = idl_object_get_key_or_else(
@@ -376,7 +376,7 @@ impl ToolboxIdlProgramTypeFullFields {
                     )?;
                 }
             },
-            ToolboxIdlProgramTypeFullFields::Unamed(fields) => {
+            ToolboxIdlTypeFullFields::Unamed(fields) => {
                 let values = idl_as_array_or_else(value, &breadcrumbs.val())?;
                 if values.len() != fields.len() {
                     return idl_err(
@@ -395,7 +395,7 @@ impl ToolboxIdlProgramTypeFullFields {
                     )?;
                 }
             },
-            ToolboxIdlProgramTypeFullFields::None => {},
+            ToolboxIdlTypeFullFields::None => {},
         }
         Ok(())
     }

@@ -1,13 +1,13 @@
 use serde_json::json;
 use serde_json::Value;
 
-use crate::toolbox_idl_program_type_flat::ToolboxIdlProgramTypeFlat;
-use crate::toolbox_idl_program_type_flat::ToolboxIdlProgramTypeFlatFields;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 
-impl ToolboxIdlProgramTypeFlat {
+impl ToolboxIdlTypeFlat {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         match self {
-            ToolboxIdlProgramTypeFlat::Defined { name, generics } => {
+            ToolboxIdlTypeFlat::Defined { name, generics } => {
                 if !generics.is_empty() {
                     let mut json_generics = vec![];
                     for generic in generics {
@@ -29,17 +29,17 @@ impl ToolboxIdlProgramTypeFlat {
                     json!(name)
                 }
             },
-            ToolboxIdlProgramTypeFlat::Option { content } => {
+            ToolboxIdlTypeFlat::Option { content } => {
                 json!({ "option": content.as_json(backward_compatibility) })
             },
-            ToolboxIdlProgramTypeFlat::Vec { items } => {
+            ToolboxIdlTypeFlat::Vec { items } => {
                 if backward_compatibility {
                     json!({ "vec": items.as_json(backward_compatibility) })
                 } else {
                     json!([items.as_json(backward_compatibility)])
                 }
             },
-            ToolboxIdlProgramTypeFlat::Array { items, length } => {
+            ToolboxIdlTypeFlat::Array { items, length } => {
                 if backward_compatibility {
                     json!({ "array": [
                         items.as_json(backward_compatibility),
@@ -52,7 +52,7 @@ impl ToolboxIdlProgramTypeFlat {
                     ])
                 }
             },
-            ToolboxIdlProgramTypeFlat::Struct { fields } => {
+            ToolboxIdlTypeFlat::Struct { fields } => {
                 if backward_compatibility {
                     json!({
                         "kind": "struct",
@@ -62,11 +62,10 @@ impl ToolboxIdlProgramTypeFlat {
                     json!({ "fields": fields.as_json(backward_compatibility) })
                 }
             },
-            ToolboxIdlProgramTypeFlat::Enum { variants } => {
+            ToolboxIdlTypeFlat::Enum { variants } => {
                 let mut json_variants = vec![];
                 for (variant_name, variant_fields) in variants {
-                    if variant_fields == &ToolboxIdlProgramTypeFlatFields::None
-                    {
+                    if variant_fields == &ToolboxIdlTypeFlatFields::None {
                         if backward_compatibility {
                             json_variants.push(json!({ "name": variant_name }));
                         } else {
@@ -88,10 +87,10 @@ impl ToolboxIdlProgramTypeFlat {
                     json!({ "variants": json_variants })
                 }
             },
-            ToolboxIdlProgramTypeFlat::Generic { symbol } => {
+            ToolboxIdlTypeFlat::Generic { symbol } => {
                 json!({ "generic": symbol })
             },
-            ToolboxIdlProgramTypeFlat::Const { literal } => {
+            ToolboxIdlTypeFlat::Const { literal } => {
                 if backward_compatibility {
                     json!({
                         "kind": "const",
@@ -101,17 +100,17 @@ impl ToolboxIdlProgramTypeFlat {
                     json!(literal)
                 }
             },
-            ToolboxIdlProgramTypeFlat::Primitive { primitive } => {
+            ToolboxIdlTypeFlat::Primitive { primitive } => {
                 json!(primitive.as_str()) // TODO - in anchor 0.26, some names are different
             },
         }
     }
 }
 
-impl ToolboxIdlProgramTypeFlatFields {
+impl ToolboxIdlTypeFlatFields {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         match self {
-            ToolboxIdlProgramTypeFlatFields::Named(fields) => {
+            ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut json_fields = vec![];
                 for (field_name, field_type) in fields {
                     json_fields.push(json!({
@@ -121,7 +120,7 @@ impl ToolboxIdlProgramTypeFlatFields {
                 }
                 json!(json_fields)
             },
-            ToolboxIdlProgramTypeFlatFields::Unamed(fields) => {
+            ToolboxIdlTypeFlatFields::Unamed(fields) => {
                 let mut json_fields = vec![];
                 for field_type in fields {
                     if backward_compatibility {
@@ -135,7 +134,7 @@ impl ToolboxIdlProgramTypeFlatFields {
                 }
                 json!(json_fields)
             },
-            ToolboxIdlProgramTypeFlatFields::None => {
+            ToolboxIdlTypeFlatFields::None => {
                 json!([])
             },
         }

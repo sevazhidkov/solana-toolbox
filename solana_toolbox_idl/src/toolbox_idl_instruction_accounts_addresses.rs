@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
-use solana_sdk::{instruction::AccountMeta, pubkey::Pubkey};
+use solana_sdk::instruction::AccountMeta;
+use solana_sdk::pubkey::Pubkey;
 
-use crate::{
-    toolbox_idl_utils::{idl_err, idl_map_get_key_or_else},
-    ToolboxIdlBreadcrumbs, ToolboxIdlError, ToolboxIdlProgramInstruction,
-};
+use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_map_get_key_or_else;
+use crate::ToolboxIdlBreadcrumbs;
+use crate::ToolboxIdlError;
+use crate::ToolboxIdlInstruction;
 
-impl ToolboxIdlProgramInstruction {
+impl ToolboxIdlInstruction {
     pub fn compile_accounts_addresses(
         &self,
         instruction_accounts_addresses: &HashMap<String, Pubkey>,

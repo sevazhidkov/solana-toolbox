@@ -1,12 +1,22 @@
 use serde_json::Value;
 
-use crate::{ToolboxIdlBreadcrumbs, ToolboxIdlError, ToolboxIdlProgramAccount};
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::ToolboxIdlBreadcrumbs;
+use crate::ToolboxIdlError;
 
-impl ToolboxIdlProgramAccount {
-    pub fn compile_state(
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlAccount {
+    pub name: String,
+    pub discriminator: Vec<u8>,
+    pub data_type_flat: ToolboxIdlTypeFlat,
+    pub data_type_full: ToolboxIdlTypeFull,
+}
+
+impl ToolboxIdlAccount {
+    pub fn compile(
         &self,
         account_state: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let mut account_data = vec![];
         account_data.extend_from_slice(&self.discriminator);
@@ -14,15 +24,14 @@ impl ToolboxIdlProgramAccount {
             account_state,
             &mut account_data,
             true,
-            breadcrumbs,
+            &ToolboxIdlBreadcrumbs::default(),
         )?;
         Ok(account_data)
     }
 
-    pub fn decompile_state(
+    pub fn decompile(
         &self,
         account_data: &[u8],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Value, ToolboxIdlError> {
         if !account_data.starts_with(&self.discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
@@ -33,7 +42,7 @@ impl ToolboxIdlProgramAccount {
         let (_, account_state) = self.data_type_full.try_deserialize(
             account_data,
             self.discriminator.len(),
-            breadcrumbs,
+            &ToolboxIdlBreadcrumbs::default(),
         )?;
         Ok(account_state)
     }

@@ -1,10 +1,10 @@
 use serde_json::Value;
 
-use crate::{
-    ToolboxIdlBreadcrumbs, ToolboxIdlError, ToolboxIdlProgramInstruction,
-};
+use crate::ToolboxIdlBreadcrumbs;
+use crate::ToolboxIdlError;
+use crate::ToolboxIdlInstruction;
 
-impl ToolboxIdlProgramInstruction {
+impl ToolboxIdlInstruction {
     pub fn compile_args(
         &self,
         instruction_args: &Value,

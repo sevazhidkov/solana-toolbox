@@ -7,54 +7,52 @@ use sha2::Sha256;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
-use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
-use crate::toolbox_idl_program_type_flat::ToolboxIdlProgramTypeFlatFields;
-use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
+use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
+use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
-use crate::ToolboxIdlProgramTypeFullFields;
 
-impl ToolboxIdlProgramInstruction {
+impl ToolboxIdlInstruction {
     pub fn try_parse(
         idl_instruction_name: &str,
         idl_instruction: &Value,
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
+        typedefs: &HashMap<String, ToolboxIdlTypedef>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramInstruction, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlInstruction, ToolboxIdlError> {
         let idl_instruction =
             idl_as_object_or_else(idl_instruction, &breadcrumbs.idl())?;
-        let program_instruction_discriminator =
-            ToolboxIdlProgramInstruction::try_parse_discriminator(
+        let instruction_discriminator =
+            ToolboxIdlInstruction::try_parse_discriminator(
                 idl_instruction_name,
                 idl_instruction,
                 breadcrumbs,
             )?;
-        let program_instruction_accounts =
-            ToolboxIdlProgramInstruction::try_parse_accounts(
+        let instruction_accounts = ToolboxIdlInstruction::try_parse_accounts(
+            idl_instruction,
+            breadcrumbs,
+        )?;
+        let instruction_args_type_flat_fields =
+            ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,
                 breadcrumbs,
             )?;
-        let program_instruction_args_type_flat_fields =
-            ToolboxIdlProgramInstruction::try_parse_args_type_flat_fields(
-                idl_instruction,
+        let instruction_args_type_full_fields =
+            instruction_args_type_flat_fields.try_hydrate(
+                &HashMap::new(),
+                typedefs,
                 breadcrumbs,
             )?;
-        let program_instruction_args_type_full_fields =
-            ToolboxIdlProgramInstruction::try_parse_args_type_full_fields(
-                &program_instruction_args_type_flat_fields,
-                program_typedefs,
-                breadcrumbs,
-            )?;
-        Ok(ToolboxIdlProgramInstruction {
+        Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
-            discriminator: program_instruction_discriminator,
-            accounts: program_instruction_accounts,
-            args_type_flat_fields: program_instruction_args_type_flat_fields,
-            args_type_full_fields: program_instruction_args_type_full_fields,
+            discriminator: instruction_discriminator,
+            accounts: instruction_accounts,
+            args_type_flat_fields: instruction_args_type_flat_fields,
+            args_type_full_fields: instruction_args_type_full_fields,
         })
     }
 
@@ -82,7 +80,7 @@ impl ToolboxIdlProgramInstruction {
     fn try_parse_accounts(
         idl_instruction: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<ToolboxIdlProgramInstructionAccount>, ToolboxIdlError> {
+    ) -> Result<Vec<ToolboxIdlInstructionAccount>, ToolboxIdlError> {
         let idl_instruction_accounts_array =
             idl_object_get_key_as_array_or_else(
                 idl_instruction,
@@ -98,13 +96,11 @@ impl ToolboxIdlProgramInstruction {
             idl_instruction_accounts_array,
             breadcrumbs,
         )? {
-            instruction_accounts.push(
-                ToolboxIdlProgramInstructionAccount::try_parse(
-                    idl_instruction_account_index,
-                    idl_instruction_account,
-                    &breadcrumbs,
-                )?,
-            );
+            instruction_accounts.push(ToolboxIdlInstructionAccount::try_parse(
+                idl_instruction_account_index,
+                idl_instruction_account,
+                &breadcrumbs,
+            )?);
         }
         Ok(instruction_accounts)
     }
@@ -112,27 +108,15 @@ impl ToolboxIdlProgramInstruction {
     fn try_parse_args_type_flat_fields(
         idl_instruction: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramTypeFlatFields, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlatFields, ToolboxIdlError> {
         if let Some(idl_instruction_args) =
             idl_object_get_key_as_array(idl_instruction, "args")
         {
-            return ToolboxIdlProgramTypeFlatFields::try_parse(
+            return ToolboxIdlTypeFlatFields::try_parse(
                 &idl_instruction_args,
                 breadcrumbs,
             );
         }
-        Ok(ToolboxIdlProgramTypeFlatFields::None)
-    }
-
-    fn try_parse_args_type_full_fields(
-        args_type_flat_fields: &ToolboxIdlProgramTypeFlatFields,
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramTypeFullFields, ToolboxIdlError> {
-        args_type_flat_fields.try_hydrate(
-            &HashMap::new(),
-            program_typedefs,
-            breadcrumbs,
-        )
+        Ok(ToolboxIdlTypeFlatFields::None)
     }
 }

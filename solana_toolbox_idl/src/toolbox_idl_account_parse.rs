@@ -5,48 +5,45 @@ use serde_json::Value;
 use sha2::Digest;
 use sha2::Sha256;
 
+use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
-use crate::toolbox_idl_program_type_flat::ToolboxIdlProgramTypeFlat;
-use crate::toolbox_idl_program_type_full::ToolboxIdlProgramTypeFull;
-use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 
-impl ToolboxIdlProgramAccount {
+impl ToolboxIdlAccount {
     pub fn try_parse(
         idl_account_name: &str,
         idl_account: &Value,
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
+        typedefs: &HashMap<String, ToolboxIdlTypedef>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramAccount, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlAccount, ToolboxIdlError> {
         let idl_account =
             idl_as_object_or_else(idl_account, &breadcrumbs.idl())?;
-        let program_account_discriminator =
-            ToolboxIdlProgramAccount::try_parse_discriminator(
-                idl_account_name,
-                idl_account,
-                &breadcrumbs.with_idl("discriminator"),
-            )?;
-        let program_account_data_type_flat =
-            ToolboxIdlProgramAccount::try_parse_data_type_flat(
+        let account_discriminator = ToolboxIdlAccount::try_parse_discriminator(
+            idl_account_name,
+            idl_account,
+            &breadcrumbs.with_idl("discriminator"),
+        )?;
+        let account_data_type_flat =
+            ToolboxIdlAccount::try_parse_data_type_flat(
                 idl_account_name,
                 idl_account,
                 breadcrumbs,
             )?;
-        let program_account_data_type_full =
-            ToolboxIdlProgramAccount::try_parse_data_type_full(
-                &program_account_data_type_flat,
-                program_typedefs,
-                breadcrumbs,
-            )?;
-        Ok(ToolboxIdlProgramAccount {
+        let account_data_type_full = account_data_type_flat.try_hydrate(
+            &HashMap::new(),
+            typedefs,
+            breadcrumbs,
+        )?;
+        Ok(ToolboxIdlAccount {
             name: idl_account_name.to_string(),
-            discriminator: program_account_discriminator,
-            data_type_flat: program_account_data_type_flat,
-            data_type_full: program_account_data_type_full,
+            discriminator: account_discriminator,
+            data_type_flat: account_data_type_flat,
+            data_type_full: account_data_type_full,
         })
     }
 
@@ -72,7 +69,7 @@ impl ToolboxIdlProgramAccount {
         idl_account_name: &str,
         idl_account: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         if idl_account.contains_key("type")
             || idl_account.contains_key("defined")
             || idl_account.contains_key("option")
@@ -82,26 +79,14 @@ impl ToolboxIdlProgramAccount {
             || idl_account.contains_key("variants")
             || idl_account.contains_key("generic")
         {
-            return ToolboxIdlProgramTypeFlat::try_parse(
+            return ToolboxIdlTypeFlat::try_parse(
                 &Value::Object(idl_account.clone()),
                 breadcrumbs,
             );
         }
-        Ok(ToolboxIdlProgramTypeFlat::Defined {
+        Ok(ToolboxIdlTypeFlat::Defined {
             name: idl_account_name.to_string(),
             generics: vec![],
         })
-    }
-
-    fn try_parse_data_type_full(
-        data_type_flat: &ToolboxIdlProgramTypeFlat,
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramTypeFull, ToolboxIdlError> {
-        data_type_flat.try_hydrate(
-            &HashMap::new(),
-            program_typedefs,
-            breadcrumbs,
-        )
     }
 }

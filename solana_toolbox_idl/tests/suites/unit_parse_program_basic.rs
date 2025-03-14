@@ -1,10 +1,10 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlProgramRoot;
+use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl_standard = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl_standard = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": [
             {
                 "name": "my_instruction",
@@ -57,7 +57,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Create an IDL on the fly
-    let idl_shortened = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl_shortened = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "accounts": [

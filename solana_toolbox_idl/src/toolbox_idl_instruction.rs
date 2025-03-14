@@ -1,24 +1,25 @@
 use std::collections::HashMap;
 
 use serde_json::Value;
-use solana_sdk::{instruction::Instruction, pubkey::Pubkey};
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 
-use crate::{
-    ToolboxIdlBreadcrumbs, ToolboxIdlError,
-    ToolboxIdlProgramInstructionAccount, ToolboxIdlProgramTypeFlatFields,
-    ToolboxIdlProgramTypeFullFields,
-};
+use crate::ToolboxIdlBreadcrumbs;
+use crate::ToolboxIdlError;
+use crate::ToolboxIdlInstructionAccount;
+use crate::ToolboxIdlTypeFlatFields;
+use crate::ToolboxIdlTypeFullFields;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxIdlProgramInstruction {
+pub struct ToolboxIdlInstruction {
     pub name: String,
     pub discriminator: Vec<u8>,
-    pub accounts: Vec<ToolboxIdlProgramInstructionAccount>,
-    pub args_type_flat_fields: ToolboxIdlProgramTypeFlatFields,
-    pub args_type_full_fields: ToolboxIdlProgramTypeFullFields,
+    pub accounts: Vec<ToolboxIdlInstructionAccount>,
+    pub args_type_flat_fields: ToolboxIdlTypeFlatFields,
+    pub args_type_full_fields: ToolboxIdlTypeFullFields,
 }
 
-impl ToolboxIdlProgramInstruction {
+impl ToolboxIdlInstruction {
     pub fn compile(
         &self,
         program_id: &Pubkey,

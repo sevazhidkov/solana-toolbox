@@ -6,9 +6,9 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccount;
-use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountPda;
-use crate::toolbox_idl_program_instruction_account::ToolboxIdlProgramInstructionAccountPdaBlob;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
@@ -19,12 +19,12 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 
-impl ToolboxIdlProgramInstructionAccount {
+impl ToolboxIdlInstructionAccount {
     pub fn try_parse(
         idl_instruction_account_index: usize,
         idl_instruction_account: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramInstructionAccount, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlInstructionAccount, ToolboxIdlError> {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account, &breadcrumbs.idl())?;
         let idl_instruction_account_name = idl_object_get_key_as_str_or_else(
@@ -47,16 +47,16 @@ impl ToolboxIdlProgramInstructionAccount {
                     "isSigner",
                 ))
                 .unwrap_or(false);
-        Ok(ToolboxIdlProgramInstructionAccount {
+        Ok(ToolboxIdlInstructionAccount {
             index: idl_instruction_account_index + 1,
             name: idl_instruction_account_name.to_string(),
             is_writable: idl_instruction_account_is_writable,
             is_signer: idl_instruction_account_is_signer,
-            address: ToolboxIdlProgramInstructionAccount::try_parse_address(
+            address: ToolboxIdlInstructionAccount::try_parse_address(
                 idl_instruction_account,
                 breadcrumbs,
             )?,
-            pda: ToolboxIdlProgramInstructionAccount::try_parse_pda(
+            pda: ToolboxIdlInstructionAccount::try_parse_pda(
                 idl_instruction_account,
                 breadcrumbs,
             )?,
@@ -86,8 +86,7 @@ impl ToolboxIdlProgramInstructionAccount {
     fn try_parse_pda(
         idl_instruction_account: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Option<ToolboxIdlProgramInstructionAccountPda>, ToolboxIdlError>
-    {
+    ) -> Result<Option<ToolboxIdlInstructionAccountPda>, ToolboxIdlError> {
         let idl_instruction_account_pda = match idl_object_get_key_as_object(
             idl_instruction_account,
             "pda",
@@ -106,7 +105,7 @@ impl ToolboxIdlProgramInstructionAccount {
                 )?
             {
                 pda_seeds.push(
-                    ToolboxIdlProgramInstructionAccount::try_parse_pda_blob(
+                    ToolboxIdlInstructionAccount::try_parse_pda_blob(
                         idl_instruction_account_pda_seed,
                         &breadcrumbs,
                     )?,
@@ -118,12 +117,12 @@ impl ToolboxIdlProgramInstructionAccount {
             idl_instruction_account_pda.get("program")
         {
             pda_program =
-                Some(ToolboxIdlProgramInstructionAccount::try_parse_pda_blob(
+                Some(ToolboxIdlInstructionAccount::try_parse_pda_blob(
                     idl_instruction_account_pda_program,
                     breadcrumbs,
                 )?);
         }
-        Ok(Some(ToolboxIdlProgramInstructionAccountPda {
+        Ok(Some(ToolboxIdlInstructionAccountPda {
             seeds: pda_seeds,
             program: pda_program,
         }))
@@ -132,15 +131,14 @@ impl ToolboxIdlProgramInstructionAccount {
     pub fn try_parse_pda_blob(
         idl_instruction_account_pda_blob: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramInstructionAccountPdaBlob, ToolboxIdlError>
-    {
+    ) -> Result<ToolboxIdlInstructionAccountPdaBlob, ToolboxIdlError> {
         if let Some(idl_instruction_account_pda_blob) =
             idl_instruction_account_pda_blob.as_object()
         {
             if let Some(idl_instruction_account_pda_blob_value) =
                 idl_instruction_account_pda_blob.get("value")
             {
-                return ToolboxIdlProgramInstructionAccount::try_parse_pda_blob_const(
+                return ToolboxIdlInstructionAccount::try_parse_pda_blob_const(
                     idl_instruction_account_pda_blob_value,
                     breadcrumbs,
                 );
@@ -158,18 +156,16 @@ impl ToolboxIdlProgramInstructionAccount {
                     &breadcrumbs.idl(),
                 )?;
             return match idl_instruction_account_pda_blob_kind {
-                "account" => {
-                    Ok(ToolboxIdlProgramInstructionAccountPdaBlob::Account {
-                        path: idl_instruction_account_pda_blob_path.to_string(),
-                    })
-                },
-                "arg" => Ok(ToolboxIdlProgramInstructionAccountPdaBlob::Arg {
+                "account" => Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
+                    path: idl_instruction_account_pda_blob_path.to_string(),
+                }),
+                "arg" => Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
                     path: idl_instruction_account_pda_blob_path.to_string(),
                 }),
                 _ => idl_err("unknown blob kind", &breadcrumbs.idl()),
             };
         }
-        ToolboxIdlProgramInstructionAccount::try_parse_pda_blob_const(
+        ToolboxIdlInstructionAccount::try_parse_pda_blob_const(
             idl_instruction_account_pda_blob,
             breadcrumbs,
         )
@@ -178,12 +174,11 @@ impl ToolboxIdlProgramInstructionAccount {
     fn try_parse_pda_blob_const(
         idl_instruction_account_pda_blob: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlProgramInstructionAccountPdaBlob, ToolboxIdlError>
-    {
+    ) -> Result<ToolboxIdlInstructionAccountPdaBlob, ToolboxIdlError> {
         if let Some(idl_instruction_account_pda_blob) =
             idl_instruction_account_pda_blob.as_array()
         {
-            return Ok(ToolboxIdlProgramInstructionAccountPdaBlob::Const {
+            return Ok(ToolboxIdlInstructionAccountPdaBlob::Const {
                 bytes: idl_as_bytes_or_else(
                     idl_instruction_account_pda_blob,
                     &breadcrumbs.idl(),
@@ -193,7 +188,7 @@ impl ToolboxIdlProgramInstructionAccount {
         if let Some(idl_instruction_account_pda_blob) =
             idl_instruction_account_pda_blob.as_str()
         {
-            return Ok(ToolboxIdlProgramInstructionAccountPdaBlob::Const {
+            return Ok(ToolboxIdlInstructionAccountPdaBlob::Const {
                 bytes: idl_instruction_account_pda_blob.as_bytes().to_vec(),
             });
         }

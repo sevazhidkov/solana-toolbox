@@ -1,8 +1,9 @@
-use crate::ToolboxIdlProgramError;
 use serde_json::json;
 use serde_json::Value;
 
-impl ToolboxIdlProgramError {
+use crate::ToolboxIdlTransactionError;
+
+impl ToolboxIdlTransactionError {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         if backward_compatibility {
             json!({

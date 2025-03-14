@@ -1,9 +1,10 @@
-use serde_json::{json, Value};
+use serde_json::json;
+use serde_json::Value;
 
-use crate::ToolboxIdlProgramAccount;
+use crate::ToolboxIdlAccount;
 
 // TODO - this parse/json could be serde serialize/deserialize trait implementations?
-impl ToolboxIdlProgramAccount {
+impl ToolboxIdlAccount {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         if backward_compatibility {
             json!({

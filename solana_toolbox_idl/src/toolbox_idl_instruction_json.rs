@@ -1,8 +1,9 @@
-use serde_json::{json, Value};
+use serde_json::json;
+use serde_json::Value;
 
-use crate::ToolboxIdlProgramInstruction;
+use crate::ToolboxIdlInstruction;
 
-impl ToolboxIdlProgramInstruction {
+impl ToolboxIdlInstruction {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         let mut json_accounts = vec![];
         for account in &self.accounts {

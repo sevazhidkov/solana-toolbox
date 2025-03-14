@@ -28,56 +28,55 @@ impl ToolboxCliCommandIdlDescribeArgs {
                 .await?
                 .unwrap(); // TODO - handle unwrap
         let json_instructions = idl
-            .program_instructions
+            .instructions
             .values()
-            .map(|program_instruction| {
-                let mut program_instruction_accounts_resolvables = vec![];
-                let mut program_instruction_accounts_unresolvables = vec![];
-                let mut program_instruction_accounts_signers = vec![];
-                for program_instruction_account in &program_instruction.accounts
-                {
-                    if program_instruction_account.pda.is_none()
-                        && program_instruction_account.address.is_none()
+            .map(|instruction| {
+                let mut instruction_accounts_resolvables = vec![];
+                let mut instruction_accounts_unresolvables = vec![];
+                let mut instruction_accounts_signers = vec![];
+                for instruction_account in &instruction.accounts {
+                    if instruction_account.pda.is_none()
+                        && instruction_account.address.is_none()
                     {
-                        program_instruction_accounts_unresolvables
-                            .push(program_instruction_account.name.to_string());
+                        instruction_accounts_unresolvables
+                            .push(instruction_account.name.to_string());
                     } else {
-                        program_instruction_accounts_resolvables
-                            .push(program_instruction_account.name.to_string());
+                        instruction_accounts_resolvables
+                            .push(instruction_account.name.to_string());
                     }
-                    if program_instruction_account.is_signer {
-                        program_instruction_accounts_signers
-                            .push(program_instruction_account.name.to_string());
+                    if instruction_account.is_signer {
+                        instruction_accounts_signers
+                            .push(instruction_account.name.to_string());
                     }
                 }
                 (
-                    program_instruction.name.to_string(),
+                    instruction.name.to_string(),
                     json!({
-                        "args": program_instruction.data_type_flat.describe(),
-                        "accounts": program_instruction_accounts_unresolvables,
-                        "signers": program_instruction_accounts_signers,
-                        "resolvables": program_instruction_accounts_resolvables,
+                        "args": instruction.data_type_flat.describe(),
+                        "accounts": instruction_accounts_unresolvables,
+                        "signers": instruction_accounts_signers,
+                        "resolvables": instruction_accounts_resolvables,
                     }),
                 )
             })
             .collect::<Vec<_>>();
         let json_accounts = idl
-            .program_accounts
+            .accounts
             .values()
-            .map(|program_account| {
+            .map(|account| {
                 (
-                    program_account.name.to_string(),
-                    json!(program_account.data_type_flat.describe()),
+                    account.name.to_string(),
+                    json!(account.data_type_flat.describe()),
                 )
             })
             .collect::<Vec<_>>();
         let json_types = idl
-            .program_typedefs
+            .typedefs
             .values()
-            .map(|program_type| {
+            .map(|typedef| {
                 (
-                    program_type.name.to_string(),
-                    json!(program_type.type_flat.describe()),
+                    typedef.name.to_string(),
+                    json!(typedef.type_flat.describe()),
                 )
             })
             .collect::<Vec<_>>();

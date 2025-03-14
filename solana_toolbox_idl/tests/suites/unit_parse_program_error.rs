@@ -1,11 +1,11 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlProgramError;
-use solana_toolbox_idl::ToolboxIdlProgramRoot;
+use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::ToolboxIdlTransactionError;
 
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "errors": [
             {
                 "name": "MyError",
@@ -15,7 +15,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "errors": [
             {
                 "name": "MyError",
@@ -24,7 +24,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl3 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "errors": {
             "MyError": {
                 "code": 42,
@@ -33,7 +33,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdlProgramRoot::try_parse_from_value(&json!({
+    let idl4 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "errors": {
             "MyError": 42,
         },
@@ -46,7 +46,7 @@ pub async fn run() {
     // Assert that the content is correct
     assert_eq!(
         idl1.errors.get("MyError").unwrap(),
-        &ToolboxIdlProgramError {
+        &ToolboxIdlTransactionError {
             name: "MyError".to_string(),
             code: 42,
             msg: "".to_string(),

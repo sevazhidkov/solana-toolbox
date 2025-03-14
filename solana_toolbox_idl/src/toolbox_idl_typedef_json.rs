@@ -1,9 +1,9 @@
 use serde_json::json;
 use serde_json::Value;
 
-use crate::ToolboxIdlProgramTypedef;
+use crate::ToolboxIdlTypedef;
 
-impl ToolboxIdlProgramTypedef {
+impl ToolboxIdlTypedef {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         let mut json_generics = vec![];
         for generic in &self.generics {

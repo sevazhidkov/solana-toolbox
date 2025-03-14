@@ -1,8 +1,9 @@
-use serde_json::{json, Value};
+use serde_json::json;
+use serde_json::Value;
 
-use crate::ToolboxIdlProgramInstructionAccount;
+use crate::ToolboxIdlInstructionAccount;
 
-impl ToolboxIdlProgramInstructionAccount {
+impl ToolboxIdlInstructionAccount {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         // TODO - implement all this json
         json!({ "name": self.name })

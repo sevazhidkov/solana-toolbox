@@ -3,6 +3,7 @@ use std::num::TryFromIntError;
 use std::string::FromUtf8Error;
 
 use solana_sdk::pubkey::ParsePubkeyError;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::pubkey::PubkeyError;
 use solana_toolbox_endpoint::ToolboxEndpointError;
 
@@ -50,6 +51,11 @@ pub enum ToolboxIdlError {
         failure: String,
         context: ToolboxIdlContext,
     },
+    CouldNotFindIdl {
+        program_id: Pubkey,
+    },
+    CouldNotGuessInstruction,
+    CouldNotGuessAccount,
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {

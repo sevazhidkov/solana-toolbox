@@ -6,12 +6,12 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::account::Account;
 
+use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
-use crate::toolbox_idl_program_account::ToolboxIdlProgramAccount;
-use crate::toolbox_idl_program_error::ToolboxIdlProgramError;
-use crate::toolbox_idl_program_instruction::ToolboxIdlProgramInstruction;
-use crate::toolbox_idl_program_typedef::ToolboxIdlProgramTypedef;
+use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
+use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
@@ -21,14 +21,14 @@ use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
-use crate::ToolboxIdlProgramRoot;
+use crate::ToolboxIdlProgram;
 
-impl ToolboxIdlProgramRoot {
+impl ToolboxIdlProgram {
     pub fn try_from_account(
         account: &Account,
-    ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
-        let discriminator = ToolboxIdlProgramRoot::DISCRIMINATOR;
+        let discriminator = ToolboxIdlProgram::DISCRIMINATOR;
         if !account.data.starts_with(discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
                 expected: discriminator.to_vec(),
@@ -67,152 +67,143 @@ impl ToolboxIdlProgramRoot {
                     context: breadcrumbs.as_val("content"),
                 }
             })?;
-        ToolboxIdlProgramRoot::try_parse_from_str(&content_decoded)
+        ToolboxIdlProgram::try_parse_from_str(&content_decoded)
     }
 
     pub fn try_parse_from_str(
         content: &str,
-    ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {
-        ToolboxIdlProgramRoot::try_parse_from_value(
+    ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
+        ToolboxIdlProgram::try_parse_from_value(
             &from_str::<Value>(content).map_err(ToolboxIdlError::SerdeJson)?,
         )
     }
 
     pub fn try_parse_from_value(
         value: &Value,
-    ) -> Result<ToolboxIdlProgramRoot, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
-        let program_typedefs =
-            ToolboxIdlProgramRoot::try_parse_program_typedefs(
-                idl_root,
-                breadcrumbs,
-            )?;
-        let program_instructions =
-            ToolboxIdlProgramRoot::try_parse_program_instructions(
-                &program_typedefs,
-                idl_root,
-                breadcrumbs,
-            )?;
-        let program_accounts =
-            ToolboxIdlProgramRoot::try_parse_program_accounts(
-                &program_typedefs,
-                idl_root,
-                breadcrumbs,
-            )?;
-        let program_errors = ToolboxIdlProgramRoot::try_parse_program_errors(
+        let typedefs =
+            ToolboxIdlProgram::try_parse_typedefs(idl_root, breadcrumbs)?;
+        let instructions = ToolboxIdlProgram::try_parse_instructions(
+            &typedefs,
             idl_root,
             breadcrumbs,
         )?;
-        Ok(ToolboxIdlProgramRoot {
-            typedefs: program_typedefs,
-            instructions: program_instructions,
-            accounts: program_accounts,
-            errors: program_errors,
+        let accounts = ToolboxIdlProgram::try_parse_accounts(
+            &typedefs,
+            idl_root,
+            breadcrumbs,
+        )?;
+        let errors =
+            ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
+        Ok(ToolboxIdlProgram {
+            typedefs,
+            instructions,
+            accounts,
+            errors,
         })
     }
 
-    fn try_parse_program_typedefs(
+    fn try_parse_typedefs(
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramTypedef>, ToolboxIdlError>
-    {
-        let mut program_typedefs = HashMap::new();
+    ) -> Result<HashMap<String, ToolboxIdlTypedef>, ToolboxIdlError> {
+        let mut typedefs = HashMap::new();
         for (idl_type_name, idl_type, breadcrumbs) in
-            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
+            ToolboxIdlProgram::root_collection_scoped_named_values(
                 idl_root,
                 "types",
                 breadcrumbs,
             )?
         {
-            program_typedefs.insert(
+            typedefs.insert(
                 idl_type_name.to_string(),
-                ToolboxIdlProgramTypedef::try_parse(
+                ToolboxIdlTypedef::try_parse(
                     idl_type_name,
                     idl_type,
                     &breadcrumbs,
                 )?,
             );
         }
-        Ok(program_typedefs)
+        Ok(typedefs)
     }
 
-    fn try_parse_program_instructions(
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
+    fn try_parse_instructions(
+        typedefs: &HashMap<String, ToolboxIdlTypedef>,
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramInstruction>, ToolboxIdlError>
-    {
-        let mut program_instructions = HashMap::new();
+    ) -> Result<HashMap<String, ToolboxIdlInstruction>, ToolboxIdlError> {
+        let mut instructions = HashMap::new();
         for (idl_instruction_name, idl_instruction, breadcrumbs) in
-            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
+            ToolboxIdlProgram::root_collection_scoped_named_values(
                 idl_root,
                 "instructions",
                 breadcrumbs,
             )?
         {
-            program_instructions.insert(
+            instructions.insert(
                 idl_instruction_name.to_string(),
-                ToolboxIdlProgramInstruction::try_parse(
+                ToolboxIdlInstruction::try_parse(
                     idl_instruction_name,
                     idl_instruction,
-                    program_typedefs,
+                    typedefs,
                     &breadcrumbs,
                 )?,
             );
         }
-        Ok(program_instructions)
+        Ok(instructions)
     }
 
-    fn try_parse_program_accounts(
-        program_typedefs: &HashMap<String, ToolboxIdlProgramTypedef>,
+    fn try_parse_accounts(
+        typedefs: &HashMap<String, ToolboxIdlTypedef>,
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramAccount>, ToolboxIdlError>
-    {
-        let mut program_accounts = HashMap::new();
+    ) -> Result<HashMap<String, ToolboxIdlAccount>, ToolboxIdlError> {
+        let mut accounts = HashMap::new();
         for (idl_account_name, idl_account, breadcrumbs) in
-            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
+            ToolboxIdlProgram::root_collection_scoped_named_values(
                 idl_root,
                 "accounts",
                 breadcrumbs,
             )?
         {
-            program_accounts.insert(
+            accounts.insert(
                 idl_account_name.to_string(),
-                ToolboxIdlProgramAccount::try_parse(
+                ToolboxIdlAccount::try_parse(
                     idl_account_name,
                     idl_account,
-                    program_typedefs,
+                    typedefs,
                     &breadcrumbs,
                 )?,
             );
         }
-        Ok(program_accounts)
+        Ok(accounts)
     }
 
-    fn try_parse_program_errors(
+    fn try_parse_errors(
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlProgramError>, ToolboxIdlError> {
-        let mut program_errors = HashMap::new();
+    ) -> Result<HashMap<String, ToolboxIdlTransactionError>, ToolboxIdlError>
+    {
+        let mut errors = HashMap::new();
         for (idl_error_name, idl_error, breadcrumbs) in
-            ToolboxIdlProgramRoot::root_collection_scoped_named_values(
+            ToolboxIdlProgram::root_collection_scoped_named_values(
                 idl_root,
                 "errors",
                 breadcrumbs,
             )?
         {
-            program_errors.insert(
+            errors.insert(
                 idl_error_name.to_string(),
-                ToolboxIdlProgramError::try_parse(
+                ToolboxIdlTransactionError::try_parse(
                     idl_error_name,
                     idl_error,
                     &breadcrumbs,
                 )?,
             );
         }
-        Ok(program_errors)
+        Ok(errors)
     }
 
     fn root_collection_scoped_named_values<'a>(

@@ -4,7 +4,7 @@ use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_idl::ToolboxIdlProgramRoot;
+use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
@@ -13,7 +13,7 @@ pub async fn run() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Parse IDL from file JSON directly
-    let idl = ToolboxIdlProgramRoot::try_parse_from_str(
+    let idl = ToolboxIdlProgram::try_parse_from_str(
         &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
     )
     .unwrap();

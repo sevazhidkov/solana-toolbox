@@ -2,9 +2,9 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::ToolboxIdlProgramRoot;
+use crate::ToolboxIdlProgram;
 
-impl ToolboxIdlProgramRoot {
+impl ToolboxIdlProgram {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
         if backward_compatibility {
             let mut json_instructions = vec![];
