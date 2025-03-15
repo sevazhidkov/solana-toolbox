@@ -9,8 +9,8 @@ pub async fn run() {
             {
                 "name": "my_instruction",
                 "accounts": [
-                    { "name": "payer", "isSigner": true },
-                    { "name": "authority", "signer": true },
+                    { "name": "payer" },
+                    { "name": "authority" },
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
@@ -105,14 +105,14 @@ pub async fn run() {
     assert_eq!("authority", my_instruction.accounts[1].name);
     assert_eq!(
         "Struct{index:u32,id:i64}",
-        my_instruction.args_type_flat.describe()
+        my_instruction.args_type_flat_fields.describe()
     );
     // Assert account was parsed correctly
     let my_account = idl_standard.accounts.get("MyAccount").unwrap();
     assert_eq!("MyAccount", my_account.name);
     assert_eq!(
         "Struct{field1:u64,field2:u32}",
-        my_account.data_type_flat.describe()
+        my_account.content_type_flat.describe()
     );
     // Assert struct was parsed correctly
     let my_struct = idl_standard.typedefs.get("MyStruct").unwrap();

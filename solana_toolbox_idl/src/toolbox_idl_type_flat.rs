@@ -1,13 +1,6 @@
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ToolboxIdlTypeFlatFields {
-    Named(Vec<(String, ToolboxIdlTypeFlat)>),
-    Unamed(Vec<ToolboxIdlTypeFlat>),
-    None,
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlat {
     Defined {
         name: String,
@@ -38,4 +31,11 @@ pub enum ToolboxIdlTypeFlat {
     Primitive {
         primitive: ToolboxIdlTypePrimitive,
     },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ToolboxIdlTypeFlatFields {
+    Named(Vec<(String, ToolboxIdlTypeFlat)>),
+    Unamed(Vec<ToolboxIdlTypeFlat>),
+    None,
 }

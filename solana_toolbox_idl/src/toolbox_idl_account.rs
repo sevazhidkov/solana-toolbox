@@ -1,16 +1,19 @@
+use std::sync::Arc;
+
 use serde_json::Value;
 
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
+use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
-use crate::ToolboxIdlBreadcrumbs;
-use crate::ToolboxIdlError;
 
+// TODO - should this be account_def ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
     pub name: String,
     pub discriminator: Vec<u8>,
-    pub data_type_flat: ToolboxIdlTypeFlat,
-    pub data_type_full: ToolboxIdlTypeFull,
+    pub content_type_flat: ToolboxIdlTypeFlat,
+    pub content_type_full: Arc<ToolboxIdlTypeFull>,
 }
 
 impl ToolboxIdlAccount {
@@ -20,7 +23,7 @@ impl ToolboxIdlAccount {
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let mut account_data = vec![];
         account_data.extend_from_slice(&self.discriminator);
-        self.data_type_full.try_serialize(
+        self.content_type_full.try_serialize(
             account_state,
             &mut account_data,
             true,
@@ -39,11 +42,11 @@ impl ToolboxIdlAccount {
                 found: account_data.to_vec(),
             });
         }
-        let (_, account_state) = self.data_type_full.try_deserialize(
+        let (_, account_value) = self.content_type_full.try_deserialize(
             account_data,
             self.discriminator.len(),
             &ToolboxIdlBreadcrumbs::default(),
         )?;
-        Ok(account_state)
+        Ok(account_value)
     }
 }

@@ -61,11 +61,11 @@ pub async fn run() {
         &ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![246, 28, 6, 87, 251, 45, 50, 42],
-            data_type_flat: ToolboxIdlTypeFlat::Defined {
+            content_type_flat: ToolboxIdlTypeFlat::Defined {
                 name: "MyAccount".to_string(),
                 generics: vec![]
             },
-            data_type_full: ToolboxIdlTypeFull::Struct {
+            content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::None
             },
         }

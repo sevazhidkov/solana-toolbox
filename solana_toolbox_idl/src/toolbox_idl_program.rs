@@ -8,9 +8,9 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
-// TODO - i don't like this "root" postfix
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgram {
+    // TODO - should this be not "pub", provide getters instead ?
     pub typedefs: HashMap<String, ToolboxIdlTypedef>,
     pub instructions: HashMap<String, ToolboxIdlInstruction>,
     pub accounts: HashMap<String, ToolboxIdlAccount>,
@@ -18,10 +18,9 @@ pub struct ToolboxIdlProgram {
 }
 
 impl ToolboxIdlProgram {
-    pub const DISCRIMINATOR: &[u8] =
-        &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
-
-    pub fn find(program_id: &Pubkey) -> Result<Pubkey, ToolboxIdlError> {
+    pub fn find_anchor_idl(
+        program_id: &Pubkey,
+    ) -> Result<Pubkey, ToolboxIdlError> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Pubkey::create_with_seed(&base, "anchor:idl", program_id)
             .map_err(ToolboxIdlError::Pubkey)
@@ -36,7 +35,7 @@ impl ToolboxIdlProgram {
                 return Ok(instruction);
             }
         }
-        Err(ToolboxIdlError::CouldNotGuessAccount {})
+        Err(ToolboxIdlError::CouldNotFindInstruction {})
     }
 
     pub fn guess_account(
@@ -48,6 +47,6 @@ impl ToolboxIdlProgram {
                 return Ok(account);
             }
         }
-        Err(ToolboxIdlError::CouldNotGuessAccount {})
+        Err(ToolboxIdlError::CouldNotFindAccount {})
     }
 }

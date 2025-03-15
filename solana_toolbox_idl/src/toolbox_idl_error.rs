@@ -54,8 +54,8 @@ pub enum ToolboxIdlError {
     CouldNotFindIdl {
         program_id: Pubkey,
     },
-    CouldNotGuessInstruction,
-    CouldNotGuessAccount,
+    CouldNotFindInstruction,
+    CouldNotFindAccount,
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {

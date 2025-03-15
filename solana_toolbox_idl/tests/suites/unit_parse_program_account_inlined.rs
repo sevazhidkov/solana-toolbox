@@ -93,10 +93,10 @@ pub async fn run() {
         &ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![246, 28, 6, 87, 251, 45, 50, 42],
-            data_type_flat: ToolboxIdlTypeFlat::Struct {
+            content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::None
             },
-            data_type_full: ToolboxIdlTypeFull::Struct {
+            content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::None
             },
         }

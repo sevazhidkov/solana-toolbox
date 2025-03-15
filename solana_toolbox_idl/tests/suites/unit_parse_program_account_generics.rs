@@ -84,7 +84,7 @@ pub async fn run() {
         &ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![77],
-            data_type_flat: ToolboxIdlTypeFlat::Struct {
+            content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unamed(vec![
                     ToolboxIdlTypeFlat::Defined {
                         name: "MyDefinedEnum".to_string(),
@@ -114,7 +114,7 @@ pub async fn run() {
                     },
                 ])
             },
-            data_type_full: ToolboxIdlTypeFull::Struct {
+            content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Unamed(vec![
                     ToolboxIdlTypeFull::Enum {
                         variants: vec![

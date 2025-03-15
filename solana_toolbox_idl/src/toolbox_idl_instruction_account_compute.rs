@@ -1,36 +1,35 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use convert_case::Case;
 use convert_case::Casing;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
+use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::ToolboxIdlAccount;
-use crate::ToolboxIdlBreadcrumbs;
-use crate::ToolboxIdlError;
-use crate::ToolboxIdlInstructionAccount;
-use crate::ToolboxIdlInstructionAccountPda;
-use crate::ToolboxIdlInstructionAccountPdaBlob;
-use crate::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdlInstructionAccount {
     pub fn try_compute(
         &self,
         program_id: &Pubkey,
-        accounts_addresses: &HashMap<String, Pubkey>,
-        accounts_snapshots: &HashMap<String, (&ToolboxIdlAccount, Value)>,
-        args: &(&ToolboxIdlTypeFullFields, &Value),
+        addresses: &HashMap<String, Pubkey>,
+        snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
+        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
-        if let Some(instruction_account_address) =
-            accounts_addresses.get(&self.name)
-        {
-            return Ok(*instruction_account_address);
+        if let Some(address) = addresses.get(&self.name) {
+            return Ok(*address);
         }
         if let Some(instruction_account_address) = &self.address {
             return Ok(*instruction_account_address);
@@ -38,9 +37,9 @@ impl ToolboxIdlInstructionAccount {
         if let Some(instruction_account_pda) = &self.pda {
             return instruction_account_pda.try_compute(
                 program_id,
-                accounts_addresses,
-                accounts_snapshots,
-                args,
+                addresses,
+                snapshots,
+                args_payload,
                 &breadcrumbs.with_idl("pda"),
             );
         }
@@ -52,25 +51,25 @@ impl ToolboxIdlInstructionAccountPda {
     pub fn try_compute(
         &self,
         program_id: &Pubkey,
-        accounts_addresses: &HashMap<String, Pubkey>,
-        accounts_snapshots: &HashMap<String, (&ToolboxIdlAccount, Value)>,
-        args: &(&ToolboxIdlTypeFullFields, &Value),
+        addresses: &HashMap<String, Pubkey>,
+        snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
+        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let mut pda_seeds_bytes = vec![];
         for pda_seed_blob in &self.seeds {
             pda_seeds_bytes.push(pda_seed_blob.try_compute(
-                accounts_addresses,
-                accounts_snapshots,
-                args,
+                addresses,
+                snapshots,
+                args_payload,
                 breadcrumbs,
             )?);
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
             let pda_program_id_bytes = pda_program_blob.try_compute(
-                accounts_addresses,
-                accounts_snapshots,
-                args,
+                addresses,
+                snapshots,
+                args_payload,
                 &breadcrumbs.with_idl("program"),
             )?;
             Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
@@ -95,9 +94,9 @@ impl ToolboxIdlInstructionAccountPda {
 impl ToolboxIdlInstructionAccountPdaBlob {
     pub fn try_compute(
         &self,
-        accounts_addresses: &HashMap<String, Pubkey>,
-        accounts_snapshots: &HashMap<String, (&ToolboxIdlAccount, Value)>,
-        args: &(&ToolboxIdlTypeFullFields, &Value),
+        addresses: &HashMap<String, Pubkey>,
+        snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
+        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         match self {
@@ -108,32 +107,35 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 let idl_blob_parts = Vec::from_iter(path.split("."));
                 if idl_blob_parts.len() == 1 {
                     return idl_map_get_key_or_else(
-                        &accounts_addresses,
+                        &addresses,
                         path,
                         &breadcrumbs.val(),
                     )
                     .map(|address| address.to_bytes().to_vec());
                 }
-                let (account_def, account_state) = idl_map_get_key_or_else(
-                    accounts_snapshots,
+                let (content_type_full, state) = idl_map_get_key_or_else(
+                    snapshots,
                     idl_blob_parts[0],
-                    &breadcrumbs.as_val("instruction_accounts_state"),
+                    &breadcrumbs.as_val("snapshots"),
+                )?;
+                let data_type_full_fields = idl_ok_or_else(
+                    content_type_full.as_struct_fields(),
+                    "expected a struct fields",
+                    &breadcrumbs.idl(),
                 )?;
                 ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
-                    &account_def.data_type_full,
-                    account_state,
+                    data_type_full_fields,
+                    state,
                     &idl_blob_parts[1..],
                     &breadcrumbs.with_val(idl_blob_parts[0]),
                 )
             },
             ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
                 let idl_blob_parts = Vec::from_iter(path.split("."));
-                let (data_type_full_fields, args) = args;
+                let (args_type_full_fields, payload) = args_payload;
                 ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
-                    &ToolboxIdlTypeFull::Struct {
-                        fields: data_type_full_fields.clone().clone(), // TODO - this should not be necessary ?
-                    },
-                    args,
+                    args_type_full_fields,
+                    payload,
                     &idl_blob_parts,
                     &breadcrumbs.with_idl("args"),
                 )
@@ -142,27 +144,21 @@ impl ToolboxIdlInstructionAccountPdaBlob {
     }
 
     fn try_compute_path_data(
-        type_full: &ToolboxIdlTypeFull,
+        type_full_fields: &ToolboxIdlTypeFullFields,
         value: &Value,
         parts: &[&str],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let current = parts[0];
         // TODO - support unamed structs as arg ?
+        let type_full_fields_named = idl_ok_or_else(
+            type_full_fields.as_named(),
+            "expected named fields",
+            &breadcrumbs.idl(),
+        )?;
         let value_object = idl_as_object_or_else(value, &breadcrumbs.val())?;
-        let named_fields = match type_full {
-            ToolboxIdlTypeFull::Struct {
-                fields: ToolboxIdlTypeFullFields::Named(fields),
-            } => fields,
-            _ => {
-                return idl_err(
-                    "Expected struct fields named",
-                    &breadcrumbs.idl(),
-                )
-            },
-        };
         // TODO - remove the need for snake case by parsing everything in snake case
-        for (field_name, field_type_full) in named_fields {
+        for (field_name, field_type_full) in type_full_fields_named {
             let breadcrumbs = &breadcrumbs.with_idl(field_name);
             if field_name.to_case(Case::Snake) == current.to_case(Case::Snake) {
                 let value_field = idl_object_get_key_or_else(
@@ -180,8 +176,13 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     )?;
                     return Ok(bytes);
                 }
+                let type_full_fields = idl_ok_or_else(
+                    field_type_full.as_struct_fields(),
+                    "expected a struct fields",
+                    &breadcrumbs.idl(),
+                )?;
                 return ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
-                    field_type_full,
+                    type_full_fields,
                     value_field,
                     &parts[1..],
                     &breadcrumbs.with_idl("*"),

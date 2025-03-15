@@ -12,7 +12,7 @@ pub async fn run() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
-    let idl = ToolboxIdlProgram::get_for_program_id(&mut endpoint, &program_id)
+    let idl_program = ToolboxIdlProgram::get_for_program_id(&mut endpoint, &program_id)
         .await
         .unwrap()
         .unwrap();

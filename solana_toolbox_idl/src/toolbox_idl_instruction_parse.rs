@@ -52,7 +52,7 @@ impl ToolboxIdlInstruction {
             discriminator: instruction_discriminator,
             accounts: instruction_accounts,
             args_type_flat_fields: instruction_args_type_flat_fields,
-            args_type_full_fields: instruction_args_type_full_fields,
+            args_type_full_fields: instruction_args_type_full_fields.into(),
         })
     }
 

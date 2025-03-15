@@ -1,19 +1,19 @@
 use serde_json::Value;
 
-use crate::ToolboxIdlBreadcrumbs;
-use crate::ToolboxIdlError;
-use crate::ToolboxIdlInstruction;
+use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
+use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 
 impl ToolboxIdlInstruction {
-    pub fn compile_args(
+    pub fn compile_payload(
         &self,
-        instruction_args: &Value,
+        instruction_payload: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(&self.discriminator);
         self.args_type_full_fields.try_serialize(
-            instruction_args,
+            instruction_payload,
             &mut instruction_data,
             true,
             breadcrumbs,
@@ -21,7 +21,7 @@ impl ToolboxIdlInstruction {
         Ok(instruction_data)
     }
 
-    pub fn decompile_args(
+    pub fn decompile_payload(
         &self,
         instruction_data: &[u8],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
@@ -32,12 +32,12 @@ impl ToolboxIdlInstruction {
                 found: instruction_data.to_vec(),
             });
         }
-        let (_, instruction_args) =
+        let (_, instruction_payload) =
             self.args_type_full_fields.try_deserialize(
                 instruction_data,
                 self.discriminator.len(),
                 breadcrumbs,
             )?;
-        Ok(instruction_args)
+        Ok(instruction_payload)
     }
 }

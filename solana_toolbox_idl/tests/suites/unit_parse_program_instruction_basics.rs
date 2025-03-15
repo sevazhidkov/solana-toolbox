@@ -1,9 +1,9 @@
 use std::vec;
 
 use serde_json::json;
+use solana_toolbox_idl::ToolboxIdlInstruction;
 use solana_toolbox_idl::ToolboxIdlInstructionAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlInstruction;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
@@ -125,26 +125,23 @@ pub async fn run() {
                     pda: None
                 },
             ],
-            args_type_flat: ToolboxIdlTypeFlat::Struct {
-                fields: ToolboxIdlTypeFlatFields::Named(vec![(
-                    "arg".to_string(),
-                    ToolboxIdlTypeFlat::Vec {
-                        items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }),
-                    },
-                )])
-            },
-            args_type_full: ToolboxIdlTypeFull::Struct {
-                fields: ToolboxIdlTypeFullFields::Named(vec![(
-                    "arg".to_string(),
-                    ToolboxIdlTypeFull::Vec {
-                        items: Box::new(ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }),
-                    },
-                )])
-            },
+            args_type_flat_fields: ToolboxIdlTypeFlatFields::Named(vec![(
+                "arg".to_string(),
+                ToolboxIdlTypeFlat::Vec {
+                    items: Box::new(ToolboxIdlTypeFlat::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::U8
+                    }),
+                },
+            )]),
+            args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![(
+                "arg".to_string(),
+                ToolboxIdlTypeFull::Vec {
+                    items: Box::new(ToolboxIdlTypeFull::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::U8
+                    }),
+                },
+            )])
+            .into(),
         }
     )
 }

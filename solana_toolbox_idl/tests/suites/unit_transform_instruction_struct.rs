@@ -5,12 +5,11 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signer;
 use solana_sdk::signer::keypair::Keypair;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],
@@ -32,6 +31,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Prepare an instruction
+    let idl_instruction = idl_program.instructions.get("my_instruction");
     let payer = Keypair::new();
     let instruction = ToolboxIdlTransactionInstruction {
         program_id: Pubkey::new_unique(),

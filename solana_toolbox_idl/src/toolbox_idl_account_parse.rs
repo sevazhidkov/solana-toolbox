@@ -42,8 +42,8 @@ impl ToolboxIdlAccount {
         Ok(ToolboxIdlAccount {
             name: idl_account_name.to_string(),
             discriminator: account_discriminator,
-            data_type_flat: account_data_type_flat,
-            data_type_full: account_data_type_full,
+            content_type_flat: account_data_type_flat,
+            content_type_full: account_data_type_full.into(),
         })
     }
 

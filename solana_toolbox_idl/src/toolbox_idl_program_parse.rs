@@ -4,12 +4,12 @@ use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
 use serde_json::Value;
-use solana_sdk::account::Account;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
@@ -21,36 +21,38 @@ use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
-use crate::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
-    pub fn try_from_account(
-        account: &Account,
+    pub const DISCRIMINATOR: &[u8] =
+        &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
+
+    pub fn try_parse_from_account_data(
+        account_data: &[u8],
     ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let discriminator = ToolboxIdlProgram::DISCRIMINATOR;
-        if !account.data.starts_with(discriminator) {
+        if !account_data.starts_with(discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
                 expected: discriminator.to_vec(),
-                found: account.data.to_vec(),
+                found: account_data.to_vec(),
             });
         }
         let authority_offset = discriminator.len();
         let authority = idl_pubkey_from_bytes_at(
-            &account.data,
+            account_data,
             authority_offset,
             &breadcrumbs.as_val("authority"),
         )?;
         let length_offset =
             authority_offset + std::mem::size_of_val(&authority);
         let length = idl_u32_from_bytes_at(
-            &account.data,
+            account_data,
             length_offset,
             &breadcrumbs.as_val("length"),
         )?;
         let content_offset = length_offset + std::mem::size_of_val(&length);
         let content = idl_slice_from_bytes(
-            &account.data,
+            account_data,
             content_offset,
             idl_map_err_invalid_integer(
                 usize::try_from(length),

@@ -1,4 +1,4 @@
-// TODO - The naming on this is not great
+// TODO - The naming on this is not great (maybe execution/outcome/?)
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlTransactionError {
     pub code: u64,

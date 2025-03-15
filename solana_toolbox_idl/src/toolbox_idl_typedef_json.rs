@@ -1,7 +1,7 @@
 use serde_json::json;
 use serde_json::Value;
 
-use crate::ToolboxIdlTypedef;
+use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 impl ToolboxIdlTypedef {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {

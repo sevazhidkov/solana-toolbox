@@ -2,7 +2,7 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::ToolboxIdlProgram;
+use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {

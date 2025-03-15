@@ -11,7 +11,7 @@ pub async fn run() {
     // Keys used during the test
     let dummy_address = Pubkey::new_unique();
     // Create an IDL on the fly
-    let idl = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],

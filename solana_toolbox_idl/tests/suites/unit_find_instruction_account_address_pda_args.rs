@@ -8,7 +8,7 @@ use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_instruction": {
                 "discriminator": [77, 78],

@@ -13,6 +13,7 @@ pub enum ToolboxIdlTypePrimitive {
     F32,
     F64,
     Bytes, // TODO - what's the usecase for this ?
+    // TODO - should this be supporting something like a base58, base64 ?
     Boolean,
     String,
     PublicKey,

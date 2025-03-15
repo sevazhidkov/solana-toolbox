@@ -1,7 +1,7 @@
 use serde_json::json;
 use serde_json::Value;
 
-use crate::ToolboxIdlTransactionError;
+use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 
 impl ToolboxIdlTransactionError {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {

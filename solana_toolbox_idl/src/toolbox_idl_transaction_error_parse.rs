@@ -2,12 +2,11 @@ use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
-use crate::ToolboxIdlTransactionError;
 
-// TODO - this doesnt need to be a program error ?
 impl ToolboxIdlTransactionError {
     pub fn try_parse(
         idl_error_name: &str,

@@ -1,11 +1,10 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "accounts": {
             "MyAccount1": {
                 "discriminator": [74, 73, 72, 71],
@@ -41,21 +40,19 @@ pub async fn run() {
     }))
     .unwrap();
     // MyAccount1 prepared
-    let account = ToolboxIdlAccount {
-        name: "MyAccount1".to_string(),
-        state: json!({
-            "name": "ABCD",
-            "struct": {
-                "integer": 42,
-                "my_enum": "Hello1",
-                "byte": 77,
-            },
-            "array": [99, 98, 97],
-            "vec": [-55, 56, 57],
-        }),
-    };
+    let idl_account = idl_program.accounts.get("MyAccount1").unwrap();
+    let account_state = json!({
+        "name": "ABCD",
+        "struct": {
+            "integer": 42,
+            "my_enum": "Hello1",
+            "byte": 77,
+        },
+        "array": [99, 98, 97],
+        "vec": [-55, 56, 57],
+    });
     // Check that we can use the manual IDL to compile/decompile our account 1
-    let account_data = idl.compile_account(&account).unwrap();
+    let account_data = idl_account.compile(&account_state).unwrap();
     assert_eq!(
         vec![
             74, 73, 72, 71, 4, 0, 0, 0, 65, 66, 67, 68, 42, 0, 0, 0, 1, 77, 99,
@@ -63,28 +60,26 @@ pub async fn run() {
         ],
         account_data,
     );
-    assert_eq!(account, idl.decompile_account(&account_data).unwrap());
+    assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
     // MyAccount2 prepared
-    let account = ToolboxIdlAccount {
-        name: "MyAccount2".to_string(),
-        state: json!({
-            "val1": {
-                "integer": 43,
-                "my_enum": "Hello0",
-                "byte": 78
-            },
-            "val2": {
-                "integer": 44,
-                "my_enum": "Hello2",
-                "byte": 79
-            },
-        }),
-    };
+    let idl_account = idl_program.accounts.get("MyAccount2").unwrap();
+    let account_state = json!({
+        "val1": {
+            "integer": 43,
+            "my_enum": "Hello0",
+            "byte": 78
+        },
+        "val2": {
+            "integer": 44,
+            "my_enum": "Hello2",
+            "byte": 79
+        },
+    });
     // Check that we can use the manual IDL to compile/decompile our account 2
-    let account_data = idl.compile_account(&account).unwrap();
+    let account_data = idl_account.compile(&account_state).unwrap();
     assert_eq!(
         vec![99, 43, 0, 0, 0, 0, 78, 44, 0, 0, 0, 2, 79],
         account_data
     );
-    assert_eq!(account, idl.decompile_account(&account_data).unwrap());
+    assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
 }

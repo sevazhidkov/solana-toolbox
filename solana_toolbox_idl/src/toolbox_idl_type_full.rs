@@ -1,13 +1,6 @@
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ToolboxIdlTypeFullFields {
-    Named(Vec<(String, ToolboxIdlTypeFull)>),
-    Unamed(Vec<ToolboxIdlTypeFull>),
-    None,
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
     Option {
         content: Box<ToolboxIdlTypeFull>,
@@ -44,6 +37,22 @@ impl ToolboxIdlTypeFull {
     pub fn as_struct_fields(&self) -> Option<&ToolboxIdlTypeFullFields> {
         match self {
             ToolboxIdlTypeFull::Struct { fields } => Some(fields),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ToolboxIdlTypeFullFields {
+    Named(Vec<(String, ToolboxIdlTypeFull)>),
+    Unamed(Vec<ToolboxIdlTypeFull>),
+    None,
+}
+
+impl ToolboxIdlTypeFullFields {
+    pub fn as_named(&self) -> Option<&Vec<(String, ToolboxIdlTypeFull)>> {
+        match self {
+            ToolboxIdlTypeFullFields::Named(named) => Some(named),
             _ => None,
         }
     }

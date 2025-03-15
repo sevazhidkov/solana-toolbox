@@ -8,7 +8,7 @@ use solana_toolbox_idl::ToolboxIdlTypedef;
 #[tokio::test]
 pub async fn run() {
     // Create IDL checking different formats
-    let idl = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyStruct": {
                 "fields": [
@@ -40,7 +40,7 @@ pub async fn run() {
     .unwrap();
     // Assert that the content is correct
     assert_eq!(
-        idl.typedefs.get("MyStruct").unwrap(),
+        idl_program.typedefs.get("MyStruct").unwrap(),
         &ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             generics: vec![],
