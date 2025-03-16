@@ -51,8 +51,8 @@ impl ToolboxCliCommandIdlResolveInstructionAccountsArgs {
             }
         }
 
-        let instruction_accounts_addresses = idl
-            .resolve_instruction_accounts_addresses(
+        let instruction_addresses = idl
+            .resolve_instruction_addresses(
                 &mut endpoint,
                 &ToolboxIdlTransactionInstruction {
                     program_id: program_address,
@@ -64,7 +64,7 @@ impl ToolboxCliCommandIdlResolveInstructionAccountsArgs {
             .await?;
 
         let json = Value::Object(Map::from_iter(
-            instruction_accounts_addresses.iter().map(|entry| {
+            instruction_addresses.iter().map(|entry| {
                 (entry.0.to_string(), Value::String(entry.1.to_string()))
             }),
         ));

@@ -40,7 +40,7 @@ pub async fn run() {
     }))
     .unwrap();
     // MyAccount1 prepared
-    let idl_account = idl_program.accounts.get("MyAccount1").unwrap();
+    let idl_account = idl_program.get_idl_account("MyAccount1").unwrap();
     let account_state = json!({
         "name": "ABCD",
         "struct": {
@@ -62,7 +62,7 @@ pub async fn run() {
     );
     assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
     // MyAccount2 prepared
-    let idl_account = idl_program.accounts.get("MyAccount2").unwrap();
+    let idl_account = idl_program.get_idl_account("MyAccount2").unwrap();
     let account_state = json!({
         "val1": {
             "integer": 43,

@@ -10,7 +10,7 @@ use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "accounts": {
             "MyAccount": {
                 "discriminator": [77],
@@ -80,8 +80,8 @@ pub async fn run() {
     .unwrap();
     // Assert that the content is correct
     assert_eq!(
-        idl1.accounts.get("MyAccount").unwrap(),
-        &ToolboxIdlAccount {
+        idl_program.get_idl_account("MyAccount").unwrap(),
+        ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![77],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
@@ -175,6 +175,8 @@ pub async fn run() {
                     }
                 ])
             }
+            .into()
         }
+        .into()
     )
 }

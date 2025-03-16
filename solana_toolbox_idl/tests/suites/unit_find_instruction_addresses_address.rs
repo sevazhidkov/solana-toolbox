@@ -4,7 +4,6 @@ use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -13,7 +12,7 @@ pub async fn run() {
     // Create an IDL on the fly
     let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
-            "my_instruction": {
+            "my_ix": {
                 "discriminator": [77, 78],
                 "accounts": [
                     {
@@ -26,20 +25,15 @@ pub async fn run() {
     }))
     .unwrap();
     // The instruction we'll use
-    let instruction = ToolboxIdlTransactionInstruction {
-        program_id: Pubkey::new_unique(),
-        name: "my_instruction".to_string(),
-        accounts_addresses: HashMap::new(),
-        args: Value::Null,
-    };
+    let idl_instruction = idl_program.get_idl_instruction("my_ix").unwrap();
     // Assert that the accounts can be properly resolved
+    let instruction_addresses = idl_instruction.find_addresses(
+        &Pubkey::new_unique(),
+        &HashMap::new(),
+        &Value::Null,
+    );
     assert_eq!(
+        *instruction_addresses.get("const_address").unwrap(),
         dummy_address,
-        idl.find_instruction_account_address(
-            &instruction,
-            &HashMap::new(),
-            "const_address",
-        )
-        .unwrap()
     );
 }

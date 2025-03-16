@@ -40,8 +40,8 @@ pub async fn run() {
     .unwrap();
     // Assert that the content is correct
     assert_eq!(
-        idl_program.typedefs.get("MyStruct").unwrap(),
-        &ToolboxIdlTypedef {
+        idl_program.get_idl_typedef("MyStruct").unwrap(),
+        ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {
@@ -205,5 +205,6 @@ pub async fn run() {
                 ])
             }
         }
+        .into()
     )
 }

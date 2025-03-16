@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
@@ -99,18 +100,18 @@ impl ToolboxIdlProgram {
         )?;
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
-        Ok(ToolboxIdlProgram {
+        Ok(ToolboxIdlProgram::new(
             typedefs,
             instructions,
             accounts,
             errors,
-        })
+        ))
     }
 
     fn try_parse_typedefs(
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlTypedef>, ToolboxIdlError> {
+    ) -> Result<HashMap<String, Arc<ToolboxIdlTypedef>>, ToolboxIdlError> {
         let mut typedefs = HashMap::new();
         for (idl_type_name, idl_type, breadcrumbs) in
             ToolboxIdlProgram::root_collection_scoped_named_values(
@@ -125,17 +126,19 @@ impl ToolboxIdlProgram {
                     idl_type_name,
                     idl_type,
                     &breadcrumbs,
-                )?,
+                )?
+                .into(),
             );
         }
         Ok(typedefs)
     }
 
     fn try_parse_instructions(
-        typedefs: &HashMap<String, ToolboxIdlTypedef>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlInstruction>, ToolboxIdlError> {
+    ) -> Result<HashMap<String, Arc<ToolboxIdlInstruction>>, ToolboxIdlError>
+    {
         let mut instructions = HashMap::new();
         for (idl_instruction_name, idl_instruction, breadcrumbs) in
             ToolboxIdlProgram::root_collection_scoped_named_values(
@@ -151,17 +154,18 @@ impl ToolboxIdlProgram {
                     idl_instruction,
                     typedefs,
                     &breadcrumbs,
-                )?,
+                )?
+                .into(),
             );
         }
         Ok(instructions)
     }
 
     fn try_parse_accounts(
-        typedefs: &HashMap<String, ToolboxIdlTypedef>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlAccount>, ToolboxIdlError> {
+    ) -> Result<HashMap<String, Arc<ToolboxIdlAccount>>, ToolboxIdlError> {
         let mut accounts = HashMap::new();
         for (idl_account_name, idl_account, breadcrumbs) in
             ToolboxIdlProgram::root_collection_scoped_named_values(
@@ -177,7 +181,8 @@ impl ToolboxIdlProgram {
                     idl_account,
                     typedefs,
                     &breadcrumbs,
-                )?,
+                )?
+                .into(),
             );
         }
         Ok(accounts)
@@ -186,7 +191,7 @@ impl ToolboxIdlProgram {
     fn try_parse_errors(
         idl_root: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<HashMap<String, ToolboxIdlTransactionError>, ToolboxIdlError>
+    ) -> Result<HashMap<String, Arc<ToolboxIdlTransactionError>>, ToolboxIdlError>
     {
         let mut errors = HashMap::new();
         for (idl_error_name, idl_error, breadcrumbs) in
@@ -202,7 +207,8 @@ impl ToolboxIdlProgram {
                     idl_error_name,
                     idl_error,
                     &breadcrumbs,
-                )?,
+                )?
+                .into(),
             );
         }
         Ok(errors)

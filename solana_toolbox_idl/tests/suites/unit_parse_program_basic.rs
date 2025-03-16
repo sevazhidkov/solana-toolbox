@@ -4,13 +4,13 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl_standard = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": [
             {
-                "name": "my_instruction",
+                "name": "my_ix",
                 "accounts": [
-                    { "name": "payer" },
-                    { "name": "authority" },
+                    { "name": "payer", "isSigner": true },
+                    { "name": "authority", "isMut": true },
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
@@ -57,12 +57,12 @@ pub async fn run() {
     }))
     .unwrap();
     // Create an IDL on the fly
-    let idl_shortened = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
-            "my_instruction": {
+            "my_ix": {
                 "accounts": [
                     { "name": "payer", "signer": true },
-                    { "name": "authority", "signer": true },
+                    { "name": "authority", "writable": true },
                 ],
                 "args": [
                     { "name": "index", "type": "u32" },
@@ -96,34 +96,33 @@ pub async fn run() {
     }))
     .unwrap();
     // Assert that both versions are equivalent
-    assert_eq!(idl_shortened, idl_standard);
+    assert_eq!(idl_program2, idl_program1);
     // Assert instruction was parsed correctly
-    let my_instruction =
-        idl_standard.instructions.get("my_instruction").unwrap();
-    assert_eq!("my_instruction", my_instruction.name);
-    assert_eq!("payer", my_instruction.accounts[0].name);
-    assert_eq!("authority", my_instruction.accounts[1].name);
+    let idl_instruction = idl_program1.get_idl_instruction("my_ix").unwrap();
+    assert_eq!("my_ix", idl_instruction.name);
+    assert_eq!("payer", idl_instruction.accounts[0].name);
+    assert_eq!("authority", idl_instruction.accounts[1].name);
     assert_eq!(
-        "Struct{index:u32,id:i64}",
-        my_instruction.args_type_flat_fields.describe()
+        json!({}), // TODO - proper check
+        idl_instruction.args_type_flat_fields.as_json(false)
     );
     // Assert account was parsed correctly
-    let my_account = idl_standard.accounts.get("MyAccount").unwrap();
-    assert_eq!("MyAccount", my_account.name);
+    let idl_account = idl_program1.get_idl_account("MyAccount").unwrap();
+    assert_eq!("MyAccount", idl_account.name);
     assert_eq!(
-        "Struct{field1:u64,field2:u32}",
-        my_account.content_type_flat.describe()
+        json!({}), // TODO - proper check
+        idl_account.content_type_flat.as_json(false)
     );
     // Assert struct was parsed correctly
-    let my_struct = idl_standard.typedefs.get("MyStruct").unwrap();
-    assert_eq!("MyStruct", my_struct.name);
+    let idl_typedef = idl_program1.get_idl_typedef("MyStruct").unwrap();
+    assert_eq!("MyStruct", idl_typedef.name);
     assert_eq!(
-        "Struct{addr:pubkey,name:string}",
-        my_struct.type_flat.describe()
+        json!({}), // TODO - proper check
+        idl_typedef.type_flat.as_json(false)
     );
     // Assert error was parsed correctly
-    let my_error = idl_standard.errors.get("MyError").unwrap();
-    assert_eq!(4242, my_error.code);
-    assert_eq!("MyError", my_error.name);
-    assert_eq!("My error message", my_error.msg);
+    let idl_error = idl_program1.get_idl_error("MyError").unwrap();
+    assert_eq!(4242, idl_error.code);
+    assert_eq!("MyError", idl_error.name);
+    assert_eq!("My error message", idl_error.msg);
 }

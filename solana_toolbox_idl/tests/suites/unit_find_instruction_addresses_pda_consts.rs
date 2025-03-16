@@ -4,7 +4,6 @@ use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -12,9 +11,9 @@ pub async fn run() {
     let program_id1 = Pubkey::new_unique();
     let program_id2 = Pubkey::new_unique();
     // Create IDLs on the fly
-    let idl1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
-            "my_instruction": {
+            "my_ix": {
                 "discriminator": [77, 78],
                 "accounts": [
                     {
@@ -66,9 +65,9 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
-            "my_instruction": {
+            "my_ix": {
                 "discriminator": [77, 78],
                 "accounts": [
                     {
@@ -103,7 +102,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Make sure the IDLs are equivalent
-    assert_eq!(idl1, idl2);
+    assert_eq!(idl_program1, idl_program2);
     // Pdas based off of const bytes seeds
     let pda_seeds_const_bytes: &[&[u8]] =
         &[&41u32.to_le_bytes(), &42u32.to_le_bytes()];
@@ -118,47 +117,36 @@ pub async fn run() {
     let pda_const_string2 =
         Pubkey::find_program_address(pda_seeds_const_string, &program_id2).0;
     // The instruction we'll use
-    let instruction = ToolboxIdlTransactionInstruction {
-        program_id: program_id1,
-        name: "my_instruction".to_string(),
-        accounts_addresses: HashMap::new(),
-        args: Value::Null,
-    };
+    let idl_instruction =
+        idl_program1.get_idl_instruction("my_ix").unwrap();
     // Assert that the accounts can be properly resolved
+    let instruction_addresses = idl_instruction.find_addresses(
+        &program_id1,
+        &HashMap::new(),
+        &Value::Null,
+    );
     assert_eq!(
+        *instruction_addresses
+            .get("const_bytes_without_program")
+            .unwrap(),
         pda_const_bytes1,
-        idl1.find_instruction_account_address(
-            &instruction,
-            &HashMap::new(),
-            "const_bytes_without_program",
-        )
-        .unwrap()
     );
     assert_eq!(
+        *instruction_addresses
+            .get("const_bytes_with_program")
+            .unwrap(),
         pda_const_bytes2,
-        idl1.find_instruction_account_address(
-            &instruction,
-            &HashMap::new(),
-            "const_bytes_with_program",
-        )
-        .unwrap()
     );
     assert_eq!(
+        *instruction_addresses
+            .get("const_string_without_program")
+            .unwrap(),
         pda_const_string1,
-        idl1.find_instruction_account_address(
-            &instruction,
-            &HashMap::new(),
-            "const_string_without_program",
-        )
-        .unwrap()
     );
     assert_eq!(
+        *instruction_addresses
+            .get("const_string_with_program")
+            .unwrap(),
         pda_const_string2,
-        idl1.find_instruction_account_address(
-            &instruction,
-            &HashMap::new(),
-            "const_string_with_program",
-        )
-        .unwrap()
     );
 }

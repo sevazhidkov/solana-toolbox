@@ -5,6 +5,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::ToolboxIdlResolver;
 
 #[tokio::test]
 pub async fn run() {
@@ -12,26 +13,31 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
-    // Parse IDL from file JSON directly
-    let idl_program = ToolboxIdlProgram::try_parse_from_str(
-        &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
-    )
-    .unwrap();
-    // Fetch the idl of an anchor program on chain
+    // Choosing our program_id
     let program_id = pubkey!("crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu");
+    // Prepare our IDL resolver
+    let mut idl_resolver = ToolboxIdlResolver::new();
+    // Parse and load IDL from file JSON directly (since it's not available onchain)
+    idl_resolver.preload_idl_program(
+        &program_id,
+        ToolboxIdlProgram::try_parse_from_str(
+            &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
+        )
+        .unwrap(),
+    );
     // Read the global market state content using the IDL
     let global_market_state =
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;
-    let global_market_state_account = idl
-        .get_account(&mut endpoint, &global_market_state)
+    let global_market_state_details = idl_resolver
+        .resolve_account_details(&mut endpoint, &global_market_state)
         .await
         .unwrap()
         .unwrap();
-    assert_eq!("GlobalMarketState", global_market_state_account.name);
+    assert_eq!("GlobalMarketState", global_market_state_details.0.name);
     assert_eq!(
         "credix-marketplace",
-        global_market_state_account
-            .state
+        global_market_state_details
+            .1
             .get("seed")
             .unwrap()
             .as_str()
@@ -40,16 +46,16 @@ pub async fn run() {
     // Read the program state content using the IDL
     let program_state =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
-    let program_state_account = idl
-        .get_account(&mut endpoint, &program_state)
+    let program_state_details = idl_resolver
+        .resolve_account_details(&mut endpoint, &program_state)
         .await
         .unwrap()
         .unwrap();
-    assert_eq!("ProgramState", program_state_account.name);
+    assert_eq!("ProgramState", program_state_details.0.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        program_state_account
-            .state
+        program_state_details
+            .1
             .get("credixMultisigKey")
             .unwrap()
             .as_str()
@@ -61,16 +67,16 @@ pub async fn run() {
         &program_id,
     )
     .0;
-    let market_admins_account = idl
-        .get_account(&mut endpoint, &market_admins)
+    let market_admins_details = idl_resolver
+        .resolve_account_details(&mut endpoint, &market_admins)
         .await
         .unwrap()
         .unwrap();
-    assert_eq!("MarketAdmins", market_admins_account.name);
+    assert_eq!("MarketAdmins", market_admins_details.0.name);
     assert_eq!(
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        market_admins_account
-            .state
+        market_admins_details
+            .1
             .get("multisig")
             .unwrap()
             .as_str()

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
@@ -15,7 +16,7 @@ impl ToolboxIdlTypeFlat {
     pub fn try_hydrate(
         &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
-        typedefs: &HashMap<String, ToolboxIdlTypedef>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFull, ToolboxIdlError> {
         Ok(match self {
@@ -139,7 +140,7 @@ impl ToolboxIdlTypeFlatFields {
     pub fn try_hydrate(
         &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
-        typedefs: &HashMap<String, ToolboxIdlTypedef>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFullFields, ToolboxIdlError> {
         Ok(match self {

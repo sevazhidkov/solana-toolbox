@@ -7,7 +7,7 @@ use solana_toolbox_idl::ToolboxIdlTypedef;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": [
             {
                 "name": "MyStruct",
@@ -16,7 +16,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": [
             {
                 "name": "MyStruct",
@@ -25,7 +25,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program3 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyStruct": {
                 "type": { "fields": [] }
@@ -33,25 +33,26 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program4 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyStruct": { "fields": [] },
         },
     }))
     .unwrap();
     // Assert that all are equivalent
-    assert_eq!(idl1, idl2);
-    assert_eq!(idl1, idl3);
-    assert_eq!(idl1, idl4);
+    assert_eq!(idl_program1, idl_program2);
+    assert_eq!(idl_program1, idl_program3);
+    assert_eq!(idl_program1, idl_program4);
     // Assert that the content is correct
     assert_eq!(
-        idl1.typedefs.get("MyStruct").unwrap(),
-        &ToolboxIdlTypedef {
+        idl_program1.get_idl_typedef("MyStruct").unwrap(),
+        ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::None
             }
         }
+        .into()
     )
 }

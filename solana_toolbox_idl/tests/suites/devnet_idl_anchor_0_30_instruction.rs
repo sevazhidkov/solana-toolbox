@@ -8,8 +8,7 @@ use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
+use solana_toolbox_idl::ToolboxIdlResolver;
 
 #[tokio::test]
 pub async fn run() {
@@ -17,26 +16,23 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
+    // We'll use an IDL resolve to automatically resolve htings using the endpoint
+    let mut idl_resolver = ToolboxIdlResolver::new();
     // Fetch the idl of an anchor program on chain
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
-    let idl_program = ToolboxIdlProgram::get_for_program_id(&mut endpoint, &program_id)
-        .await
-        .unwrap()
-        .unwrap();
     // Find an account from another instruction so that we can re-use it
     let campaign_index = 3u64;
-    let campaign = idl
-        .find_instruction_account_address(
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "campaign_create".to_string(),
-                accounts_addresses: HashMap::from_iter([]),
-                args: json!({ "params": { "index": campaign_index } }),
-            },
+    let campaign_create_addresses = idl_resolver
+        .resolve_instruction_addresses(
+            &mut endpoint,
+            &program_id,
+            "campaign_create",
             &HashMap::from_iter([]),
-            "campaign",
+            &json!({ "params": { "index": campaign_index } }),
         )
+        .await
         .unwrap();
+    let campaign = *campaign_create_addresses.get("campaign").unwrap();
     // Make sure the proper account has been properly resolved
     assert_eq!(
         campaign,
@@ -62,36 +58,32 @@ pub async fn run() {
         .await
         .unwrap();
     // Generate the actual instructions while resolving missing accounts
-    let instruction_pledge_create = idl
+    let pledge_create_instruction = idl_resolver
         .resolve_instruction(
             &mut endpoint,
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "pledge_create".to_string(),
-                accounts_addresses: HashMap::from_iter([
-                    ("payer".to_string(), payer.pubkey()),
-                    ("user".to_string(), user.pubkey()),
-                    ("campaign".to_string(), campaign),
-                ]),
-                args: json!({ "params": {} }),
-            },
+            &program_id,
+            "pledge_create",
+            &HashMap::from_iter([
+                ("payer".to_string(), payer.pubkey()),
+                ("user".to_string(), user.pubkey()),
+                ("campaign".to_string(), campaign),
+            ]),
+            &json!({ "params": {} }),
         )
         .await
         .unwrap();
-    let instruction_pledge_deposit = idl
+    let pledge_deposit_instruction = idl_resolver
         .resolve_instruction(
             &mut endpoint,
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "pledge_deposit".to_string(),
-                accounts_addresses: HashMap::from_iter([
-                    ("payer".to_string(), payer.pubkey()),
-                    ("user".to_string(), user.pubkey()),
-                    ("user_collateral".to_string(), user_collateral),
-                    ("campaign".to_string(), campaign),
-                ]),
-                args: json!({ "params": { "collateral_amount": 0 } }),
-            },
+            &program_id,
+            "pledge_deposit",
+            &HashMap::from_iter([
+                ("payer".to_string(), payer.pubkey()),
+                ("user".to_string(), user.pubkey()),
+                ("user_collateral".to_string(), user_collateral),
+                ("campaign".to_string(), campaign),
+            ]),
+            &json!({ "params": { "collateral_amount": 0 } }),
         )
         .await
         .unwrap();
@@ -99,7 +91,7 @@ pub async fn run() {
     endpoint
         .process_instructions_with_signers(
             &payer,
-            &[instruction_pledge_create, instruction_pledge_deposit],
+            &[pledge_create_instruction, pledge_deposit_instruction],
             &[&user],
         )
         .await

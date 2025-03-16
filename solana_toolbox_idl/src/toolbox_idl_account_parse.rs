@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use serde_json::Map;
 use serde_json::Value;
@@ -18,7 +19,7 @@ impl ToolboxIdlAccount {
     pub fn try_parse(
         idl_account_name: &str,
         idl_account: &Value,
-        typedefs: &HashMap<String, ToolboxIdlTypedef>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlAccount, ToolboxIdlError> {
         let idl_account =

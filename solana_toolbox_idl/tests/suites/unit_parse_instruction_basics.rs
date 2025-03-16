@@ -13,10 +13,10 @@ use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": [
             {
-                "name": "my_instruction",
+                "name": "my_ix",
                 "discriminator": [195, 241, 184, 14, 127, 155, 68, 53],
                 "accounts": [
                     { "name": "account_ws", "signer": true, "writable": true },
@@ -31,10 +31,10 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": [
             {
-                "name": "my_instruction",
+                "name": "my_ix",
                 "accounts": [
                     { "name": "account_ws", "signer": true, "writable": true },
                     { "name": "account_rs", "signer": true },
@@ -48,9 +48,9 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl3 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program3 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
-            "my_instruction": {
+            "my_ix": {
                 "discriminator": [195, 241, 184, 14, 127, 155, 68, 53],
                 "accounts": [
                     { "name": "account_ws", "isSigner": true, "isMut": true },
@@ -65,9 +65,9 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl4 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program4 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
-            "my_instruction": {
+            "my_ix": {
                 "accounts": [
                     { "name": "account_ws", "isSigner": true, "isMut": true },
                     { "name": "account_rs", "isSigner": true },
@@ -82,14 +82,14 @@ pub async fn run() {
     }))
     .unwrap();
     // Assert that all are equivalent
-    assert_eq!(idl1, idl2);
-    assert_eq!(idl1, idl3);
-    assert_eq!(idl1, idl4);
+    assert_eq!(idl_program1, idl_program2);
+    assert_eq!(idl_program1, idl_program3);
+    assert_eq!(idl_program1, idl_program4);
     // Assert that the content is correct
     assert_eq!(
-        idl1.instructions.get("my_instruction").unwrap(),
-        &ToolboxIdlInstruction {
-            name: "my_instruction".to_string(),
+        idl_program1.get_idl_instruction("my_ix").unwrap(),
+        ToolboxIdlInstruction {
+            name: "my_ix".to_string(),
             discriminator: vec![195, 241, 184, 14, 127, 155, 68, 53],
             accounts: vec![
                 ToolboxIdlInstructionAccount {
@@ -143,5 +143,6 @@ pub async fn run() {
             )])
             .into(),
         }
+        .into()
     )
 }

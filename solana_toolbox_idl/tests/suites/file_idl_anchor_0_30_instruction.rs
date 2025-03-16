@@ -8,7 +8,6 @@ use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
@@ -29,48 +28,40 @@ pub async fn run() {
     )
     .0;
     // Prepare instruction accounts
-    let instruction_accounts_addresses = HashMap::from_iter([
+    let instruction_addresses = HashMap::from_iter([
         ("payer".to_string(), payer),
         ("authority".to_string(), authority),
         ("collateral_mint".to_string(), collateral_mint),
         ("redeemable_mint".to_string(), redeemable_mint),
     ]);
-    // Prepare instruction args
-    let mut instruction_args_metadata_bytes = vec![];
+    // Prepare instruction payload
+    let mut instruction_payload_metadata_bytes = vec![];
     for index in 0..512 {
-        instruction_args_metadata_bytes.push(Value::from(index % 100));
+        instruction_payload_metadata_bytes.push(Value::from(index % 100));
     }
-    let instruction_args_value = json!({
+    let instruction_payload = json!({
         "params": {
             "index": 11,
             "funding_goal_collateral_amount": 41,
             "funding_phase_duration_seconds": 42,
             "metadata": {
                 "length": 22,
-                "bytes": instruction_args_metadata_bytes,
+                "bytes": instruction_payload_metadata_bytes,
             }
         },
     });
+    // Useful instruction
+    let idl_instruction =
+        idl_program.get_idl_instruction("campaign_create").unwrap();
     // Resolve missing instruction accounts
-    let instruction_accounts_addresses = idl
-        .find_instruction_accounts_addresses(
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "campaign_create".to_string(),
-                accounts_addresses: instruction_accounts_addresses.clone(),
-                args: instruction_args_value.clone(),
-            },
-            &HashMap::from_iter([]),
-        )
-        .unwrap();
+    let instruction_addresses = idl_instruction.find_addresses(
+        &program_id,
+        &instruction_addresses,
+        &instruction_payload,
+    );
     // Actually generate the instruction
-    let instruction = idl
-        .compile_instruction(&ToolboxIdlTransactionInstruction {
-            program_id,
-            name: "campaign_create".to_string(),
-            accounts_addresses: instruction_accounts_addresses.clone(),
-            args: instruction_args_value.clone(),
-        })
+    let instruction = idl_instruction
+        .compile(&program_id, &instruction_addresses, &instruction_payload)
         .unwrap();
     // Generate expected accounts
     let campaign_collateral =

@@ -5,25 +5,26 @@ use serde_json::json;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Parse IDL from file JSON directly
-    let idl_string =
-        read_to_string("./tests/fixtures/idl_anchor_0_29.json").unwrap();
-    let idl_program = ToolboxIdlProgram::try_parse_from_str(&idl_string).unwrap();
+    let idl_program = ToolboxIdlProgram::try_parse_from_str(
+        &read_to_string("./tests/fixtures/idl_anchor_0_29.json").unwrap(),
+    )
+    .unwrap();
     // Important account addresses
     let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
     let funding = Pubkey::new_unique();
     let placeholder = Pubkey::new_unique();
     // Actually generate the instruction
-    let instruction = idl
-        .compile_instruction(&ToolboxIdlTransactionInstruction {
-            program_id,
-            name: "initializeRealm".to_string(),
-            accounts_addresses: HashMap::from_iter([
+    let instruction = idl_program
+        .get_idl_instruction("initializeRealm")
+        .unwrap()
+        .compile(
+            &program_id,
+            &HashMap::from_iter([
                 ("payer".to_string(), payer), // TODO - could remove the need for to_string() everywhere
                 ("funding".to_string(), funding),
                 ("fundingUsdc".to_string(), placeholder),
@@ -37,14 +38,14 @@ pub async fn run() {
                 ("systemProgram".to_string(), placeholder),
                 ("tokenProgram".to_string(), placeholder),
             ]),
-            args: json!({
+            &json!({
                 "params": {
                     "liquidInsuranceFundUsdcAmount": 41,
                     "phaseOneDurationSeconds": 42,
                     "phaseTwoDurationSeconds": 43,
                 },
             }),
-        })
+        )
         .unwrap();
     // Check instruction content
     assert_eq!(program_id, instruction.program_id);

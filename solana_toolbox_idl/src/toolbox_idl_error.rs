@@ -56,6 +56,7 @@ pub enum ToolboxIdlError {
     },
     CouldNotFindInstruction,
     CouldNotFindAccount,
+    CouldNotFindError,
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {

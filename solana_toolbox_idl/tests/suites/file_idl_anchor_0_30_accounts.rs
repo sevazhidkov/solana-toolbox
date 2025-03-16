@@ -4,16 +4,15 @@ use std::fs::read_to_string;
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
 
 #[tokio::test]
 pub async fn run() {
     // Parse IDL from file JSON directly
-    let idl_string =
-        read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap();
-    let idl_program = ToolboxIdlProgram::try_parse_from_str(&idl_string).unwrap();
+    let idl_program = ToolboxIdlProgram::try_parse_from_str(
+        &read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap(),
+    )
+    .unwrap();
     // Important account addresses
     let program_id = Pubkey::new_unique();
     let payer = Pubkey::new_unique();
@@ -48,120 +47,110 @@ pub async fn run() {
     )
     .0;
     // Generate all missing IX accounts with just the minimum information
-    let campaign_create_accounts_addresses = idl
-        .find_instruction_accounts_addresses(
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "campaign_create".to_string(),
-                accounts_addresses: HashMap::from([
-                    ("payer".to_string(), payer),
-                    ("authority".to_string(), authority),
-                    ("collateral_mint".to_string(), collateral_mint),
-                    ("redeemable_mint".to_string(), redeemable_mint),
-                ]),
-                args: json!({ "params": { "index": campaign_index } }),
-            },
-            &HashMap::from_iter([]),
-        )
-        .unwrap();
+    let campaign_create_addresses = idl_program
+        .get_idl_instruction("campaign_create")
+        .unwrap()
+        .find_addresses(
+            &program_id,
+            &HashMap::from([
+                ("payer".to_string(), payer),
+                ("authority".to_string(), authority),
+                ("collateral_mint".to_string(), collateral_mint),
+                ("redeemable_mint".to_string(), redeemable_mint),
+            ]),
+            &json!({ "params": { "index": campaign_index } }),
+        );
     // Check outcome
     assert_eq!(
         campaign,
-        *campaign_create_accounts_addresses.get("campaign").unwrap()
+        *campaign_create_addresses.get("campaign").unwrap()
     );
     assert_eq!(
         campaign_collateral,
-        *campaign_create_accounts_addresses
+        *campaign_create_addresses
             .get("campaign_collateral")
             .unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
-    let campaign_extract_accounts_addresses = idl
-        .find_instruction_accounts_addresses(
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "campaign_extract".to_string(),
-                accounts_addresses: HashMap::from([
-                    ("payer".to_string(), payer),
-                    ("authority".to_string(), authority),
-                    ("authority_collateral".to_string(), authority_collateral),
-                    ("campaign".to_string(), campaign),
-                ]),
-                args: json!({ "params": {} }),
-            },
+    let campaign_extract_addresses = idl_program
+        .get_idl_instruction("campaign_extract")
+        .unwrap()
+        .find_addresses_with_snapshots(
+            &program_id,
+            &HashMap::from([
+                ("payer".to_string(), payer),
+                ("authority".to_string(), authority),
+                ("authority_collateral".to_string(), authority_collateral),
+                ("campaign".to_string(), campaign),
+            ]),
+            &json!({ "params": { "index": campaign_index } }),
             &HashMap::from_iter([(
                 "campaign".to_string(),
-                ToolboxIdlAccount {
-                    name: "Campaign".to_string(),
-                    state: json!({
+                (
+                    idl_program
+                        .get_idl_account("Campaign")
+                        .unwrap()
+                        .content_type_full
+                        .clone(),
+                    json!({
                         "collateral_mint": collateral_mint.to_string()
                     }),
-                },
+                ),
             )]),
-        )
-        .unwrap();
+        );
     // Check outcome
     assert_eq!(
         campaign_collateral,
-        *campaign_extract_accounts_addresses
+        *campaign_extract_addresses
             .get("campaign_collateral")
             .unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
-    let pledge_create_accounts_addresses = idl
-        .find_instruction_accounts_addresses(
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "pledge_create".to_string(),
-                accounts_addresses: HashMap::from([
-                    ("payer".to_string(), payer),
-                    ("user".to_string(), user),
-                    ("campaign".to_string(), campaign),
-                ]),
-                args: json!({ "params": {} }),
-            },
-            &HashMap::from_iter([]),
-        )
-        .unwrap();
+    let pledge_create_addresses = idl_program
+        .get_idl_instruction("pledge_create")
+        .unwrap()
+        .find_addresses(
+            &program_id,
+            &HashMap::from([
+                ("payer".to_string(), payer),
+                ("user".to_string(), user),
+                ("campaign".to_string(), campaign),
+            ]),
+            &json!({}),
+        );
     // Check outcome
-    assert_eq!(
-        pledge,
-        *pledge_create_accounts_addresses.get("pledge").unwrap()
-    );
+    assert_eq!(pledge, *pledge_create_addresses.get("pledge").unwrap());
     // Generate all missing IX accounts with just the minimum information
-    let pledge_deposit_accounts_addresses = idl
-        .find_instruction_accounts_addresses(
-            &ToolboxIdlTransactionInstruction {
-                program_id,
-                name: "pledge_deposit".to_string(),
-                accounts_addresses: HashMap::from([
-                    ("payer".to_string(), payer),
-                    ("user".to_string(), user),
-                    ("user_collateral".to_string(), user_collateral),
-                    ("campaign".to_string(), campaign),
-                ]),
-                args: json!({ "params": {} }),
-            },
+    let pledge_deposit_addresses = idl_program
+        .get_idl_instruction("pledge_deposit")
+        .unwrap()
+        .find_addresses_with_snapshots(
+            &program_id,
+            &HashMap::from([
+                ("payer".to_string(), payer),
+                ("user".to_string(), user),
+                ("user_collateral".to_string(), user_collateral),
+                ("campaign".to_string(), campaign),
+            ]),
+            &json!({}),
             &HashMap::from_iter([(
                 "campaign".to_string(),
-                ToolboxIdlAccount {
-                    name: "Campaign".to_string(),
-                    state: json!({
+                (
+                    idl_program
+                        .get_idl_account("Campaign")
+                        .unwrap()
+                        .content_type_full
+                        .clone(),
+                    json!({
                         "collateral_mint": collateral_mint.to_string()
                     }),
-                },
+                ),
             )]),
-        )
-        .unwrap();
+        );
     // Check outcome
     assert_eq!(
         campaign_collateral,
-        *pledge_deposit_accounts_addresses
-            .get("campaign_collateral")
-            .unwrap()
+        *pledge_deposit_addresses.get("campaign_collateral").unwrap()
     );
-    assert_eq!(
-        pledge,
-        *pledge_deposit_accounts_addresses.get("pledge").unwrap()
-    );
+    assert_eq!(pledge, *pledge_deposit_addresses.get("pledge").unwrap());
 }

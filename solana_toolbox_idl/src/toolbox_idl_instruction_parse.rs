@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use serde_json::Map;
 use serde_json::Value;
@@ -21,7 +22,7 @@ impl ToolboxIdlInstruction {
     pub fn try_parse(
         idl_instruction_name: &str,
         idl_instruction: &Value,
-        typedefs: &HashMap<String, ToolboxIdlTypedef>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlInstruction, ToolboxIdlError> {
         let idl_instruction =
@@ -96,11 +97,14 @@ impl ToolboxIdlInstruction {
             idl_instruction_accounts_array,
             breadcrumbs,
         )? {
-            instruction_accounts.push(ToolboxIdlInstructionAccount::try_parse(
-                idl_instruction_account_index,
-                idl_instruction_account,
-                &breadcrumbs,
-            )?);
+            instruction_accounts.push(
+                ToolboxIdlInstructionAccount::try_parse(
+                    idl_instruction_account_index,
+                    idl_instruction_account,
+                    &breadcrumbs,
+                )?
+                .into(),
+            );
         }
         Ok(instruction_accounts)
     }
