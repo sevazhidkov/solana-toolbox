@@ -24,14 +24,12 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    // The instruction we'll use
-    let idl_instruction = idl_program.instructions.get("my_ix").unwrap();
     // Assert that the accounts can be properly resolved
-    let instruction_addresses = idl_instruction.find_addresses(
-        &Pubkey::new_unique(),
-        &HashMap::new(),
-        &Value::Null,
-    );
+    let instruction_addresses = idl_program
+        .instructions
+        .get("my_ix")
+        .unwrap()
+        .find_addresses(&Pubkey::new_unique(), &HashMap::new(), &Value::Null);
     assert_eq!(
         *instruction_addresses.get("const_address").unwrap(),
         dummy_address,

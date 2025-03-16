@@ -13,6 +13,7 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_err;
+use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_ok_or_else;
@@ -55,12 +56,15 @@ impl ToolboxIdlInstructionAccountPda {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let mut pda_seeds_bytes = vec![];
-        for pda_seed_blob in &self.seeds {
+        for (_, pda_seed_blob, breadcrumbs) in idl_iter_get_scoped_values(
+            &self.seeds,
+            &breadcrumbs.with_idl("seeds"),
+        )? {
             pda_seeds_bytes.push(pda_seed_blob.try_compute(
                 addresses,
                 snapshots,
                 args_payload,
-                breadcrumbs,
+                &breadcrumbs,
             )?);
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
@@ -105,7 +109,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 let idl_blob_parts = Vec::from_iter(path.split("."));
                 if idl_blob_parts.len() == 1 {
                     return idl_map_get_key_or_else(
-                        &addresses,
+                        addresses,
                         path,
                         &breadcrumbs.val(),
                     )

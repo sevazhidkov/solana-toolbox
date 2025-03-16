@@ -25,19 +25,17 @@ impl ToolboxIdlTypedef {
             } else {
                 self.type_flat.as_json(backward_compatibility)
             }
+        } else if backward_compatibility {
+            json!({
+                "name": self.name,
+                "type": self.type_flat.as_json(backward_compatibility),
+                "generics": json_generics,
+            })
         } else {
-            if backward_compatibility {
-                json!({
-                    "name": self.name,
-                    "type": self.type_flat.as_json(backward_compatibility),
-                    "generics": json_generics,
-                })
-            } else {
-                json!({
-                    "type": self.type_flat.as_json(backward_compatibility),
-                    "generics": json_generics,
-                })
-            }
+            json!({
+                "type": self.type_flat.as_json(backward_compatibility),
+                "generics": json_generics,
+            })
         }
     }
 }

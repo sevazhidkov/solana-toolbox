@@ -11,15 +11,13 @@ impl ToolboxIdlTransactionError {
                 "code": self.code,
                 "msg": self.msg
             })
+        } else if self.msg.is_empty() {
+            json!({
+                "code": self.code,
+                "msg": self.msg
+            })
         } else {
-            if self.msg.is_empty() {
-                json!({
-                    "code": self.code,
-                    "msg": self.msg
-                })
-            } else {
-                json!(self.code)
-            }
+            json!(self.code)
         }
     }
 }

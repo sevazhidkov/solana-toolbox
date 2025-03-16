@@ -116,14 +116,12 @@ pub async fn run() {
         Pubkey::find_program_address(pda_seeds_const_string, &program_id1).0;
     let pda_const_string2 =
         Pubkey::find_program_address(pda_seeds_const_string, &program_id2).0;
-    // The instruction we'll use
-    let idl_instruction = idl_program1.instructions.get("my_ix").unwrap();
     // Assert that the accounts can be properly resolved
-    let instruction_addresses = idl_instruction.find_addresses(
-        &program_id1,
-        &HashMap::new(),
-        &Value::Null,
-    );
+    let instruction_addresses = idl_program1
+        .instructions
+        .get("my_ix")
+        .unwrap()
+        .find_addresses(&program_id1, &HashMap::new(), &Value::Null);
     assert_eq!(
         *instruction_addresses
             .get("const_bytes_without_program")

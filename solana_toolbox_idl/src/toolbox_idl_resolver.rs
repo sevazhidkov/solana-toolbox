@@ -15,6 +15,12 @@ pub struct ToolboxIdlResolver {
     programs: HashMap<Pubkey, Arc<ToolboxIdlProgram>>,
 }
 
+impl Default for ToolboxIdlResolver {
+    fn default() -> ToolboxIdlResolver {
+        ToolboxIdlResolver::new()
+    }
+}
+
 impl ToolboxIdlResolver {
     pub fn new() -> ToolboxIdlResolver {
         ToolboxIdlResolver {
@@ -149,7 +155,7 @@ impl ToolboxIdlResolver {
                         &resolved_snapshots,
                         &(
                             &idl_instruction.args_type_full_fields,
-                            &instruction_payload,
+                            instruction_payload,
                         ),
                         &breadcrumbs.with_idl(&idl_instruction.name),
                     )

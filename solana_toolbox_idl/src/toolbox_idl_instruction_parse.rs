@@ -95,13 +95,10 @@ impl ToolboxIdlInstruction {
                 breadcrumbs,
             )?
         {
-            instruction_accounts.push(
-                ToolboxIdlInstructionAccount::try_parse(
-                    idl_instruction_account,
-                    &breadcrumbs,
-                )?
-                .into(),
-            );
+            instruction_accounts.push(ToolboxIdlInstructionAccount::try_parse(
+                idl_instruction_account,
+                &breadcrumbs,
+            )?);
         }
         Ok(instruction_accounts)
     }
@@ -114,7 +111,7 @@ impl ToolboxIdlInstruction {
             idl_object_get_key_as_array(idl_instruction, "args")
         {
             return ToolboxIdlTypeFlatFields::try_parse(
-                &idl_instruction_args,
+                idl_instruction_args,
                 breadcrumbs,
             );
         }

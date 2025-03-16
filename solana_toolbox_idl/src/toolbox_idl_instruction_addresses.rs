@@ -44,7 +44,7 @@ impl ToolboxIdlInstruction {
         if self.accounts.len() != instruction_metas.len() {
             return idl_err(
                 "Invalid instruction accounts length",
-                &&ToolboxIdlBreadcrumbs::default().as_val("instruction_metas"),
+                &ToolboxIdlBreadcrumbs::default().as_val("instruction_metas"),
             );
         }
         let mut instruction_addresses = HashMap::new();

@@ -42,10 +42,13 @@ pub async fn run() {
                     { "name": "array_u8_2", "type": ["u8", 2] },
                     { "name": "vec_u8_3", "type": ["u8"] },
                     { "name": "string", "type": "string" },
-                    { "name": "inner", "fields": [
-                        { "name": "u8", "type": "u8" },
-                        { "name": "u16", "type": "u16" },
-                    ] },
+                    {
+                        "name": "inner",
+                        "fields": [
+                            { "name": "u8", "type": "u8" },
+                            { "name": "u16", "type": "u16" },
+                        ]
+                    },
                 ]
             }
         }

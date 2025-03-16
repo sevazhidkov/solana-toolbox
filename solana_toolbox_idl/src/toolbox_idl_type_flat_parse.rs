@@ -295,7 +295,7 @@ impl ToolboxIdlTypeFlatFields {
         {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .and_then(|name| name.as_str())
-                .map(|name| idl_convert_to_value_name(name));
+                .map(idl_convert_to_value_name);
             if field_name.is_some() {
                 fields_named = true;
             }

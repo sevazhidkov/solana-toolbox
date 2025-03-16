@@ -81,7 +81,7 @@ impl ToolboxIdlInstruction {
                         program_id,
                         &instruction_addresses,
                         snapshots,
-                        &(&self.args_type_full_fields, &instruction_payload),
+                        &(&self.args_type_full_fields, instruction_payload),
                         &breadcrumbs.with_idl(&instruction_account.name),
                     )
                 {
