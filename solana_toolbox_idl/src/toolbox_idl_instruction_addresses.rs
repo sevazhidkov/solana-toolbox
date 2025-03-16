@@ -13,14 +13,14 @@ impl ToolboxIdlInstruction {
     pub fn compile_addresses(
         &self,
         instruction_addresses: &HashMap<String, Pubkey>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         let mut instruction_metas = vec![];
         for instruction_account in &self.accounts {
             let instruction_address = *idl_map_get_key_or_else(
                 instruction_addresses,
                 &instruction_account.name,
-                &breadcrumbs.val(),
+                &ToolboxIdlBreadcrumbs::default()
+                    .as_val("instruction_addresses"),
             )?;
             if instruction_account.is_writable {
                 instruction_metas.push(AccountMeta::new(
@@ -40,12 +40,11 @@ impl ToolboxIdlInstruction {
     pub fn decompile_addresses(
         &self,
         instruction_metas: &[AccountMeta],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         if self.accounts.len() != instruction_metas.len() {
             return idl_err(
                 "Invalid instruction accounts length",
-                &breadcrumbs.val(),
+                &&ToolboxIdlBreadcrumbs::default().as_val("instruction_metas"),
             );
         }
         let mut instruction_addresses = HashMap::new();

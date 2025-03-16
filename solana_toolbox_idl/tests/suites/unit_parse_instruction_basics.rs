@@ -17,7 +17,7 @@ pub async fn run() {
         "instructions": [
             {
                 "name": "my_ix",
-                "discriminator": [195, 241, 184, 14, 127, 155, 68, 53],
+                "discriminator": [38, 19, 70, 194, 0, 59, 80, 114],
                 "accounts": [
                     { "name": "account_ws", "signer": true, "writable": true },
                     { "name": "account_rs", "signer": true, "writable": false },
@@ -51,7 +51,7 @@ pub async fn run() {
     let idl_program3 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_ix": {
-                "discriminator": [195, 241, 184, 14, 127, 155, 68, 53],
+                "discriminator": [38, 19, 70, 194, 0, 59, 80, 114],
                 "accounts": [
                     { "name": "account_ws", "isSigner": true, "isMut": true },
                     { "name": "account_rs", "isSigner": true },
@@ -90,10 +90,9 @@ pub async fn run() {
         idl_program1.get_idl_instruction("my_ix").unwrap(),
         ToolboxIdlInstruction {
             name: "my_ix".to_string(),
-            discriminator: vec![195, 241, 184, 14, 127, 155, 68, 53],
+            discriminator: vec![38, 19, 70, 194, 0, 59, 80, 114],
             accounts: vec![
                 ToolboxIdlInstructionAccount {
-                    index: 1,
                     name: "account_ws".to_string(),
                     is_writable: true,
                     is_signer: true,
@@ -101,7 +100,6 @@ pub async fn run() {
                     pda: None
                 },
                 ToolboxIdlInstructionAccount {
-                    index: 2,
                     name: "account_rs".to_string(),
                     is_writable: false,
                     is_signer: true,
@@ -109,7 +107,6 @@ pub async fn run() {
                     pda: None
                 },
                 ToolboxIdlInstructionAccount {
-                    index: 3,
                     name: "account_w".to_string(),
                     is_writable: true,
                     is_signer: false,
@@ -117,7 +114,6 @@ pub async fn run() {
                     pda: None
                 },
                 ToolboxIdlInstructionAccount {
-                    index: 4,
                     name: "account_r".to_string(),
                     is_writable: false,
                     is_signer: false,

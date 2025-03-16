@@ -14,6 +14,8 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_convert_to_type_name;
+use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -113,18 +115,19 @@ impl ToolboxIdlProgram {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<HashMap<String, Arc<ToolboxIdlTypedef>>, ToolboxIdlError> {
         let mut typedefs = HashMap::new();
-        for (idl_type_name, idl_type, breadcrumbs) in
+        for (idl_typedef_name, idl_typedef, breadcrumbs) in
             ToolboxIdlProgram::root_collection_scoped_named_values(
                 idl_root,
                 "types",
                 breadcrumbs,
             )?
         {
+            let idl_typedef_name = idl_convert_to_type_name(idl_typedef_name);
             typedefs.insert(
-                idl_type_name.to_string(),
+                idl_typedef_name.to_string(),
                 ToolboxIdlTypedef::try_parse(
-                    idl_type_name,
-                    idl_type,
+                    &idl_typedef_name,
+                    idl_typedef,
                     &breadcrumbs,
                 )?
                 .into(),
@@ -147,10 +150,12 @@ impl ToolboxIdlProgram {
                 breadcrumbs,
             )?
         {
+            let idl_instruction_name =
+                idl_convert_to_value_name(idl_instruction_name);
             instructions.insert(
                 idl_instruction_name.to_string(),
                 ToolboxIdlInstruction::try_parse(
-                    idl_instruction_name,
+                    &idl_instruction_name,
                     idl_instruction,
                     typedefs,
                     &breadcrumbs,
@@ -174,10 +179,11 @@ impl ToolboxIdlProgram {
                 breadcrumbs,
             )?
         {
+            let idl_account_name = idl_convert_to_type_name(idl_account_name);
             accounts.insert(
                 idl_account_name.to_string(),
                 ToolboxIdlAccount::try_parse(
-                    idl_account_name,
+                    &idl_account_name,
                     idl_account,
                     typedefs,
                     &breadcrumbs,
@@ -201,10 +207,11 @@ impl ToolboxIdlProgram {
                 breadcrumbs,
             )?
         {
+            let idl_error_name = idl_convert_to_type_name(idl_error_name);
             errors.insert(
                 idl_error_name.to_string(),
                 ToolboxIdlTransactionError::try_parse(
-                    idl_error_name,
+                    &idl_error_name,
                     idl_error,
                     &breadcrumbs,
                 )?

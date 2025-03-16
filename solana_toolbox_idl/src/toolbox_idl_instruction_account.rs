@@ -2,7 +2,6 @@ use solana_sdk::pubkey::Pubkey;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
-    pub index: usize,
     pub name: String,
     pub is_writable: bool,
     pub is_signer: bool,

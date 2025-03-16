@@ -3,7 +3,6 @@ use std::fs::read_to_string;
 use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_idl::ToolboxIdlBreadcrumbs;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
@@ -38,12 +37,8 @@ pub async fn run() {
         &idl_instruction
             .decompile_payload(
                 &idl_instruction
-                    .compile_payload(
-                        &instruction_payload,
-                        &ToolboxIdlBreadcrumbs::default()
-                    )
+                    .compile_payload(&instruction_payload)
                     .unwrap(),
-                &ToolboxIdlBreadcrumbs::default()
             )
             .unwrap()
     );
@@ -73,7 +68,7 @@ pub async fn run() {
     });
     // Decompile the account state and check that it matches the original state
     let account_data = idl_account.compile(&account_state).unwrap();
-    assert_eq!(account_data.len(), 555);
+    assert_eq!(account_data.len(), 675);
     assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
     // IDL Account used
     let idl_account = idl_program.get_idl_account("Pledge").unwrap();
@@ -84,6 +79,6 @@ pub async fn run() {
     });
     // Decompile the account content and check that it matches the original
     let account_data = idl_account.compile(&account_state).unwrap();
-    assert_eq!(account_data.len(), 17);
+    assert_eq!(account_data.len(), 25);
     assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
 }

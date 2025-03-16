@@ -37,20 +37,20 @@ pub async fn run() {
     // Related "USDC mint" account checks
     assert_eq!(
         "H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B",
-        realm_details.1.get("usdcMint").unwrap().as_str().unwrap(),
+        realm_details.1.get("usdc_mint").unwrap().as_str().unwrap(),
     );
     // Related "UCT mint" account checks
     assert_eq!(
         u64::from(uct_mint_bump),
         realm_details
             .1
-            .get("uctMintBump")
+            .get("uct_mint_bump")
             .unwrap()
             .as_u64()
             .unwrap(),
     );
     assert_eq!(
         uct_mint.to_string(),
-        realm_details.1.get("uctMint").unwrap().as_str().unwrap(),
+        realm_details.1.get("uct_mint").unwrap().as_str().unwrap(),
     );
 }

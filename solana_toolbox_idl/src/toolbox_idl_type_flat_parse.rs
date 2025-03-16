@@ -6,6 +6,8 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
+use crate::toolbox_idl_utils::idl_convert_to_type_name;
+use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
@@ -164,10 +166,12 @@ impl ToolboxIdlTypeFlat {
         idl_defined: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        let defined_name = idl_value_as_str_or_object_with_name_as_str_or_else(
-            idl_defined,
-            &breadcrumbs.as_idl("defined"),
-        )?;
+        let defined_name = idl_convert_to_type_name(
+            idl_value_as_str_or_object_with_name_as_str_or_else(
+                idl_defined,
+                &breadcrumbs.as_idl("defined"),
+            )?,
+        );
         let mut defined_generics = vec![];
         if let Some(idl_defined_generics) =
             idl_value_as_object_get_key_as_array(idl_defined, "generics")
@@ -182,7 +186,7 @@ impl ToolboxIdlTypeFlat {
             }
         }
         Ok(ToolboxIdlTypeFlat::Defined {
-            name: defined_name.to_string(),
+            name: defined_name,
             generics: defined_generics,
         })
     }
@@ -252,11 +256,12 @@ impl ToolboxIdlTypeFlat {
         for (_, idl_enum_variant, breadcrumbs) in
             idl_iter_get_scoped_values(idl_enum_variants, breadcrumbs)?
         {
-            let enum_variant_name =
+            let enum_variant_name = idl_convert_to_type_name(
                 idl_value_as_str_or_object_with_name_as_str_or_else(
                     idl_enum_variant,
                     &breadcrumbs.idl(),
-                )?;
+                )?,
+            );
             let enum_variant_fields = if let Some(idl_enum_variant_fields) =
                 idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
             {
@@ -267,8 +272,7 @@ impl ToolboxIdlTypeFlat {
             } else {
                 ToolboxIdlTypeFlatFields::None
             };
-            enum_variants
-                .push((enum_variant_name.to_string(), enum_variant_fields));
+            enum_variants.push((enum_variant_name, enum_variant_fields));
         }
         Ok(ToolboxIdlTypeFlat::Enum {
             variants: enum_variants,
@@ -291,7 +295,7 @@ impl ToolboxIdlTypeFlatFields {
         {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .and_then(|name| name.as_str())
-                .map(|name| name.to_string());
+                .map(|name| idl_convert_to_value_name(name));
             if field_name.is_some() {
                 fields_named = true;
             }

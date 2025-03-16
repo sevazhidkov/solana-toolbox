@@ -28,17 +28,10 @@ impl ToolboxIdlInstruction {
         instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
     ) -> Result<Instruction, ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         Ok(Instruction {
             program_id: *program_id,
-            accounts: self.compile_addresses(
-                instruction_addresses,
-                &breadcrumbs.with_idl("addresses"),
-            )?,
-            data: self.compile_payload(
-                instruction_payload,
-                &breadcrumbs.with_idl("payload"),
-            )?,
+            accounts: self.compile_addresses(instruction_addresses)?,
+            data: self.compile_payload(instruction_payload)?,
         })
     }
 
@@ -46,17 +39,10 @@ impl ToolboxIdlInstruction {
         &self,
         instruction: &Instruction,
     ) -> Result<(Pubkey, HashMap<String, Pubkey>, Value), ToolboxIdlError> {
-        let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         Ok((
             instruction.program_id,
-            self.decompile_addresses(
-                &instruction.accounts,
-                &breadcrumbs.with_idl("addresses"),
-            )?,
-            self.decompile_payload(
-                &instruction.data,
-                &breadcrumbs.with_idl("payload"),
-            )?,
+            self.decompile_addresses(&instruction.accounts)?,
+            self.decompile_payload(&instruction.data)?,
         ))
     }
 
@@ -96,7 +82,7 @@ impl ToolboxIdlInstruction {
                         &instruction_addresses,
                         snapshots,
                         &(&self.args_type_full_fields, &instruction_payload),
-                        &breadcrumbs.with_idl(&self.name),
+                        &breadcrumbs.with_idl(&instruction_account.name),
                     )
                 {
                     made_progress = true;

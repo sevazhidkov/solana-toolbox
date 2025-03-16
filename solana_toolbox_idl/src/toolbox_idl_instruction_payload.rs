@@ -8,7 +8,6 @@ impl ToolboxIdlInstruction {
     pub fn compile_payload(
         &self,
         instruction_payload: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(&self.discriminator);
@@ -16,7 +15,7 @@ impl ToolboxIdlInstruction {
             instruction_payload,
             &mut instruction_data,
             true,
-            breadcrumbs,
+            &ToolboxIdlBreadcrumbs::default(),
         )?;
         Ok(instruction_data)
     }
@@ -24,7 +23,6 @@ impl ToolboxIdlInstruction {
     pub fn decompile_payload(
         &self,
         instruction_data: &[u8],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Value, ToolboxIdlError> {
         if !instruction_data.starts_with(&self.discriminator) {
             return Err(ToolboxIdlError::InvalidDiscriminator {
@@ -36,7 +34,7 @@ impl ToolboxIdlInstruction {
             self.args_type_full_fields.try_deserialize(
                 instruction_data,
                 self.discriminator.len(),
-                breadcrumbs,
+                &ToolboxIdlBreadcrumbs::default(),
             )?;
         Ok(instruction_payload)
     }

@@ -1,5 +1,8 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::{
+    ToolboxIdlProgram, ToolboxIdlTypeFlat, ToolboxIdlTypeFlatFields,
+    ToolboxIdlTypePrimitive,
+};
 
 #[tokio::test]
 pub async fn run() {
@@ -48,11 +51,6 @@ pub async fn run() {
                 "name": "MyError",
                 "msg": "My error message",
             },
-            {
-                "code": 4243,
-                "name": "MyError2",
-                "msg": "",
-            }
         ],
     }))
     .unwrap();
@@ -91,38 +89,96 @@ pub async fn run() {
                 "code": 4242,
                 "msg": "My error message",
             },
-            "MyError2": 4243,
         },
     }))
     .unwrap();
     // Assert that both versions are equivalent
-    assert_eq!(idl_program2, idl_program1);
+    assert_eq!(idl_program1, idl_program2);
     // Assert instruction was parsed correctly
     let idl_instruction = idl_program1.get_idl_instruction("my_ix").unwrap();
-    assert_eq!("my_ix", idl_instruction.name);
-    assert_eq!("payer", idl_instruction.accounts[0].name);
-    assert_eq!("authority", idl_instruction.accounts[1].name);
+    assert_eq!(idl_instruction.name, "my_ix");
     assert_eq!(
-        json!({}), // TODO - proper check
-        idl_instruction.args_type_flat_fields.as_json(false)
+        idl_instruction.discriminator,
+        &[38, 19, 70, 194, 0, 59, 80, 114]
+    );
+    assert_eq!(idl_instruction.accounts[0].name, "payer");
+    assert_eq!(idl_instruction.accounts[0].is_signer, true);
+    assert_eq!(idl_instruction.accounts[0].is_writable, false);
+    assert_eq!(idl_instruction.accounts[0].address, None);
+    assert_eq!(idl_instruction.accounts[0].pda, None);
+    assert_eq!(idl_instruction.accounts[1].name, "authority");
+    assert_eq!(idl_instruction.accounts[1].is_signer, false);
+    assert_eq!(idl_instruction.accounts[1].is_writable, true);
+    assert_eq!(idl_instruction.accounts[1].address, None);
+    assert_eq!(idl_instruction.accounts[1].pda, None);
+    assert_eq!(
+        idl_instruction.args_type_flat_fields,
+        ToolboxIdlTypeFlatFields::Named(vec![
+            (
+                "index".to_string(),
+                ToolboxIdlTypeFlat::Primitive {
+                    primitive: ToolboxIdlTypePrimitive::U32
+                }
+            ),
+            (
+                "id".to_string(),
+                ToolboxIdlTypeFlat::Primitive {
+                    primitive: ToolboxIdlTypePrimitive::I64
+                }
+            ),
+        ])
     );
     // Assert account was parsed correctly
     let idl_account = idl_program1.get_idl_account("MyAccount").unwrap();
-    assert_eq!("MyAccount", idl_account.name);
+    assert_eq!(idl_account.name, "MyAccount");
     assert_eq!(
-        json!({}), // TODO - proper check
-        idl_account.content_type_flat.as_json(false)
+        idl_account.discriminator,
+        &[246, 28, 6, 87, 251, 45, 50, 42]
+    );
+    assert_eq!(
+        idl_account.content_type_flat,
+        ToolboxIdlTypeFlat::Struct {
+            fields: ToolboxIdlTypeFlatFields::Named(vec![
+                (
+                    "field1".to_string(),
+                    ToolboxIdlTypeFlat::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::U64
+                    }
+                ),
+                (
+                    "field2".to_string(),
+                    ToolboxIdlTypeFlat::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::U32
+                    }
+                )
+            ])
+        }
     );
     // Assert struct was parsed correctly
     let idl_typedef = idl_program1.get_idl_typedef("MyStruct").unwrap();
-    assert_eq!("MyStruct", idl_typedef.name);
+    assert_eq!(idl_typedef.name, "MyStruct");
     assert_eq!(
-        json!({}), // TODO - proper check
-        idl_typedef.type_flat.as_json(false)
+        idl_typedef.type_flat,
+        ToolboxIdlTypeFlat::Struct {
+            fields: ToolboxIdlTypeFlatFields::Named(vec![
+                (
+                    "addr".to_string(),
+                    ToolboxIdlTypeFlat::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::PublicKey
+                    }
+                ),
+                (
+                    "name".to_string(),
+                    ToolboxIdlTypeFlat::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::String
+                    }
+                )
+            ])
+        }
     );
     // Assert error was parsed correctly
     let idl_error = idl_program1.get_idl_error("MyError").unwrap();
-    assert_eq!(4242, idl_error.code);
-    assert_eq!("MyError", idl_error.name);
-    assert_eq!("My error message", idl_error.msg);
+    assert_eq!(idl_error.name, "MyError");
+    assert_eq!(idl_error.code, 4242);
+    assert_eq!(idl_error.msg, "My error message");
 }

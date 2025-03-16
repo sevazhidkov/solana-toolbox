@@ -2,7 +2,7 @@ use std::fs::read_to_string;
 
 use serde_json::json;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_idl::{ToolboxIdlBreadcrumbs, ToolboxIdlProgram};
+use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
@@ -12,15 +12,16 @@ pub async fn run() {
     )
     .unwrap();
     // Prepare instruction args
-    let idl_instruction =
-        idl_program.get_idl_instruction("initializeMarket").unwrap();
+    let idl_instruction = idl_program
+        .get_idl_instruction("initialize_market")
+        .unwrap();
     let instruction_payload = json!({
-        "globalMarketSeed": "SEED",
-        "withdrawalFee": {
+        "global_market_seed": "SEED",
+        "withdrawal_fee": {
             "numerator": 41,
             "denominator": 42,
         },
-        "credixFeePercentage": {
+        "credix_fee_percentage": {
             "numerator": 51,
             "denominator": 52,
         },
@@ -29,14 +30,14 @@ pub async fn run() {
             Pubkey::new_unique().to_string(),
             Pubkey::new_unique().to_string(),
         ],
-        "passIssuers": [
+        "pass_issuers": [
             Pubkey::new_unique().to_string(),
             Pubkey::new_unique().to_string(),
             Pubkey::new_unique().to_string(),
         ],
-        "withdrawEpochRequestSeconds": 22,
-        "withdrawEpochRedeemSeconds": 23,
-        "withdrawEpochAvailableLiquiditySeconds": 24,
+        "withdraw_epoch_request_seconds": 22,
+        "withdraw_epoch_redeem_seconds": 23,
+        "withdraw_epoch_available_liquidity_seconds": 24,
     });
     // Compile / decompile the instruction args and check that they match the original
     assert_eq!(
@@ -44,47 +45,43 @@ pub async fn run() {
         idl_instruction
             .decompile_payload(
                 &idl_instruction
-                    .compile_payload(
-                        &instruction_payload,
-                        &ToolboxIdlBreadcrumbs::default() // TODO - this should not be needed
-                    )
+                    .compile_payload(&instruction_payload)
                     .unwrap(),
-                &ToolboxIdlBreadcrumbs::default()
             )
             .unwrap()
     );
     // Prepare an account contents
     let idl_account = idl_program.get_idl_account("GlobalMarketState").unwrap();
     let account_state = json!({
-        "baseTokenMint": Pubkey::new_unique().to_string(),
-        "lpTokenMint": Pubkey::new_unique().to_string(),
-        "poolOutstandingCredit": 5_000_000_000u64,
-        "treasuryPoolTokenAccount": Pubkey::new_unique().to_string(),
-        "signingAuthorityBump": 4,
+        "base_token_mint": Pubkey::new_unique().to_string(),
+        "lp_token_mint": Pubkey::new_unique().to_string(),
+        "pool_outstanding_credit": 5_000_000_000u64,
+        "treasury_pool_token_account": Pubkey::new_unique().to_string(),
+        "signing_authority_bump": 4,
         "bump": 5,
-        "credixFeePercentage": {
+        "credix_fee_percentage": {
             "numerator": 51,
             "denominator": 52,
         },
-        "withdrawalFee": {
+        "withdrawal_fee": {
             "numerator": 41,
             "denominator": 42,
         },
         "frozen": true,
         "seed": "Hello World !",
-        "poolSizeLimitPercentage": {
+        "pool_size_limit_percentage": {
             "numerator": 61,
             "denominator": 62,
         },
-        "withdrawEpochRequestSeconds": 0x42_42_42_01,
-        "withdrawEpochRedeemSeconds": 0x42_42_42_02,
-        "withdrawEpochAvailableLiquiditySeconds": 0x42_42_42_03,
-        "latestWithdrawEpochIdx": 0x42_42_42_04,
-        "latestWithdrawEpochEnd": -42,
-        "lockedLiquidity": 777_777,
-        "totalRedeemedBaseAmount": 888_888,
-        "hasWithdrawEpochs": true,
-        "redeemAuthorityBump": 9,
+        "withdraw_epoch_request_seconds": 0x42_42_42_01,
+        "withdraw_epoch_redeem_seconds": 0x42_42_42_02,
+        "withdraw_epoch_available_liquidity_seconds": 0x42_42_42_03,
+        "latest_withdraw_epoch_idx": 0x42_42_42_04,
+        "latest_withdraw_epoch_end": -42,
+        "locked_liquidity": 777_777,
+        "total_redeemed_base_amount": 888_888,
+        "has_withdraw_epochs": true,
+        "redeem_authority_bump": 9,
     });
     // Decompile the account content and check that it matches the original
     assert_eq!(
@@ -96,8 +93,8 @@ pub async fn run() {
     // Prepare an account contents
     let idl_account = idl_program.get_idl_account("ProgramState").unwrap();
     let account_state = json!({
-        "credixMultisigKey": Pubkey::new_unique().to_string(),
-        "credixManagers": [
+        "credix_multisig_key": Pubkey::new_unique().to_string(),
+        "credix_managers": [
             Pubkey::new_unique().to_string(),
             Pubkey::new_unique().to_string(),
             Pubkey::new_unique().to_string(),
@@ -109,7 +106,7 @@ pub async fn run() {
             Pubkey::new_unique().to_string(),
             Pubkey::new_unique().to_string(),
         ],
-        "credixTreasury": Pubkey::new_unique().to_string(),
+        "credix_treasury": Pubkey::new_unique().to_string(),
     });
     // Decompile the account content and check that it matches the original
     assert_eq!(

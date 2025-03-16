@@ -56,7 +56,7 @@ pub async fn run() {
         "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
         program_state_details
             .1
-            .get("credixMultisigKey")
+            .get("credix_multisig_key")
             .unwrap()
             .as_str()
             .unwrap()

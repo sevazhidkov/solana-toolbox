@@ -10,7 +10,7 @@ pub async fn run() {
     let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_ix": {
-                "discriminator": [77, 78],
+                "discriminator": [33, 34],
                 "accounts": [
                     { "name": "first" },
                     {
@@ -33,7 +33,7 @@ pub async fn run() {
             },
         },
         "accounts": {
-            "my_account": {
+            "MyAccount": {
                 "fields": [
                     { "name": "u8", "type": "u8" },
                     { "name": "u16", "type": "u16" },
@@ -64,21 +64,21 @@ pub async fn run() {
         &111u8.to_le_bytes(),
         &222u16.to_le_bytes(),
     ];
-    let dummy_pda =
+    let dummy_address =
         Pubkey::find_program_address(dummy_seeds, &dummy_program_id).0;
     // Assert that the accounts can be properly resolved
     let instruction_addresses = idl_program
         .get_idl_instruction("my_ix")
         .unwrap()
         .find_addresses_with_snapshots(
-            &dummy_pda,
+            &dummy_program_id,
             &HashMap::new(),
             &json!({}),
             &HashMap::from_iter([(
                 "first".to_string(),
                 (
                     idl_program
-                        .get_idl_account("my_account")
+                        .get_idl_account("MyAccount")
                         .unwrap()
                         .content_type_full
                         .clone(),
@@ -98,5 +98,5 @@ pub async fn run() {
                 ),
             )]),
         );
-    assert_eq!(*instruction_addresses.get("pda").unwrap(), dummy_pda);
+    assert_eq!(*instruction_addresses.get("pda").unwrap(), dummy_address);
 }

@@ -14,22 +14,22 @@ pub async fn run() {
     .unwrap();
     // IDL instruction
     let idl_instruction =
-        idl_program.get_idl_instruction("createDeal").unwrap();
+        idl_program.get_idl_instruction("create_deal").unwrap();
     // Program
     let program_id = Pubkey::new_unique();
     // Prepare instruction accounts addresses
     let instruction_addresses = HashMap::from_iter([
         ("owner".to_string(), Pubkey::new_unique()),
         ("borrower".to_string(), Pubkey::new_unique()),
-        ("globalMarketState".to_string(), Pubkey::new_unique()),
-        ("systemProgram".to_string(), Pubkey::new_unique()),
+        ("global_market_state".to_string(), Pubkey::new_unique()),
+        ("system_program".to_string(), Pubkey::new_unique()),
     ]);
     // Prepare instruction args
     let instruction_payload = json!({
-        "maxFundingDuration": 42,
-        "dealName": "deal hello world",
-        "arrangementFees": 41,
-        "arrangementFeePercentage": {
+        "max_funding_duration": 42,
+        "deal_name": "deal hello world",
+        "arrangement_fees": 41,
+        "arrangement_fee_percentage": {
             "numerator": 100,
             "denominator": 1,
         },
@@ -41,7 +41,7 @@ pub async fn run() {
         &instruction_addresses,
         &instruction_payload,
         &HashMap::from_iter([(
-            "borrowerInfo".to_string(),
+            "borrower_info".to_string(),
             (
                 idl_program
                     .get_idl_account("BorrowerInfo")
@@ -49,7 +49,7 @@ pub async fn run() {
                     .content_type_full
                     .clone(),
                 json!({
-                    "numOfDeals": 42,
+                    "num_of_deals": 42,
                 }),
             ),
         )]),

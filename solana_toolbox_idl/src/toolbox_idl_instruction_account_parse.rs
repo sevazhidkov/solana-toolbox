@@ -11,6 +11,7 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -21,18 +22,18 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 
 impl ToolboxIdlInstructionAccount {
     pub fn try_parse(
-        idl_instruction_account_index: usize,
         idl_instruction_account: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlInstructionAccount, ToolboxIdlError> {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account, &breadcrumbs.idl())?;
-        let idl_instruction_account_name = idl_object_get_key_as_str_or_else(
-            idl_instruction_account,
-            "name",
-            &breadcrumbs.idl(),
-        )?;
-        let breadcrumbs = &breadcrumbs.with_idl(idl_instruction_account_name);
+        let idl_instruction_account_name =
+            idl_convert_to_value_name(idl_object_get_key_as_str_or_else(
+                idl_instruction_account,
+                "name",
+                &breadcrumbs.idl(),
+            )?);
+        let breadcrumbs = &breadcrumbs.with_idl(&idl_instruction_account_name);
         let idl_instruction_account_is_writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
                 .or(idl_object_get_key_as_bool(
@@ -48,8 +49,7 @@ impl ToolboxIdlInstructionAccount {
                 ))
                 .unwrap_or(false);
         Ok(ToolboxIdlInstructionAccount {
-            index: idl_instruction_account_index + 1,
-            name: idl_instruction_account_name.to_string(),
+            name: idl_instruction_account_name,
             is_writable: idl_instruction_account_is_writable,
             is_signer: idl_instruction_account_is_signer,
             address: ToolboxIdlInstructionAccount::try_parse_address(

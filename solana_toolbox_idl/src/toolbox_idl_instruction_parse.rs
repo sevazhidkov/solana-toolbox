@@ -89,17 +89,14 @@ impl ToolboxIdlInstruction {
                 &breadcrumbs.idl(),
             )?;
         let mut instruction_accounts = vec![];
-        for (
-            idl_instruction_account_index,
-            idl_instruction_account,
-            breadcrumbs,
-        ) in idl_iter_get_scoped_values(
-            idl_instruction_accounts_array,
-            breadcrumbs,
-        )? {
+        for (_, idl_instruction_account, breadcrumbs) in
+            idl_iter_get_scoped_values(
+                idl_instruction_accounts_array,
+                breadcrumbs,
+            )?
+        {
             instruction_accounts.push(
                 ToolboxIdlInstructionAccount::try_parse(
-                    idl_instruction_account_index,
                     idl_instruction_account,
                     &breadcrumbs,
                 )?

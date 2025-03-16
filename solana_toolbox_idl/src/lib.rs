@@ -34,7 +34,6 @@ mod toolbox_idl_typedef_parse;
 mod toolbox_idl_utils;
 // TODO - handle events from logs ?
 // TODO - support for uploading IDLs ?
-// TODO - shall decouplee from ToolboxEndpoint somehow ??
 
 pub use toolbox_idl_account::ToolboxIdlAccount;
 pub use toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;

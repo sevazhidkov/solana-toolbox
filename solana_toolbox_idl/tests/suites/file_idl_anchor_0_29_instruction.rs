@@ -20,29 +20,29 @@ pub async fn run() {
     let placeholder = Pubkey::new_unique();
     // Actually generate the instruction
     let instruction = idl_program
-        .get_idl_instruction("initializeRealm")
+        .get_idl_instruction("initialize_realm")
         .unwrap()
         .compile(
             &program_id,
             &HashMap::from_iter([
                 ("payer".to_string(), payer), // TODO - could remove the need for to_string() everywhere
                 ("funding".to_string(), funding),
-                ("fundingUsdc".to_string(), placeholder),
+                ("funding_usdc".to_string(), placeholder),
                 ("realm".to_string(), placeholder),
-                ("realmUsdc".to_string(), placeholder),
-                ("uctMint".to_string(), placeholder),
-                ("uxpMint".to_string(), placeholder),
-                ("usdcMint".to_string(), placeholder),
+                ("realm_usdc".to_string(), placeholder),
+                ("uct_mint".to_string(), placeholder),
+                ("uxp_mint".to_string(), placeholder),
+                ("usdc_mint".to_string(), placeholder),
                 ("authority".to_string(), placeholder),
                 ("spill".to_string(), placeholder),
-                ("systemProgram".to_string(), placeholder),
-                ("tokenProgram".to_string(), placeholder),
+                ("system_program".to_string(), placeholder),
+                ("token_program".to_string(), placeholder),
             ]),
             &json!({
                 "params": {
-                    "liquidInsuranceFundUsdcAmount": 41,
-                    "phaseOneDurationSeconds": 42,
-                    "phaseTwoDurationSeconds": 43,
+                    "liquid_insurance_fund_usdc_amount": 41,
+                    "phase_one_duration_seconds": 42,
+                    "phase_two_duration_seconds": 43,
                 },
             }),
         )

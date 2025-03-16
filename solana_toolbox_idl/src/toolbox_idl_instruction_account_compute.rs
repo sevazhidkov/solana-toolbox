@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use convert_case::Case;
-use convert_case::Casing;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
@@ -149,7 +147,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
         parts: &[&str],
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
-        let current = parts[0];
+        let lookup_name = parts[0];
         // TODO - support unamed structs as arg ?
         let type_full_fields_named = idl_ok_or_else(
             type_full_fields.as_named(),
@@ -157,10 +155,9 @@ impl ToolboxIdlInstructionAccountPdaBlob {
             &breadcrumbs.idl(),
         )?;
         let value_object = idl_as_object_or_else(value, &breadcrumbs.val())?;
-        // TODO - remove the need for snake case by parsing everything in snake case
         for (field_name, field_type_full) in type_full_fields_named {
             let breadcrumbs = &breadcrumbs.with_idl(field_name);
-            if field_name.to_case(Case::Snake) == current.to_case(Case::Snake) {
+            if field_name == lookup_name {
                 let value_field = idl_object_get_key_or_else(
                     value_object,
                     field_name,
@@ -189,6 +186,6 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 );
             }
         }
-        idl_err("Unknown value field", &breadcrumbs.as_val(current))
+        idl_err("Unknown value field", &breadcrumbs.as_val(lookup_name))
     }
 }

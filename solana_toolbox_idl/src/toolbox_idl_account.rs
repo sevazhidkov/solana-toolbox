@@ -7,7 +7,6 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 
-// TODO - should this be account_def ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
     pub name: String,

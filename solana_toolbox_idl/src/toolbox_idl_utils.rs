@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::num::TryFromIntError;
 
+use convert_case::Boundary;
+use convert_case::Case;
+use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
@@ -417,4 +420,14 @@ pub(crate) fn idl_iter_get_scoped_values<'a, T>(
         ));
     }
     Ok(scoped_values)
+}
+
+pub(crate) fn idl_convert_to_value_name(name: &str) -> String {
+    name.without_boundaries(&[Boundary::LOWER_DIGIT])
+        .to_case(Case::Snake)
+}
+
+pub(crate) fn idl_convert_to_type_name(name: &str) -> String {
+    name.without_boundaries(&[Boundary::LOWER_DIGIT])
+        .to_case(Case::Pascal)
 }
