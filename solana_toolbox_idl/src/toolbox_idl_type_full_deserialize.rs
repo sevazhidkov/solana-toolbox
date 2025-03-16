@@ -169,12 +169,7 @@ impl ToolboxIdlTypeFull {
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        ToolboxIdlTypeFullFields::try_deserialize(
-            struct_fields,
-            data,
-            data_offset,
-            breadcrumbs,
-        )
+        struct_fields.try_deserialize(data, data_offset, breadcrumbs)
     }
 
     fn try_deserialize_enum(
@@ -197,13 +192,11 @@ impl ToolboxIdlTypeFull {
         }
         let mut data_size = std::mem::size_of_val(&data_enum);
         let enum_variant = &enum_variants[data_index];
-        let (data_fields_size, data_fields) =
-            ToolboxIdlTypeFullFields::try_deserialize(
-                &enum_variant.1,
-                data,
-                data_offset + data_size,
-                breadcrumbs,
-            )?;
+        let (data_fields_size, data_fields) = enum_variant.1.try_deserialize(
+            data,
+            data_offset + data_size,
+            breadcrumbs,
+        )?;
         data_size += data_fields_size;
         if data_fields.is_null() {
             Ok((data_size, Value::String(enum_variant.0.to_string())))

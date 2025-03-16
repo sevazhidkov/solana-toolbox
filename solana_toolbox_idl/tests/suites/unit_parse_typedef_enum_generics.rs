@@ -70,7 +70,7 @@ pub async fn run() {
     assert_eq!(idl_program1, idl_program5);
     // Assert that the content is correct
     assert_eq!(
-        idl_program1.get_idl_typedef("MyEnum").unwrap(),
+        *idl_program1.typedefs.get("MyEnum").unwrap(),
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
             generics: vec!["A".to_string(), "B".to_string()],

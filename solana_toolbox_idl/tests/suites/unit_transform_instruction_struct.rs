@@ -29,7 +29,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Choose the instruction
-    let idl_instruction = idl_program.get_idl_instruction("my_ix").unwrap();
+    let idl_instruction = idl_program.instructions.get("my_ix").unwrap();
     // Check that we can use the manual IDL to compile/decompile our IX
     let program_id = Pubkey::new_unique();
     let instruction_addresses =

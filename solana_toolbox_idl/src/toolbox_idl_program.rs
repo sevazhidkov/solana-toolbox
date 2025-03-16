@@ -11,61 +11,19 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgram {
-    typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
-    instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
-    accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
-    errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
+    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
+    pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
+    pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
+    pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
 }
 
 impl ToolboxIdlProgram {
-    pub fn new(
-        typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
-        instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
-        accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
-        errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
-    ) -> ToolboxIdlProgram {
-        ToolboxIdlProgram {
-            typedefs,
-            instructions,
-            accounts,
-            errors,
-        }
-    }
-
     pub fn find_anchor_pda(
         program_id: &Pubkey,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Pubkey::create_with_seed(&base, "anchor:idl", program_id)
             .map_err(ToolboxIdlError::Pubkey)
-    }
-
-    pub fn get_idl_typedef(
-        &self,
-        typedef_name: &str,
-    ) -> Option<Arc<ToolboxIdlTypedef>> {
-        self.typedefs.get(typedef_name).cloned()
-    }
-
-    pub fn get_idl_instruction(
-        &self,
-        instruction_name: &str,
-    ) -> Option<Arc<ToolboxIdlInstruction>> {
-        self.instructions.get(instruction_name).cloned()
-    }
-
-    pub fn get_idl_account(
-        &self,
-        account_name: &str,
-    ) -> Option<Arc<ToolboxIdlAccount>> {
-        self.accounts.get(account_name).cloned()
-    }
-
-    pub fn get_idl_error(
-        &self,
-        error_name: &str,
-    ) -> Option<Arc<ToolboxIdlTransactionError>> {
-        self.errors.get(error_name).cloned()
     }
 
     pub fn guess_idl_instruction(

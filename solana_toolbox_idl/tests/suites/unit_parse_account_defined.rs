@@ -57,7 +57,7 @@ pub async fn run() {
     assert_eq!(idl_program1, idl_program4);
     // Assert that the content is correct
     assert_eq!(
-        idl_program1.get_idl_account("MyAccount").unwrap(),
+        *idl_program1.accounts.get("MyAccount").unwrap(),
         ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![246, 28, 6, 87, 251, 45, 50, 42],

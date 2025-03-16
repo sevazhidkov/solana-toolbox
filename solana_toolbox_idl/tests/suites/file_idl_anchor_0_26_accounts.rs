@@ -72,7 +72,8 @@ pub async fn run() {
     .0;
     // Generate all missing IX accounts with just the minimum information
     let initialize_market_addresses = idl_program
-        .get_idl_instruction("initialize_market")
+        .instructions
+        .get("initialize_market")
         .unwrap()
         .find_addresses(
             &program_id,
@@ -122,7 +123,8 @@ pub async fn run() {
     );
     // Generate all missing IX accounts with just the minimum information
     let open_deal_addresses = idl_program
-        .get_idl_instruction("open_deal")
+        .instructions
+        .get("open_deal")
         .unwrap()
         .find_addresses_with_snapshots(
             &program_id,
@@ -135,7 +137,8 @@ pub async fn run() {
                 "deal".to_string(),
                 (
                     idl_program
-                        .get_idl_account("Deal")
+                        .accounts
+                        .get("Deal")
                         .unwrap()
                         .content_type_full
                         .clone(),

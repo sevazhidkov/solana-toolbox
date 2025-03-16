@@ -1,8 +1,8 @@
 use serde_json::json;
-use solana_toolbox_idl::{
-    ToolboxIdlProgram, ToolboxIdlTypeFlat, ToolboxIdlTypeFlatFields,
-    ToolboxIdlTypePrimitive,
-};
+use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
@@ -95,7 +95,7 @@ pub async fn run() {
     // Assert that both versions are equivalent
     assert_eq!(idl_program1, idl_program2);
     // Assert instruction was parsed correctly
-    let idl_instruction = idl_program1.get_idl_instruction("my_ix").unwrap();
+    let idl_instruction = idl_program1.instructions.get("my_ix").unwrap();
     assert_eq!(idl_instruction.name, "my_ix");
     assert_eq!(
         idl_instruction.discriminator,
@@ -129,7 +129,7 @@ pub async fn run() {
         ])
     );
     // Assert account was parsed correctly
-    let idl_account = idl_program1.get_idl_account("MyAccount").unwrap();
+    let idl_account = idl_program1.accounts.get("MyAccount").unwrap();
     assert_eq!(idl_account.name, "MyAccount");
     assert_eq!(
         idl_account.discriminator,
@@ -155,7 +155,7 @@ pub async fn run() {
         }
     );
     // Assert struct was parsed correctly
-    let idl_typedef = idl_program1.get_idl_typedef("MyStruct").unwrap();
+    let idl_typedef = idl_program1.typedefs.get("MyStruct").unwrap();
     assert_eq!(idl_typedef.name, "MyStruct");
     assert_eq!(
         idl_typedef.type_flat,
@@ -177,7 +177,7 @@ pub async fn run() {
         }
     );
     // Assert error was parsed correctly
-    let idl_error = idl_program1.get_idl_error("MyError").unwrap();
+    let idl_error = idl_program1.errors.get("MyError").unwrap();
     assert_eq!(idl_error.name, "MyError");
     assert_eq!(idl_error.code, 4242);
     assert_eq!(idl_error.msg, "My error message");

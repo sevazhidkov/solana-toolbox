@@ -177,13 +177,7 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        ToolboxIdlTypeFullFields::try_serialize(
-            struct_fields,
-            value,
-            data,
-            deserializable,
-            breadcrumbs,
-        )
+        struct_fields.try_serialize(value, data, deserializable, breadcrumbs)
     }
 
     fn try_serialize_enum(
@@ -213,8 +207,7 @@ impl ToolboxIdlTypeFull {
         {
             if enum_variant.0 == value_enum {
                 data.push(u8::try_from(enum_variant_index).unwrap());
-                return ToolboxIdlTypeFullFields::try_serialize(
-                    &enum_variant.1,
+                return enum_variant.1.try_serialize(
                     value_fields,
                     data,
                     deserializable,

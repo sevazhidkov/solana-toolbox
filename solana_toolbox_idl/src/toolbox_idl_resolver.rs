@@ -98,7 +98,8 @@ impl ToolboxIdlResolver {
             .await?;
         self.resolve_idl_program(endpoint, program_id)
             .await?
-            .get_idl_instruction(instruction_name)
+            .instructions
+            .get(instruction_name)
             .ok_or_else(|| ToolboxIdlError::CouldNotFindInstruction {})?
             .compile(program_id, &instruction_addresses, instruction_payload)
     }
@@ -114,7 +115,8 @@ impl ToolboxIdlResolver {
         let idl_program =
             self.resolve_idl_program(endpoint, program_id).await?;
         let idl_instruction = idl_program
-            .get_idl_instruction(instruction_name)
+            .instructions
+            .get(instruction_name)
             .ok_or_else(|| ToolboxIdlError::CouldNotFindInstruction {})?;
         let mut instruction_addresses = instruction_addresses.clone();
         let mut resolved_snapshots = HashMap::new();

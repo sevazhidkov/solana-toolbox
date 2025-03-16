@@ -56,7 +56,7 @@ pub async fn run() {
     assert_eq!(idl_program1, idl_program2);
     // Assert that the content is correct
     assert_eq!(
-        idl_program1.get_idl_typedef("MyStruct").unwrap(),
+        *idl_program1.typedefs.get("MyStruct").unwrap(),
         ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             generics: vec![],

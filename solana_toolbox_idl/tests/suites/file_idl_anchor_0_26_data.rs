@@ -12,9 +12,8 @@ pub async fn run() {
     )
     .unwrap();
     // Prepare instruction args
-    let idl_instruction = idl_program
-        .get_idl_instruction("initialize_market")
-        .unwrap();
+    let idl_instruction =
+        idl_program.instructions.get("initialize_market").unwrap();
     let instruction_payload = json!({
         "global_market_seed": "SEED",
         "withdrawal_fee": {
@@ -51,7 +50,7 @@ pub async fn run() {
             .unwrap()
     );
     // Prepare an account contents
-    let idl_account = idl_program.get_idl_account("GlobalMarketState").unwrap();
+    let idl_account = idl_program.accounts.get("GlobalMarketState").unwrap();
     let account_state = json!({
         "base_token_mint": Pubkey::new_unique().to_string(),
         "lp_token_mint": Pubkey::new_unique().to_string(),
@@ -91,7 +90,7 @@ pub async fn run() {
             .unwrap()
     );
     // Prepare an account contents
-    let idl_account = idl_program.get_idl_account("ProgramState").unwrap();
+    let idl_account = idl_program.accounts.get("ProgramState").unwrap();
     let account_state = json!({
         "credix_multisig_key": Pubkey::new_unique().to_string(),
         "credix_managers": [

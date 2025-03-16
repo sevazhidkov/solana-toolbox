@@ -39,7 +39,7 @@ pub async fn run() {
     }))
     .unwrap();
     // MyAccount info
-    let idl_account = idl_program.get_idl_account("MyAccount").unwrap();
+    let idl_account = idl_program.accounts.get("MyAccount").unwrap();
     let account_state = json!([
         "Empty",
         ["Named", {"field1": 42}],

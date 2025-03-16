@@ -68,7 +68,8 @@ pub async fn run() {
         Pubkey::find_program_address(dummy_seeds, &dummy_program_id).0;
     // Assert that the accounts can be properly resolved
     let instruction_addresses = idl_program
-        .get_idl_instruction("my_ix")
+        .instructions
+        .get("my_ix")
         .unwrap()
         .find_addresses_with_snapshots(
             &dummy_program_id,
@@ -78,7 +79,8 @@ pub async fn run() {
                 "first".to_string(),
                 (
                     idl_program
-                        .get_idl_account("MyAccount")
+                        .accounts
+                        .get("MyAccount")
                         .unwrap()
                         .content_type_full
                         .clone(),

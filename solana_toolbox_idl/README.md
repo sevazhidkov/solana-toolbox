@@ -8,7 +8,7 @@ For example, using an IDL file, or an IDL downloaded from chain we can:
 
 - Read account data into JSON (decompile the account)
 - Generate transaction data from JSON (compile the transaction data)
-- Resolve an instruction accounts addresses (by looking at the seeds in the IDL)
+- Resolve an instruction's accounts addresses (by looking at the seeds in the IDL)
 
 ## Install
 

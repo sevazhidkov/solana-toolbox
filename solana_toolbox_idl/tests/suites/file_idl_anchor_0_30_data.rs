@@ -14,7 +14,7 @@ pub async fn run() {
     .unwrap();
     // Instruction used
     let idl_instruction =
-        idl_program.get_idl_instruction("campaign_create").unwrap();
+        idl_program.instructions.get("campaign_create").unwrap();
     // Prepare instruction payload
     let mut instruction_payload_metadata_bytes = vec![];
     for index in 0..512 {
@@ -43,7 +43,7 @@ pub async fn run() {
             .unwrap()
     );
     // IDL Account used
-    let idl_account = idl_program.get_idl_account("Campaign").unwrap();
+    let idl_account = idl_program.accounts.get("Campaign").unwrap();
     // Prepare account state
     let mut account_state_metadata_bytes = vec![];
     for index in 0..512 {
@@ -71,7 +71,7 @@ pub async fn run() {
     assert_eq!(account_data.len(), 675);
     assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
     // IDL Account used
-    let idl_account = idl_program.get_idl_account("Pledge").unwrap();
+    let idl_account = idl_program.accounts.get("Pledge").unwrap();
     let account_state = json!({
         "bump": 44,
         "deposited_collateral_amount": 999,

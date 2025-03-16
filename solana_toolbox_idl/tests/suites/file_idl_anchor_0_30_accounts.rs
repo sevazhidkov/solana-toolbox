@@ -48,7 +48,8 @@ pub async fn run() {
     .0;
     // Generate all missing IX accounts with just the minimum information
     let campaign_create_addresses = idl_program
-        .get_idl_instruction("campaign_create")
+        .instructions
+        .get("campaign_create")
         .unwrap()
         .find_addresses(
             &program_id,
@@ -73,7 +74,8 @@ pub async fn run() {
     );
     // Generate all missing IX accounts with just the minimum information
     let campaign_extract_addresses = idl_program
-        .get_idl_instruction("campaign_extract")
+        .instructions
+        .get("campaign_extract")
         .unwrap()
         .find_addresses_with_snapshots(
             &program_id,
@@ -88,7 +90,8 @@ pub async fn run() {
                 "campaign".to_string(),
                 (
                     idl_program
-                        .get_idl_account("Campaign")
+                        .accounts
+                        .get("Campaign")
                         .unwrap()
                         .content_type_full
                         .clone(),
@@ -107,7 +110,8 @@ pub async fn run() {
     );
     // Generate all missing IX accounts with just the minimum information
     let pledge_create_addresses = idl_program
-        .get_idl_instruction("pledge_create")
+        .instructions
+        .get("pledge_create")
         .unwrap()
         .find_addresses(
             &program_id,
@@ -122,7 +126,8 @@ pub async fn run() {
     assert_eq!(pledge, *pledge_create_addresses.get("pledge").unwrap());
     // Generate all missing IX accounts with just the minimum information
     let pledge_deposit_addresses = idl_program
-        .get_idl_instruction("pledge_deposit")
+        .instructions
+        .get("pledge_deposit")
         .unwrap()
         .find_addresses_with_snapshots(
             &program_id,
@@ -137,7 +142,8 @@ pub async fn run() {
                 "campaign".to_string(),
                 (
                     idl_program
-                        .get_idl_account("Campaign")
+                        .accounts
+                        .get("Campaign")
                         .unwrap()
                         .content_type_full
                         .clone(),

@@ -13,8 +13,7 @@ pub async fn run() {
     )
     .unwrap();
     // IDL instruction
-    let idl_instruction =
-        idl_program.get_idl_instruction("create_deal").unwrap();
+    let idl_instruction = idl_program.instructions.get("create_deal").unwrap();
     // Program
     let program_id = Pubkey::new_unique();
     // Prepare instruction accounts addresses
@@ -44,7 +43,8 @@ pub async fn run() {
             "borrower_info".to_string(),
             (
                 idl_program
-                    .get_idl_account("BorrowerInfo")
+                    .accounts
+                    .get("BorrowerInfo")
                     .unwrap()
                     .content_type_full
                     .clone(),

@@ -102,12 +102,12 @@ impl ToolboxIdlProgram {
         )?;
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
-        Ok(ToolboxIdlProgram::new(
+        Ok(ToolboxIdlProgram {
             typedefs,
             instructions,
             accounts,
             errors,
-        ))
+        })
     }
 
     fn try_parse_typedefs(

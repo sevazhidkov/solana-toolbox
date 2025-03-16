@@ -80,7 +80,7 @@ pub async fn run() {
     .unwrap();
     // Assert that the content is correct
     assert_eq!(
-        idl_program.get_idl_account("MyAccount").unwrap(),
+        *idl_program.accounts.get("MyAccount").unwrap(),
         ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             discriminator: vec![77],

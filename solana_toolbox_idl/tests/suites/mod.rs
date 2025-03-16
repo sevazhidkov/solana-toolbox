@@ -13,6 +13,7 @@ pub mod unit_find_instruction_addresses_address;
 pub mod unit_find_instruction_addresses_pda_account;
 pub mod unit_find_instruction_addresses_pda_args;
 pub mod unit_find_instruction_addresses_pda_consts;
+pub mod unit_json_instruction_struct;
 pub mod unit_parse_account_defined;
 pub mod unit_parse_account_generics;
 pub mod unit_parse_account_inlined;
@@ -31,4 +32,3 @@ pub mod unit_transform_account_enums_fields;
 pub mod unit_transform_account_nested;
 pub mod unit_transform_account_structs_fields;
 pub mod unit_transform_instruction_struct;
-// TODO - test as_json API

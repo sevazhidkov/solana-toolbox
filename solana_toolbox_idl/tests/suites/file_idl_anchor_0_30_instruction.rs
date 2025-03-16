@@ -52,7 +52,7 @@ pub async fn run() {
     });
     // Useful instruction
     let idl_instruction =
-        idl_program.get_idl_instruction("campaign_create").unwrap();
+        idl_program.instructions.get("campaign_create").unwrap();
     // Resolve missing instruction accounts
     let instruction_addresses = idl_instruction.find_addresses(
         &program_id,

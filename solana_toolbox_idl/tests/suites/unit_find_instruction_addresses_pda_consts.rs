@@ -117,7 +117,7 @@ pub async fn run() {
     let pda_const_string2 =
         Pubkey::find_program_address(pda_seeds_const_string, &program_id2).0;
     // The instruction we'll use
-    let idl_instruction = idl_program1.get_idl_instruction("my_ix").unwrap();
+    let idl_instruction = idl_program1.instructions.get("my_ix").unwrap();
     // Assert that the accounts can be properly resolved
     let instruction_addresses = idl_instruction.find_addresses(
         &program_id1,

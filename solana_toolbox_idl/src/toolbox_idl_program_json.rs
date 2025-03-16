@@ -6,8 +6,6 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
     pub fn as_json(&self, backward_compatibility: bool) -> Value {
-        return json!({});
-        /*
         if backward_compatibility {
             let mut json_instructions = vec![];
             for program_instruction in self.instructions.values() {
@@ -69,6 +67,6 @@ impl ToolboxIdlProgram {
                 "types": json_typedefs,
                 "errors": json_errors,
             })
-        } */
+        }
     }
 }

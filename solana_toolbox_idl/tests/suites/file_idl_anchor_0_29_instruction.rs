@@ -20,12 +20,13 @@ pub async fn run() {
     let placeholder = Pubkey::new_unique();
     // Actually generate the instruction
     let instruction = idl_program
-        .get_idl_instruction("initialize_realm")
+        .instructions
+        .get("initialize_realm")
         .unwrap()
         .compile(
             &program_id,
             &HashMap::from_iter([
-                ("payer".to_string(), payer), // TODO - could remove the need for to_string() everywhere
+                ("payer".to_string(), payer),
                 ("funding".to_string(), funding),
                 ("funding_usdc".to_string(), placeholder),
                 ("realm".to_string(), placeholder),

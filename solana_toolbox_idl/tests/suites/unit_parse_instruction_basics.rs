@@ -87,7 +87,7 @@ pub async fn run() {
     assert_eq!(idl_program1, idl_program4);
     // Assert that the content is correct
     assert_eq!(
-        idl_program1.get_idl_instruction("my_ix").unwrap(),
+        *idl_program1.instructions.get("my_ix").unwrap(),
         ToolboxIdlInstruction {
             name: "my_ix".to_string(),
             discriminator: vec![38, 19, 70, 194, 0, 59, 80, 114],

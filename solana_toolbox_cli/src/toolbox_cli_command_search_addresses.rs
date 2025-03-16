@@ -12,6 +12,7 @@ use crate::toolbox_cli_utils::ToolboxCliUtils;
 pub struct ToolboxCliCommandSearchAddressesArgs {
     program_address: String,
     data_len: Option<usize>,
+    // data_chunks: Vec<String>,
     // TODO - this should support memcpm
 }
 
