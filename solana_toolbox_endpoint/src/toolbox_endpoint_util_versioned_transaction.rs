@@ -116,7 +116,7 @@ impl ToolboxEndpoint {
             header.num_required_signatures,
             header.num_readonly_signed_accounts,
             header.num_readonly_unsigned_accounts,
-            &static_addresses,
+            static_addresses,
             loaded_writable_addresses,
             loaded_readonly_addresses,
             versioned_transaction.message.instructions(),

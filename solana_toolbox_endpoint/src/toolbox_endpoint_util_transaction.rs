@@ -26,14 +26,14 @@ impl ToolboxEndpoint {
     pub fn decompile_transaction(
         transaction: &Transaction,
     ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
-        let header = transaction.message.header;
+        let header = &transaction.message.header;
         let addresses = &transaction.message.account_keys;
-        let payer = ToolboxEndpoint::decompile_transaction_payer(&addresses)?;
+        let payer = ToolboxEndpoint::decompile_transaction_payer(addresses)?;
         let instructions = ToolboxEndpoint::decompile_transaction_instructions(
             header.num_required_signatures,
             header.num_readonly_signed_accounts,
             header.num_readonly_unsigned_accounts,
-            &addresses,
+            addresses,
             &[],
             &[],
             &transaction.message.instructions,
