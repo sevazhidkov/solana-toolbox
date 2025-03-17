@@ -4,33 +4,32 @@ use clap::Args;
 use serde_json::json;
 use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlDecompileAccountArgs {
+pub struct ToolboxCliCommandIdlResolveAccountArgs {
     address: String,
     // TODO - should support loading a custom IDL ?
 }
 
 // TODO - could this be merged with execution by checking if its a valid signature or not ?
-impl ToolboxCliCommandIdlDecompileAccountArgs {
+impl ToolboxCliCommandIdlResolveAccountArgs {
     pub async fn process(
         &self,
         config: &Config,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
         let address = Pubkey::from_str(&self.address).unwrap();
-        let account = endpoint.get_account(&address).await?.unwrap(); // TODO - unwrap util
-        let idl = ToolboxIdl::get_for_program_id(&mut endpoint, &account.owner)
+        let account_details = ToolboxIdlResolver::new()
+            .resolve_account_details(&mut endpoint, &address)
             .await?
-            .unwrap(); // TODO - handle unwrap
-        let decompiled = idl.decompile_account(&account.data).unwrap();
+            .unwrap(); // TODO - unwrap error
         let json = json!({
-            "name": decompiled.name,
-            "state": decompiled.state,
+            "name": account_details.0.name,
+            "state": account_details.1,
         });
         println!("{}", serde_json::to_string(&json)?);
         Ok(())

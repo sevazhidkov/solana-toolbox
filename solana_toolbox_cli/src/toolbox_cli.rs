@@ -5,11 +5,11 @@ use solana_cli_config::CONFIG_FILE;
 
 use crate::toolbox_cli_command_get_account::ToolboxCliCommandGetAccountArgs;
 use crate::toolbox_cli_command_get_execution::ToolboxCliCommandGetExecutionArgs;
-use crate::toolbox_cli_command_idl_decompile_account::ToolboxCliCommandIdlDecompileAccountArgs;
-use crate::toolbox_cli_command_idl_decompile_execution::ToolboxCliCommandIdlDecompileExecutionArgs;
-use crate::toolbox_cli_command_idl_describe::ToolboxCliCommandIdlDescribeArgs;
 use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
-use crate::toolbox_cli_command_idl_resolve_instruction_accounts::ToolboxCliCommandIdlResolveInstructionAccountsArgs;
+use crate::toolbox_cli_command_idl_resolve_account::ToolboxCliCommandIdlResolveAccountArgs;
+use crate::toolbox_cli_command_idl_resolve_execution::ToolboxCliCommandIdlResolveExecutionArgs;
+use crate::toolbox_cli_command_idl_resolve_instruction_addresses::ToolboxCliCommandIdlResolveInstructionAddressesArgs;
+use crate::toolbox_cli_command_idl_resolve_program::ToolboxCliCommandIdlResolveProgramArgs;
 use crate::toolbox_cli_command_inspect_account::ToolboxCliCommandInspectAccountArgs;
 use crate::toolbox_cli_command_search_addresses::ToolboxCliCommandSearchAddressesArgs;
 use crate::toolbox_cli_command_search_signatures::ToolboxCliCommandSearchSignaturesArgs;
@@ -46,12 +46,12 @@ impl ToolboxCliArgs {
 pub enum ToolboxCliCommand {
     GetAccount(ToolboxCliCommandGetAccountArgs),
     GetExecution(ToolboxCliCommandGetExecutionArgs),
-    IdlDecompileAccount(ToolboxCliCommandIdlDecompileAccountArgs),
-    IdlDecompileExecution(ToolboxCliCommandIdlDecompileExecutionArgs),
-    IdlDescribe(ToolboxCliCommandIdlDescribeArgs),
     IdlProcessInstruction(ToolboxCliCommandIdlProcessInstructionArgs),
-    IdlResolveInstructionAccounts(
-        ToolboxCliCommandIdlResolveInstructionAccountsArgs,
+    IdlResolveAccount(ToolboxCliCommandIdlResolveAccountArgs),
+    IdlResolveExecution(ToolboxCliCommandIdlResolveExecutionArgs),
+    IdlResolveProgram(ToolboxCliCommandIdlResolveProgramArgs),
+    IdlResolveInstructionAddresses(
+        ToolboxCliCommandIdlResolveInstructionAddressesArgs,
     ),
     InspectAccount(ToolboxCliCommandInspectAccountArgs),
     SearchAddresses(ToolboxCliCommandSearchAddressesArgs),
@@ -66,17 +66,19 @@ impl ToolboxCliCommand {
         match self {
             ToolboxCliCommand::GetAccount(args) => args.process(config).await,
             ToolboxCliCommand::GetExecution(args) => args.process(config).await,
-            ToolboxCliCommand::IdlDecompileAccount(args) => {
+            ToolboxCliCommand::IdlResolveAccount(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlDecompileExecution(args) => {
+            ToolboxCliCommand::IdlResolveExecution(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlDescribe(args) => args.process(config).await,
+            ToolboxCliCommand::IdlResolveProgram(args) => {
+                args.process(config).await
+            },
             ToolboxCliCommand::IdlProcessInstruction(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlResolveInstructionAccounts(args) => {
+            ToolboxCliCommand::IdlResolveInstructionAddresses(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::InspectAccount(args) => {

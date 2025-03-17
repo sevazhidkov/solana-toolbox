@@ -28,7 +28,7 @@ impl ToolboxIdlResolver {
         }
     }
 
-    pub fn preload_idl_program(
+    pub fn preload_program(
         &mut self,
         program_id: &Pubkey,
         idl_program: ToolboxIdlProgram,
@@ -36,7 +36,7 @@ impl ToolboxIdlResolver {
         self.programs.insert(*program_id, idl_program.into());
     }
 
-    pub async fn resolve_idl_program(
+    pub async fn resolve_program(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
@@ -65,6 +65,8 @@ impl ToolboxIdlResolver {
         Ok(self.programs.get(program_id).unwrap().clone())
     }
 
+    // TODO - support resolve_execution ?
+
     pub async fn resolve_account_details(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
@@ -77,7 +79,7 @@ impl ToolboxIdlResolver {
         let account_owner = account.owner;
         let account_data = account.data;
         let idl_account = self
-            .resolve_idl_program(endpoint, &account_owner)
+            .resolve_program(endpoint, &account_owner)
             .await?
             .guess_idl_account(&account_data)
             .ok_or_else(|| ToolboxIdlError::CouldNotFindAccount {})?;
@@ -102,7 +104,7 @@ impl ToolboxIdlResolver {
                 instruction_payload,
             )
             .await?;
-        self.resolve_idl_program(endpoint, program_id)
+        self.resolve_program(endpoint, program_id)
             .await?
             .instructions
             .get(instruction_name)
@@ -118,8 +120,7 @@ impl ToolboxIdlResolver {
         instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
-        let idl_program =
-            self.resolve_idl_program(endpoint, program_id).await?;
+        let idl_program = self.resolve_program(endpoint, program_id).await?;
         let idl_instruction = idl_program
             .instructions
             .get(instruction_name)

@@ -6,27 +6,31 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_cli_config::Config;
 use solana_sdk::signature::Signature;
-use solana_toolbox_idl::ToolboxIdl;
+use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlDecompileExecutionArgs {
+pub struct ToolboxCliCommandIdlResolveExecutionArgs {
     signature: String,
     // TODO - allow custom IDLs
 }
 
-impl ToolboxCliCommandIdlDecompileExecutionArgs {
+impl ToolboxCliCommandIdlResolveExecutionArgs {
     pub async fn process(
         &self,
         config: &Config,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
+        let mut idl_resolver = ToolboxIdlResolver::new();
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
+        /* // TODO - move this code into the IdlResolver code ?
         let mut decompiled_instructions = vec![];
         for instruction in execution.instructions {
+
+            idl_resolver.resolve_instruction(&mut endpoint, &instruction.program_id, instruction_name, instruction_addresses, instruction_payload)
             let idl = ToolboxIdl::get_for_program_id(
                 &mut endpoint,
                 &instruction.program_id,
@@ -65,6 +69,7 @@ impl ToolboxCliCommandIdlDecompileExecutionArgs {
             "units_consumed": execution.units_consumed,
         });
         println!("{}", serde_json::to_string(&json)?);
+         */
         Ok(())
     }
 }

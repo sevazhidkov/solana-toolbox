@@ -11,19 +11,18 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
-use solana_toolbox_idl::ToolboxIdl;
-use solana_toolbox_idl::ToolboxIdlTransactionInstruction;
+use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlProcessInstructionArgs {
-    program_address: String,
+    program_id: String,
     name: String,
-    args: String,
+    payload: String,
     #[arg(value_delimiter(','))]
-    accounts: Vec<String>,
+    keys: Vec<String>,
     #[arg(short, long, value_hint(ValueHint::FilePath))]
     payer: Option<String>,
 }
@@ -38,94 +37,62 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
             self.payer.as_ref().unwrap_or(&config.keypair_path),
         )?;
 
-        let program_address = Pubkey::from_str(&self.program_address).unwrap();
-        let idl =
-            ToolboxIdl::get_for_program_id(&mut endpoint, &program_address)
-                .await?
-                .unwrap(); // TODO - handle unwrap
+        let program_id = Pubkey::from_str(&self.program_id).unwrap();
 
-        let args = from_str::<Value>(&self.args)?;
+        let instruction_name = &self.name;
 
-        let mut accounts = HashMap::new();
-        accounts.insert(
+        let mut instruction_keys = HashMap::new();
+        instruction_keys.insert(
             "payer".to_string(),
             KeypairOrPubkey::Keypair(payer.insecure_clone()),
         );
-        for account in &self.accounts {
-            let parts = account.split(":").collect::<Vec<_>>();
-            if let [key, value] = parts[..] {
-                accounts.insert(key.to_string(), parse_account(value)?);
+        for key in &self.keys {
+            let parts = key.split(":").collect::<Vec<_>>();
+            if let [name, value] = parts[..] {
+                instruction_keys.insert(name.to_string(), parse_key(value)?);
             } else {
                 return Err(ToolboxCliError::Custom(
                     "Invalid account key-value".to_string(),
                 ));
             }
         }
-
-        let mut accounts_addresses = HashMap::new();
-        for account in &accounts {
-            accounts_addresses.insert(
-                account.0.to_string(),
-                match account.1 {
+        let mut instruction_addresses = HashMap::new();
+        for instruction_key in &instruction_keys {
+            instruction_addresses.insert(
+                instruction_key.0.to_string(),
+                match instruction_key.1 {
                     KeypairOrPubkey::Keypair(keypair) => keypair.pubkey(),
                     KeypairOrPubkey::Pubkey(pubkey) => *pubkey,
                 },
             );
         }
 
-        let instruction = idl
+        let instruction_payload = from_str::<Value>(&self.payload)?;
+
+        let instruction = ToolboxIdlResolver::new()
             .resolve_instruction(
                 &mut endpoint,
-                &ToolboxIdlTransactionInstruction {
-                    program_id: program_address,
-                    name: self.name.to_string(),
-                    accounts_addresses,
-                    args,
-                },
+                &program_id,
+                instruction_name,
+                &instruction_addresses,
+                &instruction_payload,
             )
             .await?;
 
         let mut signers = vec![];
-        for account in &accounts {
-            if let KeypairOrPubkey::Keypair(keypair) = account.1 {
+        for instruction_key in &instruction_keys {
+            if let KeypairOrPubkey::Keypair(keypair) = instruction_key.1 {
                 signers.push(keypair);
             }
         }
 
-        let (signature, execution) = endpoint
+        let (signature, _execution) = endpoint
             .process_instruction_with_signers(&payer, instruction, &signers)
             .await?;
 
-        let json_execution_instructions = execution
-            .instructions
-            .iter()
-            .map(|instruction| {
-                json!({
-                    "program_id": instruction.program_id.to_string(),
-                    "accounts": instruction.accounts.iter()
-                        .map(|account| {
-                            json!({
-                                "address": account.pubkey.to_string(),
-                                "is_signer": account.is_signer,
-                                "is_writable": account.is_writable,
-                            })
-                        })
-                        .collect::<Vec<_>>(),
-                    "data": instruction.data,
-                })
-            })
-            .collect::<Vec<_>>();
-
         let json = json!({
             "signature": signature.to_string(),
-            "execution": {
-                "payer": execution.payer.to_string(),
-                "instructions": json_execution_instructions,
-                "logs": execution.logs,
-                "error": execution.error,
-                "return_data": execution.return_data,
-                "units_consumed": execution.units_consumed,
-            }
+            // TODO - output execution same as idl_resolve_execution
         });
         println!("{}", serde_json::to_string(&json)?);
         Ok(())
@@ -137,7 +104,7 @@ enum KeypairOrPubkey {
     Pubkey(Pubkey),
 }
 
-fn parse_account(value: &str) -> Result<KeypairOrPubkey, ToolboxCliError> {
+fn parse_key(value: &str) -> Result<KeypairOrPubkey, ToolboxCliError> {
     Ok(if let Ok(keypair) = read_keypair_file(value) {
         KeypairOrPubkey::Keypair(keypair)
     } else {

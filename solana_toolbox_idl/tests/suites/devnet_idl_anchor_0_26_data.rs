@@ -18,7 +18,7 @@ pub async fn run() {
     // Prepare our IDL resolver
     let mut idl_resolver = ToolboxIdlResolver::new();
     // Parse and load IDL from file JSON directly (since it's not available onchain)
-    idl_resolver.preload_idl_program(
+    idl_resolver.preload_program(
         &program_id,
         ToolboxIdlProgram::try_parse_from_str(
             &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
