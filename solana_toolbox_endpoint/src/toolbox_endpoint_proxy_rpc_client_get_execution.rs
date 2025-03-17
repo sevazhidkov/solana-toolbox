@@ -1,18 +1,16 @@
-use std::collections::HashSet;
 use std::str::FromStr;
 
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use solana_client::rpc_request::RpcRequest;
-use solana_sdk::instruction::AccountMeta;
-use solana_sdk::instruction::Instruction;
-use solana_sdk::message::CompileError;
+use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionError;
 use solana_transaction_status::UiTransactionReturnData;
 
+use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
@@ -96,96 +94,45 @@ impl ToolboxEndpointProxyRpcClient {
             None => return Ok(None),
         };
         let header = response.transaction.message.header;
-        let static_signatures_count =
-            usize::from(header.num_required_signatures);
-        let static_readonly_signed_count =
-            usize::from(header.num_readonly_signed_accounts);
-        let static_readonly_unsigned_count =
-            usize::from(header.num_readonly_unsigned_accounts);
-        let mut static_accounts = vec![];
-        for static_account_key in &response.transaction.message.account_keys {
-            static_accounts.push(Pubkey::from_str(static_account_key)?);
+        let mut static_addresses = vec![];
+        for static_address in &response.transaction.message.account_keys {
+            static_addresses.push(Pubkey::from_str(static_address)?);
         }
-        let static_accounts_count = static_accounts.len();
-        let mut signers = HashSet::new();
-        for static_account_index in 0..static_signatures_count {
-            signers.insert(
-                *static_accounts
-                    .get(static_account_index)
-                    .ok_or(CompileError::AccountIndexOverflow)?,
-            );
-        }
-        let mut readonly = HashSet::new();
-        for static_account_index in (static_signatures_count
-            - static_readonly_signed_count)
-            ..static_signatures_count
-        {
-            readonly.insert(
-                *static_accounts
-                    .get(static_account_index)
-                    .ok_or(CompileError::AccountIndexOverflow)?,
-            );
-        }
-        for static_account_index in (static_accounts_count
-            - static_readonly_unsigned_count)
-            ..static_accounts_count
-        {
-            readonly.insert(
-                *static_accounts
-                    .get(static_account_index)
-                    .ok_or(CompileError::AccountIndexOverflow)?,
-            );
-        }
-        // TODO - this part could be synthetized (it's written 3 times)
-        let mut loaded_addresses_writable = vec![];
-        let mut loaded_addresses_readonly = vec![];
+        let mut loaded_writable_addresses = vec![];
+        let mut loaded_readonly_addresses = vec![];
         if let Some(loaded_addresses) = &response.meta.loaded_addresses {
-            for loaded_address_writable_key in &loaded_addresses.writable {
-                loaded_addresses_writable
-                    .push(Pubkey::from_str(loaded_address_writable_key)?);
+            for loaded_writable_key in &loaded_addresses.writable {
+                loaded_writable_addresses
+                    .push(Pubkey::from_str(loaded_writable_key)?);
             }
-            for loaded_address_readonly_key in &loaded_addresses.readonly {
-                loaded_addresses_readonly
-                    .push(Pubkey::from_str(loaded_address_readonly_key)?);
+            for loaded_readonly_key in &loaded_addresses.readonly {
+                loaded_readonly_addresses
+                    .push(Pubkey::from_str(loaded_readonly_key)?);
             }
         }
-        for loaded_address_readonly in &loaded_addresses_readonly {
-            readonly.insert(*loaded_address_readonly);
-        }
-        let mut all_accounts = vec![];
-        all_accounts.append(&mut static_accounts);
-        all_accounts.append(&mut loaded_addresses_writable);
-        all_accounts.append(&mut loaded_addresses_readonly);
-        let mut instructions = vec![];
-        for instruction in response.transaction.message.instructions {
-            let instruction_program_id = *all_accounts
-                .get(usize::from(instruction.program_id_index))
-                .ok_or(CompileError::AccountIndexOverflow)?;
-            let mut instruction_accounts = vec![];
-            for account_index in &instruction.accounts {
-                let account = all_accounts
-                    .get(usize::from(*account_index))
-                    .ok_or(CompileError::AccountIndexOverflow)?;
-                let account_is_readonly = readonly.contains(account);
-                let account_is_signer = signers.contains(account);
-                instruction_accounts.push(if account_is_readonly {
-                    AccountMeta::new_readonly(*account, account_is_signer)
-                } else {
-                    AccountMeta::new(*account, account_is_signer)
-                });
-            }
-            instructions.push(Instruction {
-                program_id: instruction_program_id,
-                accounts: instruction_accounts,
-                data: bs58::decode(instruction.data)
+        let mut compiled_instructions = vec![];
+        for response_instruction in response.transaction.message.instructions {
+            compiled_instructions.push(CompiledInstruction {
+                program_id_index: response_instruction.program_id_index,
+                accounts: response_instruction.accounts,
+                data: bs58::decode(response_instruction.data)
                     .into_vec()
                     .map_err(ToolboxEndpointError::Bs58Decode)?,
             });
         }
+        let payer =
+            ToolboxEndpoint::decompile_transaction_payer(&static_addresses)?;
+        let instructions = ToolboxEndpoint::decompile_transaction_instructions(
+            header.num_required_signatures,
+            header.num_readonly_signed_accounts,
+            header.num_readonly_unsigned_accounts,
+            &static_addresses,
+            &loaded_writable_addresses,
+            &loaded_readonly_addresses,
+            &compiled_instructions,
+        )?;
         Ok(Some(ToolboxEndpointExecution {
-            payer: *all_accounts
-                .first()
-                .ok_or(CompileError::AccountIndexOverflow)?,
+            payer,
             instructions,
             slot: response.slot,
             error: response.meta.err,

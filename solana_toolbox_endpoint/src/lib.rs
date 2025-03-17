@@ -18,6 +18,7 @@ mod toolbox_endpoint_proxy_rpc_client_utils;
 mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_address_lookup_table;
 mod toolbox_endpoint_util_consts;
+mod toolbox_endpoint_util_instruction_decompile;
 mod toolbox_endpoint_util_instruction_list;
 mod toolbox_endpoint_util_instruction_process;
 mod toolbox_endpoint_util_instruction_simulate;

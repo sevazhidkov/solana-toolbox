@@ -14,6 +14,7 @@ use crate::toolbox_cli_utils::ToolboxCliUtils;
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlDecompileExecutionArgs {
     signature: String,
+    // TODO - allow custom IDLs
 }
 
 impl ToolboxCliCommandIdlDecompileExecutionArgs {

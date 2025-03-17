@@ -35,6 +35,7 @@ impl ToolboxCliArgs {
                     )
                 })?,
         )?;
+        // TODO - custom url/wallet
         self.command.process(&config).await
     }
 }
@@ -54,7 +55,7 @@ pub enum ToolboxCliCommand {
     ),
     InspectAccount(ToolboxCliCommandInspectAccountArgs),
     SearchAddresses(ToolboxCliCommandSearchAddressesArgs),
-    SearchSignaturesJson(ToolboxCliCommandSearchSignaturesArgs),
+    SearchSignatures(ToolboxCliCommandSearchSignaturesArgs),
 }
 
 impl ToolboxCliCommand {
@@ -84,7 +85,7 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::SearchAddresses(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::SearchSignaturesJson(args) => {
+            ToolboxCliCommand::SearchSignatures(args) => {
                 args.process(config).await
             },
         }
