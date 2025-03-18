@@ -5792,6 +5792,7 @@ dependencies = [
 name = "solana_toolbox_cli"
 version = "0.3.0"
 dependencies = [
+ "base64 0.22.1",
  "clap 4.5.31",
  "serde_json",
  "solana-cli-config",

@@ -3,16 +3,17 @@ use clap::Subcommand;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
 
-use crate::toolbox_cli_command_get_account::ToolboxCliCommandGetAccountArgs;
-use crate::toolbox_cli_command_get_execution::ToolboxCliCommandGetExecutionArgs;
+use crate::toolbox_cli_command_dev_inspect_account::ToolboxCliCommandDevInspectAccountArgs;
 use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
 use crate::toolbox_cli_command_idl_resolve_account::ToolboxCliCommandIdlResolveAccountArgs;
 use crate::toolbox_cli_command_idl_resolve_execution::ToolboxCliCommandIdlResolveExecutionArgs;
+use crate::toolbox_cli_command_idl_resolve_instruction::ToolboxCliCommandIdlResolveInstructionArgs;
 use crate::toolbox_cli_command_idl_resolve_instruction_addresses::ToolboxCliCommandIdlResolveInstructionAddressesArgs;
 use crate::toolbox_cli_command_idl_resolve_program::ToolboxCliCommandIdlResolveProgramArgs;
-use crate::toolbox_cli_command_inspect_account::ToolboxCliCommandInspectAccountArgs;
-use crate::toolbox_cli_command_search_addresses::ToolboxCliCommandSearchAddressesArgs;
-use crate::toolbox_cli_command_search_signatures::ToolboxCliCommandSearchSignaturesArgs;
+use crate::toolbox_cli_command_raw_get_account::ToolboxCliCommandRawGetAccountArgs;
+use crate::toolbox_cli_command_raw_get_execution::ToolboxCliCommandRawGetExecutionArgs;
+use crate::toolbox_cli_command_raw_search_addresses::ToolboxCliCommandRawSearchAddressesArgs;
+use crate::toolbox_cli_command_raw_search_signatures::ToolboxCliCommandRawSearchSignaturesArgs;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Parser)]
@@ -44,8 +45,7 @@ impl ToolboxCliArgs {
 // TODO - command to download JSON IDL
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
-    GetAccount(ToolboxCliCommandGetAccountArgs),
-    GetExecution(ToolboxCliCommandGetExecutionArgs),
+    DevInspectAccount(ToolboxCliCommandDevInspectAccountArgs),
     IdlProcessInstruction(ToolboxCliCommandIdlProcessInstructionArgs),
     IdlResolveAccount(ToolboxCliCommandIdlResolveAccountArgs),
     IdlResolveExecution(ToolboxCliCommandIdlResolveExecutionArgs),
@@ -53,9 +53,11 @@ pub enum ToolboxCliCommand {
     IdlResolveInstructionAddresses(
         ToolboxCliCommandIdlResolveInstructionAddressesArgs,
     ),
-    InspectAccount(ToolboxCliCommandInspectAccountArgs),
-    SearchAddresses(ToolboxCliCommandSearchAddressesArgs),
-    SearchSignatures(ToolboxCliCommandSearchSignaturesArgs),
+    IdlResolveInstruction(ToolboxCliCommandIdlResolveInstructionArgs),
+    RawGetAccount(ToolboxCliCommandRawGetAccountArgs),
+    RawGetExecution(ToolboxCliCommandRawGetExecutionArgs),
+    RawSearchAddresses(ToolboxCliCommandRawSearchAddressesArgs),
+    RawSearchSignatures(ToolboxCliCommandRawSearchSignaturesArgs),
 }
 
 impl ToolboxCliCommand {
@@ -64,8 +66,9 @@ impl ToolboxCliCommand {
         config: &Config,
     ) -> Result<(), ToolboxCliError> {
         match self {
-            ToolboxCliCommand::GetAccount(args) => args.process(config).await,
-            ToolboxCliCommand::GetExecution(args) => args.process(config).await,
+            ToolboxCliCommand::DevInspectAccount(args) => {
+                args.process(config).await
+            },
             ToolboxCliCommand::IdlResolveAccount(args) => {
                 args.process(config).await
             },
@@ -81,13 +84,19 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::IdlResolveInstructionAddresses(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::InspectAccount(args) => {
+            ToolboxCliCommand::IdlResolveInstruction(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::SearchAddresses(args) => {
+            ToolboxCliCommand::RawGetAccount(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::SearchSignatures(args) => {
+            ToolboxCliCommand::RawGetExecution(args) => {
+                args.process(config).await
+            },
+            ToolboxCliCommand::RawSearchAddresses(args) => {
+                args.process(config).await
+            },
+            ToolboxCliCommand::RawSearchSignatures(args) => {
                 args.process(config).await
             },
         }

@@ -10,14 +10,14 @@ use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandSearchSignaturesArgs {
+pub struct ToolboxCliCommandRawSearchSignaturesArgs {
     with_address: String,
     start_before_signature: Option<String>,
     rewind_until_signature: Option<String>,
     limit: Option<usize>,
 }
 
-impl ToolboxCliCommandSearchSignaturesArgs {
+impl ToolboxCliCommandRawSearchSignaturesArgs {
     pub async fn process(
         &self,
         config: &Config,

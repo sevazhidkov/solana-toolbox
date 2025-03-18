@@ -9,11 +9,11 @@ use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandGetAccountArgs {
+pub struct ToolboxCliCommandRawGetAccountArgs {
     address: String,
 }
 
-impl ToolboxCliCommandGetAccountArgs {
+impl ToolboxCliCommandRawGetAccountArgs {
     pub async fn process(
         &self,
         config: &Config,

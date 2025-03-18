@@ -4,6 +4,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use solana_client::rpc_request::RpcRequest;
+use solana_sdk::bs58;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;

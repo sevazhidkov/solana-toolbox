@@ -1,5 +1,6 @@
 use solana_client::client_error::ClientError;
 use solana_program_test::BanksClientError;
+use solana_sdk::bs58;
 use solana_sdk::instruction::InstructionError;
 use solana_sdk::message::CompileError;
 use solana_sdk::program_error::ProgramError;
