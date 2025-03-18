@@ -15,7 +15,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlResolveInstructionArgs {
+pub struct ToolboxCliCommandIdlResolveInstructionBase58Args {
     program_id: String, // TODO - could take IDL as param also ?
     name: String,
     payload: String,
@@ -23,7 +23,7 @@ pub struct ToolboxCliCommandIdlResolveInstructionArgs {
     addresses: Vec<String>,
 }
 
-impl ToolboxCliCommandIdlResolveInstructionArgs {
+impl ToolboxCliCommandIdlResolveInstructionBase58Args {
     pub async fn process(
         &self,
         config: &Config,
