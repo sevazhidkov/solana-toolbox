@@ -10,23 +10,14 @@ pub async fn run() {
     )
     .unwrap();
     // Test that it's equivalent to the original IDL after being exported
-    eprintln!(
-        "idl_program.as_json(false): {}",
-        serde_json::to_string_pretty(
-            &idl_program
-                .as_json(false)
-                .pointer("/instructions/campaign_create")
-        )
-        .unwrap()
-    );
     assert_eq!(
         idl_program,
-        ToolboxIdlProgram::try_parse_from_value(&idl_program.as_json(false))
+        ToolboxIdlProgram::try_parse_from_value(&idl_program.export(true))
             .unwrap(),
     );
     assert_eq!(
         idl_program,
-        ToolboxIdlProgram::try_parse_from_value(&idl_program.as_json(true))
+        ToolboxIdlProgram::try_parse_from_value(&idl_program.export(false))
             .unwrap(),
     );
 }

@@ -5,7 +5,7 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 
 impl ToolboxIdlTypeFlat {
-    pub fn as_json(&self, backward_compatibility: bool) -> Value {
+    pub fn export(&self, backward_compatibility: bool) -> Value {
         match self {
             ToolboxIdlTypeFlat::Defined { name, generics } => {
                 if !generics.is_empty() {
@@ -14,11 +14,11 @@ impl ToolboxIdlTypeFlat {
                         if backward_compatibility {
                             json_generics.push(json!({
                                 "kind": "type",
-                                "type": generic.as_json(backward_compatibility),
+                                "type": generic.export(backward_compatibility),
                             }));
                         } else {
                             json_generics
-                                .push(generic.as_json(backward_compatibility));
+                                .push(generic.export(backward_compatibility));
                         }
                     }
                     json!({ "defined": { "name": name, "generics": json_generics }})
@@ -30,25 +30,25 @@ impl ToolboxIdlTypeFlat {
                 }
             },
             ToolboxIdlTypeFlat::Option { content } => {
-                json!({ "option": content.as_json(backward_compatibility) })
+                json!({ "option": content.export(backward_compatibility) })
             },
             ToolboxIdlTypeFlat::Vec { items } => {
                 if backward_compatibility {
-                    json!({ "vec": items.as_json(backward_compatibility) })
+                    json!({ "vec": items.export(backward_compatibility) })
                 } else {
-                    json!([items.as_json(backward_compatibility)])
+                    json!([items.export(backward_compatibility)])
                 }
             },
             ToolboxIdlTypeFlat::Array { items, length } => {
                 if backward_compatibility {
                     json!({ "array": [
-                        items.as_json(backward_compatibility),
-                        length.as_json(backward_compatibility)
+                        items.export(backward_compatibility),
+                        length.export(backward_compatibility)
                     ]})
                 } else {
                     json!([
-                        items.as_json(backward_compatibility),
-                        length.as_json(backward_compatibility)
+                        items.export(backward_compatibility),
+                        length.export(backward_compatibility)
                     ])
                 }
             },
@@ -56,10 +56,10 @@ impl ToolboxIdlTypeFlat {
                 if backward_compatibility {
                     json!({
                         "kind": "struct",
-                        "fields": fields.as_json(backward_compatibility)
+                        "fields": fields.export(backward_compatibility)
                     })
                 } else {
-                    json!({ "fields": fields.as_json(backward_compatibility) })
+                    json!({ "fields": fields.export(backward_compatibility) })
                 }
             },
             ToolboxIdlTypeFlat::Enum { variants } => {
@@ -74,7 +74,7 @@ impl ToolboxIdlTypeFlat {
                     } else {
                         json_variants.push(json!({
                             "name": variant_name,
-                            "fields": variant_fields.as_json(backward_compatibility)
+                            "fields": variant_fields.export(backward_compatibility)
                         }));
                     }
                 }
@@ -108,14 +108,14 @@ impl ToolboxIdlTypeFlat {
 }
 
 impl ToolboxIdlTypeFlatFields {
-    pub fn as_json(&self, backward_compatibility: bool) -> Value {
+    pub fn export(&self, backward_compatibility: bool) -> Value {
         match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut json_fields = vec![];
                 for (field_name, field_type) in fields {
                     json_fields.push(json!({
                         "name": field_name,
-                        "type": field_type.as_json(backward_compatibility),
+                        "type": field_type.export(backward_compatibility),
                     }));
                 }
                 json!(json_fields)
@@ -125,11 +125,11 @@ impl ToolboxIdlTypeFlatFields {
                 for field_type in fields {
                     if backward_compatibility {
                         json_fields.push(json!({
-                            "type": field_type.as_json(backward_compatibility)
+                            "type": field_type.export(backward_compatibility)
                         }));
                     } else {
                         json_fields
-                            .push(field_type.as_json(backward_compatibility));
+                            .push(field_type.export(backward_compatibility));
                     }
                 }
                 json!(json_fields)

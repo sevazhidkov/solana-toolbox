@@ -7,8 +7,8 @@ use crate::toolbox_cli_command_dev_inspect_account::ToolboxCliCommandDevInspectA
 use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
 use crate::toolbox_cli_command_idl_resolve_account::ToolboxCliCommandIdlResolveAccountArgs;
 use crate::toolbox_cli_command_idl_resolve_execution::ToolboxCliCommandIdlResolveExecutionArgs;
-use crate::toolbox_cli_command_idl_resolve_instruction::ToolboxCliCommandIdlResolveInstructionArgs;
 use crate::toolbox_cli_command_idl_resolve_instruction_addresses::ToolboxCliCommandIdlResolveInstructionAddressesArgs;
+use crate::toolbox_cli_command_idl_resolve_instruction_base58::ToolboxCliCommandIdlResolveInstructionBase58Args;
 use crate::toolbox_cli_command_idl_resolve_program::ToolboxCliCommandIdlResolveProgramArgs;
 use crate::toolbox_cli_command_raw_get_account::ToolboxCliCommandRawGetAccountArgs;
 use crate::toolbox_cli_command_raw_get_execution::ToolboxCliCommandRawGetExecutionArgs;
@@ -53,7 +53,9 @@ pub enum ToolboxCliCommand {
     IdlResolveInstructionAddresses(
         ToolboxCliCommandIdlResolveInstructionAddressesArgs,
     ),
-    IdlResolveInstruction(ToolboxCliCommandIdlResolveInstructionArgs),
+    IdlResolveInstructionBase58(
+        ToolboxCliCommandIdlResolveInstructionBase58Args,
+    ),
     RawGetAccount(ToolboxCliCommandRawGetAccountArgs),
     RawGetExecution(ToolboxCliCommandRawGetExecutionArgs),
     RawSearchAddresses(ToolboxCliCommandRawSearchAddressesArgs),
@@ -84,7 +86,7 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::IdlResolveInstructionAddresses(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlResolveInstruction(args) => {
+            ToolboxCliCommand::IdlResolveInstructionBase58(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::RawGetAccount(args) => {
