@@ -26,49 +26,37 @@ impl ToolboxCliCommandIdlResolveExecutionArgs {
         let mut idl_resolver = ToolboxIdlResolver::new();
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
-        // // TODO - move this code into the IdlResolver code ?
-        // let mut decompiled_instructions = vec![];
-        // for instruction in execution.instructions {
-        //
-        // idl_resolver.resolve_instruction(&mut endpoint, &instruction.program_id, instruction_name, instruction_addresses, instruction_payload)
-        // let idl = ToolboxIdl::get_for_program_id(
-        // &mut endpoint,
-        // &instruction.program_id,
-        // )
-        // .await?
-        // .unwrap(); // TODO - handle unwrap
-        // decompiled_instructions
-        // .push(idl.decompile_instruction(&instruction)?);
-        // }
-        // let json_instructions = decompiled_instructions
-        // .into_iter()
-        // .map(|decompiled_instruction| {
-        // let json_accounts_addresses = decompiled_instruction
-        // .accounts_addresses
-        // .into_iter()
-        // .map(|account_address_entry| {
-        // (
-        // account_address_entry.0,
-        // Value::String(account_address_entry.1.to_string()),
-        // )
-        // });
-        // json!({
-        // "program_id": decompiled_instruction.program_id.to_string(),
-        // "name": decompiled_instruction.name,
-        // "accounts_addresses": Value::Object(Map::from_iter(json_accounts_addresses)),
-        // "args": decompiled_instruction.args,
-        // })
-        // })
-        // .collect::<Vec<_>>();
-        // let json = json!({
-        // "payer": execution.payer.to_string(),
-        // "instructions": json_instructions,
-        // "logs": execution.logs,
-        // "error": execution.error, // TODO - could parse the error using the code
-        // "return_data": execution.return_data,
-        // "units_consumed": execution.units_consumed,
-        // });
-        // println!("{}", serde_json::to_string(&json)?);
+        let mut json_instructions = vec![];
+        for instruction in execution.instructions {
+            let idl_program = idl_resolver
+                .resolve_idl_program(&mut endpoint, &instruction.program_id)
+                .await?;
+            let (program_id, instruction_addresses, instruction_payload) =
+                idl_program.guess_idl_instruction(&instruction.data)
+                .unwrap() // TODO - handle unwrap
+                .decompile(&instruction)?;
+            let mut json_addresses = vec![];
+            for instruction_address in instruction_addresses {
+                json_addresses.push(json!([
+                    instruction_address.0,
+                    instruction_address.1.to_string()
+                ]));
+            }
+            json_instructions.push(json!({
+                "program_id": program_id.to_string(),
+                "addresses": json_addresses,
+                "payload": instruction_payload,
+            }));
+        }
+        let json = json!({
+            "payer": execution.payer.to_string(),
+            "instructions": json_instructions,
+            "logs": execution.logs,
+            "error": execution.error, // TODO - could parse the error using the code
+            "return_data": execution.return_data,
+            "units_consumed": execution.units_consumed,
+        });
+        println!("{}", serde_json::to_string(&json)?);
         Ok(())
     }
 }

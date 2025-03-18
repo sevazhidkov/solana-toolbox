@@ -24,7 +24,7 @@ impl ToolboxCliCommandIdlResolveProgramArgs {
             .resolve_idl_program(&mut endpoint, &program_id)
             .await?;
         // TODO - add a new description JSON format output
-        println!("{}", serde_json::to_string(&idl_program.export(false))?);
+        println!("{}", serde_json::to_string(&idl_program.as_json(false))?);
         Ok(())
     }
 }
