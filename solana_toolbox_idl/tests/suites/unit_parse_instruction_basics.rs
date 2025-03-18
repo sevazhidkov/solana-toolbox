@@ -94,29 +94,29 @@ pub async fn run() {
             accounts: vec![
                 ToolboxIdlInstructionAccount {
                     name: "account_ws".to_string(),
-                    is_writable: true,
-                    is_signer: true,
+                    writable: true,
+                    signer: true,
                     address: None,
                     pda: None
                 },
                 ToolboxIdlInstructionAccount {
                     name: "account_rs".to_string(),
-                    is_writable: false,
-                    is_signer: true,
+                    writable: false,
+                    signer: true,
                     address: None,
                     pda: None
                 },
                 ToolboxIdlInstructionAccount {
                     name: "account_w".to_string(),
-                    is_writable: true,
-                    is_signer: false,
+                    writable: true,
+                    signer: false,
                     address: None,
                     pda: None
                 },
                 ToolboxIdlInstructionAccount {
                     name: "account_r".to_string(),
-                    is_writable: false,
-                    is_signer: false,
+                    writable: false,
+                    signer: false,
                     address: None,
                     pda: None
                 },

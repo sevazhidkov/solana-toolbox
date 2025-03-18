@@ -22,15 +22,15 @@ impl ToolboxIdlInstruction {
                 &ToolboxIdlBreadcrumbs::default()
                     .as_val("instruction_addresses"),
             )?;
-            if instruction_account.is_writable {
+            if instruction_account.writable {
                 instruction_metas.push(AccountMeta::new(
                     instruction_address,
-                    instruction_account.is_signer,
+                    instruction_account.signer,
                 ));
             } else {
                 instruction_metas.push(AccountMeta::new_readonly(
                     instruction_address,
-                    instruction_account.is_signer,
+                    instruction_account.signer,
                 ));
             }
         }

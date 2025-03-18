@@ -105,6 +105,16 @@ impl ToolboxIdlInstructionAccountPdaBlob {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => {
                 Ok(bytes.clone())
             },
+            ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
+                let idl_blob_parts = Vec::from_iter(path.split("."));
+                let (args_type_full_fields, payload) = args_payload;
+                ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
+                    args_type_full_fields,
+                    payload,
+                    &idl_blob_parts,
+                    &breadcrumbs.with_idl("args"),
+                )
+            },
             ToolboxIdlInstructionAccountPdaBlob::Account { path } => {
                 let idl_blob_parts = Vec::from_iter(path.split("."));
                 if idl_blob_parts.len() == 1 {
@@ -130,16 +140,6 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     state,
                     &idl_blob_parts[1..],
                     &breadcrumbs.with_val(idl_blob_parts[0]),
-                )
-            },
-            ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
-                let idl_blob_parts = Vec::from_iter(path.split("."));
-                let (args_type_full_fields, payload) = args_payload;
-                ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
-                    args_type_full_fields,
-                    payload,
-                    &idl_blob_parts,
-                    &breadcrumbs.with_idl("args"),
                 )
             },
         }

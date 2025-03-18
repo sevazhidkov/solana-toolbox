@@ -3,8 +3,8 @@ use solana_sdk::pubkey::Pubkey;
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
     pub name: String,
-    pub is_writable: bool,
-    pub is_signer: bool,
+    pub writable: bool,
+    pub signer: bool,
     pub address: Option<Pubkey>,
     pub pda: Option<ToolboxIdlInstructionAccountPda>,
     // TODO - support is_optional ?

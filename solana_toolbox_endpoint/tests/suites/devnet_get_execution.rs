@@ -141,19 +141,19 @@ pub async fn run() {
             .unwrap()
     );
     assert_eq!(execution_tables.instructions.len(), 50);
-    for instruction_table in execution_tables.instructions {
-        assert_eq!(instruction_table.program_id, Pubkey::default());
-        assert_eq!(instruction_table.accounts.len(), 2);
+    for instruction_tables in execution_tables.instructions {
+        assert_eq!(instruction_tables.program_id, Pubkey::default());
+        assert_eq!(instruction_tables.accounts.len(), 2);
         assert_eq!(
-            instruction_table.accounts[0].pubkey,
+            instruction_tables.accounts[0].pubkey,
             execution_tables.payer
         );
-        assert_eq!(instruction_table.accounts[0].is_signer, true);
-        assert_eq!(instruction_table.accounts[0].is_writable, true);
-        assert_eq!(instruction_table.accounts[1].is_signer, false);
-        assert_eq!(instruction_table.accounts[1].is_writable, true);
+        assert_eq!(instruction_tables.accounts[0].is_signer, true);
+        assert_eq!(instruction_tables.accounts[0].is_writable, true);
+        assert_eq!(instruction_tables.accounts[1].is_signer, false);
+        assert_eq!(instruction_tables.accounts[1].is_writable, true);
         assert_eq!(
-            instruction_table.data,
+            instruction_tables.data,
             [2, 0, 0, 0, 0, 152, 13, 0, 0, 0, 0, 0]
         );
     }

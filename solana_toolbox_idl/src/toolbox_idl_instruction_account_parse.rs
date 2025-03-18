@@ -34,14 +34,14 @@ impl ToolboxIdlInstructionAccount {
                 &breadcrumbs.idl(),
             )?);
         let breadcrumbs = &breadcrumbs.with_idl(&idl_instruction_account_name);
-        let idl_instruction_account_is_writable =
+        let idl_instruction_account_writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
                     "isMut",
                 ))
                 .unwrap_or(false);
-        let idl_instruction_account_is_signer =
+        let idl_instruction_account_signer =
             idl_object_get_key_as_bool(idl_instruction_account, "signer")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
@@ -50,8 +50,8 @@ impl ToolboxIdlInstructionAccount {
                 .unwrap_or(false);
         Ok(ToolboxIdlInstructionAccount {
             name: idl_instruction_account_name,
-            is_writable: idl_instruction_account_is_writable,
-            is_signer: idl_instruction_account_is_signer,
+            writable: idl_instruction_account_writable,
+            signer: idl_instruction_account_signer,
             address: ToolboxIdlInstructionAccount::try_parse_address(
                 idl_instruction_account,
                 breadcrumbs,
@@ -156,10 +156,10 @@ impl ToolboxIdlInstructionAccount {
                     &breadcrumbs.idl(),
                 )?;
             return match idl_instruction_account_pda_blob_kind {
-                "account" => Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
+                "arg" => Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
                     path: idl_instruction_account_pda_blob_path.to_string(),
                 }),
-                "arg" => Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
+                "account" => Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
                     path: idl_instruction_account_pda_blob_path.to_string(),
                 }),
                 _ => idl_err("unknown blob kind", &breadcrumbs.idl()),

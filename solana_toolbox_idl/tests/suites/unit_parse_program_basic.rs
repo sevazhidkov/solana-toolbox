@@ -102,13 +102,13 @@ pub async fn run() {
         &[38, 19, 70, 194, 0, 59, 80, 114]
     );
     assert_eq!(idl_instruction.accounts[0].name, "payer");
-    assert_eq!(idl_instruction.accounts[0].is_signer, true);
-    assert_eq!(idl_instruction.accounts[0].is_writable, false);
+    assert_eq!(idl_instruction.accounts[0].signer, true);
+    assert_eq!(idl_instruction.accounts[0].writable, false);
     assert_eq!(idl_instruction.accounts[0].address, None);
     assert_eq!(idl_instruction.accounts[0].pda, None);
     assert_eq!(idl_instruction.accounts[1].name, "authority");
-    assert_eq!(idl_instruction.accounts[1].is_signer, false);
-    assert_eq!(idl_instruction.accounts[1].is_writable, true);
+    assert_eq!(idl_instruction.accounts[1].signer, false);
+    assert_eq!(idl_instruction.accounts[1].writable, true);
     assert_eq!(idl_instruction.accounts[1].address, None);
     assert_eq!(idl_instruction.accounts[1].pda, None);
     assert_eq!(
