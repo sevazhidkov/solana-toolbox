@@ -11,14 +11,10 @@ impl ToolboxIdlTransactionError {
         }
         let mut json_object = Map::new();
         if backward_compatibility {
-            json_object.insert(
-                "name".to_string(),
-                Value::String(self.name.to_string()),
-            );
+            json_object.insert("name".to_string(), json!(self.name));
         }
-        json_object.insert("code".to_string(), Value::Number(self.code.into()));
-        json_object
-            .insert("msg".to_string(), Value::String(self.msg.to_string()));
-        Value::Object(json_object)
+        json_object.insert("code".to_string(), json!(self.code));
+        json_object.insert("msg".to_string(), json!(self.msg));
+        json!(json_object)
     }
 }

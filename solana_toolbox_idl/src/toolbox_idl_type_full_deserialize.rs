@@ -1,5 +1,5 @@
+use serde_json::json;
 use serde_json::Map;
-use serde_json::Number;
 use serde_json::Value;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -136,7 +136,7 @@ impl ToolboxIdlTypeFull {
             data_size += data_item_size;
             data_items.push(data_item);
         }
-        Ok((data_size, Value::Array(data_items)))
+        Ok((data_size, json!(data_items)))
     }
 
     fn try_deserialize_array(
@@ -160,7 +160,7 @@ impl ToolboxIdlTypeFull {
             data_size += data_item_size;
             data_items.push(data_item);
         }
-        Ok((data_size, Value::Array(data_items)))
+        Ok((data_size, json!(data_items)))
     }
 
     fn try_deserialize_struct(
@@ -199,15 +199,9 @@ impl ToolboxIdlTypeFull {
         )?;
         data_size += data_fields_size;
         if data_fields.is_null() {
-            Ok((data_size, Value::String(enum_variant.0.to_string())))
+            Ok((data_size, json!(enum_variant.0)))
         } else {
-            Ok((
-                data_size,
-                Value::Array(vec![
-                    Value::String(enum_variant.0.to_string()),
-                    data_fields,
-                ]),
-            ))
+            Ok((data_size, json!(vec![json!(enum_variant.0), data_fields])))
         }
     }
 
@@ -221,96 +215,52 @@ impl ToolboxIdlTypeFull {
         Ok(match primitive {
             ToolboxIdlTypePrimitive::U8 => {
                 let int = idl_u8_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::U16 => {
                 let int = idl_u16_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::U32 => {
                 let int = idl_u32_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::U64 => {
                 let int = idl_u64_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::U128 => {
                 let int = idl_u128_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(
-                        Number::from_u128(int).unwrap_or(Number::from(0)),
-                    ),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::I8 => {
                 let int = idl_i8_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::I16 => {
                 let int = idl_i16_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::I32 => {
                 let int = idl_i32_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::I64 => {
                 let int = idl_i64_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(Number::from(int)),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::I128 => {
                 let int = idl_i128_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&int),
-                    Value::Number(
-                        Number::from_i128(int).unwrap_or(Number::from(0)),
-                    ),
-                )
+                (std::mem::size_of_val(&int), json!(int))
             },
             ToolboxIdlTypePrimitive::F32 => {
                 let float =
                     idl_f32_from_bytes_at(data, data_offset, context)? as f64;
-                (
-                    std::mem::size_of_val(&float),
-                    Value::Number(
-                        Number::from_f64(float).unwrap_or(Number::from(0)),
-                    ),
-                )
+                (std::mem::size_of_val(&float), json!(float))
             },
             ToolboxIdlTypePrimitive::F64 => {
                 let float = idl_f64_from_bytes_at(data, data_offset, context)?;
-                (
-                    std::mem::size_of_val(&float),
-                    Value::Number(
-                        Number::from_f64(float).unwrap_or(Number::from(0)),
-                    ),
-                )
+                (std::mem::size_of_val(&float), json!(float))
             },
             ToolboxIdlTypePrimitive::Bytes => {
                 let data_length =
@@ -328,15 +278,15 @@ impl ToolboxIdlTypeFull {
                 data_size += data_bytes.len();
                 let mut data = vec![];
                 for data_byte in data_bytes {
-                    data.push(Value::Number(Number::from(*data_byte)));
+                    data.push(json!(*data_byte));
                 }
-                (data_size, Value::Array(data))
+                (data_size, json!(data))
             },
             ToolboxIdlTypePrimitive::Boolean => {
                 let data_flag =
                     idl_u8_from_bytes_at(data, data_offset, context)?;
                 let data_size = std::mem::size_of_val(&data_flag);
-                (data_size, Value::Bool(data_flag != 0))
+                (data_size, json!(data_flag != 0))
             },
             ToolboxIdlTypePrimitive::String => {
                 let data_length =
@@ -357,13 +307,13 @@ impl ToolboxIdlTypeFull {
                         parsing: err,
                         context: context.clone(),
                     })?;
-                (data_size, Value::String(data_string))
+                (data_size, json!(data_string))
             },
             ToolboxIdlTypePrimitive::PublicKey => {
                 let data_pubkey =
                     idl_pubkey_from_bytes_at(data, data_offset, context)?;
                 let data_size = std::mem::size_of_val(&data_pubkey);
-                (data_size, Value::String(data_pubkey.to_string()))
+                (data_size, json!(data_pubkey.to_string()))
             },
         })
     }
@@ -390,7 +340,7 @@ impl ToolboxIdlTypeFullFields {
                     data_size += data_field_size;
                     data_fields.insert(field_name.to_string(), data_field);
                 }
-                (data_size, Value::Object(data_fields))
+                (data_size, json!(data_fields))
             },
             ToolboxIdlTypeFullFields::Unamed(fields) => {
                 let mut data_size = 0;
@@ -406,7 +356,7 @@ impl ToolboxIdlTypeFullFields {
                     data_size += data_field_size;
                     data_fields.push(data_field);
                 }
-                (data_size, Value::Array(data_fields))
+                (data_size, json!(data_fields))
             },
             ToolboxIdlTypeFullFields::None => (0, Value::Null),
         })

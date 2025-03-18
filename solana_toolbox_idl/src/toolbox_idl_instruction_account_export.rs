@@ -9,35 +9,32 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 impl ToolboxIdlInstructionAccount {
     pub fn export(&self, backward_compatibility: bool) -> Value {
         let mut json_object = Map::new();
-        json_object
-            .insert("name".to_string(), Value::String(self.name.to_string()));
+        json_object.insert("name".to_string(), json!(self.name));
         // TODO - support multiple anchor versions format
         if backward_compatibility {
             if self.signer {
-                json_object.insert("isSigner".to_string(), Value::Bool(true));
+                json_object.insert("isSigner".to_string(), json!(true));
             }
             if self.writable {
-                json_object.insert("isMut".to_string(), Value::Bool(true));
+                json_object.insert("isMut".to_string(), json!(true));
             }
         } else {
             if self.signer {
-                json_object.insert("signer".to_string(), Value::Bool(true));
+                json_object.insert("signer".to_string(), json!(true));
             }
             if self.writable {
-                json_object.insert("writable".to_string(), Value::Bool(true));
+                json_object.insert("writable".to_string(), json!(true));
             }
         }
         if let Some(address) = &self.address {
-            json_object.insert(
-                "address".to_string(),
-                Value::String(address.to_string()),
-            );
+            json_object
+                .insert("address".to_string(), json!(address.to_string()));
         }
         if let Some(pda) = &self.pda {
             json_object
                 .insert("pda".to_string(), pda.export(backward_compatibility));
         }
-        Value::Object(json_object)
+        json!(json_object)
     }
 }
 
@@ -46,12 +43,11 @@ impl ToolboxIdlInstructionAccountPda {
         let mut json_object = Map::new();
         json_object.insert(
             "seeds".to_string(),
-            Value::Array(
-                self.seeds
-                    .iter()
-                    .map(|blob| blob.export(backward_compatibility))
-                    .collect::<Vec<_>>(),
-            ),
+            json!(self
+                .seeds
+                .iter()
+                .map(|blob| blob.export(backward_compatibility))
+                .collect::<Vec<_>>()),
         );
         if let Some(program) = &self.program {
             json_object.insert(
@@ -59,7 +55,7 @@ impl ToolboxIdlInstructionAccountPda {
                 program.export(backward_compatibility),
             );
         }
-        Value::Object(json_object)
+        json!(json_object)
     }
 }
 

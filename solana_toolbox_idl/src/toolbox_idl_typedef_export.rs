@@ -22,19 +22,15 @@ impl ToolboxIdlTypedef {
                     json_generics.push(json!(generic));
                 }
             }
-            json_object
-                .insert("generics".to_string(), Value::Array(json_generics));
+            json_object.insert("generics".to_string(), json!(json_generics));
         }
         if backward_compatibility {
-            json_object.insert(
-                "name".to_string(),
-                Value::String(self.name.to_string()),
-            );
+            json_object.insert("name".to_string(), json!(self.name));
         }
         json_object.insert(
             "type".to_string(),
             self.type_flat.export(backward_compatibility),
         );
-        Value::Object(json_object)
+        json!(json_object)
     }
 }

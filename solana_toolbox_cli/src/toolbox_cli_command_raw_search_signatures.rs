@@ -42,11 +42,13 @@ impl ToolboxCliCommandRawSearchSignaturesArgs {
                 self.limit.unwrap_or(10),
             )
             .await?;
-        let json = json!(signatures
-            .iter()
-            .map(|signature| signature.to_string())
-            .collect::<Vec<_>>());
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!(signatures
+                .iter()
+                .map(|signature| signature.to_string())
+                .collect::<Vec<_>>()))?
+        );
         Ok(())
     }
 }
