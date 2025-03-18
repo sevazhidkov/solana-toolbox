@@ -29,13 +29,13 @@ pub async fn run() {
     .unwrap();
     // Check the JSON human compact version
     assert_eq!(
-        idl_program.as_json(false),
+        idl_program.export(false),
         json!({
             "instructions": {
                 "my_ix": {
                     "discriminator": [77, 78],
                     "accounts": [
-                        { "name": "addr" }
+                        { "name": "addr", "signer": true }
                     ],
                     "args": [
                         { "name": "arg1", "type": "MyArg" },
@@ -57,7 +57,7 @@ pub async fn run() {
     );
     // Check the JSON backward compatibility version
     assert_eq!( // TODO - add more in-depth testing for all anchor version and parts of IDL (should we re-use the parse_ tests?)
-        idl_program.as_json(true).to_string(),
+        idl_program.export(true).to_string(),
         json!({
             "accounts": [],
             "errors": [],
@@ -66,7 +66,7 @@ pub async fn run() {
                     "name": "my_ix",
                     "discriminator": [77, 78],
                     "accounts": [
-                        { "name": "addr" }
+                        { "name": "addr", "isSigner": true }
                     ],
                     "args": [
                         { "name": "arg1", "type": {"defined": {"name": "MyArg"}} },

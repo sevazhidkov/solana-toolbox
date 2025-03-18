@@ -4,7 +4,7 @@ use serde_json::Value;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 impl ToolboxIdlTypedef {
-    pub fn as_json(&self, backward_compatibility: bool) -> Value {
+    pub fn export(&self, backward_compatibility: bool) -> Value {
         let mut json_generics = vec![];
         for generic in &self.generics {
             if backward_compatibility {
@@ -20,20 +20,20 @@ impl ToolboxIdlTypedef {
             if backward_compatibility {
                 json!({
                     "name": self.name,
-                    "type": self.type_flat.as_json(backward_compatibility)
+                    "type": self.type_flat.export(backward_compatibility)
                 })
             } else {
-                self.type_flat.as_json(backward_compatibility)
+                self.type_flat.export(backward_compatibility)
             }
         } else if backward_compatibility {
             json!({
                 "name": self.name,
-                "type": self.type_flat.as_json(backward_compatibility),
+                "type": self.type_flat.export(backward_compatibility),
                 "generics": json_generics,
             })
         } else {
             json!({
-                "type": self.type_flat.as_json(backward_compatibility),
+                "type": self.type_flat.export(backward_compatibility),
                 "generics": json_generics,
             })
         }

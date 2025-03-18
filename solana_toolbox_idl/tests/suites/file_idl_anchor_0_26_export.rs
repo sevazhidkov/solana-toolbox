@@ -12,12 +12,12 @@ pub async fn run() {
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
         idl_program,
-        ToolboxIdlProgram::try_parse_from_value(&idl_program.as_json(true))
+        ToolboxIdlProgram::try_parse_from_value(&idl_program.export(true))
             .unwrap(),
     );
     assert_eq!(
         idl_program,
-        ToolboxIdlProgram::try_parse_from_value(&idl_program.as_json(false))
+        ToolboxIdlProgram::try_parse_from_value(&idl_program.export(false))
             .unwrap(),
     );
 }
