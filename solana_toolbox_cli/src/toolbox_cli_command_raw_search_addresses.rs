@@ -30,7 +30,7 @@ impl ToolboxCliCommandRawSearchAddressesArgs {
             let parts = data_chunk.split(":").collect::<Vec<_>>();
             if let [offset, encoding, blob] = parts[..] {
                 data_chunks.push((
-                    usize::from_str_radix(offset, 10),
+                    offset.parse::<usize>(),
                     parse_blob(encoding, blob),
                 ));
             } else {

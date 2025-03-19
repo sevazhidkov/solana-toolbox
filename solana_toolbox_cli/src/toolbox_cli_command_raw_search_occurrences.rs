@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use clap::Args;
-use serde_json::{json, Map};
+use serde_json::json;
+use serde_json::Map;
 use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
@@ -12,14 +13,14 @@ use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandRawSearchOccurancesArgs {
+pub struct ToolboxCliCommandRawSearchOccurrencesArgs {
     with_address: String,
     limit: Option<usize>,
     start_before_signature: Option<String>,
     rewind_until_signature: Option<String>,
 }
 
-impl ToolboxCliCommandRawSearchOccurancesArgs {
+impl ToolboxCliCommandRawSearchOccurrencesArgs {
     pub async fn process(
         &self,
         config: &Config,
@@ -48,12 +49,11 @@ impl ToolboxCliCommandRawSearchOccurancesArgs {
         for signature in signatures {
             executions.push(endpoint.get_execution(&signature).await?);
         }
-
-        let mut occurances_programs = HashMap::new();
-        let mut occurances_accounts = HashMap::new();
+        let mut occurrences_programs = HashMap::new();
+        let mut occurrences_accounts = HashMap::new();
         for execution in executions {
             for instruction in execution.instructions {
-                match occurances_programs.entry(instruction.program_id) {
+                match occurrences_programs.entry(instruction.program_id) {
                     Entry::Vacant(entry) => {
                         entry.insert(1);
                     },
@@ -62,7 +62,7 @@ impl ToolboxCliCommandRawSearchOccurancesArgs {
                     },
                 };
                 for account in instruction.accounts {
-                    match occurances_accounts.entry(account.pubkey) {
+                    match occurrences_accounts.entry(account.pubkey) {
                         Entry::Vacant(entry) => {
                             entry.insert(1);
                         },
@@ -73,23 +73,20 @@ impl ToolboxCliCommandRawSearchOccurancesArgs {
                 }
             }
         }
-
         let mut json_programs = Map::new();
-        for occurances_program in occurances_programs {
+        for occurrences_program in occurrences_programs {
             json_programs.insert(
-                occurances_program.0.to_string(),
-                json!(occurances_program.1),
+                occurrences_program.0.to_string(),
+                json!(occurrences_program.1),
             );
         }
-
         let mut json_accounts = Map::new();
-        for occurances_account in occurances_accounts {
+        for occurrences_account in occurrences_accounts {
             json_accounts.insert(
-                occurances_account.0.to_string(),
-                json!(occurances_account.1),
+                occurrences_account.0.to_string(),
+                json!(occurrences_account.1),
             );
         }
-
         println!(
             "{}",
             serde_json::to_string(&json!({

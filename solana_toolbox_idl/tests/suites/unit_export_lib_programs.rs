@@ -1,4 +1,6 @@
-use solana_sdk::{bpf_loader_upgradeable, compute_budget, system_program};
+use solana_sdk::bpf_loader_upgradeable;
+use solana_sdk::compute_budget;
+use solana_sdk::system_program;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
