@@ -60,58 +60,58 @@ impl ToolboxIdlProgram {
         })
     }
 
-    pub fn find_anchor_pda(
-        program_id: &Pubkey,
-    ) -> Result<Pubkey, ToolboxIdlError> {
+    pub fn find_anchor(program_id: &Pubkey) -> Result<Pubkey, ToolboxIdlError> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Pubkey::create_with_seed(&base, "anchor:idl", program_id)
             .map_err(ToolboxIdlError::Pubkey)
     }
 
-    pub fn find_shank_pda(
-        program_id: &Pubkey,
-    ) -> Result<Pubkey, ToolboxIdlError> {
+    pub fn find_shank(program_id: &Pubkey) -> Result<Pubkey, ToolboxIdlError> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Pubkey::create_with_seed(&base, "shank:idl", program_id)
             .map_err(ToolboxIdlError::Pubkey)
     }
 
-    pub fn guess_idl_instruction(
-        &self,
-        instruction_data: &[u8],
-    ) -> Option<Arc<ToolboxIdlInstruction>> {
-        for instruction in self.instructions.values() {
-            eprintln!(
-                "instruction.discriminator: {:?}",
-                instruction.discriminator
-            );
-            if instruction_data.starts_with(&instruction.discriminator) {
-                return Some(instruction.clone());
-            }
-        }
-        None
-    }
-
-    pub fn guess_idl_account(
+    pub fn guess_account(
         &self,
         account_data: &[u8],
     ) -> Option<Arc<ToolboxIdlAccount>> {
         for account in self.accounts.values() {
-            if account_data.starts_with(&account.discriminator) {
-                return Some(account.clone());
+            if !account_data.starts_with(&account.discriminator) {
+                continue;
             }
+            if let Some(account_space) = account.space {
+                if account_data.len() != account_space {
+                    continue;
+                }
+            }
+            return Some(account.clone());
         }
         None
     }
 
-    pub fn guess_idl_error(
+    pub fn guess_instruction(
+        &self,
+        instruction_data: &[u8],
+    ) -> Option<Arc<ToolboxIdlInstruction>> {
+        for instruction in self.instructions.values() {
+            if !instruction_data.starts_with(&instruction.discriminator) {
+                continue;
+            }
+            return Some(instruction.clone());
+        }
+        None
+    }
+
+    pub fn guess_error(
         &self,
         error_code: u64,
     ) -> Option<Arc<ToolboxIdlTransactionError>> {
         for error in self.errors.values() {
-            if error_code == error.code {
-                return Some(error.clone());
+            if error_code != error.code {
+                continue;
             }
+            return Some(error.clone());
         }
         None
     }

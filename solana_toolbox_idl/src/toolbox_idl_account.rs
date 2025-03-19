@@ -11,6 +11,7 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 pub struct ToolboxIdlAccount {
     pub name: String,
     pub docs: Option<Value>,
+    pub space: Option<usize>,
     pub discriminator: Vec<u8>,
     pub content_type_flat: ToolboxIdlTypeFlat,
     pub content_type_full: Arc<ToolboxIdlTypeFull>,
@@ -41,6 +42,14 @@ impl ToolboxIdlAccount {
                 expected: self.discriminator.to_vec(),
                 found: account_data.to_vec(),
             });
+        }
+        if let Some(space) = self.space {
+            if account_data.len() != space {
+                return Err(ToolboxIdlError::InvalidSpace {
+                    expected: space,
+                    found: account_data.len(),
+                });
+            }
         }
         let (_, account_value) = self.content_type_full.try_deserialize(
             account_data,

@@ -20,6 +20,10 @@ pub enum ToolboxIdlError {
         expected: Vec<u8>,
         found: Vec<u8>,
     },
+    InvalidSpace {
+        expected: usize,
+        found: usize,
+    },
     InvalidSliceReadAt {
         offset: usize,
         length: usize,

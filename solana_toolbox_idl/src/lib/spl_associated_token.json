@@ -14,7 +14,12 @@
       ]
     }
   },
-  "accounts": {},
+  "accounts": {
+    "Unknown": {
+      "discriminator": [],
+      "fields": []
+    }
+  },
   "types": {},
   "errors": {}
 }

@@ -14,6 +14,7 @@ use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 
 impl ToolboxIdlAccount {
     pub fn try_parse(
@@ -30,6 +31,13 @@ impl ToolboxIdlAccount {
             &breadcrumbs.with_idl("discriminator"),
         )?;
         let account_docs = idl_account.get("docs").cloned();
+        let account_space = idl_object_get_key_as_u64(idl_account, "space")
+            .map(usize::try_from)
+            .transpose()
+            .map_err(|error| ToolboxIdlError::InvalidInteger {
+                conversion: error,
+                context: breadcrumbs.idl(),
+            })?;
         let account_data_type_flat =
             ToolboxIdlAccount::try_parse_data_type_flat(
                 idl_account_name,
@@ -44,6 +52,7 @@ impl ToolboxIdlAccount {
         Ok(ToolboxIdlAccount {
             name: idl_account_name.to_string(),
             docs: account_docs,
+            space: account_space,
             discriminator: account_discriminator,
             content_type_flat: account_data_type_flat,
             content_type_full: account_data_type_full.into(),

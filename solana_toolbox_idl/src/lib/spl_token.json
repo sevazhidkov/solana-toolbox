@@ -3,28 +3,45 @@
   "instructions": {
     "InitializeMint": {
       "discriminator": [0],
-      "args": [],
-      "accounts": []
+      "args": [
+        { "name": "decimals", "type": "u8" },
+        { "name": "mint_authority", "type": "pubkey" },
+        { "name": "freeze_authority", "type": { "option": "pubkey" } }
+      ],
+      "accounts": [{ "name": "mint", "writable": true }, { "name": "rent" }]
     },
     "InitializeAccount": {
       "discriminator": [1],
       "args": [],
-      "accounts": []
+      "accounts": [
+        { "name": "account", "writable": true },
+        { "name": "mint" },
+        { "name": "owner" },
+        { "name": "rent" }
+      ]
     },
     "InitializeMultisig": {
       "discriminator": [2],
-      "args": [],
+      "args": [{ "name": "m", "type": "u8" }],
       "accounts": []
     },
     "Transfer": {
       "discriminator": [3],
-      "args": [],
-      "accounts": []
+      "args": [{ "name": "amount", "type": "u64" }],
+      "accounts": [
+        { "name": "source", "writable": true },
+        { "name": "destination", "writable": true },
+        { "name": "owner" }
+      ]
     },
     "Approve": {
       "discriminator": [4],
-      "args": [],
-      "accounts": []
+      "args": [{ "name": "amount", "type": "u64" }],
+      "accounts": [
+        { "name": "source", "writable": true },
+        { "name": "delegate" },
+        { "name": "owner" }
+      ]
     },
     "Revoke": {
       "discriminator": [5],
@@ -38,28 +55,48 @@
     },
     "MintTo": {
       "discriminator": [7],
-      "args": [],
-      "accounts": []
+      "args": [{ "name": "amount", "type": "u64" }],
+      "accounts": [
+        { "name": "mint", "writable": true },
+        { "name": "account", "writable": true },
+        { "name": "mint_authority", "signer": true }
+      ]
     },
     "Burn": {
       "discriminator": [8],
-      "args": [],
-      "accounts": []
+      "args": [{ "name": "amount", "type": "u64" }],
+      "accounts": [
+        { "name": "account", "writable": true },
+        { "name": "mint", "writable": true },
+        { "name": "owner" }
+      ]
     },
     "Close": {
       "discriminator": [9],
       "args": [],
-      "accounts": []
+      "accounts": [
+        { "name": "closed", "writable": true },
+        { "name": "destination", "writable": true },
+        { "name": "owner" }
+      ]
     },
     "Freeze": {
       "discriminator": [10],
       "args": [],
-      "accounts": []
+      "accounts": [
+        { "name": "account", "writable": true },
+        { "name": "mint" },
+        { "name": "owner" }
+      ]
     },
     "Thaw": {
       "discriminator": [11],
       "args": [],
-      "accounts": []
+      "accounts": [
+        { "name": "account", "writable": true },
+        { "name": "mint" },
+        { "name": "owner" }
+      ]
     },
     "TransferChecked": {
       "discriminator": [12],
@@ -103,16 +140,26 @@
     },
     "InitializeMint2": {
       "discriminator": [20],
-      "args": [],
+      "args": [
+        { "name": "decimals", "type": "u8" },
+        { "name": "mint_authority", "type": "pubkey" },
+        { "name": "freeze_authority", "type": { "option": "pubkey" } }
+      ],
       "accounts": []
     }
   },
   "accounts": {
     "Account": {
+      "space": 165,
       "discriminator": [],
       "fields": []
     },
     "Mint": {
+      "space": 82,
+      "discriminator": [],
+      "fields": []
+    },
+    "Unknown": {
       "discriminator": [],
       "fields": []
     }

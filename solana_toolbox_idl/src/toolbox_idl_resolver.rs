@@ -47,16 +47,12 @@ impl ToolboxIdlResolver {
             } else {
                 let mut source_account = None;
                 if let Some(anchor_account) = endpoint
-                    .get_account(&ToolboxIdlProgram::find_anchor_pda(
-                        program_id,
-                    )?)
+                    .get_account(&ToolboxIdlProgram::find_anchor(program_id)?)
                     .await?
                 {
                     source_account = Some(anchor_account);
                 } else if let Some(shank_account) = endpoint
-                    .get_account(&ToolboxIdlProgram::find_shank_pda(
-                        program_id,
-                    )?)
+                    .get_account(&ToolboxIdlProgram::find_shank(program_id)?)
                     .await?
                 {
                     source_account = Some(shank_account);
@@ -91,7 +87,7 @@ impl ToolboxIdlResolver {
         let idl_account = self
             .resolve_program(endpoint, &account_owner)
             .await?
-            .guess_idl_account(&account_data)
+            .guess_account(&account_data)
             .ok_or_else(|| ToolboxIdlError::CouldNotFindAccount {})?;
         let account_state = idl_account.decompile(&account_data)?;
         Ok(Some((idl_account, account_state)))

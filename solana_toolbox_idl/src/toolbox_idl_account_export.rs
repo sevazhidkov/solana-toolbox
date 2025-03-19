@@ -4,7 +4,6 @@ use serde_json::Value;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 
-// TODO - this parse/json could be serde serialize/deserialize trait implementations?
 impl ToolboxIdlAccount {
     pub fn export(&self, backward_compatibility: bool) -> Value {
         let mut json_object = Map::new();
@@ -14,7 +13,9 @@ impl ToolboxIdlAccount {
         if let Some(docs) = &self.docs {
             json_object.insert("docs".to_string(), json!(docs));
         }
-        // TODO - what if discriminator is the default one, we can shortcut ?
+        if let Some(space) = &self.space {
+            json_object.insert("space".to_string(), json!(space));
+        }
         json_object
             .insert("discriminator".to_string(), json!(self.discriminator));
         json_object.insert(

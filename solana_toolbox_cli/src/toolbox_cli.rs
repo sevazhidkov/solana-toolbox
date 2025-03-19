@@ -20,6 +20,10 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Parser)]
 pub struct ToolboxCliArgs {
     #[arg(short, long)]
+    rpc: Option<String>,
+    #[arg(short, long)]
+    keypair: Option<String>,
+    #[arg(short, long)]
     config: Option<String>,
     #[command(subcommand)]
     command: ToolboxCliCommand,
@@ -37,6 +41,7 @@ impl ToolboxCliArgs {
                     )
                 })?,
         )?;
+        if let Some(rpc) = self.rpc {}
         // TODO - custom url/wallet
         self.command.process(&config).await
     }

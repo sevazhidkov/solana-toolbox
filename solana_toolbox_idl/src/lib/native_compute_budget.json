@@ -18,7 +18,7 @@
     }
   },
   "accounts": {
-    "Account": {
+    "Unknown": {
       "discriminator": [],
       "fields": []
     }

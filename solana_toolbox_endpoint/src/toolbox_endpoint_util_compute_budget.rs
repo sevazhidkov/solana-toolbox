@@ -1,4 +1,5 @@
-use solana_sdk::compute_budget::{self, ComputeBudgetInstruction};
+use solana_sdk::compute_budget;
+use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 

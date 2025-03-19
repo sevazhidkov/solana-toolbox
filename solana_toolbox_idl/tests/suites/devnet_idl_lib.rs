@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use serde_json::json;
+use serde_json::Map;
 use solana_sdk::signature::Signature;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
@@ -15,7 +16,7 @@ pub async fn run() {
 
     let mut idl_resolver = ToolboxIdlResolver::new();
 
-    let signature = Signature::from_str("44KbtWbYXCdn5vZwKoz8tfG2pLFT7TLqwVvDwVuFaMBMAaaENCVjN8DczQfRaAZvvSwpVkAUDWwSdfryrwU6fzNh").unwrap();
+    let signature = Signature::from_str("5ZVAeKpmBGmT46oq4LW5WNz9aTUN8ADaGeJZsaxZUD1RNd7S57u4fjHEwtfHt2E8qdpBCN9Zhj4DAZJ9W9tSpqTb").unwrap();
     let execution = endpoint.get_execution(&signature).await.unwrap();
     let mut json_instructions = vec![];
     for instruction in execution.instructions {
@@ -23,26 +24,25 @@ pub async fn run() {
             .resolve_program(&mut endpoint, &instruction.program_id)
             .await
             .unwrap();
-        //eprintln!("idl_program: {:#?}", idl_program);
+        // eprintln!("idl_program: {:#?}", idl_program);
         eprintln!("instruction: {:#?}", instruction);
-        let idl_instruction = idl_program
-            .guess_idl_instruction(&instruction.data)
-            .unwrap(); // TODO - handle unwrap
+        let idl_instruction =
+            idl_program.guess_instruction(&instruction.data).unwrap(); // TODO - handle unwrap
         let (program_id, instruction_addresses, instruction_payload) =
             idl_instruction.decompile(&instruction).unwrap();
-        let mut json_addresses = vec![];
+        let mut json_addresses = Map::new();
         for instruction_address in instruction_addresses {
-            json_addresses.push(json!([
-                instruction_address.0,
-                instruction_address.1.to_string()
-            ]));
+            json_addresses.insert(
+                instruction_address.0.to_string(),
+                json!(instruction_address.1.to_string()),
+            );
         }
         json_instructions.push(json!({
             "program_id": program_id.to_string(),
             "name": idl_instruction.name,
             "addresses": json_addresses,
             "payload": instruction_payload,
-            "data": instruction.data,
+            //"data": instruction.data,
         }));
     }
     let json = json!({

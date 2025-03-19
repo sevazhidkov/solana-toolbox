@@ -89,6 +89,7 @@ impl ToolboxIdlTypeFull {
         }
     }
 
+    // TODO - support for "coption" ?
     fn try_deserialize_option(
         option_content: &ToolboxIdlTypeFull,
         data: &[u8],
