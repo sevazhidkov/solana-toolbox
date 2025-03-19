@@ -12,6 +12,7 @@ use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
+    // TODO - test is_optional parsing and compile/decompile
     // Create IDLs using different shortened formats
     let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": [
@@ -96,6 +97,7 @@ pub async fn run() {
                     name: "account_ws".to_string(),
                     writable: true,
                     signer: true,
+                    optional: false,
                     address: None,
                     pda: None
                 },
@@ -103,6 +105,7 @@ pub async fn run() {
                     name: "account_rs".to_string(),
                     writable: false,
                     signer: true,
+                    optional: false,
                     address: None,
                     pda: None
                 },
@@ -110,6 +113,7 @@ pub async fn run() {
                     name: "account_w".to_string(),
                     writable: true,
                     signer: false,
+                    optional: false,
                     address: None,
                     pda: None
                 },
@@ -117,6 +121,7 @@ pub async fn run() {
                     name: "account_r".to_string(),
                     writable: false,
                     signer: false,
+                    optional: false,
                     address: None,
                     pda: None
                 },

@@ -41,7 +41,9 @@ impl ToolboxIdlResolver {
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
     ) -> Result<Arc<ToolboxIdlProgram>, ToolboxIdlError> {
-        // TODO - provide standard implementation for basic contracts such as spl_token and system, and compute_budget ?
+        if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
+            return Ok(idl_program);
+        }
         if !self.programs.contains_key(program_id) {
             self.programs.insert(
                 *program_id,
@@ -112,6 +114,7 @@ impl ToolboxIdlResolver {
             .compile(program_id, &instruction_addresses, instruction_payload)
     }
 
+    // TODO - this should indicate in the name that this may not be all addresses
     pub async fn resolve_instruction_addresses(
         &mut self,
         endpoint: &mut ToolboxEndpoint,

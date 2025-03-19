@@ -9,6 +9,7 @@ mod toolbox_cli_command_idl_resolve_program;
 mod toolbox_cli_command_raw_get_account;
 mod toolbox_cli_command_raw_get_execution;
 mod toolbox_cli_command_raw_search_addresses;
+mod toolbox_cli_command_raw_search_occurrences;
 mod toolbox_cli_command_raw_search_signatures;
 mod toolbox_cli_error;
 mod toolbox_cli_utils;

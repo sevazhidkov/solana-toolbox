@@ -21,7 +21,7 @@ pub async fn run() {
     // Actually generate the instruction
     let instruction = idl_program
         .instructions
-        .get("initialize_realm")
+        .get("initializeRealm")
         .unwrap()
         .compile(
             &program_id,

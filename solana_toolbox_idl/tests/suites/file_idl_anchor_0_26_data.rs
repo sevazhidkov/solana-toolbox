@@ -13,7 +13,7 @@ pub async fn run() {
     .unwrap();
     // Prepare instruction args
     let idl_instruction =
-        idl_program.instructions.get("initialize_market").unwrap();
+        idl_program.instructions.get("initializeMarket").unwrap();
     let instruction_payload = json!({
         "global_market_seed": "SEED",
         "withdrawal_fee": {
