@@ -11,6 +11,9 @@ impl ToolboxIdlAccount {
         if backward_compatibility {
             json_object.insert("name".to_string(), json!(self.name));
         }
+        if let Some(docs) = &self.docs {
+            json_object.insert("docs".to_string(), json!(docs));
+        }
         // TODO - what if discriminator is the default one, we can shortcut ?
         json_object
             .insert("discriminator".to_string(), json!(self.discriminator));

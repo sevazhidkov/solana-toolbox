@@ -91,10 +91,12 @@ pub async fn run() {
         *idl_program1.instructions.get("my_ix").unwrap(),
         ToolboxIdlInstruction {
             name: "my_ix".to_string(),
+            docs: None,
             discriminator: vec![38, 19, 70, 194, 0, 59, 80, 114],
             accounts: vec![
                 ToolboxIdlInstructionAccount {
                     name: "account_ws".to_string(),
+                    docs: None,
                     writable: true,
                     signer: true,
                     optional: false,
@@ -103,6 +105,7 @@ pub async fn run() {
                 },
                 ToolboxIdlInstructionAccount {
                     name: "account_rs".to_string(),
+                    docs: None,
                     writable: false,
                     signer: true,
                     optional: false,
@@ -111,6 +114,7 @@ pub async fn run() {
                 },
                 ToolboxIdlInstructionAccount {
                     name: "account_w".to_string(),
+                    docs: None,
                     writable: true,
                     signer: false,
                     optional: false,
@@ -119,6 +123,7 @@ pub async fn run() {
                 },
                 ToolboxIdlInstructionAccount {
                     name: "account_r".to_string(),
+                    docs: None,
                     writable: false,
                     signer: false,
                     optional: false,

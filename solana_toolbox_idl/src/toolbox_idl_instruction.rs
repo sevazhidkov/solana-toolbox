@@ -15,6 +15,7 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstruction {
     pub name: String,
+    pub docs: Option<Value>,
     pub discriminator: Vec<u8>,
     pub accounts: Vec<ToolboxIdlInstructionAccount>,
     pub args_type_flat_fields: ToolboxIdlTypeFlatFields,

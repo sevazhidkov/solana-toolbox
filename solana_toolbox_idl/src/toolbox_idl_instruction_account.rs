@@ -1,8 +1,10 @@
+use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
     pub name: String,
+    pub docs: Option<Value>,
     pub writable: bool,
     pub signer: bool,
     pub optional: bool,

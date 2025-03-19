@@ -4,7 +4,7 @@ use std::sync::Arc;
 use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::compute_budget;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::system_program;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_error::ToolboxIdlError;
@@ -12,11 +12,14 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_lib_native_compute_budget::idl_lib_native_compute_budget;
 use crate::toolbox_idl_lib_native_loader_upgradeable::idl_lib_native_loader_upgradeable;
 use crate::toolbox_idl_lib_native_system::idl_lib_native_system;
+use crate::toolbox_idl_lib_spl_associated_token::idl_lib_spl_associated_token;
+use crate::toolbox_idl_lib_spl_token::idl_lib_spl_token;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgram {
+    // TODO - parse metadata from all versions
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
@@ -24,18 +27,20 @@ pub struct ToolboxIdlProgram {
 }
 
 impl ToolboxIdlProgram {
-    pub fn from_lib(program_id: &Pubkey) -> Option<Arc<ToolboxIdlProgram>> {
+    pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
         // TODO - provide standard implementation for basic contracts such as spl_token and system, and compute_budget ?
-        if *program_id == system_program::ID {
-            return Some(idl_lib_native_system().into());
+        match *program_id {
+            ToolboxEndpoint::SYSTEM_PROGRAM_ID => Some(idl_lib_native_system()),
+            compute_budget::ID => Some(idl_lib_native_compute_budget()),
+            bpf_loader_upgradeable::ID => {
+                Some(idl_lib_native_loader_upgradeable())
+            },
+            ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID => Some(idl_lib_spl_token()),
+            ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID => {
+                Some(idl_lib_spl_associated_token())
+            },
+            _ => None,
         }
-        if *program_id == compute_budget::ID {
-            return Some(idl_lib_native_compute_budget().into());
-        }
-        if *program_id == bpf_loader_upgradeable::ID {
-            return Some(idl_lib_native_loader_upgradeable().into());
-        }
-        None
     }
 
     pub fn find_anchor_pda(
@@ -43,6 +48,14 @@ impl ToolboxIdlProgram {
     ) -> Result<Pubkey, ToolboxIdlError> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Pubkey::create_with_seed(&base, "anchor:idl", program_id)
+            .map_err(ToolboxIdlError::Pubkey)
+    }
+
+    pub fn find_shank_pda(
+        program_id: &Pubkey,
+    ) -> Result<Pubkey, ToolboxIdlError> {
+        let base = Pubkey::find_program_address(&[], program_id).0;
+        Pubkey::create_with_seed(&base, "shank:idl", program_id)
             .map_err(ToolboxIdlError::Pubkey)
     }
 

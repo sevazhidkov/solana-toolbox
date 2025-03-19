@@ -27,28 +27,30 @@ impl ToolboxIdlInstructionAccount {
     ) -> Result<ToolboxIdlInstructionAccount, ToolboxIdlError> {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account, &breadcrumbs.idl())?;
-        let idl_instruction_account_name =
+        let instruction_account_name =
             idl_convert_to_value_name(idl_object_get_key_as_str_or_else(
                 idl_instruction_account,
                 "name",
                 &breadcrumbs.idl(),
             )?);
-        let breadcrumbs = &breadcrumbs.with_idl(&idl_instruction_account_name);
-        let idl_instruction_account_writable =
+        let instruction_account_docs =
+            idl_instruction_account.get("docs").cloned();
+        let breadcrumbs = &breadcrumbs.with_idl(&instruction_account_name);
+        let instruction_account_writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
                     "isMut",
                 ))
                 .unwrap_or(false);
-        let idl_instruction_account_signer =
+        let instruction_account_signer =
             idl_object_get_key_as_bool(idl_instruction_account, "signer")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
                     "isSigner",
                 ))
                 .unwrap_or(false);
-        let idl_instruction_account_optional =
+        let instruction_account_optional =
             idl_object_get_key_as_bool(idl_instruction_account, "optional")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
@@ -56,10 +58,11 @@ impl ToolboxIdlInstructionAccount {
                 ))
                 .unwrap_or(false);
         Ok(ToolboxIdlInstructionAccount {
-            name: idl_instruction_account_name,
-            writable: idl_instruction_account_writable,
-            signer: idl_instruction_account_signer,
-            optional: idl_instruction_account_optional,
+            name: instruction_account_name,
+            docs: instruction_account_docs,
+            writable: instruction_account_writable,
+            signer: instruction_account_signer,
+            optional: instruction_account_optional,
             address: ToolboxIdlInstructionAccount::try_parse_address(
                 idl_instruction_account,
                 breadcrumbs,

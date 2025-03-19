@@ -1,34 +1,35 @@
 use serde_json::json;
 
-use crate::ToolboxIdlProgram;
+use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 pub fn idl_lib_native_compute_budget() -> ToolboxIdlProgram {
     ToolboxIdlProgram::try_parse_from_value(&json!({
+        "name": "compute_budget",
         "instructions": {
             "RequestHeapFrame": {
-                "discriminator": [1, 0, 0, 0],
+                "discriminator": [1],
+                "args": ["u32"],
                 "accounts": [],
-                "args": ["u32"]
             },
             "SetComputeUnitLimit": {
-                "discriminator": [2, 0, 0, 0],
+                "discriminator": [2],
+                "args": ["u32"],
                 "accounts": [],
-                "args": ["u32"]
             },
             "SetComputeUnitPrice": {
-                "discriminator": [3, 0, 0, 0],
+                "discriminator": [3],
+                "args": ["u64"],
                 "accounts": [],
-                "args": ["u64"]
             },
         },
         "accounts": {
-            "ComputeBudgetAccount": {
+            "Account": {
                 "discriminator": [],
                 "fields": []
             },
         },
-        "types": [],
-        "errors": [],
+        "types": {},
+        "errors": {},
     }))
     .unwrap()
 }

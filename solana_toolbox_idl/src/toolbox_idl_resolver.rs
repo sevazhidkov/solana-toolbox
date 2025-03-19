@@ -41,28 +41,36 @@ impl ToolboxIdlResolver {
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
     ) -> Result<Arc<ToolboxIdlProgram>, ToolboxIdlError> {
-        if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
-            return Ok(idl_program);
-        }
         if !self.programs.contains_key(program_id) {
-            self.programs.insert(
-                *program_id,
-                endpoint
+            if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
+                self.programs.insert(*program_id, idl_program.into());
+            } else {
+                let mut source_account = None;
+                if let Some(anchor_account) = endpoint
                     .get_account(&ToolboxIdlProgram::find_anchor_pda(
                         program_id,
                     )?)
                     .await?
-                    .map(|account| {
-                        ToolboxIdlProgram::try_parse_from_account_data(
-                            &account.data,
-                        )
-                    })
-                    .transpose()?
-                    .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
-                        program_id: *program_id,
-                    })?
-                    .into(),
-            );
+                {
+                    source_account = Some(anchor_account);
+                } else if let Some(shank_account) = endpoint
+                    .get_account(&ToolboxIdlProgram::find_shank_pda(
+                        program_id,
+                    )?)
+                    .await?
+                {
+                    source_account = Some(shank_account);
+                }
+                let idl_program =
+                    ToolboxIdlProgram::try_parse_from_account_data(
+                        &source_account
+                            .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
+                                program_id: *program_id,
+                            })?
+                            .data,
+                    )?;
+                self.programs.insert(*program_id, idl_program.into());
+            }
         }
         Ok(self.programs.get(program_id).unwrap().clone())
     }

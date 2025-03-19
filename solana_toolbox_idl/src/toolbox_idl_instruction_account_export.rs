@@ -10,6 +10,9 @@ impl ToolboxIdlInstructionAccount {
     pub fn export(&self, backward_compatibility: bool) -> Value {
         let mut json_object = Map::new();
         json_object.insert("name".to_string(), json!(self.name));
+        if let Some(docs) = &self.docs {
+            json_object.insert("docs".to_string(), json!(docs));
+        }
         // TODO - support multiple anchor versions format
         if backward_compatibility {
             if self.signer {

@@ -83,6 +83,7 @@ pub async fn run() {
         *idl_program.accounts.get("MyAccount").unwrap(),
         ToolboxIdlAccount {
             name: "MyAccount".to_string(),
+            docs: None,
             discriminator: vec![77],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unamed(vec![

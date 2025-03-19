@@ -10,13 +10,13 @@ use solana_toolbox_idl::ToolboxIdlResolver;
 #[tokio::test]
 pub async fn run() {
     // Create the endpoint
-    let mut endpoint = ToolboxEndpoint::new_devnet().await;
+    let mut endpoint = ToolboxEndpoint::new_mainnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
 
     let mut idl_resolver = ToolboxIdlResolver::new();
 
-    let signature = Signature::from_str("21YhSGJ6SHwEfT4bYBQNufaLCicwRc4RzJ5iMhc5nZe5du3xLC6FhTi1UaMCZZKu5g7jthgVM7qA8cafPzKMbup1").unwrap();
+    let signature = Signature::from_str("5X31Umjkz4y64rsrRbSdFx8syst56JQ64Wy3SZ7dGbS9Vi5K8Ajk4TJNDXQZgBuTceCpLBHkwj6c4NjtEs2bmswd").unwrap();
     let execution = endpoint.get_execution(&signature).await.unwrap();
     let mut json_instructions = vec![];
     for instruction in execution.instructions {
@@ -24,6 +24,8 @@ pub async fn run() {
             .resolve_program(&mut endpoint, &instruction.program_id)
             .await
             .unwrap();
+        //eprintln!("idl_program: {:#?}", idl_program);
+        eprintln!("instruction: {:#?}", instruction);
         let idl_instruction = idl_program
             .guess_idl_instruction(&instruction.data)
             .unwrap(); // TODO - handle unwrap
@@ -54,12 +56,5 @@ pub async fn run() {
     });
     println!("{}", serde_json::to_string_pretty(&json).unwrap());
 
-    let wallet = pubkey!("9Sj5tX5C5VbkWhkrCvp8ttdCaTbH3AEuez6Hw4do4jFN");
-    let dudu = idl_resolver
-        .resolve_account_details(&mut endpoint, &wallet)
-        .await
-        .unwrap();
-
-    eprintln!("dudu: {:#?}", dudu);
     panic!("LOL");
 }

@@ -16,6 +16,9 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub const BPF_LOADER_UPGRADEABLE_PROGRAM_ID: Pubkey =
+        bpf_loader_upgradeable::ID;
+
     pub async fn get_program_meta(
         &mut self,
         program_id: &Pubkey,

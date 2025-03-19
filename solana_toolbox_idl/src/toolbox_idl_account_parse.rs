@@ -3,8 +3,6 @@ use std::sync::Arc;
 
 use serde_json::Map;
 use serde_json::Value;
-use sha2::Digest;
-use sha2::Sha256;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -13,6 +11,8 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_convert_to_type_name;
+use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 
 impl ToolboxIdlAccount {
@@ -29,6 +29,7 @@ impl ToolboxIdlAccount {
             idl_account,
             &breadcrumbs.with_idl("discriminator"),
         )?;
+        let account_docs = idl_account.get("docs").cloned();
         let account_data_type_flat =
             ToolboxIdlAccount::try_parse_data_type_flat(
                 idl_account_name,
@@ -42,6 +43,7 @@ impl ToolboxIdlAccount {
         )?;
         Ok(ToolboxIdlAccount {
             name: idl_account_name.to_string(),
+            docs: account_docs,
             discriminator: account_discriminator,
             content_type_flat: account_data_type_flat,
             content_type_full: account_data_type_full.into(),
@@ -61,9 +63,10 @@ impl ToolboxIdlAccount {
                 &breadcrumbs.idl(),
             );
         }
-        let mut hasher = Sha256::new();
-        hasher.update(format!("account:{}", idl_account_name));
-        Ok(hasher.finalize()[..8].to_vec())
+        Ok(idl_hash_discriminator_from_string(&format!(
+            "account:{}",
+            idl_convert_to_type_name(idl_account_name)
+        )))
     }
 
     fn try_parse_data_type_flat(

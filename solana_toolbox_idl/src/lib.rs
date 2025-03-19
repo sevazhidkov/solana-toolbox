@@ -16,6 +16,8 @@ mod toolbox_idl_instruction_payload;
 mod toolbox_idl_lib_native_compute_budget;
 mod toolbox_idl_lib_native_loader_upgradeable;
 mod toolbox_idl_lib_native_system;
+mod toolbox_idl_lib_spl_associated_token;
+mod toolbox_idl_lib_spl_token;
 mod toolbox_idl_program;
 mod toolbox_idl_program_export;
 mod toolbox_idl_program_parse;

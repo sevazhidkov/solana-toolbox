@@ -10,6 +10,7 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
     pub name: String,
+    pub docs: Option<Value>,
     pub discriminator: Vec<u8>,
     pub content_type_flat: ToolboxIdlTypeFlat,
     pub content_type_full: Arc<ToolboxIdlTypeFull>,

@@ -6,6 +6,8 @@ use convert_case::Case;
 use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
+use sha2::Digest;
+use sha2::Sha256;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -430,4 +432,10 @@ pub(crate) fn idl_convert_to_value_name(name: &str) -> String {
 pub(crate) fn idl_convert_to_type_name(name: &str) -> String {
     name.without_boundaries(&[Boundary::LOWER_DIGIT])
         .to_case(Case::Pascal)
+}
+
+pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {
+    let mut hasher = Sha256::new();
+    hasher.update(value);
+    hasher.finalize()[..8].to_vec()
 }

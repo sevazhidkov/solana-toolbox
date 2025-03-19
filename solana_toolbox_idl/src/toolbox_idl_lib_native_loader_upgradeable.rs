@@ -1,31 +1,35 @@
 use serde_json::json;
 
-use crate::ToolboxIdlProgram;
+use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 pub fn idl_lib_native_loader_upgradeable() -> ToolboxIdlProgram {
     ToolboxIdlProgram::try_parse_from_value(&json!({
+        "name": "bpf_loader_upgradeable",
         "instructions": {
             "InitializeBuffer": {
                 "discriminator": [0, 0, 0, 0],
+                "args": [],
                 "accounts": [
                     {"name": "buffer"},
                     {"name": "buffer_authority"},
                 ],
-                "args": []
             },
             "Write": {
                 "discriminator": [1, 0, 0, 0],
-                "accounts": [
-                    {"name": "buffer"},
-                    {"name": "buffer_authority"},
-                ],
                 "args": [
                     {"name": "offset", "type": "u32"},
                     {"name": "bytes", "type": ["u8"]},
                 ],
+                "accounts": [
+                    {"name": "buffer"},
+                    {"name": "buffer_authority"},
+                ],
             },
             "DeployWithMaxDataLen": {
                 "discriminator": [2, 0, 0, 0],
+                "args": [
+                    {"name": "max_data_len", "type": "u64"},
+                ],
                 "accounts": [
                     {"name": "payer"},
                     {"name": "program_data"},
@@ -35,9 +39,6 @@ pub fn idl_lib_native_loader_upgradeable() -> ToolboxIdlProgram {
                     {"name": "clock"},
                     {"name": "system_program"},
                     {"name": "upgrade_authority"},
-                ],
-                "args": [
-                    {"name": "max_data_len", "type": "u64"},
                 ],
             },
             "Upgrade": {
@@ -55,47 +56,68 @@ pub fn idl_lib_native_loader_upgradeable() -> ToolboxIdlProgram {
             },
             "SetAuthority": {
                 "discriminator": [4, 0, 0, 0],
+                "args": [],
                 "accounts": [
                     {"name": "modified"},
                     {"name": "prev_authority"},
                     {"name": "next_authority"},
                 ],
-                "args": [],
             },
             "Close": {
                 "discriminator": [5, 0, 0, 0],
-                "accounts": [
-                    // TODO - this is complicated with optional accounts
-                ],
                 "args": [],
+                "accounts": [
+                    {"name": "close"},
+                    {"name": "recipient"},
+                ],
             },
             "ExtendProgram": {
                 "discriminator": [6, 0, 0, 0],
-                "accounts": [
-                    // TODO - this is complicated with optional accounts
-                ],
                 "args": [
                     {"name": "additional_bytes", "type": "u32"},
+                ],
+                "accounts": [
+                    {"name": "program_data"},
+                    {"name": "program_id"},
                 ],
             },
             "SetAuthorityChecked": {
                 "discriminator": [7, 0, 0, 0],
+                "args": [],
                 "accounts": [
                     {"name": "modified"},
                     {"name": "prev_authority"},
                     {"name": "next_authority"},
                 ],
-                "args": [],
             },
         },
         "accounts": {
-            "LoaderUpgradeableAccount": {
-                "discriminator": [],
+            "Uninitialized": {
+                "discriminator": [0, 0, 0, 0],
                 "fields": [],
             },
+            "Buffer": {
+                "discriminator": [1, 0, 0, 0],
+                "fields": [
+                    { "name": "authority_address", "type": {"option":"pubkey"} },
+                ],
+            },
+            "Program": {
+                "discriminator": [2, 0, 0, 0],
+                "fields": [
+                    { "name": "program_data_address", "type": "pubkey" },
+                ],
+            },
+            "ProgramData": {
+                "discriminator": [3, 0, 0, 0],
+                "fields": [
+                    { "name": "slot", "type": "u64" },
+                    { "name": "upgrade_authority_address", "type": {"option":"pubkey"} },
+                ],
+            },
         },
-        "types": [],
-        "errors": [],
+        "types": {},
+        "errors": {},
     }))
     .unwrap()
 }

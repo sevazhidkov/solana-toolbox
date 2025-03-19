@@ -18,7 +18,7 @@ pub async fn run() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // We'll use an IDL resolve to automatically resolve htings using the endpoint
     let mut idl_resolver = ToolboxIdlResolver::new();
-    // Fetch the idl of an anchor program on chain
+    // The devnet program that we'll use (it has an on-chain IDL already)
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
     // Find an account from another instruction so that we can re-use it
     let campaign_index = 3u64;

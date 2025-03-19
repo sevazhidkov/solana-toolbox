@@ -1,9 +1,12 @@
-use solana_sdk::compute_budget::ComputeBudgetInstruction;
+use solana_sdk::compute_budget::{self, ComputeBudgetInstruction};
 use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 
 impl ToolboxEndpoint {
+    pub const COMPUTE_BUDGET_PROGRAM_ID: Pubkey = compute_budget::ID;
+
     pub fn generate_instructions_with_compute_budget(
         instructions: &[Instruction],
         paid_compute_units: Option<u32>,
