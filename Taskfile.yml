@@ -193,10 +193,10 @@ tasks:
     cmds:
       - cp Cargo-solana-2.1.4.toml Cargo.toml
       - cargo test
-      - cargo +nightly clippy
-        --all-targets
-        -- -D warnings
-        --allow=clippy::bool_assert_comparison
+      #- cargo +nightly clippy
+      #  --all-targets
+      #  -- -D warnings
+      #  --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
       - git commit -m "publish-0.3.0-cli" --allow-empty

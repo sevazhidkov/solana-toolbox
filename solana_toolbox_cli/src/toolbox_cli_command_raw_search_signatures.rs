@@ -12,9 +12,9 @@ use crate::toolbox_cli_utils::ToolboxCliUtils;
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandRawSearchSignaturesArgs {
     with_address: String,
+    limit: Option<usize>,
     start_before_signature: Option<String>,
     rewind_until_signature: Option<String>,
-    limit: Option<usize>,
 }
 
 impl ToolboxCliCommandRawSearchSignaturesArgs {

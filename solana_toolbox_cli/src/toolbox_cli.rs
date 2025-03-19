@@ -13,6 +13,7 @@ use crate::toolbox_cli_command_idl_resolve_program::ToolboxCliCommandIdlResolveP
 use crate::toolbox_cli_command_raw_get_account::ToolboxCliCommandRawGetAccountArgs;
 use crate::toolbox_cli_command_raw_get_execution::ToolboxCliCommandRawGetExecutionArgs;
 use crate::toolbox_cli_command_raw_search_addresses::ToolboxCliCommandRawSearchAddressesArgs;
+use crate::toolbox_cli_command_raw_search_occurances::ToolboxCliCommandRawSearchOccurancesArgs;
 use crate::toolbox_cli_command_raw_search_signatures::ToolboxCliCommandRawSearchSignaturesArgs;
 use crate::toolbox_cli_error::ToolboxCliError;
 
@@ -59,6 +60,7 @@ pub enum ToolboxCliCommand {
     RawGetAccount(ToolboxCliCommandRawGetAccountArgs),
     RawGetExecution(ToolboxCliCommandRawGetExecutionArgs),
     RawSearchAddresses(ToolboxCliCommandRawSearchAddressesArgs),
+    RawSearchOccurances(ToolboxCliCommandRawSearchOccurancesArgs),
     RawSearchSignatures(ToolboxCliCommandRawSearchSignaturesArgs),
 }
 
@@ -96,6 +98,9 @@ impl ToolboxCliCommand {
                 args.process(config).await
             },
             ToolboxCliCommand::RawSearchAddresses(args) => {
+                args.process(config).await
+            },
+            ToolboxCliCommand::RawSearchOccurances(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::RawSearchSignatures(args) => {

@@ -2,10 +2,14 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{bpf_loader_upgradeable, compute_budget, system_program};
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+use crate::toolbox_idl_lib_native_compute_budget::idl_lib_native_compute_budget;
+use crate::toolbox_idl_lib_native_loader_upgradeable::idl_lib_native_loader_upgradeable;
+use crate::toolbox_idl_lib_native_system::idl_lib_native_system;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
@@ -18,6 +22,20 @@ pub struct ToolboxIdlProgram {
 }
 
 impl ToolboxIdlProgram {
+    pub fn from_lib(program_id: &Pubkey) -> Option<Arc<ToolboxIdlProgram>> {
+        // TODO - provide standard implementation for basic contracts such as spl_token and system, and compute_budget ?
+        if *program_id == system_program::ID {
+            return Some(idl_lib_native_system().into());
+        }
+        if *program_id == compute_budget::ID {
+            return Some(idl_lib_native_compute_budget().into());
+        }
+        if *program_id == bpf_loader_upgradeable::ID {
+            return Some(idl_lib_native_loader_upgradeable().into());
+        }
+        None
+    }
+
     pub fn find_anchor_pda(
         program_id: &Pubkey,
     ) -> Result<Pubkey, ToolboxIdlError> {

@@ -14,6 +14,7 @@ pub enum ToolboxIdlTypePrimitive {
     F64,
     Bytes, // TODO - what's the usecase for this ?
     // TODO - should this be supporting something like a base58, base64 ?
+    // TODO - should support like a "Rest" type which returns byte[]
     Boolean,
     String,
     PublicKey,

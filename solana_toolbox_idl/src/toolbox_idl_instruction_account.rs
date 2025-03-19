@@ -5,9 +5,9 @@ pub struct ToolboxIdlInstructionAccount {
     pub name: String,
     pub writable: bool,
     pub signer: bool,
+    pub optional: bool,
     pub address: Option<Pubkey>,
     pub pda: Option<ToolboxIdlInstructionAccountPda>,
-    // TODO - support is_optional ?
 }
 
 #[derive(Debug, Clone, PartialEq)]

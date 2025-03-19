@@ -48,10 +48,18 @@ impl ToolboxIdlInstructionAccount {
                     "isSigner",
                 ))
                 .unwrap_or(false);
+        let idl_instruction_account_optional =
+            idl_object_get_key_as_bool(idl_instruction_account, "optional")
+                .or(idl_object_get_key_as_bool(
+                    idl_instruction_account,
+                    "isOptional",
+                ))
+                .unwrap_or(false);
         Ok(ToolboxIdlInstructionAccount {
             name: idl_instruction_account_name,
             writable: idl_instruction_account_writable,
             signer: idl_instruction_account_signer,
+            optional: idl_instruction_account_optional,
             address: ToolboxIdlInstructionAccount::try_parse_address(
                 idl_instruction_account,
                 breadcrumbs,

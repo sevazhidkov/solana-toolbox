@@ -18,12 +18,18 @@ impl ToolboxIdlInstructionAccount {
             if self.writable {
                 json_object.insert("isMut".to_string(), json!(true));
             }
+            if self.optional {
+                json_object.insert("isOptional".to_string(), json!(true));
+            }
         } else {
             if self.signer {
                 json_object.insert("signer".to_string(), json!(true));
             }
             if self.writable {
                 json_object.insert("writable".to_string(), json!(true));
+            }
+            if self.optional {
+                json_object.insert("optional".to_string(), json!(true));
             }
         }
         if let Some(address) = &self.address {

@@ -28,10 +28,10 @@ impl ToolboxCliCommandRawSearchAddressesArgs {
         let mut data_chunks = vec![];
         for data_chunk in &self.data_chunks {
             let parts = data_chunk.split(":").collect::<Vec<_>>();
-            if let [offset, encoding, data] = parts[..] {
+            if let [offset, encoding, blob] = parts[..] {
                 data_chunks.push((
                     usize::from_str_radix(offset, 10),
-                    parse_data(encoding, data),
+                    parse_blob(encoding, blob),
                 ));
             } else {
                 return Err(ToolboxCliError::Custom(
@@ -54,12 +54,13 @@ impl ToolboxCliCommandRawSearchAddressesArgs {
     }
 }
 
-fn parse_data(encoding: &str, data: &str) -> Vec<u8> {
+fn parse_blob(encoding: &str, data: &str) -> Vec<u8> {
     if encoding == "base58" {
         bs58::decode(data).into_vec().unwrap()
     } else if encoding == "base64" {
         STANDARD.decode(data).unwrap()
     } else if encoding == "json" {
+        vec![]
     } else {
         panic!("unknown encoding: {}", encoding);
     }

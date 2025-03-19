@@ -6,7 +6,6 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
-use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
 impl ToolboxIdlInstruction {
@@ -16,6 +15,12 @@ impl ToolboxIdlInstruction {
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
         let mut instruction_metas = vec![];
         for instruction_account in &self.accounts {
+            if instruction_account.optional
+                && !instruction_addresses
+                    .contains_key(&instruction_account.name)
+            {
+                continue;
+            }
             let instruction_address = *idl_map_get_key_or_else(
                 instruction_addresses,
                 &instruction_account.name,
@@ -41,20 +46,34 @@ impl ToolboxIdlInstruction {
         &self,
         instruction_metas: &[AccountMeta],
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
-        if self.accounts.len() != instruction_metas.len() {
-            return idl_err(
-                "Invalid instruction accounts length",
-                &ToolboxIdlBreadcrumbs::default().as_val("instruction_metas"),
-            );
+        let mut instruction_optionals_possible = 0usize;
+        for account in &self.accounts {
+            if account.optional {
+                instruction_optionals_possible += 1;
+            }
         }
+        let instruction_optionals_unuseds =
+            self.accounts.len().saturating_sub(instruction_metas.len());
+        let instruction_optionals_used = instruction_optionals_possible
+            .saturating_sub(instruction_optionals_unuseds);
         let mut instruction_addresses = HashMap::new();
-        for (instruction_account, instruction_meta) in
-            self.accounts.iter().zip(instruction_metas.iter())
-        {
+        let mut instruction_meta_index = 0;
+        let mut instruction_optionals_current = 0;
+        for account in &self.accounts {
+            if account.optional {
+                instruction_optionals_current += 1;
+            }
+            if instruction_optionals_current > instruction_optionals_used {
+                continue;
+            }
+            if instruction_meta_index >= instruction_metas.len() {
+                break;
+            }
             instruction_addresses.insert(
-                instruction_account.name.to_string(),
-                instruction_meta.pubkey,
+                account.name.to_string(),
+                instruction_metas[instruction_meta_index].pubkey,
             );
+            instruction_meta_index += 1;
         }
         Ok(instruction_addresses)
     }
