@@ -3,6 +3,7 @@ use solana_sdk::address_lookup_table::instruction::create_lookup_table;
 use solana_sdk::address_lookup_table::instruction::deactivate_lookup_table;
 use solana_sdk::address_lookup_table::instruction::extend_lookup_table;
 use solana_sdk::address_lookup_table::instruction::freeze_lookup_table;
+use solana_sdk::address_lookup_table::program;
 use solana_sdk::address_lookup_table::state::AddressLookupTable;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -12,6 +13,8 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub const ADDRESS_LOOKUP_TABLE_PROGRAM_ID: Pubkey = program::ID;
+
     pub async fn resolve_address_lookup_tables(
         &mut self,
         address_lookup_table: &[Pubkey],

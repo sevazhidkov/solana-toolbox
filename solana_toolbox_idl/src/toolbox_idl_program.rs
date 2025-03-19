@@ -1,19 +1,16 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use solana_sdk::address_lookup_table;
 use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::compute_budget;
+use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
-use crate::toolbox_idl_lib_native_compute_budget::idl_lib_native_compute_budget;
-use crate::toolbox_idl_lib_native_loader_upgradeable::idl_lib_native_loader_upgradeable;
-use crate::toolbox_idl_lib_native_system::idl_lib_native_system;
-use crate::toolbox_idl_lib_spl_associated_token::idl_lib_spl_associated_token;
-use crate::toolbox_idl_lib_spl_token::idl_lib_spl_token;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
@@ -28,19 +25,39 @@ pub struct ToolboxIdlProgram {
 
 impl ToolboxIdlProgram {
     pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
-        // TODO - provide standard implementation for basic contracts such as spl_token and system, and compute_budget ?
-        match *program_id {
-            ToolboxEndpoint::SYSTEM_PROGRAM_ID => Some(idl_lib_native_system()),
-            compute_budget::ID => Some(idl_lib_native_compute_budget()),
-            bpf_loader_upgradeable::ID => {
-                Some(idl_lib_native_loader_upgradeable())
-            },
-            ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID => Some(idl_lib_spl_token()),
-            ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID => {
-                Some(idl_lib_spl_associated_token())
-            },
-            _ => None,
-        }
+        // TODO - provide cached standard implementation for basic contracts such as spl_token and system, and compute_budget ?
+        let mut known_programs = HashMap::new();
+        known_programs.insert(
+            ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+            include_str!("lib/native_system.json"),
+        );
+        known_programs.insert(
+            address_lookup_table::program::ID,
+            include_str!("lib/native_address_lookup_table.json"),
+        );
+        known_programs.insert(
+            compute_budget::ID,
+            include_str!("lib/native_compute_budget.json"),
+        );
+        known_programs.insert(
+            bpf_loader_upgradeable::ID,
+            include_str!("lib/native_bpf_loader_upgradeable.json"),
+        );
+        known_programs.insert(
+            ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+            include_str!("lib/spl_token.json"),
+        );
+        known_programs.insert(
+            ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
+            include_str!("lib/spl_associated_token.json"),
+        );
+        known_programs.insert(
+            pubkey!("L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95"),
+            include_str!("lib/misc_lighthouse.json"),
+        );
+        known_programs.get(program_id).map(|content| {
+            ToolboxIdlProgram::try_parse_from_str(*content).unwrap()
+        })
     }
 
     pub fn find_anchor_pda(
@@ -64,6 +81,10 @@ impl ToolboxIdlProgram {
         instruction_data: &[u8],
     ) -> Option<Arc<ToolboxIdlInstruction>> {
         for instruction in self.instructions.values() {
+            eprintln!(
+                "instruction.discriminator: {:?}",
+                instruction.discriminator
+            );
             if instruction_data.starts_with(&instruction.discriminator) {
                 return Some(instruction.clone());
             }

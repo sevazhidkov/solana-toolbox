@@ -1,0 +1,98 @@
+{
+  "name": "bpf_loader_upgradeable",
+  "instructions": {
+    "InitializeBuffer": {
+      "discriminator": [0, 0, 0, 0],
+      "args": [],
+      "accounts": [{ "name": "buffer" }, { "name": "buffer_authority" }]
+    },
+    "Write": {
+      "discriminator": [1, 0, 0, 0],
+      "args": [
+        { "name": "offset", "type": "u32" },
+        { "name": "bytes", "type": ["u8"] }
+      ],
+      "accounts": [{ "name": "buffer" }, { "name": "buffer_authority" }]
+    },
+    "DeployWithMaxDataLen": {
+      "discriminator": [2, 0, 0, 0],
+      "args": [{ "name": "max_data_len", "type": "u64" }],
+      "accounts": [
+        { "name": "payer" },
+        { "name": "program_data" },
+        { "name": "program_id" },
+        { "name": "buffer" },
+        { "name": "rent" },
+        { "name": "clock" },
+        { "name": "system_program" },
+        { "name": "upgrade_authority" }
+      ]
+    },
+    "Upgrade": {
+      "discriminator": [3, 0, 0, 0],
+      "accounts": [
+        { "name": "program_data" },
+        { "name": "program_id" },
+        { "name": "buffer" },
+        { "name": "spill" },
+        { "name": "rent" },
+        { "name": "clock" },
+        { "name": "upgrade_authority" }
+      ],
+      "args": []
+    },
+    "SetAuthority": {
+      "discriminator": [4, 0, 0, 0],
+      "args": [],
+      "accounts": [
+        { "name": "modified" },
+        { "name": "prev_authority" },
+        { "name": "next_authority" }
+      ]
+    },
+    "Close": {
+      "discriminator": [5, 0, 0, 0],
+      "args": [],
+      "accounts": [{ "name": "close" }, { "name": "recipient" }]
+    },
+    "ExtendProgram": {
+      "discriminator": [6, 0, 0, 0],
+      "args": [{ "name": "additional_bytes", "type": "u32" }],
+      "accounts": [{ "name": "program_data" }, { "name": "program_id" }]
+    },
+    "SetAuthorityChecked": {
+      "discriminator": [7, 0, 0, 0],
+      "args": [],
+      "accounts": [
+        { "name": "modified" },
+        { "name": "prev_authority" },
+        { "name": "next_authority" }
+      ]
+    }
+  },
+  "accounts": {
+    "Uninitialized": {
+      "discriminator": [0, 0, 0, 0],
+      "fields": []
+    },
+    "Buffer": {
+      "discriminator": [1, 0, 0, 0],
+      "fields": [
+        { "name": "authority_address", "type": { "option": "pubkey" } }
+      ]
+    },
+    "Program": {
+      "discriminator": [2, 0, 0, 0],
+      "fields": [{ "name": "program_data_address", "type": "pubkey" }]
+    },
+    "ProgramData": {
+      "discriminator": [3, 0, 0, 0],
+      "fields": [
+        { "name": "slot", "type": "u64" },
+        { "name": "upgrade_authority_address", "type": { "option": "pubkey" } }
+      ]
+    }
+  },
+  "types": {},
+  "errors": {}
+}

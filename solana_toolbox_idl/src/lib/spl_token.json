@@ -1,0 +1,122 @@
+{
+  "name": "spl_token",
+  "instructions": {
+    "InitializeMint": {
+      "discriminator": [0],
+      "args": [],
+      "accounts": []
+    },
+    "InitializeAccount": {
+      "discriminator": [1],
+      "args": [],
+      "accounts": []
+    },
+    "InitializeMultisig": {
+      "discriminator": [2],
+      "args": [],
+      "accounts": []
+    },
+    "Transfer": {
+      "discriminator": [3],
+      "args": [],
+      "accounts": []
+    },
+    "Approve": {
+      "discriminator": [4],
+      "args": [],
+      "accounts": []
+    },
+    "Revoke": {
+      "discriminator": [5],
+      "args": [],
+      "accounts": []
+    },
+    "SetAuthority": {
+      "discriminator": [6],
+      "args": [],
+      "accounts": []
+    },
+    "MintTo": {
+      "discriminator": [7],
+      "args": [],
+      "accounts": []
+    },
+    "Burn": {
+      "discriminator": [8],
+      "args": [],
+      "accounts": []
+    },
+    "Close": {
+      "discriminator": [9],
+      "args": [],
+      "accounts": []
+    },
+    "Freeze": {
+      "discriminator": [10],
+      "args": [],
+      "accounts": []
+    },
+    "Thaw": {
+      "discriminator": [11],
+      "args": [],
+      "accounts": []
+    },
+    "TransferChecked": {
+      "discriminator": [12],
+      "args": [],
+      "accounts": []
+    },
+    "ApproveChecked": {
+      "discriminator": [13],
+      "args": [],
+      "accounts": []
+    },
+    "MintToChecked": {
+      "discriminator": [14],
+      "args": [],
+      "accounts": []
+    },
+    "BurnChecked": {
+      "discriminator": [15],
+      "args": [],
+      "accounts": []
+    },
+    "InitializeAccount2": {
+      "discriminator": [16],
+      "args": [],
+      "accounts": []
+    },
+    "SyncNative": {
+      "discriminator": [17],
+      "args": [],
+      "accounts": []
+    },
+    "InitializeAccount3": {
+      "discriminator": [18],
+      "args": [],
+      "accounts": []
+    },
+    "InitializeMultisig2": {
+      "discriminator": [19],
+      "args": [],
+      "accounts": []
+    },
+    "InitializeMint2": {
+      "discriminator": [20],
+      "args": [],
+      "accounts": []
+    }
+  },
+  "accounts": {
+    "Account": {
+      "discriminator": [],
+      "fields": []
+    },
+    "Mint": {
+      "discriminator": [],
+      "fields": []
+    }
+  },
+  "types": {},
+  "errors": {}
+}

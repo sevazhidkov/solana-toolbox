@@ -20,6 +20,7 @@ pub struct ToolboxIdlInstruction {
     pub accounts: Vec<ToolboxIdlInstructionAccount>,
     pub args_type_flat_fields: ToolboxIdlTypeFlatFields,
     pub args_type_full_fields: Arc<ToolboxIdlTypeFullFields>,
+    // TODO - support "discriminant" as a type/value const
 }
 
 impl ToolboxIdlInstruction {

@@ -1,0 +1,38 @@
+{
+  "name": "address_lookup_table",
+  "instructions": {
+    "CreateLookupTable": {
+      "discriminator": [0, 0, 0, 0],
+      "args": [],
+      "accounts": []
+    },
+    "FreezeLookupTable": {
+      "discriminator": [1, 0, 0, 0],
+      "args": [],
+      "accounts": []
+    },
+    "ExtendLookupTable": {
+      "discriminator": [2, 0, 0, 0],
+      "args": [],
+      "accounts": []
+    },
+    "DeactivateLookupTable": {
+      "discriminator": [3, 0, 0, 0],
+      "args": [],
+      "accounts": []
+    },
+    "CloseLookupTable": {
+      "discriminator": [4, 0, 0, 0],
+      "args": [],
+      "accounts": []
+    }
+  },
+  "accounts": {
+    "AddressLookupTable": {
+      "discriminator": [],
+      "fields": []
+    }
+  },
+  "types": {},
+  "errors": {}
+}

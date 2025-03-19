@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use serde_json::json;
-use solana_sdk::pubkey;
 use solana_sdk::signature::Signature;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
@@ -16,7 +15,7 @@ pub async fn run() {
 
     let mut idl_resolver = ToolboxIdlResolver::new();
 
-    let signature = Signature::from_str("5X31Umjkz4y64rsrRbSdFx8syst56JQ64Wy3SZ7dGbS9Vi5K8Ajk4TJNDXQZgBuTceCpLBHkwj6c4NjtEs2bmswd").unwrap();
+    let signature = Signature::from_str("44KbtWbYXCdn5vZwKoz8tfG2pLFT7TLqwVvDwVuFaMBMAaaENCVjN8DczQfRaAZvvSwpVkAUDWwSdfryrwU6fzNh").unwrap();
     let execution = endpoint.get_execution(&signature).await.unwrap();
     let mut json_instructions = vec![];
     for instruction in execution.instructions {
