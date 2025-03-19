@@ -2,8 +2,6 @@ use std::str::FromStr;
 
 use clap::Args;
 use serde_json::json;
-use serde_json::Map;
-use serde_json::Value;
 use solana_cli_config::Config;
 use solana_sdk::signature::Signature;
 use solana_toolbox_idl::ToolboxIdlResolver;
@@ -48,15 +46,17 @@ impl ToolboxCliCommandIdlResolveExecutionArgs {
                 "payload": instruction_payload,
             }));
         }
-        let json = json!({
-            "payer": execution.payer.to_string(),
-            "instructions": json_instructions,
-            "logs": execution.logs,
-            "error": execution.error, // TODO - could parse the error using the code
-            "return_data": execution.return_data,
-            "units_consumed": execution.units_consumed,
-        });
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!({
+                "payer": execution.payer.to_string(),
+                "instructions": json_instructions,
+                "logs": execution.logs,
+                "error": execution.error, // TODO - could parse the error using the code
+                "return_data": execution.return_data,
+                "units_consumed": execution.units_consumed,
+            }))?
+        );
         Ok(())
     }
 }

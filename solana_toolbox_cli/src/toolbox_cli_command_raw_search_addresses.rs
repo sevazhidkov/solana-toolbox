@@ -43,11 +43,13 @@ impl ToolboxCliCommandRawSearchAddressesArgs {
         let addresses = endpoint
             .search_addresses(&program_id, self.data_len, &[])
             .await?;
-        let json = json!(addresses
-            .iter()
-            .map(|address| address.to_string())
-            .collect::<Vec<_>>());
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!(addresses
+                .iter()
+                .map(|address| address.to_string())
+                .collect::<Vec<_>>()))?
+        );
         Ok(())
     }
 }
@@ -57,6 +59,7 @@ fn parse_data(encoding: &str, data: &str) -> Vec<u8> {
         bs58::decode(data).into_vec().unwrap()
     } else if encoding == "base64" {
         STANDARD.decode(data).unwrap()
+    } else if encoding == "json" {
     } else {
         panic!("unknown encoding: {}", encoding);
     }

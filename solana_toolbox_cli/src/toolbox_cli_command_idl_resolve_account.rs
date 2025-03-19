@@ -27,11 +27,13 @@ impl ToolboxCliCommandIdlResolveAccountArgs {
             .resolve_account_details(&mut endpoint, &address)
             .await?
             .unwrap(); // TODO - unwrap error
-        let json = json!({
-            "name": account_details.0.name,
-            "state": account_details.1,
-        });
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!({
+                "name": account_details.0.name,
+                "state": account_details.1,
+            }))?
+        );
         Ok(())
     }
 }

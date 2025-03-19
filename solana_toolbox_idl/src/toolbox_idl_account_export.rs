@@ -18,6 +18,6 @@ impl ToolboxIdlAccount {
             "type".to_string(),
             self.content_type_flat.export(backward_compatibility),
         );
-        Value::Object(json_object)
+        json!(json_object)
     }
 }

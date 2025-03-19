@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use clap::Args;
 use serde_json::from_str;
+use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 use solana_cli_config::Config;
@@ -54,12 +55,14 @@ impl ToolboxCliCommandIdlResolveInstructionAddressesArgs {
                 &instruction_payload,
             )
             .await?;
-        let json = Value::Object(Map::from_iter(
-            instruction_addresses.iter().map(|entry| {
-                (entry.0.to_string(), Value::String(entry.1.to_string()))
-            }),
-        ));
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!(Map::from_iter(
+                instruction_addresses
+                    .iter()
+                    .map(|entry| (entry.0.to_string(), json!(entry.1))),
+            )))?
+        );
         Ok(())
     }
 }

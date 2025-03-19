@@ -21,14 +21,16 @@ impl ToolboxCliCommandRawGetAccountArgs {
         let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
         let address = Pubkey::from_str(&self.address)?;
         let account = endpoint.get_account_or_default(&address).await?;
-        let json = json!({
-            "address": address.to_string(),
-            "owner": account.owner.to_string(),
-            "lamports": account.lamports,
-            "data": account.data,
-            "executable": account.executable,
-        });
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!({
+                "address": address.to_string(),
+                "owner": account.owner.to_string(),
+                "lamports": account.lamports,
+                "data": account.data,
+                "executable": account.executable,
+            }))?
+        );
         Ok(())
     }
 }

@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 
 use serde_json::json;
-use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
@@ -37,7 +36,7 @@ pub async fn run() {
     // Prepare instruction payload
     let mut instruction_payload_metadata_bytes = vec![];
     for index in 0..512 {
-        instruction_payload_metadata_bytes.push(Value::from(index % 100));
+        instruction_payload_metadata_bytes.push(json!(index % 100));
     }
     let instruction_payload = json!({
         "params": {

@@ -57,10 +57,12 @@ impl ToolboxCliCommandIdlResolveInstructionBase58Args {
         let transaction = Transaction::new_with_payer(&[instruction], None);
         let transaction_message_base58_encoded =
             bs58::encode(transaction.message().serialize()).into_vec();
-        let json = json!({
-            "message_base58": transaction_message_base58_encoded,
-        });
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!({
+                "message_base58": transaction_message_base58_encoded,
+            }))?
+        );
         Ok(())
     }
 }

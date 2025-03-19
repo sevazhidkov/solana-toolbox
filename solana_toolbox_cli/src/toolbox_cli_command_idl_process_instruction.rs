@@ -91,11 +91,13 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
             .process_instruction_with_signers(&payer, instruction, &signers)
             .await?;
 
-        let json = json!({
-            "signature": signature.to_string(),
-            // TODO - output execution same as idl_resolve_execution
-        });
-        println!("{}", serde_json::to_string(&json)?);
+        println!(
+            "{}",
+            serde_json::to_string(&json!({
+                "signature": signature.to_string(),
+                // TODO - output execution same as idl_resolve_execution
+            }))?
+        );
         Ok(())
     }
 }
