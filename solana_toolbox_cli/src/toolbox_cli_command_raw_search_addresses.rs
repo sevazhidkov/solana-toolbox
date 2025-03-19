@@ -7,6 +7,9 @@ use serde_json::json;
 use solana_cli_config::Config;
 use solana_sdk::bs58;
 use solana_sdk::pubkey::Pubkey;
+use solana_toolbox_idl::ToolboxIdlBreadcrumbs;
+use solana_toolbox_idl::ToolboxIdlTypeFull;
+use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_utils::ToolboxCliUtils;
@@ -59,7 +62,19 @@ fn parse_data(encoding: &str, data: &str) -> Vec<u8> {
         bs58::decode(data).into_vec().unwrap()
     } else if encoding == "base64" {
         STANDARD.decode(data).unwrap()
-    } else if encoding == "json" {
+    } else if encoding == "bytes" {
+        let mut bytes = vec![];
+        ToolboxIdlTypeFull::Primitive {
+            primitive: ToolboxIdlTypePrimitive::Bytes,
+        }
+        .try_serialize(
+            &serde_json::from_str(data).unwrap(),
+            &mut bytes,
+            false,
+            &ToolboxIdlBreadcrumbs::default(),
+        )
+        .unwrap();
+        bytes
     } else {
         panic!("unknown encoding: {}", encoding);
     }
