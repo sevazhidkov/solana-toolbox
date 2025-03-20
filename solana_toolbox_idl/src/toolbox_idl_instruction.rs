@@ -20,7 +20,7 @@ pub struct ToolboxIdlInstruction {
     pub accounts: Vec<ToolboxIdlInstructionAccount>,
     pub args_type_flat_fields: ToolboxIdlTypeFlatFields,
     pub args_type_full_fields: Arc<ToolboxIdlTypeFullFields>,
-    // TODO - support "discriminant" as a type/value const
+    // TODO - support "discriminant" as a type/value const ?
 }
 
 impl ToolboxIdlInstruction {
@@ -99,5 +99,42 @@ impl ToolboxIdlInstruction {
             }
         }
         instruction_addresses
+    }
+
+    pub fn get_addresses_dependencies(&self) -> HashMap<String, String> {
+        let mut dependencies = HashMap::new();
+        for account in &self.accounts {
+            if let Some(account_address) = &account.address {
+                dependencies.insert(
+                    account.name.to_string(),
+                    format!("Resolve to: {}", account_address),
+                );
+            } else if let Some(account_pda) = &account.pda {
+                let mut dependencies_blobs = vec![];
+                for account_pda_seed in &account_pda.seeds {
+                    if let Some((kind, path)) = account_pda_seed.info() {
+                        dependencies_blobs.push(format!("[{}].{}", kind, path));
+                    }
+                }
+                if let Some(account_pda_program) = &account_pda.program {
+                    if let Some((kind, path)) = account_pda_program.info() {
+                        dependencies_blobs.push(format!("[{}].{}", kind, path));
+                    }
+                }
+                dependencies.insert(
+                    account.name.to_string(),
+                    format!(
+                        "Can be resolved from: {}",
+                        dependencies_blobs.join(", ")
+                    ),
+                );
+            } else {
+                dependencies.insert(
+                    account.name.to_string(),
+                    "Not resolvable, must be specified manually".to_string(),
+                );
+            }
+        }
+        dependencies
     }
 }

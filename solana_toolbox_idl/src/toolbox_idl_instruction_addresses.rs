@@ -9,8 +9,6 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
 impl ToolboxIdlInstruction {
-    // TODO - provide a missing addresses with dependency util
-
     pub fn compile_addresses(
         &self,
         instruction_addresses: &HashMap<String, Pubkey>,
