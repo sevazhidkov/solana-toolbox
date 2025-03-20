@@ -72,6 +72,7 @@ impl ToolboxIdlResolver {
     }
 
     // TODO - support resolve_execution ?
+    // TODO - resolve account datastructure would be better?
 
     pub async fn resolve_account_details(
         &mut self,
