@@ -87,7 +87,7 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-                &breadcrumbs.with_idl("box"),
+                &breadcrumbs.with_idl("padded"),
             ),
             ToolboxIdlTypeFull::Const { literal } => idl_err(
                 &format!("Can't use a const literal directly: {:?}", literal),
@@ -250,14 +250,14 @@ impl ToolboxIdlTypeFull {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         let padded_size_bytes = usize::try_from(*padded_size_bytes).unwrap();
-        let data_len_expected = data.len() + padded_size_bytes;
+        let data_len_enforced = data.len() + padded_size_bytes;
         padded_content.try_serialize(
             value,
             data,
             deserializable,
             breadcrumbs,
         )?;
-        while data.len() < data_len_expected {
+        while data.len() < data_len_enforced {
             data.push(0);
         }
         Ok(())

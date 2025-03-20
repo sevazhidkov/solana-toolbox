@@ -41,7 +41,7 @@ impl ToolboxCliArgs {
                     )
                 })?,
         )?;
-        if let Some(rpc) = self.rpc {}
+        // if let Some(rpc) = self.rpc {}
         // TODO - custom url/wallet
         self.command.process(&config).await
     }

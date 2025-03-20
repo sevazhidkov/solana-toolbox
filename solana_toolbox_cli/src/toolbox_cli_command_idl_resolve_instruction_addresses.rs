@@ -46,6 +46,7 @@ impl ToolboxCliCommandIdlResolveInstructionAddressesArgs {
         let instruction_payload = from_str::<Value>(
             &self.payload.clone().unwrap_or("{}".to_string()),
         )?;
+        // display dependencies
         let instruction_addresses = ToolboxIdlResolver::new()
             .resolve_instruction_addresses(
                 &mut endpoint,

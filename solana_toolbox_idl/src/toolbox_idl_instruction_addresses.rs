@@ -75,16 +75,6 @@ impl ToolboxIdlInstruction {
             );
             instruction_meta_index += 1;
         }
-        loop {
-            if instruction_meta_index >= instruction_metas.len() {
-                break;
-            }
-            instruction_addresses.insert(
-                format!("_remaining_{}", instruction_meta_index),
-                instruction_metas[instruction_meta_index].pubkey,
-            );
-            instruction_meta_index += 1;
-        }
         Ok(instruction_addresses)
     }
 }

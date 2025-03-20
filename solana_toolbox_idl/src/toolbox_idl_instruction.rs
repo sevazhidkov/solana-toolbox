@@ -107,31 +107,28 @@ impl ToolboxIdlInstruction {
             if let Some(account_address) = &account.address {
                 dependencies.insert(
                     account.name.to_string(),
-                    format!("Resolve to: {}", account_address),
+                    format!("={}", account_address.to_string()),
                 );
             } else if let Some(account_pda) = &account.pda {
                 let mut dependencies_blobs = vec![];
                 for account_pda_seed in &account_pda.seeds {
                     if let Some((kind, path)) = account_pda_seed.info() {
-                        dependencies_blobs.push(format!("[{}].{}", kind, path));
+                        dependencies_blobs.push(format!("{}s.{}", kind, path));
                     }
                 }
                 if let Some(account_pda_program) = &account_pda.program {
                     if let Some((kind, path)) = account_pda_program.info() {
-                        dependencies_blobs.push(format!("[{}].{}", kind, path));
+                        dependencies_blobs.push(format!("{}s.{}", kind, path));
                     }
                 }
                 dependencies.insert(
                     account.name.to_string(),
-                    format!(
-                        "Can be resolved from: {}",
-                        dependencies_blobs.join(", ")
-                    ),
+                    format!("{}", dependencies_blobs.join("+")),
                 );
             } else {
                 dependencies.insert(
                     account.name.to_string(),
-                    "Not resolvable, must be specified manually".to_string(),
+                    "UNRESOLVABLE".to_string(),
                 );
             }
         }

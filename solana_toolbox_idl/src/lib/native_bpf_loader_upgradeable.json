@@ -77,19 +77,17 @@
     },
     "Buffer": {
       "discriminator": [1, 0, 0, 0],
-      "fields": [
-        { "name": "authority_address", "type": { "option": "pubkey" } }
-      ]
+      "fields": [{ "name": "authority", "type": { "option": "pubkey" } }]
     },
     "Program": {
       "discriminator": [2, 0, 0, 0],
-      "fields": [{ "name": "program_data_address", "type": "pubkey" }]
+      "fields": [{ "name": "program_data", "type": "pubkey" }]
     },
     "ProgramData": {
       "discriminator": [3, 0, 0, 0],
       "fields": [
         { "name": "slot", "type": "u64" },
-        { "name": "upgrade_authority_address", "type": { "option": "pubkey" } }
+        { "name": "upgrade_authority", "type": { "option": "pubkey" } }
       ]
     }
   },

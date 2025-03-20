@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use clap::Args;
-use serde_json::{json, Map};
+use serde_json::json;
+use serde_json::Map;
 use solana_cli_config::Config;
 use solana_sdk::signature::Signature;
 use solana_toolbox_idl::ToolboxIdlResolver;
