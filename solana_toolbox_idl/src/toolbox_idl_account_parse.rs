@@ -86,6 +86,7 @@ impl ToolboxIdlAccount {
         if idl_account.contains_key("type")
             || idl_account.contains_key("defined")
             || idl_account.contains_key("option")
+            || idl_account.contains_key("option32")
             || idl_account.contains_key("vec")
             || idl_account.contains_key("array")
             || idl_account.contains_key("fields")

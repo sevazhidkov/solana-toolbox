@@ -56,9 +56,17 @@ impl ToolboxIdlTypeFlat {
                     breadcrumbs,
                 )?
             },
+            ToolboxIdlTypeFlat::Generic { symbol } => idl_map_get_key_or_else(
+                generics_by_symbol,
+                symbol,
+                &breadcrumbs.idl(),
+            )?
+            .clone(),
             ToolboxIdlTypeFlat::Option {
+                prefix_bytes,
                 content: content_flat,
             } => ToolboxIdlTypeFull::Option {
+                prefix_bytes: *prefix_bytes,
                 content: Box::new(content_flat.try_hydrate(
                     generics_by_symbol,
                     typedefs,
@@ -118,12 +126,17 @@ impl ToolboxIdlTypeFlat {
                     variants: variants_full,
                 }
             },
-            ToolboxIdlTypeFlat::Generic { symbol } => idl_map_get_key_or_else(
-                generics_by_symbol,
-                symbol,
-                &breadcrumbs.idl(),
-            )?
-            .clone(),
+            ToolboxIdlTypeFlat::Padded {
+                size_bytes,
+                content: content_flat,
+            } => ToolboxIdlTypeFull::Padded {
+                size_bytes: *size_bytes,
+                content: Box::new(content_flat.try_hydrate(
+                    generics_by_symbol,
+                    typedefs,
+                    breadcrumbs,
+                )?),
+            },
             ToolboxIdlTypeFlat::Const { literal } => {
                 ToolboxIdlTypeFull::Const { literal: *literal }
             },

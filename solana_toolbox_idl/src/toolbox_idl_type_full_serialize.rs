@@ -30,15 +30,17 @@ impl ToolboxIdlTypeFull {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         match self {
-            ToolboxIdlTypeFull::Option { content } => {
-                ToolboxIdlTypeFull::try_serialize_option(
-                    content,
-                    value,
-                    data,
-                    deserializable,
-                    &breadcrumbs.with_idl("option"),
-                )
-            },
+            ToolboxIdlTypeFull::Option {
+                prefix_bytes,
+                content,
+            } => ToolboxIdlTypeFull::try_serialize_option(
+                prefix_bytes,
+                content,
+                value,
+                data,
+                deserializable,
+                &breadcrumbs.with_idl("option"),
+            ),
             ToolboxIdlTypeFull::Vec { items } => {
                 ToolboxIdlTypeFull::try_serialize_vec(
                     items,
@@ -51,7 +53,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_serialize_array(
                     items,
-                    *length,
+                    length,
                     value,
                     data,
                     deserializable,
@@ -76,6 +78,17 @@ impl ToolboxIdlTypeFull {
                     &breadcrumbs.with_idl("enum"),
                 )
             },
+            ToolboxIdlTypeFull::Padded {
+                size_bytes,
+                content,
+            } => ToolboxIdlTypeFull::try_serialize_padded(
+                size_bytes,
+                content,
+                value,
+                data,
+                deserializable,
+                &breadcrumbs.with_idl("box"),
+            ),
             ToolboxIdlTypeFull::Const { literal } => idl_err(
                 &format!("Can't use a const literal directly: {:?}", literal),
                 &breadcrumbs.idl(),
@@ -93,6 +106,7 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_option(
+        option_prefix_bytes: &u8,
         option_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
@@ -100,10 +114,15 @@ impl ToolboxIdlTypeFull {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         if value.is_null() {
-            data.push(0);
+            for _ in 0..*option_prefix_bytes {
+                data.push(0);
+            }
             Ok(())
         } else {
             data.push(1);
+            for _ in 1..*option_prefix_bytes {
+                data.push(0);
+            }
             option_content.try_serialize(
                 value,
                 data,
@@ -140,12 +159,13 @@ impl ToolboxIdlTypeFull {
 
     fn try_serialize_array(
         array_items: &ToolboxIdlTypeFull,
-        array_length: usize,
+        array_length: &u64,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
+        let array_length = usize::try_from(*array_length).unwrap();
         let values = idl_as_array_or_else(value, &breadcrumbs.as_val("array"))?;
         if values.len() != array_length {
             return idl_err(
@@ -219,6 +239,28 @@ impl ToolboxIdlTypeFull {
             "could not find matching enum",
             &breadcrumbs.as_val(value_enum),
         )
+    }
+
+    fn try_serialize_padded(
+        padded_size_bytes: &u64,
+        padded_content: &ToolboxIdlTypeFull,
+        value: &Value,
+        data: &mut Vec<u8>,
+        deserializable: bool,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<(), ToolboxIdlError> {
+        let padded_size_bytes = usize::try_from(*padded_size_bytes).unwrap();
+        let data_len_expected = data.len() + padded_size_bytes;
+        padded_content.try_serialize(
+            value,
+            data,
+            deserializable,
+            breadcrumbs,
+        )?;
+        while data.len() < data_len_expected {
+            data.push(0);
+        }
+        Ok(())
     }
 
     fn try_serialize_primitive(

@@ -84,6 +84,7 @@ pub async fn run() {
         ToolboxIdlAccount {
             name: "MyAccount".to_string(),
             docs: None,
+            space: None,
             discriminator: vec![77],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unamed(vec![
@@ -147,6 +148,7 @@ pub async fn run() {
                             (
                                 "field_a".to_string(),
                                 ToolboxIdlTypeFull::Option {
+                                    prefix_bytes: 1,
                                     content: Box::new(
                                         ToolboxIdlTypeFull::Primitive {
                                             primitive:

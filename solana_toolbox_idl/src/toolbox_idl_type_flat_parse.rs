@@ -10,10 +10,11 @@ use crate::toolbox_idl_utils::idl_convert_to_type_name;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
-use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_idl_utils::idl_str_to_usize_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
+use crate::toolbox_idl_utils::idl_str_to_u64_or_else;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
@@ -57,9 +58,25 @@ impl ToolboxIdlTypeFlat {
                 breadcrumbs,
             );
         }
+        if let Some(idl_generic_symbol) =
+            idl_object_get_key_as_str(idl_object, "generic")
+        {
+            return ToolboxIdlTypeFlat::try_parse_generic_symbol(
+                idl_generic_symbol,
+                breadcrumbs,
+            );
+        }
         if let Some(idl_option) = idl_object.get("option") {
             return ToolboxIdlTypeFlat::try_parse_option(
                 idl_option,
+                1,
+                breadcrumbs,
+            );
+        }
+        if let Some(idl_option) = idl_object.get("option32") {
+            return ToolboxIdlTypeFlat::try_parse_option(
+                idl_option,
+                4,
                 breadcrumbs,
             );
         }
@@ -87,11 +104,11 @@ impl ToolboxIdlTypeFlat {
                 breadcrumbs,
             );
         }
-        if let Some(idl_generic_symbol) =
-            idl_object_get_key_as_str(idl_object, "generic")
+        if let Some(idl_padded) =
+            idl_object_get_key_as_object(idl_object, "padded")
         {
-            return ToolboxIdlTypeFlat::try_parse_generic_symbol(
-                idl_generic_symbol,
+            return ToolboxIdlTypeFlat::try_parse_padded(
+                idl_padded,
                 breadcrumbs,
             );
         }
@@ -104,7 +121,7 @@ impl ToolboxIdlTypeFlat {
             );
         }
         idl_err(
-            "Missing type object key: defined/option/fields/variants/array/vec/generic",
+            "Missing type object key: defined/generic/option/array/vec/fields/variants/padded/value",
             &breadcrumbs.as_idl("def(object)"),
         )
     }
@@ -152,14 +169,9 @@ impl ToolboxIdlTypeFlat {
 
     fn try_parse_u64(
         idl_u64: u64,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
+        _breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        Ok(ToolboxIdlTypeFlat::Const {
-            literal: idl_map_err_invalid_integer(
-                usize::try_from(idl_u64),
-                &breadcrumbs.idl(),
-            )?,
-        })
+        Ok(ToolboxIdlTypeFlat::Const { literal: idl_u64 })
     }
 
     fn try_parse_defined(
@@ -205,7 +217,7 @@ impl ToolboxIdlTypeFlat {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Const {
-            literal: idl_str_to_usize_or_else(
+            literal: idl_str_to_u64_or_else(
                 idl_value_literal,
                 &breadcrumbs.idl(),
             )?,
@@ -214,9 +226,11 @@ impl ToolboxIdlTypeFlat {
 
     fn try_parse_option(
         idl_option: &Value,
+        idl_option_prefix_bytes: u8,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Option {
+            prefix_bytes: idl_option_prefix_bytes,
             content: Box::new(ToolboxIdlTypeFlat::try_parse(
                 idl_option,
                 &breadcrumbs.with_idl("option"),
@@ -276,6 +290,24 @@ impl ToolboxIdlTypeFlat {
         }
         Ok(ToolboxIdlTypeFlat::Enum {
             variants: enum_variants,
+        })
+    }
+
+    fn try_parse_padded(
+        idl_padded: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+        let idl_padded_size = idl_object_get_key_as_u64_or_else(
+            idl_padded,
+            "size",
+            &breadcrumbs.as_idl("size"),
+        )?;
+        Ok(ToolboxIdlTypeFlat::Padded {
+            size_bytes: idl_padded_size,
+            content: Box::new(ToolboxIdlTypeFlat::try_parse_object(
+                idl_padded,
+                &breadcrumbs.with_idl("padded"),
+            )?),
         })
     }
 }

@@ -399,10 +399,10 @@ pub(crate) fn idl_map_err_invalid_integer<V>(
     })
 }
 
-pub(crate) fn idl_str_to_usize_or_else(
+pub(crate) fn idl_str_to_u64_or_else(
     value: &str,
     context: &ToolboxIdlContext,
-) -> Result<usize, ToolboxIdlError> {
+) -> Result<u64, ToolboxIdlError> {
     value.parse().map_err(|err| ToolboxIdlError::InvalidNumber {
         parsing: err,
         context: context.clone(),

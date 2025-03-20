@@ -25,6 +25,8 @@ pub async fn run() {
                     { "type": {"defined": "Other"} },
                     { "type": {"defined": {"name": "Other"}} },
                     { "type": {"generic": "G"} },
+                    { "type": {"option": "u8"} },
+                    { "type": {"option32": "u8"} },
                 ]
             },
         },
@@ -47,6 +49,8 @@ pub async fn run() {
                     {"defined": "Other"},
                     {"defined": {"name": "Other"}},
                     {"generic": "G"},
+                    {"option": "u8"},
+                    {"option32": "u8"},
                 ]
             },
         },
@@ -115,6 +119,18 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlat::Generic {
                         symbol: "G".to_string()
+                    },
+                    ToolboxIdlTypeFlat::Option {
+                        prefix_bytes: 1,
+                        content: Box::new(ToolboxIdlTypeFlat::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U8,
+                        }),
+                    },
+                    ToolboxIdlTypeFlat::Option {
+                        prefix_bytes: 4,
+                        content: Box::new(ToolboxIdlTypeFlat::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U8,
+                        }),
                     },
                 ])
             }

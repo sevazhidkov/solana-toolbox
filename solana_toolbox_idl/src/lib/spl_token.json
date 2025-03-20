@@ -143,7 +143,7 @@
       "args": [
         { "name": "decimals", "type": "u8" },
         { "name": "mint_authority", "type": "pubkey" },
-        { "name": "freeze_authority", "type": { "option": "pubkey" } }
+        { "name": "freeze_authority", "type": { "option32": "pubkey" } }
       ],
       "accounts": []
     }
@@ -152,16 +152,42 @@
     "Account": {
       "space": 165,
       "discriminator": [],
-      "fields": []
+      "fields": [
+        { "name": "mint", "type": "pubkey" },
+        { "name": "owner", "type": "pubkey" },
+        { "name": "amount", "type": "u64" },
+        {
+          "name": "delegate",
+          "padded": { "size": 36, "option32": "pubkey" }
+        },
+        {
+          "name": "state",
+          "type": { "variants": ["Uninitialized", "Initialized", "Frozen"] }
+        },
+        {
+          "name": "is_native",
+          "padded": { "size": 12, "option32": "u64" }
+        },
+        { "name": "delegated_amount", "type": "u64" },
+        { "name": "close_authority", "type": { "option32": "pubkey" } }
+      ]
     },
     "Mint": {
       "space": 82,
       "discriminator": [],
-      "fields": []
-    },
-    "Unknown": {
-      "discriminator": [],
-      "fields": []
+      "fields": [
+        {
+          "name": "mint_authority",
+          "padded": { "size": 36, "option32": "pubkey" }
+        },
+        { "name": "supply", "type": "u64" },
+        { "name": "decimals", "type": "u8" },
+        { "name": "is_initialized", "type": "bool" },
+        {
+          "name": "freeze_authority",
+          "padded": { "size": 36, "option32": "pubkey" }
+        }
+      ]
     }
   },
   "types": {},

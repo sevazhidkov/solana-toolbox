@@ -10,6 +10,7 @@ pub enum ToolboxIdlTypeFlat {
         symbol: String,
     },
     Option {
+        prefix_bytes: u8,
         content: Box<ToolboxIdlTypeFlat>,
     },
     Vec {
@@ -25,8 +26,12 @@ pub enum ToolboxIdlTypeFlat {
     Enum {
         variants: Vec<(String, ToolboxIdlTypeFlatFields)>,
     },
+    Padded {
+        size_bytes: u64,
+        content: Box<ToolboxIdlTypeFlat>,
+    },
     Const {
-        literal: usize,
+        literal: u64,
     },
     Primitive {
         primitive: ToolboxIdlTypePrimitive,

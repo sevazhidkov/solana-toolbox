@@ -29,8 +29,10 @@ pub async fn run() {
                     { "name": "defined2", "defined": {"name": "Other"} },
                     { "name": "defined3", "type": {"defined": "Other"} },
                     { "name": "defined4", "type": {"defined": {"name": "Other"}} },
-                    { "name": "option1_f32", "option": "f32" },
-                    { "name": "option2_f32", "type": {"option": "f32"} },
+                    { "name": "option_1_f32", "option": "f32" },
+                    { "name": "option_2_f32", "type": {"option": "f32"} },
+                    { "name": "option32_1_u16", "option32": "u16" },
+                    { "name": "option32_2_u16", "type": {"option32": "u16"} },
                     { "name": "generic1", "generic": "G" },
                     { "name": "generic2", "type": {"generic": "G"} },
                 ]
@@ -175,18 +177,38 @@ pub async fn run() {
                         },
                     ),
                     (
-                        "option1_f32".to_string(),
+                        "option_1_f32".to_string(),
                         ToolboxIdlTypeFlat::Option {
+                            prefix_bytes: 1,
                             content: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::F32,
                             })
                         }
                     ),
                     (
-                        "option2_f32".to_string(),
+                        "option_2_f32".to_string(),
                         ToolboxIdlTypeFlat::Option {
+                            prefix_bytes: 1,
                             content: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::F32,
+                            })
+                        }
+                    ),
+                    (
+                        "option32_1_u16".to_string(),
+                        ToolboxIdlTypeFlat::Option {
+                            prefix_bytes: 4,
+                            content: Box::new(ToolboxIdlTypeFlat::Primitive {
+                                primitive: ToolboxIdlTypePrimitive::U16,
+                            })
+                        }
+                    ),
+                    (
+                        "option32_2_u16".to_string(),
+                        ToolboxIdlTypeFlat::Option {
+                            prefix_bytes: 4,
+                            content: Box::new(ToolboxIdlTypeFlat::Primitive {
+                                primitive: ToolboxIdlTypePrimitive::U16,
                             })
                         }
                     ),

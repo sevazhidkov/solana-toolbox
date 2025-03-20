@@ -17,12 +17,7 @@
       "accounts": []
     }
   },
-  "accounts": {
-    "Unknown": {
-      "discriminator": [],
-      "fields": []
-    }
-  },
+  "accounts": {},
   "types": {},
   "errors": {}
 }

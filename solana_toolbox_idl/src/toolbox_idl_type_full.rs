@@ -3,6 +3,7 @@ use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
     Option {
+        prefix_bytes: u8,
         content: Box<ToolboxIdlTypeFull>,
     },
     Vec {
@@ -10,7 +11,7 @@ pub enum ToolboxIdlTypeFull {
     },
     Array {
         items: Box<ToolboxIdlTypeFull>,
-        length: usize,
+        length: u64,
     },
     Struct {
         fields: ToolboxIdlTypeFullFields,
@@ -18,8 +19,12 @@ pub enum ToolboxIdlTypeFull {
     Enum {
         variants: Vec<(String, ToolboxIdlTypeFullFields)>,
     },
+    Padded {
+        size_bytes: u64,
+        content: Box<ToolboxIdlTypeFull>,
+    },
     Const {
-        literal: usize,
+        literal: u64,
     },
     Primitive {
         primitive: ToolboxIdlTypePrimitive,
@@ -27,7 +32,7 @@ pub enum ToolboxIdlTypeFull {
 }
 
 impl ToolboxIdlTypeFull {
-    pub fn as_const_literal(&self) -> Option<&usize> {
+    pub fn as_const_literal(&self) -> Option<&u64> {
         match self {
             ToolboxIdlTypeFull::Const { literal } => Some(literal),
             _ => None,

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use clap::Args;
-use serde_json::json;
+use serde_json::{json, Map};
 use solana_cli_config::Config;
 use solana_sdk::signature::Signature;
 use solana_toolbox_idl::ToolboxIdlResolver;
@@ -33,12 +33,12 @@ impl ToolboxCliCommandIdlResolveExecutionArgs {
                 idl_program.guess_idl_instruction(&instruction.data)
                 .unwrap() // TODO - handle unwrap
                 .decompile(&instruction)?;
-            let mut json_addresses = vec![];
+            let mut json_addresses = Map::new();
             for instruction_address in instruction_addresses {
-                json_addresses.push(json!([
+                json_addresses.insert(
                     instruction_address.0,
-                    instruction_address.1.to_string()
-                ]));
+                    json!(instruction_address.1.to_string()),
+                );
             }
             json_instructions.push(json!({
                 "program_id": program_id.to_string(),

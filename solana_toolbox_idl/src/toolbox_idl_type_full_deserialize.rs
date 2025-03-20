@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
@@ -33,14 +35,16 @@ impl ToolboxIdlTypeFull {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
         match self {
-            ToolboxIdlTypeFull::Option { content } => {
-                ToolboxIdlTypeFull::try_deserialize_option(
-                    content,
-                    data,
-                    data_offset,
-                    &breadcrumbs.with_idl("option"),
-                )
-            },
+            ToolboxIdlTypeFull::Option {
+                prefix_bytes,
+                content,
+            } => ToolboxIdlTypeFull::try_deserialize_option(
+                prefix_bytes,
+                content,
+                data,
+                data_offset,
+                &breadcrumbs.with_idl("option"),
+            ),
             ToolboxIdlTypeFull::Vec { items } => {
                 ToolboxIdlTypeFull::try_deserialize_vec(
                     items,
@@ -52,7 +56,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_deserialize_array(
                     items,
-                    *length,
+                    length,
                     data,
                     data_offset,
                     &breadcrumbs.with_idl("array"),
@@ -74,6 +78,16 @@ impl ToolboxIdlTypeFull {
                     &breadcrumbs.with_idl("enum"),
                 )
             },
+            ToolboxIdlTypeFull::Padded {
+                size_bytes,
+                content,
+            } => ToolboxIdlTypeFull::try_deserialize_padded(
+                size_bytes,
+                content,
+                data,
+                data_offset,
+                &breadcrumbs.with_idl("padded"),
+            ),
             ToolboxIdlTypeFull::Const { literal } => idl_err(
                 &format!("Can't use a const literal directly: {:?}", literal),
                 &breadcrumbs.idl(),
@@ -89,8 +103,8 @@ impl ToolboxIdlTypeFull {
         }
     }
 
-    // TODO - support for "coption" ?
     fn try_deserialize_option(
+        option_prefix_bytes: &u8,
         option_content: &ToolboxIdlTypeFull,
         data: &[u8],
         data_offset: usize,
@@ -101,7 +115,7 @@ impl ToolboxIdlTypeFull {
             data_offset,
             &breadcrumbs.as_val("flag"),
         )?;
-        let mut data_size = std::mem::size_of_val(&data_flag);
+        let mut data_size = usize::from(*option_prefix_bytes);
         if data_flag > 0 {
             let (data_content_size, data_content) = option_content
                 .try_deserialize(data, data_offset + data_size, breadcrumbs)?;
@@ -142,11 +156,12 @@ impl ToolboxIdlTypeFull {
 
     fn try_deserialize_array(
         array_items: &ToolboxIdlTypeFull,
-        array_length: usize,
+        array_length: &u64,
         data: &[u8],
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
+        let array_length = usize::try_from(*array_length).unwrap();
         let mut data_size = 0;
         let mut data_items = vec![];
         for (_, _, breadcrumbs) in idl_iter_get_scoped_values(
@@ -204,6 +219,19 @@ impl ToolboxIdlTypeFull {
         } else {
             Ok((data_size, json!(vec![json!(enum_variant.0), data_fields])))
         }
+    }
+
+    fn try_deserialize_padded(
+        padded_size_bytes: &u64,
+        padded_content: &ToolboxIdlTypeFull,
+        data: &[u8],
+        data_offset: usize,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<(usize, Value), ToolboxIdlError> {
+        let padded_size_bytes = usize::try_from(*padded_size_bytes).unwrap();
+        let (data_content_size, data_content) =
+            padded_content.try_deserialize(data, data_offset, breadcrumbs)?;
+        Ok((max(data_content_size, padded_size_bytes), data_content))
     }
 
     fn try_deserialize_primitive(

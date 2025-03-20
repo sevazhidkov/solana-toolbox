@@ -29,8 +29,18 @@ impl ToolboxIdlTypeFlat {
                     json!(name)
                 }
             },
-            ToolboxIdlTypeFlat::Option { content } => {
-                json!({ "option": content.export(backward_compatibility) })
+            ToolboxIdlTypeFlat::Generic { symbol } => {
+                json!({ "generic": symbol })
+            },
+            ToolboxIdlTypeFlat::Option {
+                prefix_bytes,
+                content,
+            } => {
+                if *prefix_bytes == 4 {
+                    json!({ "option32": content.export(backward_compatibility) })
+                } else {
+                    json!({ "option": content.export(backward_compatibility) })
+                }
             },
             ToolboxIdlTypeFlat::Vec { items } => {
                 if backward_compatibility {
@@ -87,8 +97,16 @@ impl ToolboxIdlTypeFlat {
                     json!({ "variants": json_variants })
                 }
             },
-            ToolboxIdlTypeFlat::Generic { symbol } => {
-                json!({ "generic": symbol })
+            ToolboxIdlTypeFlat::Padded {
+                size_bytes,
+                content,
+            } => {
+                json!({
+                    "padded": {
+                        "size": size_bytes,
+                        "type": content.export(backward_compatibility)
+                    }
+                })
             },
             ToolboxIdlTypeFlat::Const { literal } => {
                 if backward_compatibility {
