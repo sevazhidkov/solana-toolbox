@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use solana_sdk::address_lookup_table;
-use solana_sdk::bpf_loader_upgradeable;
-use solana_sdk::compute_budget;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -36,11 +33,11 @@ impl ToolboxIdlProgram {
             include_str!("lib/native_address_lookup_table.json"),
         );
         known_programs.insert(
-            compute_budget::ID,
+            ToolboxEndpoint::COMPUTE_BUDGET_PROGRAM_ID,
             include_str!("lib/native_compute_budget.json"),
         );
         known_programs.insert(
-            bpf_loader_upgradeable::ID,
+            ToolboxEndpoint::BPF_LOADER_UPGRADEABLE_PROGRAM_ID,
             include_str!("lib/native_bpf_loader_upgradeable.json"),
         );
         known_programs.insert(
