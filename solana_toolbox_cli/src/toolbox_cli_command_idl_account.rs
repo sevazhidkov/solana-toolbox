@@ -11,7 +11,6 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlAccountArgs {
     address: String,
-    // #[arg(short, long)]
     // idls: Vec<String>, // TODO - implement ?
 }
 
