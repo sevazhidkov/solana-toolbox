@@ -12,7 +12,6 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -74,7 +73,7 @@ impl ToolboxIdlInstruction {
         }
         Ok(idl_hash_discriminator_from_string(&format!(
             "global:{}",
-            idl_convert_to_value_name(idl_instruction_name)
+            idl_instruction_name
         )))
     }
 

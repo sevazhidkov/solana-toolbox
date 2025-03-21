@@ -3,7 +3,7 @@ mod toolbox_cli_command_dev_account;
 mod toolbox_cli_command_idl_account;
 mod toolbox_cli_command_idl_execution;
 mod toolbox_cli_command_idl_instruction;
-mod toolbox_cli_command_idl_instruction_execute;
+mod toolbox_cli_command_idl_process;
 mod toolbox_cli_command_idl_program;
 mod toolbox_cli_command_raw_get_account;
 mod toolbox_cli_command_raw_get_execution;

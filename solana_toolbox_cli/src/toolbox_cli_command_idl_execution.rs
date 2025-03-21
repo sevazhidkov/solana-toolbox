@@ -10,12 +10,12 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlResolveExecutionArgs {
+pub struct ToolboxCliCommandIdlExecutionArgs {
     signature: String,
     // TODO - allow custom IDLs preload
 }
 
-impl ToolboxCliCommandIdlResolveExecutionArgs {
+impl ToolboxCliCommandIdlExecutionArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,

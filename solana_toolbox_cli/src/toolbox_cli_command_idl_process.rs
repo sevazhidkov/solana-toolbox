@@ -13,7 +13,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlInstructionExecuteArgs {
+pub struct ToolboxCliCommandIdlProcessArgs {
     program_id: String,
     name: String,
     payload: String,
@@ -22,7 +22,7 @@ pub struct ToolboxCliCommandIdlInstructionExecuteArgs {
     // TODO - allow passing IDLs as parameter
 }
 
-impl ToolboxCliCommandIdlInstructionExecuteArgs {
+impl ToolboxCliCommandIdlProcessArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,

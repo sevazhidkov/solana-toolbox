@@ -67,7 +67,7 @@ impl ToolboxCliCommandIdlInstructionArgs {
                 json!(instruction_address.1.to_string()),
             );
         }
-        let mut json_addresses_dependencies_missing = Map::new();
+        let mut json_dependencies_missing = Map::new();
         for instruction_address_dependency in instruction_addresses_dependencies
         {
             if instruction_addresses
@@ -75,7 +75,7 @@ impl ToolboxCliCommandIdlInstructionArgs {
             {
                 continue;
             }
-            json_addresses_dependencies_missing.insert(
+            json_dependencies_missing.insert(
                 instruction_address_dependency.0,
                 json!(instruction_address_dependency.1),
             );
@@ -122,7 +122,7 @@ impl ToolboxCliCommandIdlInstructionArgs {
         println!(
             "{}",
             serde_json::to_string(&json!({
-                "addresses_dependencies_missing": json_addresses_dependencies_missing,
+                "dependencies_missing": json_dependencies_missing,
                 "addresses": json_addresses,
                 "compile": json_compile,
             }))?
