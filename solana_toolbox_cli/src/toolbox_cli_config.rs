@@ -53,7 +53,7 @@ impl ToolboxCliConfig {
     }
 
     pub fn create_endpoint(&self) -> Result<ToolboxEndpoint, ToolboxCliError> {
-        Ok(ToolboxEndpoint::new_rpc_with_url_and_commitment(
+        Ok(ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
             &self.json_rpc_url,
             CommitmentConfig::from_str(&self.commitment)?,
         ))

@@ -7,14 +7,13 @@ use serde_json::from_str;
 use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Signer;
 use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlProcessInstructionArgs {
+pub struct ToolboxCliCommandIdlInstructionExecuteArgs {
     program_id: String,
     name: String,
     payload: String,
@@ -23,7 +22,7 @@ pub struct ToolboxCliCommandIdlProcessInstructionArgs {
     // TODO - allow passing IDLs as parameter
 }
 
-impl ToolboxCliCommandIdlProcessInstructionArgs {
+impl ToolboxCliCommandIdlInstructionExecuteArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
@@ -53,26 +52,19 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
                 &instruction_payload,
             )
             .await?;
+        // TODO - this part can be removed after upgrade
         let mut instruction_signing_keys = HashSet::new();
         for instruction_account in &instruction.accounts {
             if instruction_account.is_signer {
                 instruction_signing_keys.insert(instruction_account.pubkey);
             }
         }
-
-        let mut signers_pubkeys = HashSet::new();
-        let mut signers_keypairs = vec![];
-
-        signers_pubkeys.insert(config.get_keypair()?.pubkey());
-
+        let mut signers = vec![];
         for instruction_key in instruction_keys.values() {
             let instruction_key_address = instruction_key.address();
             if instruction_signing_keys.contains(&instruction_key_address) {
                 if let Some(signer_keypair) = instruction_key.signer() {
-                    if !signers_pubkeys.contains(&instruction_key_address) {
-                        signers_pubkeys.insert(instruction_key_address);
-                        signers_keypairs.push(signer_keypair);
-                    }
+                    signers.push(signer_keypair);
                 }
             }
         }
@@ -80,15 +72,14 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
             .process_instruction_with_signers(
                 &config.get_keypair()?,
                 instruction,
-                &signers_keypairs,
+                &signers,
             )
             .await?;
         println!(
             "{}",
-            serde_json::to_string(&json!({
-                "signature": signature.to_string(),
-                // TODO - output execution same as idl_resolve_execution
-            }))?
+            serde_json::to_string(
+                &json!({ "signature": signature.to_string() })
+            )?
         );
         Ok(())
     }

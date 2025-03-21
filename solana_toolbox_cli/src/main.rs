@@ -1,10 +1,10 @@
 mod toolbox_cli;
-mod toolbox_cli_command_dev_inspect_account;
-mod toolbox_cli_command_idl_process_instruction;
-mod toolbox_cli_command_idl_resolve_account;
-mod toolbox_cli_command_idl_resolve_execution;
-mod toolbox_cli_command_idl_resolve_instruction;
-mod toolbox_cli_command_idl_resolve_program;
+mod toolbox_cli_command_dev_account;
+mod toolbox_cli_command_idl_account;
+mod toolbox_cli_command_idl_execution;
+mod toolbox_cli_command_idl_instruction;
+mod toolbox_cli_command_idl_instruction_execute;
+mod toolbox_cli_command_idl_program;
 mod toolbox_cli_command_raw_get_account;
 mod toolbox_cli_command_raw_get_execution;
 mod toolbox_cli_command_raw_search_addresses;

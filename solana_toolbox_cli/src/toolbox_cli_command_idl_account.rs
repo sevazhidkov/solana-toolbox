@@ -9,14 +9,14 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlResolveAccountArgs {
+pub struct ToolboxCliCommandIdlAccountArgs {
     address: String,
-    #[arg(short, long)]
-    idls: Vec<String>, // TODO - implement ?
+    // #[arg(short, long)]
+    // idls: Vec<String>, // TODO - implement ?
 }
 
 // TODO - could this be merged with execution by checking if its a valid signature or not ?
-impl ToolboxCliCommandIdlResolveAccountArgs {
+impl ToolboxCliCommandIdlAccountArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,

@@ -7,11 +7,11 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandDevInspectAccountArgs {
+pub struct ToolboxCliCommandDevAccountArgs {
     address: String,
 }
 
-impl ToolboxCliCommandDevInspectAccountArgs {
+impl ToolboxCliCommandDevAccountArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,

@@ -15,7 +15,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
-pub struct ToolboxCliCommandIdlResolveInstructionArgs {
+pub struct ToolboxCliCommandIdlInstructionArgs {
     program_id: String,
     name: String,
     payload: String,
@@ -24,7 +24,7 @@ pub struct ToolboxCliCommandIdlResolveInstructionArgs {
     // TODO - could take IDLs as param also ?
 }
 
-impl ToolboxCliCommandIdlResolveInstructionArgs {
+impl ToolboxCliCommandIdlInstructionArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
@@ -61,38 +61,68 @@ impl ToolboxCliCommandIdlResolveInstructionArgs {
         let instruction_addresses_dependencies =
             idl_instruction.get_addresses_dependencies();
         let mut json_addresses = Map::new();
-        for instruction_address in instruction_addresses {
+        for instruction_address in &instruction_addresses {
             json_addresses.insert(
-                instruction_address.0,
+                instruction_address.0.to_string(),
                 json!(instruction_address.1.to_string()),
             );
         }
-        let mut json_addresses_dependencies = Map::new();
+        let mut json_addresses_dependencies_missing = Map::new();
         for instruction_address_dependency in instruction_addresses_dependencies
         {
-            json_addresses_dependencies.insert(
+            if instruction_addresses
+                .contains_key(&instruction_address_dependency.0)
+            {
+                continue;
+            }
+            json_addresses_dependencies_missing.insert(
                 instruction_address_dependency.0,
                 json!(instruction_address_dependency.1),
             );
         }
         let mut json_compile = Map::new();
         match instruction_compile_result {
-            Ok(instruction) => json_compile.insert(
-                "message_base58".to_string(),
-                json!(bs58::encode(
-                    Transaction::new_with_payer(&[instruction], None)
-                        .message
-                        .serialize(),
-                )
-                .into_string()),
-            ),
-            Err(error) => json_compile
-                .insert("error".to_string(), json!(format!("{:?}", error))),
+            Ok(instruction) => {
+                let mut json_compile_content = Map::new();
+                json_compile_content.insert(
+                    "program_id".to_string(),
+                    json!(instruction.program_id.to_string()),
+                );
+                let mut json_compile_content_accounts = vec![];
+                for instruction_account in &instruction.accounts {
+                    json_compile_content_accounts.push(json!({
+                        "address": instruction_account.pubkey.to_string(),
+                        "is_writable": instruction_account.is_writable,
+                        "is_signer": instruction_account.is_signer,
+                    }));
+                }
+                json_compile_content.insert(
+                    "accounts".to_string(),
+                    json!(json_compile_content_accounts),
+                );
+                json_compile_content
+                    .insert("data".to_string(), json!(instruction.data));
+                json_compile
+                    .insert("content".to_string(), json!(json_compile_content));
+                json_compile.insert(
+                    "message_base58".to_string(),
+                    json!(bs58::encode(
+                        Transaction::new_with_payer(&[instruction], None)
+                            .message
+                            .serialize(),
+                    )
+                    .into_string()),
+                );
+            },
+            Err(error) => {
+                json_compile
+                    .insert("error".to_string(), json!(format!("{:?}", error)));
+            },
         };
         println!(
             "{}",
             serde_json::to_string(&json!({
-                "addresses_dependencies": json_addresses_dependencies,
+                "addresses_dependencies_missing": json_addresses_dependencies_missing,
                 "addresses": json_addresses,
                 "compile": json_compile,
             }))?

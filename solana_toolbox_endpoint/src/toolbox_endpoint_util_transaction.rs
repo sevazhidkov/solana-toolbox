@@ -19,14 +19,26 @@ impl ToolboxEndpoint {
     ) -> Result<Transaction, ToolboxEndpointError> {
         let mut transaction =
             Transaction::new_with_payer(instructions, Some(&payer.pubkey()));
+        let mut needed_signers_pubkeys = HashSet::new();
+        for instruction in instructions {
+            for instruction_account in &instruction.accounts {
+                if instruction_account.is_signer {
+                    needed_signers_pubkeys.insert(instruction_account.pubkey);
+                }
+            }
+        }
         let mut signers_pubkeys = HashSet::new();
         let mut signers_keypairs = vec![];
         signers_pubkeys.insert(payer.pubkey());
         signers_keypairs.push(payer);
-        for signer in signers {
-            if !signers_pubkeys.contains(&signer.pubkey()) {
-                signers_pubkeys.insert(signer.pubkey());
-                signers_keypairs.push(signer);
+        for signer_keypair in signers {
+            let signer_pubkey = signer_keypair.pubkey();
+            if !needed_signers_pubkeys.contains(&signer_pubkey) {
+                continue;
+            }
+            if !signers_pubkeys.contains(&signer_pubkey) {
+                signers_pubkeys.insert(signer_pubkey);
+                signers_keypairs.push(signer_keypair);
             }
         }
         transaction.partial_sign(&signers_keypairs, recent_blockhash);

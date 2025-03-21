@@ -3,12 +3,12 @@ use clap::Subcommand;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
 
-use crate::toolbox_cli_command_dev_inspect_account::ToolboxCliCommandDevInspectAccountArgs;
-use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
-use crate::toolbox_cli_command_idl_resolve_account::ToolboxCliCommandIdlResolveAccountArgs;
-use crate::toolbox_cli_command_idl_resolve_execution::ToolboxCliCommandIdlResolveExecutionArgs;
-use crate::toolbox_cli_command_idl_resolve_instruction::ToolboxCliCommandIdlResolveInstructionArgs;
-use crate::toolbox_cli_command_idl_resolve_program::ToolboxCliCommandIdlResolveProgramArgs;
+use crate::toolbox_cli_command_dev_account::ToolboxCliCommandDevAccountArgs;
+use crate::toolbox_cli_command_idl_account::ToolboxCliCommandIdlAccountArgs;
+use crate::toolbox_cli_command_idl_execution::ToolboxCliCommandIdlResolveExecutionArgs;
+use crate::toolbox_cli_command_idl_instruction::ToolboxCliCommandIdlInstructionArgs;
+use crate::toolbox_cli_command_idl_instruction_execute::ToolboxCliCommandIdlInstructionExecuteArgs;
+use crate::toolbox_cli_command_idl_program::ToolboxCliCommandIdlProgramArgs;
 use crate::toolbox_cli_command_raw_get_account::ToolboxCliCommandRawGetAccountArgs;
 use crate::toolbox_cli_command_raw_get_execution::ToolboxCliCommandRawGetExecutionArgs;
 use crate::toolbox_cli_command_raw_search_addresses::ToolboxCliCommandRawSearchAddressesArgs;
@@ -64,12 +64,12 @@ impl ToolboxCliArgs {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
-    DevInspectAccount(ToolboxCliCommandDevInspectAccountArgs),
-    IdlProcessInstruction(ToolboxCliCommandIdlProcessInstructionArgs),
-    IdlResolveAccount(ToolboxCliCommandIdlResolveAccountArgs),
+    DevAccount(ToolboxCliCommandDevAccountArgs),
+    IdlInstructionExecute(ToolboxCliCommandIdlInstructionExecuteArgs),
+    IdlAccount(ToolboxCliCommandIdlAccountArgs),
     IdlResolveExecution(ToolboxCliCommandIdlResolveExecutionArgs),
-    IdlResolveProgram(ToolboxCliCommandIdlResolveProgramArgs),
-    IdlResolveInstruction(ToolboxCliCommandIdlResolveInstructionArgs),
+    IdlProgram(ToolboxCliCommandIdlProgramArgs),
+    IdlInstruction(ToolboxCliCommandIdlInstructionArgs),
     RawGetAccount(ToolboxCliCommandRawGetAccountArgs),
     RawGetExecution(ToolboxCliCommandRawGetExecutionArgs),
     RawSearchAddresses(ToolboxCliCommandRawSearchAddressesArgs),
@@ -84,22 +84,16 @@ impl ToolboxCliCommand {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         match self {
-            ToolboxCliCommand::DevInspectAccount(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::IdlResolveAccount(args) => {
-                args.process(config).await
-            },
+            ToolboxCliCommand::DevAccount(args) => args.process(config).await,
+            ToolboxCliCommand::IdlAccount(args) => args.process(config).await,
             ToolboxCliCommand::IdlResolveExecution(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlResolveProgram(args) => {
+            ToolboxCliCommand::IdlProgram(args) => args.process(config).await,
+            ToolboxCliCommand::IdlInstructionExecute(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlProcessInstruction(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::IdlResolveInstruction(args) => {
+            ToolboxCliCommand::IdlInstruction(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::RawGetAccount(args) => {
