@@ -31,13 +31,12 @@ The main type provided is the `ToolboxIdlResolver`. It contains cached a set of 
 Note: see `solana_toolbox_endpoint` crate for interacting with a RPC or ProgramTest environment.
 
 ```rust
-// Instantiate our IDL resolver that caches all known IDLs
+// Instantiate our IDL resolver that fetch and caches all known IDLs
 let mut idl_resolver = ToolboxIdlResolver::new();
 // We can fetch and resolve all account details (metadata and state)
 let account_details = idl_resolver
     .resolve_account_details(&mut endpoint, &my_account)
-    .await
-    .unwrap()
+    .await?
     .unwrap();
 // We can generate an instruction from JSON data and accounts addresses
 let instruction: Instruction = idl_resolver
@@ -48,8 +47,7 @@ let instruction: Instruction = idl_resolver
             ("payer".to_string(), payer.pubkey()),
         ]),
         json!({ "arg": {"info": 42} }),
-    )
-    .unwrap();
+    )?;
 // We can also resolve the accounts named addresses using the seeds in the IDL
 let instruction_addresses: HashMap<String, Pubkey> = idl_resolver
     .resolve_instruction_addresses(
@@ -59,16 +57,15 @@ let instruction_addresses: HashMap<String, Pubkey> = idl_resolver
             ("payer".to_string(), payer.pubkey()),
         ]),
         json!({ "arg": {"info": 42} }),
-    )
-    .unwrap();
+    )?;
 ```
 
-If a program is not available to the `ToolboxIdlResolver` through the endpoint, we can preload it and provide it for future lookups manually
+If a program's IDL is not available to be automatically downloaded from endpoint to the `ToolboxIdlResolver`, we can preload it and provide it for future lookups manually:
 
 ```rust
 // We can pre-load and save IDLs from file or JSON string directly
 let idl_string = read_to_string("./my_idl.json").unwrap();
-let idl_program = ToolboxIdlProgram::try_parse_from_str(&idl_string).unwrap();
+let idl_program = ToolboxIdlProgram::try_parse_from_str(&idl_string)?;
 idl_resolver.preload_program(&program_id, idl_program);
 // We can also manually generate IDLs inline (with or without shortcut syntax)
 let idl_program = ToolboxIdlProgram::try_from_value(&json!({
