@@ -15,7 +15,6 @@ pub async fn run() {
             &idl_program_native_system.export(true)
         )
         .unwrap()
-        .into(),
     );
     assert_eq!(
         idl_program_native_system,
@@ -23,7 +22,6 @@ pub async fn run() {
             &idl_program_native_system.export(false)
         )
         .unwrap()
-        .into(),
     );
     // Fetch standard IDL for the native compute_budget program
     let idl_program_native_compute_budget =
@@ -35,7 +33,6 @@ pub async fn run() {
             &idl_program_native_compute_budget.export(true)
         )
         .unwrap()
-        .into(),
     );
     assert_eq!(
         idl_program_native_compute_budget,
@@ -43,7 +40,6 @@ pub async fn run() {
             &idl_program_native_compute_budget.export(false)
         )
         .unwrap()
-        .into(),
     );
     // Fetch standard IDL for the native loader_upgradeable program
     let idl_program_native_loader_upgradeable =
@@ -55,7 +51,6 @@ pub async fn run() {
             &idl_program_native_loader_upgradeable.export(true)
         )
         .unwrap()
-        .into(),
     );
     assert_eq!(
         idl_program_native_loader_upgradeable,
@@ -63,6 +58,5 @@ pub async fn run() {
             &idl_program_native_loader_upgradeable.export(false)
         )
         .unwrap()
-        .into(),
     );
 }

@@ -56,7 +56,7 @@ impl ToolboxIdlProgram {
             include_str!("lib/misc_lighthouse.json"),
         );
         known_programs.get(program_id).map(|content| {
-            ToolboxIdlProgram::try_parse_from_str(*content).unwrap()
+            ToolboxIdlProgram::try_parse_from_str(content).unwrap()
         })
     }
 

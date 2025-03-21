@@ -107,7 +107,7 @@ impl ToolboxIdlInstruction {
             if let Some(account_address) = &account.address {
                 dependencies.insert(
                     account.name.to_string(),
-                    format!("={}", account_address.to_string()),
+                    format!("={}", account_address),
                 );
             } else if let Some(account_pda) = &account.pda {
                 let mut dependencies_blobs = vec![];
@@ -123,7 +123,7 @@ impl ToolboxIdlInstruction {
                 }
                 dependencies.insert(
                     account.name.to_string(),
-                    format!("{}", dependencies_blobs.join("+")),
+                    format!("[{}]", dependencies_blobs.join(",")),
                 );
             } else {
                 dependencies.insert(
