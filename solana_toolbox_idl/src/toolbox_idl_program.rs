@@ -32,7 +32,7 @@ impl ToolboxIdlProgram {
             include_str!("lib/native_system.json"),
         );
         known_programs.insert(
-            address_lookup_table::program::ID,
+            ToolboxEndpoint::ADDRESS_LOOKUP_TABLE_PROGRAM_ID,
             include_str!("lib/native_address_lookup_table.json"),
         );
         known_programs.insert(

@@ -76,6 +76,8 @@ pub enum ToolboxCliCommand {
     RawSearchSignatures(ToolboxCliCommandRawSearchSignaturesArgs),
 }
 
+// TODO - some type of lookup system for addresses by name or smthg
+
 impl ToolboxCliCommand {
     pub async fn process(
         &self,

@@ -20,6 +20,7 @@ pub struct ToolboxCliCommandIdlProcessInstructionArgs {
     payload: String,
     #[arg(value_delimiter(','))]
     accounts: Vec<String>,
+    // TODO - allow passing IDLs as parameter
 }
 
 impl ToolboxCliCommandIdlProcessInstructionArgs {

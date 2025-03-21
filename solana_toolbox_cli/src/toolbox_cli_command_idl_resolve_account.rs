@@ -12,7 +12,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 pub struct ToolboxCliCommandIdlResolveAccountArgs {
     address: String,
     #[arg(short, long)]
-    idls: Vec<String>,
+    idls: Vec<String>, // TODO - implement ?
 }
 
 // TODO - could this be merged with execution by checking if its a valid signature or not ?

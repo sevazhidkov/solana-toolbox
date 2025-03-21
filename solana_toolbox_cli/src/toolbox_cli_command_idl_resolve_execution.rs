@@ -12,7 +12,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlResolveExecutionArgs {
     signature: String,
-    // TODO - allow custom IDLs
+    // TODO - allow custom IDLs preload
 }
 
 impl ToolboxCliCommandIdlResolveExecutionArgs {
