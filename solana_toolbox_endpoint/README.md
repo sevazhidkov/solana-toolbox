@@ -45,11 +45,11 @@ let mut endpoint = ToolboxEndpoint::new_program_test_with_builtin_programs(&[
 ])
 .await;
 // Alternatively We can create an endpoint that uses devnet instead
-let mut endpoint = ToolboxEndpoint::new_rpc_with_url_and_commitment(
-    "https://api.devnet.solana.com",
+let mut endpoint = ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
+    "https://api.devnet.solana.com", // or "devnet"
     CommitmentConfig::confirmed(),
 );
-// Optionally make the endpoint print all transaction/fetching
+// Optionally make the endpoint print all transactions being processed
 endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
 ```
 
@@ -64,8 +64,7 @@ endpoint
         &destination.pubkey(),
         1_000_000_000,
     )
-    .await
-    .unwrap();
+    .await?;
 // Then we can use the endpoint to run arbitrary transaction instructions
 endpoint
     .process_instruction(
@@ -76,8 +75,7 @@ endpoint
             data: vec![],
         },
     )
-    .await
-    .unwrap();
+    .await?;
 ```
 
 ## Documentation

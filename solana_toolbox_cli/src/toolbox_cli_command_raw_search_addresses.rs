@@ -4,15 +4,14 @@ use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use clap::Args;
 use serde_json::json;
-use solana_cli_config::Config;
 use solana_sdk::bs58;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlBreadcrumbs;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
+use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
-use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandRawSearchAddressesArgs {
@@ -24,9 +23,9 @@ pub struct ToolboxCliCommandRawSearchAddressesArgs {
 impl ToolboxCliCommandRawSearchAddressesArgs {
     pub async fn process(
         &self,
-        config: &Config,
+        config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
+        let mut endpoint = config.create_endpoint()?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
         let mut data_chunks = vec![];
         for data_chunk in &self.data_chunks {
@@ -64,8 +63,10 @@ fn parse_blob(encoding: &str, data: &str) -> Vec<u8> {
         STANDARD.decode(data).unwrap()
     } else if encoding == "bytes" {
         let mut bytes = vec![];
-        ToolboxIdlTypeFull::Primitive {
-            primitive: ToolboxIdlTypePrimitive::Bytes,
+        ToolboxIdlTypeFull::Vec {
+            items: Box::new(ToolboxIdlTypeFull::Primitive {
+                primitive: ToolboxIdlTypePrimitive::U8,
+            }),
         }
         .try_serialize(
             &serde_json::from_str(data).unwrap(),

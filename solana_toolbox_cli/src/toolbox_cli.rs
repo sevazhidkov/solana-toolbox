@@ -7,31 +7,32 @@ use crate::toolbox_cli_command_dev_inspect_account::ToolboxCliCommandDevInspectA
 use crate::toolbox_cli_command_idl_process_instruction::ToolboxCliCommandIdlProcessInstructionArgs;
 use crate::toolbox_cli_command_idl_resolve_account::ToolboxCliCommandIdlResolveAccountArgs;
 use crate::toolbox_cli_command_idl_resolve_execution::ToolboxCliCommandIdlResolveExecutionArgs;
-use crate::toolbox_cli_command_idl_resolve_instruction_addresses::ToolboxCliCommandIdlResolveInstructionAddressesArgs;
-use crate::toolbox_cli_command_idl_resolve_instruction_base58::ToolboxCliCommandIdlResolveInstructionBase58Args;
+use crate::toolbox_cli_command_idl_resolve_instruction::ToolboxCliCommandIdlResolveInstructionArgs;
 use crate::toolbox_cli_command_idl_resolve_program::ToolboxCliCommandIdlResolveProgramArgs;
 use crate::toolbox_cli_command_raw_get_account::ToolboxCliCommandRawGetAccountArgs;
 use crate::toolbox_cli_command_raw_get_execution::ToolboxCliCommandRawGetExecutionArgs;
 use crate::toolbox_cli_command_raw_search_addresses::ToolboxCliCommandRawSearchAddressesArgs;
-use crate::toolbox_cli_command_raw_search_occurrences::ToolboxCliCommandRawSearchOccurrencesArgs;
 use crate::toolbox_cli_command_raw_search_signatures::ToolboxCliCommandRawSearchSignaturesArgs;
+use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Parser)]
 pub struct ToolboxCliArgs {
-    #[arg(short, long)]
-    rpc: Option<String>,
-    #[arg(short, long)]
-    keypair: Option<String>,
-    #[arg(short, long)]
+    #[arg(long)]
     config: Option<String>,
+    #[arg(long)]
+    rpc: Option<String>,
+    #[arg(long)]
+    commitment: Option<String>,
+    #[arg(long)]
+    wallet: Option<String>,
     #[command(subcommand)]
     command: ToolboxCliCommand,
 }
 
 impl ToolboxCliArgs {
     pub async fn process(&self) -> Result<(), ToolboxCliError> {
-        let config = Config::load(
+        let mut solana_cli_config = Config::load(
             self.config
                 .as_ref()
                 .or(CONFIG_FILE.as_ref())
@@ -41,13 +42,25 @@ impl ToolboxCliArgs {
                     )
                 })?,
         )?;
-        // if let Some(rpc) = self.rpc {}
-        // TODO - custom url/wallet
-        self.command.process(&config).await
+        if let Some(rpc) = &self.rpc {
+            solana_cli_config.json_rpc_url = rpc.to_string();
+        }
+        if let Some(commitment) = &self.commitment {
+            solana_cli_config.commitment = commitment.to_string();
+        }
+        if let Some(wallet) = &self.wallet {
+            solana_cli_config.keypair_path = wallet.to_string();
+        }
+        self.command
+            .process(&ToolboxCliConfig::new(
+                solana_cli_config.json_rpc_url,
+                solana_cli_config.commitment,
+                solana_cli_config.keypair_path,
+            ))
+            .await
     }
 }
 
-// TODO - command to generate IX data for DAO use ?
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
     DevInspectAccount(ToolboxCliCommandDevInspectAccountArgs),
@@ -55,23 +68,17 @@ pub enum ToolboxCliCommand {
     IdlResolveAccount(ToolboxCliCommandIdlResolveAccountArgs),
     IdlResolveExecution(ToolboxCliCommandIdlResolveExecutionArgs),
     IdlResolveProgram(ToolboxCliCommandIdlResolveProgramArgs),
-    IdlResolveInstructionAddresses(
-        ToolboxCliCommandIdlResolveInstructionAddressesArgs,
-    ),
-    IdlResolveInstructionBase58(
-        ToolboxCliCommandIdlResolveInstructionBase58Args,
-    ),
+    IdlResolveInstruction(ToolboxCliCommandIdlResolveInstructionArgs),
     RawGetAccount(ToolboxCliCommandRawGetAccountArgs),
     RawGetExecution(ToolboxCliCommandRawGetExecutionArgs),
     RawSearchAddresses(ToolboxCliCommandRawSearchAddressesArgs),
-    RawSearchOccurrences(ToolboxCliCommandRawSearchOccurrencesArgs),
     RawSearchSignatures(ToolboxCliCommandRawSearchSignaturesArgs),
 }
 
 impl ToolboxCliCommand {
     pub async fn process(
         &self,
-        config: &Config,
+        config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         match self {
             ToolboxCliCommand::DevInspectAccount(args) => {
@@ -89,10 +96,7 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::IdlProcessInstruction(args) => {
                 args.process(config).await
             },
-            ToolboxCliCommand::IdlResolveInstructionAddresses(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::IdlResolveInstructionBase58(args) => {
+            ToolboxCliCommand::IdlResolveInstruction(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::RawGetAccount(args) => {
@@ -102,9 +106,6 @@ impl ToolboxCliCommand {
                 args.process(config).await
             },
             ToolboxCliCommand::RawSearchAddresses(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::RawSearchOccurrences(args) => {
                 args.process(config).await
             },
             ToolboxCliCommand::RawSearchSignatures(args) => {

@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
 use clap::Args;
-use solana_cli_config::Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlResolver;
 
+use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
-use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandIdlResolveProgramArgs {
@@ -16,15 +15,15 @@ pub struct ToolboxCliCommandIdlResolveProgramArgs {
 impl ToolboxCliCommandIdlResolveProgramArgs {
     pub async fn process(
         &self,
-        config: &Config,
+        config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
+        let mut endpoint = config.create_endpoint()?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
         let idl_program = ToolboxIdlResolver::new()
-            .resolve_idl_program(&mut endpoint, &program_id)
+            .resolve_program(&mut endpoint, &program_id)
             .await?;
         // TODO - add a new description JSON format output
-        println!("{}", serde_json::to_string(&idl_program.as_json(false))?);
+        println!("{}", serde_json::to_string(&idl_program.export(false))?);
         Ok(())
     }
 }

@@ -8,15 +8,15 @@ impl ToolboxEndpoint {
     }
 
     pub async fn new_devnet() -> ToolboxEndpoint {
-        ToolboxEndpoint::new_rpc_with_url_and_commitment(
-            "https://api.devnet.solana.com",
+        ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
+            "devnet",
             CommitmentConfig::confirmed(),
         )
     }
 
     pub async fn new_mainnet() -> ToolboxEndpoint {
-        ToolboxEndpoint::new_rpc_with_url_and_commitment(
-            "https://api.mainnet-beta.solana.com",
+        ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
+            "mainnet-beta",
             CommitmentConfig::confirmed(),
         )
     }

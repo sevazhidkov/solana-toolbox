@@ -2,11 +2,10 @@ use std::str::FromStr;
 
 use clap::Args;
 use serde_json::json;
-use solana_cli_config::Config;
 use solana_sdk::signature::Signature;
 
+use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
-use crate::toolbox_cli_utils::ToolboxCliUtils;
 
 #[derive(Debug, Clone, Args)]
 pub struct ToolboxCliCommandRawGetExecutionArgs {
@@ -16,9 +15,9 @@ pub struct ToolboxCliCommandRawGetExecutionArgs {
 impl ToolboxCliCommandRawGetExecutionArgs {
     pub async fn process(
         &self,
-        config: &Config,
+        config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = ToolboxCliUtils::new_endpoint(config)?;
+        let mut endpoint = config.create_endpoint()?;
         let signature = Signature::from_str(&self.signature)?;
         let execution = endpoint.get_execution(&signature).await?;
         println!(

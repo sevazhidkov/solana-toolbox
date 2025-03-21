@@ -1,0 +1,102 @@
+use std::collections::HashMap;
+use std::str::FromStr;
+
+use clap::Args;
+use serde_json::from_str;
+use serde_json::json;
+use serde_json::Map;
+use serde_json::Value;
+use solana_sdk::bs58;
+use solana_sdk::pubkey::Pubkey;
+use solana_sdk::transaction::Transaction;
+use solana_toolbox_idl::ToolboxIdlResolver;
+
+use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_error::ToolboxCliError;
+
+#[derive(Debug, Clone, Args)]
+pub struct ToolboxCliCommandIdlResolveInstructionArgs {
+    program_id: String,
+    name: String,
+    payload: String,
+    #[arg(value_delimiter(','))]
+    accounts: Vec<String>,
+    // TODO - could take IDLs as param also ?
+}
+
+impl ToolboxCliCommandIdlResolveInstructionArgs {
+    pub async fn process(
+        &self,
+        config: &ToolboxCliConfig,
+    ) -> Result<(), ToolboxCliError> {
+        let mut endpoint = config.create_endpoint()?;
+        let mut idl_resolver = ToolboxIdlResolver::new();
+        let program_id = Pubkey::from_str(&self.program_id).unwrap();
+        let instruction_name = &self.name;
+        let idl_program = idl_resolver
+            .resolve_program(&mut endpoint, &program_id)
+            .await?;
+        let idl_instruction =
+            idl_program.instructions.get(instruction_name).unwrap();
+        let mut instruction_addresses = HashMap::new();
+        for account in &self.accounts {
+            let (name, key) = config.parse_account(account)?;
+            instruction_addresses.insert(name, key.address());
+        }
+        let instruction_payload = from_str::<Value>(&self.payload)?;
+        let instruction_addresses = idl_resolver
+            .resolve_instruction_addresses(
+                &mut endpoint,
+                &program_id,
+                instruction_name,
+                &instruction_addresses,
+                &instruction_payload,
+            )
+            .await?;
+        let instruction_compile_result = idl_instruction.compile(
+            &program_id,
+            &instruction_addresses,
+            &instruction_payload,
+        );
+        let instruction_addresses_dependencies =
+            idl_instruction.get_addresses_dependencies();
+        let mut json_addresses = Map::new();
+        for instruction_address in instruction_addresses {
+            json_addresses.insert(
+                instruction_address.0,
+                json!(instruction_address.1.to_string()),
+            );
+        }
+        let mut json_addresses_dependencies = Map::new();
+        for instruction_address_dependency in instruction_addresses_dependencies
+        {
+            json_addresses_dependencies.insert(
+                instruction_address_dependency.0,
+                json!(instruction_address_dependency.1),
+            );
+        }
+        let mut json_compile = Map::new();
+        match instruction_compile_result {
+            Ok(instruction) => json_compile.insert(
+                "message_base58".to_string(),
+                json!(bs58::encode(
+                    Transaction::new_with_payer(&[instruction], None)
+                        .message
+                        .serialize(),
+                )
+                .into_string()),
+            ),
+            Err(error) => json_compile
+                .insert("error".to_string(), json!(format!("{:?}", error))),
+        };
+        println!(
+            "{}",
+            serde_json::to_string(&json!({
+                "addresses_dependencies": json_addresses_dependencies,
+                "addresses": json_addresses,
+                "compile": json_compile,
+            }))?
+        );
+        Ok(())
+    }
+}

@@ -7,6 +7,7 @@ use solana_sdk::signature::Signature;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
+// TODO - should it return the first signature "start_before" in results ?
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn search_signatures_using_rpc(
         &mut self,
