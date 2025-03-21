@@ -15,6 +15,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Prepare an instruction using its program's IDL")]
 pub struct ToolboxCliCommandIdlInstructionArgs {
     program_id: String,
     name: String,
@@ -107,13 +108,29 @@ impl ToolboxCliCommandIdlInstructionArgs {
                 json_compile.insert(
                     "message_base58".to_string(),
                     json!(bs58::encode(
-                        Transaction::new_with_payer(&[instruction], None)
-                            .message
-                            .serialize(),
+                        Transaction::new_with_payer(
+                            &[instruction.clone()],
+                            None
+                        )
+                        .message
+                        .serialize(),
                     )
                     .into_string()),
                 );
-                // TODO - add simulation result
+                let preflight = endpoint
+                    .simulate_instruction(
+                        &config.get_wallet()?,
+                        instruction.clone(),
+                    )
+                    .await?;
+                json_compile.insert(
+                    "preflight".to_string(),
+                    json!({
+                        "error": preflight.error,
+                        "logs": preflight.logs,
+                        "return_data": preflight.return_data,
+                    }),
+                );
             },
             Err(error) => {
                 json_compile

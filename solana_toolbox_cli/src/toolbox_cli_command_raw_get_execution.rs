@@ -8,6 +8,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Get a signature's execution outcome data")]
 pub struct ToolboxCliCommandRawGetExecutionArgs {
     signature: String,
 }

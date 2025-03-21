@@ -8,6 +8,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Get an account's information")]
 pub struct ToolboxCliCommandRawGetAccountArgs {
     address: String,
 }

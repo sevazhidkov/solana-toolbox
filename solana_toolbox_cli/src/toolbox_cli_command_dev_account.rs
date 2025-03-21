@@ -7,6 +7,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Dump an account's information for development purposes")]
 pub struct ToolboxCliCommandDevAccountArgs {
     address: String,
 }

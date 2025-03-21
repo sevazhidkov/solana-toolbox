@@ -10,6 +10,9 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(
+    about = "Parse the outcome of a signature's execution using the involved programs IDL"
+)]
 pub struct ToolboxCliCommandIdlExecutionArgs {
     signature: String,
     // TODO - allow custom IDLs preload

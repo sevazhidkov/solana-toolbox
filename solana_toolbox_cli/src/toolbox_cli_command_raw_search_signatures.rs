@@ -9,6 +9,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Search signatures that involve a specific account")]
 pub struct ToolboxCliCommandRawSearchSignaturesArgs {
     with_address: String,
     limit: Option<usize>,

@@ -9,6 +9,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Parse the content of an account using its program's IDL")]
 pub struct ToolboxCliCommandIdlAccountArgs {
     address: String,
     // idls: Vec<String>, // TODO - implement ?

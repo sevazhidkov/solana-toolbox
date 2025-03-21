@@ -5,6 +5,14 @@ version = "0.3.4"
 edition = "2021"
 license = "MIT"
 
+[[bin]]
+name = "solana_toolbox_cli"
+path = "src/main.rs"
+
+[[bin]]
+name = "stc"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.5.31", features = ["derive"] }
 base64 = "0.22.1"

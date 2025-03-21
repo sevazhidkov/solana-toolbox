@@ -12,6 +12,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Process an instruction using its program's IDL")]
 pub struct ToolboxCliCommandIdlProcessArgs {
     program_id: String,
     name: String,

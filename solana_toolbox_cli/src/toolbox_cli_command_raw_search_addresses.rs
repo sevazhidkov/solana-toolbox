@@ -14,6 +14,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
+#[command(about = "Search addresses of accounts of given program")]
 pub struct ToolboxCliCommandRawSearchAddressesArgs {
     program_id: String,
     data_len: Option<usize>,
