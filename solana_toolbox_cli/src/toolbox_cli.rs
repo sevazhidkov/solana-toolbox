@@ -17,6 +17,7 @@ use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Parser)]
+#[command(version, about = "Tooling to interact with a solana endpoint", long_about = None)]
 pub struct ToolboxCliArgs {
     #[arg(long)]
     config: Option<String>,

@@ -69,7 +69,7 @@ impl ToolboxCliConfig {
             return Ok((name.to_string(), self.parse_key(key)?));
         } else {
             return Err(ToolboxCliError::Custom(
-                "Invalid account, expected: [name:key]".to_string(),
+                "Invalid account, expected format: [name:[Pubkey|KeypairFile|'wallet']]".to_string(),
             ));
         }
     }

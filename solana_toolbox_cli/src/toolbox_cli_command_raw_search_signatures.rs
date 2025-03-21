@@ -38,7 +38,7 @@ impl ToolboxCliCommandRawSearchSignaturesArgs {
                 &with_address,
                 start_before,
                 rewind_until,
-                self.limit.unwrap_or(10),
+                self.limit.unwrap_or(100),
             )
             .await?;
         println!(

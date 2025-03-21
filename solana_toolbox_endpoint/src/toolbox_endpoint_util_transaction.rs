@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
@@ -17,9 +19,17 @@ impl ToolboxEndpoint {
     ) -> Result<Transaction, ToolboxEndpointError> {
         let mut transaction =
             Transaction::new_with_payer(instructions, Some(&payer.pubkey()));
-        let mut keypairs = signers.to_vec();
-        keypairs.push(payer);
-        transaction.partial_sign(&keypairs, recent_blockhash);
+        let mut signers_pubkeys = HashSet::new();
+        let mut signers_keypairs = vec![];
+        signers_pubkeys.insert(payer.pubkey());
+        signers_keypairs.push(payer);
+        for signer in signers {
+            if !signers_pubkeys.contains(&signer.pubkey()) {
+                signers_pubkeys.insert(signer.pubkey());
+                signers_keypairs.push(signer);
+            }
+        }
+        transaction.partial_sign(&signers_keypairs, recent_blockhash);
         Ok(transaction)
     }
 

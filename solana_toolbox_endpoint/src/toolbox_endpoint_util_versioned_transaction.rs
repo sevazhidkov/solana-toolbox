@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::hash::Hash;
@@ -29,11 +30,16 @@ impl ToolboxEndpoint {
                 addresses: resolved_address_lookup_table.1.to_vec(),
             });
         }
-        let mut keypairs = vec![];
-        if !signers.contains(&payer) {
-            keypairs.push(payer);
+        let mut signers_pubkeys = HashSet::new();
+        let mut signers_keypairs = vec![];
+        signers_pubkeys.insert(payer.pubkey());
+        signers_keypairs.push(payer);
+        for signer in signers {
+            if !signers_pubkeys.contains(&signer.pubkey()) {
+                signers_pubkeys.insert(signer.pubkey());
+                signers_keypairs.push(signer);
+            }
         }
-        keypairs.extend_from_slice(signers);
         let versioned_transaction = VersionedTransaction::try_new(
             VersionedMessage::V0(Message::try_compile(
                 &payer.pubkey(),
@@ -41,7 +47,7 @@ impl ToolboxEndpoint {
                 &address_lookup_table_accounts,
                 recent_blockhash,
             )?),
-            &keypairs,
+            &signers_keypairs,
         )?;
         Ok(versioned_transaction)
     }

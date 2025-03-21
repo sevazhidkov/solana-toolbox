@@ -17,7 +17,7 @@ impl ToolboxCliCommandDevInspectAccountArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint()?;
-        let address = Pubkey::from_str(&self.address)?; // TODO - handle parsing errors
+        let address = Pubkey::from_str(&self.address)?;
         let account = endpoint.get_account_or_default(&address).await?;
         println!("+{:-^78}+", "Addr");
         println!("|{: ^78}|", address.to_string());

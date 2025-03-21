@@ -7,6 +7,7 @@ use serde_json::from_str;
 use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Signer;
 use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
@@ -51,12 +52,26 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
                 &instruction_payload,
             )
             .await?;
-        let payer = config.get_keypair()?;
-        let mut signers = HashSet::new();
-        for instruction_key in &instruction_keys {
-            if let Some(signer) = instruction_key.1.signer() {
-                if signer != payer {
-                    signers.insert(signer);
+        let mut instruction_signing_keys = HashSet::new();
+        for instruction_account in &instruction.accounts {
+            if instruction_account.is_signer {
+                instruction_signing_keys.insert(instruction_account.pubkey);
+            }
+        }
+
+        let mut signers_pubkeys = HashSet::new();
+        let mut signers_keypairs = vec![];
+
+        signers_pubkeys.insert(config.get_keypair()?.pubkey());
+
+        for instruction_key in instruction_keys.values() {
+            let instruction_key_address = instruction_key.address();
+            if instruction_signing_keys.contains(&instruction_key_address) {
+                if let Some(signer_keypair) = instruction_key.signer() {
+                    if !signers_pubkeys.contains(&instruction_key_address) {
+                        signers_pubkeys.insert(instruction_key_address);
+                        signers_keypairs.push(signer_keypair);
+                    }
                 }
             }
         }
@@ -64,7 +79,7 @@ impl ToolboxCliCommandIdlProcessInstructionArgs {
             .process_instruction_with_signers(
                 &config.get_keypair()?,
                 instruction,
-                &signers,
+                &signers_keypairs,
             )
             .await?;
         println!(

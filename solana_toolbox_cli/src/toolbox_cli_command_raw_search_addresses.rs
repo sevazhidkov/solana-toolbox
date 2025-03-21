@@ -30,10 +30,10 @@ impl ToolboxCliCommandRawSearchAddressesArgs {
         let mut data_chunks = vec![];
         for data_chunk in &self.data_chunks {
             let parts = data_chunk.split(":").collect::<Vec<_>>();
-            if let [offset, encoding, blob] = parts[..] {
+            if let [offset, encoding, data] = parts[..] {
                 data_chunks.push((
                     offset.parse::<usize>(),
-                    parse_blob(encoding, blob),
+                    parse_blob(encoding, data),
                 ));
             } else {
                 return Err(ToolboxCliError::Custom(
