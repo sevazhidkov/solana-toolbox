@@ -26,7 +26,7 @@ pub async fn run() {
         .resolve_instruction_addresses(
             &mut endpoint,
             &ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
-            "Create",
+            "create",
             &HashMap::from_iter([
                 ("wallet".to_string(), user),
                 ("mint".to_string(), dummy_mint),

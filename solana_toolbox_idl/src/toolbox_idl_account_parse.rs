@@ -11,7 +11,6 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_convert_to_type_name;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
@@ -74,7 +73,7 @@ impl ToolboxIdlAccount {
         }
         Ok(idl_hash_discriminator_from_string(&format!(
             "account:{}",
-            idl_convert_to_type_name(idl_account_name)
+            idl_account_name
         )))
     }
 
