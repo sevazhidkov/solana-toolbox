@@ -10,6 +10,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Get a signature's execution outcome data")]
 pub struct ToolboxCliCommandRawGetExecutionArgs {
+    #[arg(help = "The transaction's execution signature")]
     signature: String,
 }
 

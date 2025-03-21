@@ -16,8 +16,13 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
 pub struct ToolboxCliCommandRawSearchAddressesArgs {
+    #[arg(help = "The ProgramID pubkey that owns the searched accounts")]
     program_id: String,
+    #[arg(help = "Expected exact data size of the searched accounts")]
     data_len: Option<usize>,
+    #[arg(
+        help = "Expected data slices of the searched accounts, format: [offset:encoding:data]"
+    )]
     data_chunks: Vec<String>,
 }
 

@@ -25,6 +25,13 @@ pub async fn run() {
         .unwrap()
         .compile(
             &program_id,
+            &json!({
+                "params": {
+                    "liquid_insurance_fund_usdc_amount": 41,
+                    "phase_one_duration_seconds": 42,
+                    "phase_two_duration_seconds": 43,
+                },
+            }),
             &HashMap::from_iter([
                 ("payer".to_string(), payer),
                 ("funding".to_string(), funding),
@@ -39,13 +46,6 @@ pub async fn run() {
                 ("system_program".to_string(), placeholder),
                 ("token_program".to_string(), placeholder),
             ]),
-            &json!({
-                "params": {
-                    "liquid_insurance_fund_usdc_amount": 41,
-                    "phase_one_duration_seconds": 42,
-                    "phase_two_duration_seconds": 43,
-                },
-            }),
         )
         .unwrap();
     // Check instruction content

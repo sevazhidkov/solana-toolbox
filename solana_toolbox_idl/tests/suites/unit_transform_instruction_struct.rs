@@ -42,7 +42,7 @@ pub async fn run() {
         "arg2": -2,
     });
     let instruction = idl_instruction
-        .compile(&program_id, &instruction_addresses, &instruction_payload)
+        .compile(&program_id, &instruction_payload, &instruction_addresses)
         .unwrap();
     assert_eq!(instruction.program_id, program_id);
     assert_eq!(
@@ -57,6 +57,6 @@ pub async fn run() {
     );
     assert_eq!(
         idl_instruction.decompile(&instruction).unwrap(),
-        (program_id, instruction_addresses, instruction_payload),
+        (program_id, instruction_payload, instruction_addresses),
     );
 }

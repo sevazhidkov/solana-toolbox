@@ -71,7 +71,6 @@ pub async fn run() {
         .unwrap()
         .find_addresses(
             &dummy_program_id,
-            &HashMap::new(),
             &json!({
                 "u8": 77,
                 "u16": 78,
@@ -85,6 +84,7 @@ pub async fn run() {
                     "u16": 222,
                 },
             }),
+            &HashMap::new(),
         );
     // Assert that the accounts can be properly resolved
     assert_eq!(*instruction_addresses.get("pda").unwrap(), dummy_pda);

@@ -11,6 +11,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Parse the content of an account using its program's IDL")]
 pub struct ToolboxCliCommandIdlAccountArgs {
+    #[arg(help = "The account's pubkey")]
     address: String,
     // idls: Vec<String>, // TODO - implement ?
 }

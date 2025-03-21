@@ -27,11 +27,11 @@ pub async fn run() {
             &mut endpoint,
             &ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
             "create",
+            &json!(null),
             &HashMap::from_iter([
                 ("wallet".to_string(), user),
                 ("mint".to_string(), dummy_mint),
             ]),
-            &json!(null),
         )
         .await
         .unwrap();

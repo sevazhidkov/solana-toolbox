@@ -10,6 +10,10 @@ name = "solana_toolbox_cli"
 path = "src/main.rs"
 
 [[bin]]
+name = "solana_toolbox"
+path = "src/main.rs"
+
+[[bin]]
 name = "stc"
 path = "src/main.rs"
 

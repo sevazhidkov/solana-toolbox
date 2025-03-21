@@ -77,6 +77,7 @@ pub async fn run() {
         .unwrap()
         .find_addresses(
             &program_id,
+            &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from([
                 ("owner".to_string(), owner),
                 (
@@ -94,7 +95,6 @@ pub async fn run() {
                 ("token_program".to_string(), placeholder),
                 ("system_program".to_string(), placeholder),
             ]),
-            &json!({ "global_market_seed": global_market_seed.to_string() }),
         );
     // Check the outcomes
     assert_eq!(
@@ -128,11 +128,11 @@ pub async fn run() {
         .unwrap()
         .find_addresses_with_snapshots(
             &program_id,
+            &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from([
                 ("owner".to_string(), owner),
                 ("global_market_state".to_string(), global_market_state),
             ]),
-            &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from_iter([(
                 "deal".to_string(),
                 (

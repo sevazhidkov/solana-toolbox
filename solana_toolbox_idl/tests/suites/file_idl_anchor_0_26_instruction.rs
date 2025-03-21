@@ -16,13 +16,6 @@ pub async fn run() {
     let idl_instruction = idl_program.instructions.get("create_deal").unwrap();
     // Program
     let program_id = Pubkey::new_unique();
-    // Prepare instruction accounts addresses
-    let instruction_addresses = HashMap::from_iter([
-        ("owner".to_string(), Pubkey::new_unique()),
-        ("borrower".to_string(), Pubkey::new_unique()),
-        ("global_market_state".to_string(), Pubkey::new_unique()),
-        ("system_program".to_string(), Pubkey::new_unique()),
-    ]);
     // Prepare instruction args
     let instruction_payload = json!({
         "max_funding_duration": 42,
@@ -34,11 +27,18 @@ pub async fn run() {
         },
         "migrated": true,
     });
+    // Prepare instruction accounts addresses
+    let instruction_addresses = HashMap::from_iter([
+        ("owner".to_string(), Pubkey::new_unique()),
+        ("borrower".to_string(), Pubkey::new_unique()),
+        ("global_market_state".to_string(), Pubkey::new_unique()),
+        ("system_program".to_string(), Pubkey::new_unique()),
+    ]);
     // Find missing instruction accounts
     let instruction_addresses = idl_instruction.find_addresses_with_snapshots(
         &program_id,
-        &instruction_addresses,
         &instruction_payload,
+        &instruction_addresses,
         &HashMap::from_iter([(
             "borrower_info".to_string(),
             (
@@ -58,16 +58,16 @@ pub async fn run() {
     assert_eq!(
         (
             program_id,
+            instruction_payload.clone(),
             instruction_addresses.clone(),
-            instruction_payload.clone()
         ),
         idl_instruction
             .decompile(
                 &idl_instruction
                     .compile(
                         &program_id,
-                        &instruction_addresses,
                         &instruction_payload,
+                        &instruction_addresses,
                     )
                     .unwrap()
             )

@@ -27,8 +27,8 @@ pub async fn run() {
             &mut endpoint,
             &program_id,
             "campaign_create",
-            &HashMap::from_iter([]),
             &json!({ "params": { "index": campaign_index } }),
+            &HashMap::from_iter([]),
         )
         .await
         .unwrap();
@@ -63,12 +63,12 @@ pub async fn run() {
             &mut endpoint,
             &program_id,
             "pledge_create",
+            &json!({ "params": {} }),
             &HashMap::from_iter([
                 ("payer".to_string(), payer.pubkey()),
                 ("user".to_string(), user.pubkey()),
                 ("campaign".to_string(), campaign),
             ]),
-            &json!({ "params": {} }),
         )
         .await
         .unwrap();
@@ -77,13 +77,13 @@ pub async fn run() {
             &mut endpoint,
             &program_id,
             "pledge_deposit",
+            &json!({ "params": { "collateral_amount": 0 } }),
             &HashMap::from_iter([
                 ("payer".to_string(), payer.pubkey()),
                 ("user".to_string(), user.pubkey()),
                 ("user_collateral".to_string(), user_collateral),
                 ("campaign".to_string(), campaign),
             ]),
-            &json!({ "params": { "collateral_amount": 0 } }),
         )
         .await
         .unwrap();

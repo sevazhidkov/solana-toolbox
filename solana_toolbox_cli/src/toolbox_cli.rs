@@ -19,13 +19,29 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Parser)]
 #[command(version, about = "Tooling to interact with a solana endpoint")]
 pub struct ToolboxCliArgs {
-    #[arg(long)]
+    #[arg(
+        long,
+        value_name = "CONFIG_FILE_PATH",
+        help = "To use a different path for the solana's config YAML file"
+    )]
     config: Option<String>,
-    #[arg(long)]
+    #[arg(
+        long,
+        value_name = "URL_OR_MONIKER",
+        help = "The solana RPC endpoint used"
+    )]
     rpc: Option<String>,
-    #[arg(long)]
+    #[arg(
+        long,
+        value_name = "LEVEL",
+        help = "Commitment level used for RPC endpoint"
+    )]
     commitment: Option<String>,
-    #[arg(long)]
+    #[arg(
+        long,
+        value_name = "KEYPAIR_FILE_PATH",
+        help = "Keypair used as default payer and 'WALLET' account key"
+    )]
     wallet: Option<String>,
     #[command(subcommand)]
     command: ToolboxCliCommand,

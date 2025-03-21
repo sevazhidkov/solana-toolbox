@@ -22,9 +22,9 @@ impl ToolboxIdlInstructionAccount {
     pub fn try_compute(
         &self,
         program_id: &Pubkey,
+        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         addresses: &HashMap<String, Pubkey>,
         snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
-        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         if let Some(address) = addresses.get(&self.name) {
@@ -36,9 +36,9 @@ impl ToolboxIdlInstructionAccount {
         if let Some(instruction_account_pda) = &self.pda {
             return instruction_account_pda.try_compute(
                 program_id,
+                args_payload,
                 addresses,
                 snapshots,
-                args_payload,
                 &breadcrumbs.with_idl("pda"),
             );
         }
@@ -50,9 +50,9 @@ impl ToolboxIdlInstructionAccountPda {
     pub fn try_compute(
         &self,
         program_id: &Pubkey,
+        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         addresses: &HashMap<String, Pubkey>,
         snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
-        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Pubkey, ToolboxIdlError> {
         let mut pda_seeds_bytes = vec![];
@@ -61,17 +61,17 @@ impl ToolboxIdlInstructionAccountPda {
             &breadcrumbs.with_idl("seeds"),
         )? {
             pda_seeds_bytes.push(pda_seed_blob.try_compute(
+                args_payload,
                 addresses,
                 snapshots,
-                args_payload,
                 &breadcrumbs,
             )?);
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
             let pda_program_id_bytes = pda_program_blob.try_compute(
+                args_payload,
                 addresses,
                 snapshots,
-                args_payload,
                 &breadcrumbs.with_idl("program"),
             )?;
             Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
@@ -96,9 +96,9 @@ impl ToolboxIdlInstructionAccountPda {
 impl ToolboxIdlInstructionAccountPdaBlob {
     pub fn try_compute(
         &self,
+        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         addresses: &HashMap<String, Pubkey>,
         snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
-        args_payload: &(&ToolboxIdlTypeFullFields, &Value),
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         match self {

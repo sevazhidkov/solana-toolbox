@@ -11,9 +11,13 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search signatures that involve a specific account")]
 pub struct ToolboxCliCommandRawSearchSignaturesArgs {
+    #[arg(help = "The account pubkey that is involved in transactions")]
     with_address: String,
+    #[arg(help = "How much signature we'll search for before stopping")]
     limit: Option<usize>,
+    #[arg()]
     start_before_signature: Option<String>,
+    #[arg()]
     rewind_until_signature: Option<String>,
 }
 

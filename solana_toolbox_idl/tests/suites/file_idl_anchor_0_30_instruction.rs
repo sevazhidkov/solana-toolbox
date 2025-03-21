@@ -26,13 +26,6 @@ pub async fn run() {
         &program_id,
     )
     .0;
-    // Prepare instruction accounts
-    let instruction_addresses = HashMap::from_iter([
-        ("payer".to_string(), payer),
-        ("authority".to_string(), authority),
-        ("collateral_mint".to_string(), collateral_mint),
-        ("redeemable_mint".to_string(), redeemable_mint),
-    ]);
     // Prepare instruction payload
     let mut instruction_payload_metadata_bytes = vec![];
     for index in 0..512 {
@@ -49,18 +42,25 @@ pub async fn run() {
             }
         },
     });
+    // Prepare instruction known accounts addresses
+    let instruction_addresses = HashMap::from_iter([
+        ("payer".to_string(), payer),
+        ("authority".to_string(), authority),
+        ("collateral_mint".to_string(), collateral_mint),
+        ("redeemable_mint".to_string(), redeemable_mint),
+    ]);
     // Useful instruction
     let idl_instruction =
         idl_program.instructions.get("campaign_create").unwrap();
     // Resolve missing instruction accounts
     let instruction_addresses = idl_instruction.find_addresses(
         &program_id,
-        &instruction_addresses,
         &instruction_payload,
+        &instruction_addresses,
     );
     // Actually generate the instruction
     let instruction = idl_instruction
-        .compile(&program_id, &instruction_addresses, &instruction_payload)
+        .compile(&program_id, &instruction_payload, &instruction_addresses)
         .unwrap();
     // Generate expected accounts
     let campaign_collateral =

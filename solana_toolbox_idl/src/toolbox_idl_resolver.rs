@@ -99,16 +99,16 @@ impl ToolboxIdlResolver {
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
         instruction_name: &str,
-        instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction, ToolboxIdlError> {
         let instruction_addresses = self
             .resolve_instruction_addresses(
                 endpoint,
                 program_id,
                 instruction_name,
-                instruction_addresses,
                 instruction_payload,
+                instruction_addresses,
             )
             .await?;
         self.resolve_program(endpoint, program_id)
@@ -116,7 +116,7 @@ impl ToolboxIdlResolver {
             .instructions
             .get(instruction_name)
             .ok_or_else(|| ToolboxIdlError::CouldNotFindInstruction {})?
-            .compile(program_id, &instruction_addresses, instruction_payload)
+            .compile(program_id, instruction_payload, &instruction_addresses)
     }
 
     // TODO - this should indicate in the name that this may not be all addresses
@@ -125,8 +125,8 @@ impl ToolboxIdlResolver {
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
         instruction_name: &str,
-        instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
         let idl_program = self.resolve_program(endpoint, program_id).await?;
         let idl_instruction = idl_program
@@ -160,12 +160,12 @@ impl ToolboxIdlResolver {
                 if let Ok(instruction_address) = idl_instruction_account
                     .try_compute(
                         program_id,
-                        &instruction_addresses,
-                        &resolved_snapshots,
                         &(
                             &idl_instruction.args_type_full_fields,
                             instruction_payload,
                         ),
+                        &instruction_addresses,
+                        &resolved_snapshots,
                         &breadcrumbs.with_idl(&idl_instruction.name),
                     )
                 {

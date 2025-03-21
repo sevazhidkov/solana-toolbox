@@ -20,7 +20,7 @@ use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
 impl ToolboxIdlTypeFlat {
-    pub fn try_parse(
+    pub fn try_parse_value(
         idl_value: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
@@ -45,12 +45,12 @@ impl ToolboxIdlTypeFlat {
         )
     }
 
-    fn try_parse_object(
+    pub fn try_parse_object(
         idl_object: &Map<String, Value>,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         if let Some(idl_type) = idl_object.get("type") {
-            return ToolboxIdlTypeFlat::try_parse(idl_type, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_value(idl_type, breadcrumbs);
         }
         if let Some(idl_defined) = idl_object.get("defined") {
             return ToolboxIdlTypeFlat::try_parse_defined(
@@ -138,11 +138,11 @@ impl ToolboxIdlTypeFlat {
         }
         if idl_array.len() == 2 {
             return Ok(ToolboxIdlTypeFlat::Array {
-                items: Box::new(ToolboxIdlTypeFlat::try_parse(
+                items: Box::new(ToolboxIdlTypeFlat::try_parse_value(
                     &idl_array[0],
                     &breadcrumbs.with_idl("items"),
                 )?),
-                length: Box::new(ToolboxIdlTypeFlat::try_parse(
+                length: Box::new(ToolboxIdlTypeFlat::try_parse_value(
                     &idl_array[1],
                     &breadcrumbs.with_idl("length"),
                 )?),
@@ -191,7 +191,7 @@ impl ToolboxIdlTypeFlat {
             for (_, idl_defined_generic, breadcrumbs) in
                 idl_iter_get_scoped_values(idl_defined_generics, breadcrumbs)?
             {
-                defined_generics.push(ToolboxIdlTypeFlat::try_parse(
+                defined_generics.push(ToolboxIdlTypeFlat::try_parse_value(
                     idl_defined_generic,
                     &breadcrumbs,
                 )?);
@@ -231,7 +231,7 @@ impl ToolboxIdlTypeFlat {
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Option {
             prefix_bytes: idl_option_prefix_bytes,
-            content: Box::new(ToolboxIdlTypeFlat::try_parse(
+            content: Box::new(ToolboxIdlTypeFlat::try_parse_value(
                 idl_option,
                 &breadcrumbs.with_idl("option"),
             )?),
@@ -243,7 +243,7 @@ impl ToolboxIdlTypeFlat {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         Ok(ToolboxIdlTypeFlat::Vec {
-            items: Box::new(ToolboxIdlTypeFlat::try_parse(
+            items: Box::new(ToolboxIdlTypeFlat::try_parse_value(
                 idl_vec,
                 &breadcrumbs.with_idl("vec"),
             )?),
@@ -333,7 +333,7 @@ impl ToolboxIdlTypeFlatFields {
             }
             let field_name_or_index =
                 field_name.unwrap_or(format!("{}", idl_field_index));
-            let field_type_flat = ToolboxIdlTypeFlat::try_parse(
+            let field_type_flat = ToolboxIdlTypeFlat::try_parse_value(
                 idl_field,
                 &breadcrumbs.with_idl(&field_name_or_index),
             )?;

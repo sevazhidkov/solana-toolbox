@@ -84,16 +84,17 @@ impl ToolboxIdlAccount {
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
         if idl_account.contains_key("type")
             || idl_account.contains_key("defined")
+            || idl_account.contains_key("generic")
             || idl_account.contains_key("option")
             || idl_account.contains_key("option32")
             || idl_account.contains_key("vec")
             || idl_account.contains_key("array")
             || idl_account.contains_key("fields")
             || idl_account.contains_key("variants")
-            || idl_account.contains_key("generic")
+            || idl_account.contains_key("padded")
         {
-            return ToolboxIdlTypeFlat::try_parse(
-                &Value::Object(idl_account.clone()),
+            return ToolboxIdlTypeFlat::try_parse_object(
+                idl_account,
                 breadcrumbs,
             );
         }

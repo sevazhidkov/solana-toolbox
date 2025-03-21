@@ -32,7 +32,10 @@ impl ToolboxIdlTypedef {
         Ok(ToolboxIdlTypedef {
             name: idl_typedef_name.to_string(),
             generics: typedef_generics,
-            type_flat: ToolboxIdlTypeFlat::try_parse(idl_typedef, breadcrumbs)?,
+            type_flat: ToolboxIdlTypeFlat::try_parse_value(
+                idl_typedef,
+                breadcrumbs,
+            )?,
         })
     }
 }

@@ -27,37 +27,37 @@ impl ToolboxIdlInstruction {
     pub fn compile(
         &self,
         program_id: &Pubkey,
-        instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction, ToolboxIdlError> {
         Ok(Instruction {
             program_id: *program_id,
-            accounts: self.compile_addresses(instruction_addresses)?,
             data: self.compile_payload(instruction_payload)?,
+            accounts: self.compile_addresses(instruction_addresses)?,
         })
     }
 
     pub fn decompile(
         &self,
         instruction: &Instruction,
-    ) -> Result<(Pubkey, HashMap<String, Pubkey>, Value), ToolboxIdlError> {
+    ) -> Result<(Pubkey, Value, HashMap<String, Pubkey>), ToolboxIdlError> {
         Ok((
             instruction.program_id,
-            self.decompile_addresses(&instruction.accounts)?,
             self.decompile_payload(&instruction.data)?,
+            self.decompile_addresses(&instruction.accounts)?,
         ))
     }
 
     pub fn find_addresses(
         &self,
         program_id: &Pubkey,
-        instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
     ) -> HashMap<String, Pubkey> {
         self.find_addresses_with_snapshots(
             program_id,
-            instruction_addresses,
             instruction_payload,
+            instruction_addresses,
             &HashMap::new(),
         )
     }
@@ -65,8 +65,8 @@ impl ToolboxIdlInstruction {
     pub fn find_addresses_with_snapshots(
         &self,
         program_id: &Pubkey,
-        instruction_addresses: &HashMap<String, Pubkey>,
         instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
         snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
     ) -> HashMap<String, Pubkey> {
         let mut instruction_addresses = instruction_addresses.clone();
@@ -81,9 +81,9 @@ impl ToolboxIdlInstruction {
                 if let Ok(instruction_address) = instruction_account
                     .try_compute(
                         program_id,
+                        &(&self.args_type_full_fields, instruction_payload),
                         &instruction_addresses,
                         snapshots,
-                        &(&self.args_type_full_fields, instruction_payload),
                         &breadcrumbs.with_idl(&instruction_account.name),
                     )
                 {

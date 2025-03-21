@@ -17,10 +17,16 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Prepare an instruction using its program's IDL")]
 pub struct ToolboxCliCommandIdlInstructionArgs {
+    #[arg(help = "The instruction's ProgramID pubkey")]
     program_id: String,
+    #[arg(help = "The instruction's name")]
     name: String,
+    #[arg(help = "The instruction's args object in JSON format")]
     payload: String,
-    #[arg(value_delimiter(','))]
+    #[arg(
+        value_delimiter(','),
+        help = "The instruction's accounts, format: [name:[Pubkey|KeypairFile|'WALLET']]"
+    )]
     accounts: Vec<String>,
     // TODO - could take IDLs as param also ?
 }

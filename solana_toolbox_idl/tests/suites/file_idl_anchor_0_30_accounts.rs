@@ -53,13 +53,13 @@ pub async fn run() {
         .unwrap()
         .find_addresses(
             &program_id,
+            &json!({ "params": { "index": campaign_index } }),
             &HashMap::from([
                 ("payer".to_string(), payer),
                 ("authority".to_string(), authority),
                 ("collateral_mint".to_string(), collateral_mint),
                 ("redeemable_mint".to_string(), redeemable_mint),
             ]),
-            &json!({ "params": { "index": campaign_index } }),
         );
     // Check outcome
     assert_eq!(
@@ -79,13 +79,13 @@ pub async fn run() {
         .unwrap()
         .find_addresses_with_snapshots(
             &program_id,
+            &json!({ "params": { "index": campaign_index } }),
             &HashMap::from([
                 ("payer".to_string(), payer),
                 ("authority".to_string(), authority),
                 ("authority_collateral".to_string(), authority_collateral),
                 ("campaign".to_string(), campaign),
             ]),
-            &json!({ "params": { "index": campaign_index } }),
             &HashMap::from_iter([(
                 "campaign".to_string(),
                 (
@@ -115,12 +115,12 @@ pub async fn run() {
         .unwrap()
         .find_addresses(
             &program_id,
+            &json!({}),
             &HashMap::from([
                 ("payer".to_string(), payer),
                 ("user".to_string(), user),
                 ("campaign".to_string(), campaign),
             ]),
-            &json!({}),
         );
     // Check outcome
     assert_eq!(pledge, *pledge_create_addresses.get("pledge").unwrap());
@@ -131,13 +131,13 @@ pub async fn run() {
         .unwrap()
         .find_addresses_with_snapshots(
             &program_id,
+            &json!({}),
             &HashMap::from([
                 ("payer".to_string(), payer),
                 ("user".to_string(), user),
                 ("user_collateral".to_string(), user_collateral),
                 ("campaign".to_string(), campaign),
             ]),
-            &json!({}),
             &HashMap::from_iter([(
                 "campaign".to_string(),
                 (

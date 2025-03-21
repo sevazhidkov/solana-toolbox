@@ -76,8 +76,8 @@ pub async fn run() {
         .unwrap()
         .find_addresses_with_snapshots(
             &dummy_program_id,
-            &HashMap::new(),
             &json!({}),
+            &HashMap::new(),
             &HashMap::from_iter([(
                 "first".to_string(),
                 (

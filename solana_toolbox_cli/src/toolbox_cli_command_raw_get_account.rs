@@ -10,9 +10,12 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Get an account's information")]
 pub struct ToolboxCliCommandRawGetAccountArgs {
+    #[arg(help = "The account's pubkey")]
     address: String,
 }
 
+// TODO - this should probably be included in idl_account ??
+// TODO - naming probably should be json-account ??
 impl ToolboxCliCommandRawGetAccountArgs {
     pub async fn process(
         &self,

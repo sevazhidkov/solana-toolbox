@@ -9,6 +9,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Dump an account's information for development purposes")]
 pub struct ToolboxCliCommandDevAccountArgs {
+    #[arg(help = "The account's pubkey")]
     address: String,
 }
 

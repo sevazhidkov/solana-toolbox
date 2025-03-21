@@ -43,20 +43,20 @@ let instruction: Instruction = idl_resolver
     .resolve_instruction(
         program_id,
         "my_ix",
+        json!({ "param_object": {"info": 42} }),
         HashMap::from_iter([
             ("payer".to_string(), payer.pubkey()),
         ]),
-        json!({ "arg": {"info": 42} }),
     )?;
 // We can also resolve the accounts named addresses using the seeds in the IDL
 let instruction_addresses: HashMap<String, Pubkey> = idl_resolver
     .resolve_instruction_addresses(
         program_id,
         "my_ix",
+        json!({ "param_object": {"info": 42} }),
         HashMap::from_iter([
             ("payer".to_string(), payer.pubkey()),
         ]),
-        json!({ "arg": {"info": 42} }),
     )?;
 ```
 
