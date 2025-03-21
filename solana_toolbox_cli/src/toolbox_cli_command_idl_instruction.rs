@@ -113,6 +113,7 @@ impl ToolboxCliCommandIdlInstructionArgs {
                     )
                     .into_string()),
                 );
+                // TODO - add simulation result
             },
             Err(error) => {
                 json_compile

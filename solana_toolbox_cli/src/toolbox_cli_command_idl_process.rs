@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::str::FromStr;
 
 use clap::Args;
@@ -52,25 +51,15 @@ impl ToolboxCliCommandIdlProcessArgs {
                 &instruction_payload,
             )
             .await?;
-        // TODO - this part can be removed after upgrade
-        let mut instruction_signing_keys = HashSet::new();
-        for instruction_account in &instruction.accounts {
-            if instruction_account.is_signer {
-                instruction_signing_keys.insert(instruction_account.pubkey);
-            }
-        }
         let mut signers = vec![];
         for instruction_key in instruction_keys.values() {
-            let instruction_key_address = instruction_key.address();
-            if instruction_signing_keys.contains(&instruction_key_address) {
-                if let Some(signer_keypair) = instruction_key.signer() {
-                    signers.push(signer_keypair);
-                }
+            if let Some(signer_keypair) = instruction_key.signer() {
+                signers.push(signer_keypair);
             }
         }
         let (signature, _execution) = endpoint
             .process_instruction_with_signers(
-                &config.get_keypair()?,
+                &config.get_wallet()?,
                 instruction,
                 &signers,
             )

@@ -69,7 +69,7 @@ impl ToolboxCliConfig {
             return Ok((name.to_string(), self.parse_key(key)?));
         } else {
             return Err(ToolboxCliError::Custom(
-                "Invalid account, expected format: [name:[Pubkey|KeypairFile|'wallet']]".to_string(),
+                "Invalid account, expected format: [name:[Pubkey|KeypairFile|'WALLET']]".to_string(),
             ));
         }
     }
@@ -78,7 +78,7 @@ impl ToolboxCliConfig {
         &self,
         key: &str,
     ) -> Result<ToolboxCliConfigKeypairOrPubkey, ToolboxCliError> {
-        if key == "keypair" || key == "wallet" || key == "WALLET" {
+        if key == "WALLET" {
             return Ok(ToolboxCliConfigKeypairOrPubkey::Keypair(
                 read_keypair_file(&self.keypair_path).unwrap(),
             ));
@@ -92,7 +92,7 @@ impl ToolboxCliConfig {
     }
 
     // TODO - what's our standard naming for this?
-    pub fn get_keypair(&self) -> Result<Keypair, ToolboxCliError> {
+    pub fn get_wallet(&self) -> Result<Keypair, ToolboxCliError> {
         read_keypair_file(&self.keypair_path).ok().ok_or_else(|| {
             ToolboxCliError::Custom("Could not read config keypair".to_string())
         })
