@@ -17,18 +17,32 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Prepare an instruction using its program's IDL")]
 pub struct ToolboxCliCommandIdlInstructionArgs {
-    #[arg(help = "The instruction's ProgramID pubkey")]
+    #[arg(
+        value_name = "PROGRAM_ID",
+        help = "The instruction's ProgramID pubkey"
+    )]
     program_id: String,
-    #[arg(help = "The instruction's name")]
+    #[arg(
+        value_name = "INSTRUCTION_NAME",
+        help = "The instruction's IDL name"
+    )]
     name: String,
-    #[arg(help = "The instruction's args object in JSON format")]
+    #[arg(
+        value_name = "JSON",
+        help = "The instruction's args object in JSON format"
+    )]
     payload: String,
     #[arg(
-        value_delimiter(','),
-        help = "The instruction's accounts, format: [name:[Pubkey|KeypairFile|'WALLET']]"
+        value_delimiter = ',',
+        value_name = "NAME:KEY",
+        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFile|'WALLET']]"
     )]
     accounts: Vec<String>,
-    // TODO - could take IDLs as param also ?
+    #[arg(
+        long,
+        help = "When specified, this flag actually tries to execute the generated instruction"
+    )]
+    execute: Option<()>,
 }
 
 impl ToolboxCliCommandIdlInstructionArgs {
@@ -123,18 +137,18 @@ impl ToolboxCliCommandIdlInstructionArgs {
                     )
                     .into_string()),
                 );
-                let preflight = endpoint
+                let simulation = endpoint
                     .simulate_instruction(
-                        &config.get_wallet()?,
+                        config.get_wallet(),
                         instruction.clone(),
                     )
                     .await?;
                 json_compile.insert(
-                    "preflight".to_string(),
+                    "simulation".to_string(),
                     json!({
-                        "error": preflight.error,
-                        "logs": preflight.logs,
-                        "return_data": preflight.return_data,
+                        "error": simulation.error,
+                        "logs": simulation.logs,
+                        "return_data": simulation.return_data,
                     }),
                 );
             },

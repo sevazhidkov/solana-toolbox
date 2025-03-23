@@ -27,22 +27,33 @@ pub struct ToolboxCliArgs {
     config: Option<String>,
     #[arg(
         long,
-        value_name = "URL_OR_MONIKER",
-        help = "The solana RPC endpoint used"
-    )]
-    rpc: Option<String>,
-    #[arg(
-        long,
-        value_name = "LEVEL",
+        value_name = "COMMITMENT_LEVEL",
         help = "Commitment level used for RPC endpoint"
     )]
     commitment: Option<String>,
     #[arg(
+        short,
         long,
-        value_name = "KEYPAIR_FILE_PATH",
-        help = "Keypair used as default payer and 'WALLET' account key"
+        alias = "rpc",
+        value_name = "URL_OR_MONIKER",
+        help = "The solana RPC endpoint's URL used"
     )]
-    wallet: Option<String>,
+    url: Option<String>,
+    #[arg(
+        short,
+        long,
+        alias = "wallet",
+        value_name = "KEYPAIR_FILE_PATH",
+        help = "Keypair used as default payer and 'KEYPAIR' account key"
+    )]
+    keypair: Option<String>,
+    #[arg(
+        long,
+        value_delimiter = ',',
+        value_name = "PROGRAM_ID:IDL_FILE_PATH",
+        help = "Use custom IDLs for programs, format: [ProgramId:IdlFile]"
+    )]
+    idls: Vec<String>,
     #[command(subcommand)]
     command: ToolboxCliCommand,
 }
@@ -59,20 +70,21 @@ impl ToolboxCliArgs {
                     )
                 })?,
         )?;
-        if let Some(rpc) = &self.rpc {
-            solana_cli_config.json_rpc_url = rpc.to_string();
-        }
         if let Some(commitment) = &self.commitment {
             solana_cli_config.commitment = commitment.to_string();
         }
-        if let Some(wallet) = &self.wallet {
-            solana_cli_config.keypair_path = wallet.to_string();
+        if let Some(url) = &self.url {
+            solana_cli_config.json_rpc_url = url.to_string();
+        }
+        if let Some(keypair) = &self.keypair {
+            solana_cli_config.keypair_path = keypair.to_string();
         }
         self.command
             .process(&ToolboxCliConfig::new(
                 solana_cli_config.json_rpc_url,
                 solana_cli_config.commitment,
                 solana_cli_config.keypair_path,
+                self.idls.clone(),
             ))
             .await
     }

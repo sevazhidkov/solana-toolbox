@@ -10,7 +10,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Resolve a program's IDL")]
 pub struct ToolboxCliCommandIdlProgramArgs {
-    #[arg(help = "The ProgramID pubkey")]
+    #[arg(value_name = "PROGRAM_ID", help = "The Program ID pubkey in base58")]
     program_id: String,
 }
 

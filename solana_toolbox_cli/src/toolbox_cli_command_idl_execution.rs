@@ -14,9 +14,11 @@ use crate::toolbox_cli_error::ToolboxCliError;
     about = "Parse the outcome of a signature's execution using the involved programs IDL"
 )]
 pub struct ToolboxCliCommandIdlExecutionArgs {
-    #[arg(help = "The transaction's execution signature")]
+    #[arg(
+        value_name = "SIGNATURE_BASE58",
+        help = "The transaction's execution signature"
+    )]
     signature: String,
-    // TODO - allow custom IDLs preload
 }
 
 impl ToolboxCliCommandIdlExecutionArgs {

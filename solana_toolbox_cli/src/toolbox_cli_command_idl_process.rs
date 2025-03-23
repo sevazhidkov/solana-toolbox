@@ -14,20 +14,30 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Process an instruction using its program's IDL")]
 pub struct ToolboxCliCommandIdlProcessArgs {
-    #[arg(help = "The instruction's ProgramID pubkey")]
+    #[arg(
+        value_name = "PROGRAM_ID",
+        help = "The instruction's ProgramID pubkey"
+    )]
     program_id: String,
-    #[arg(help = "The instruction's name")]
+    #[arg(
+        value_name = "INSTRUCTION_NAME",
+        help = "The instruction's IDL name"
+    )]
     name: String,
-    #[arg(help = "The instruction's args object in JSON format")]
+    #[arg(
+        value_name = "JSON",
+        help = "The instruction's args object in JSON format"
+    )]
     payload: String,
     #[arg(
-        value_delimiter(','),
-        help = "The instruction's accounts, format: [name:[Pubkey|KeypairFile|'WALLET']]"
+        value_delimiter = ',',
+        value_name = "NAME:KEY",
+        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFile|'WALLET']]"
     )]
     accounts: Vec<String>,
-    // TODO - allow passing IDLs as parameter
 }
 
+// TODO - should merge this with instruction
 impl ToolboxCliCommandIdlProcessArgs {
     pub async fn process(
         &self,
@@ -66,7 +76,7 @@ impl ToolboxCliCommandIdlProcessArgs {
         }
         let (signature, _execution) = endpoint
             .process_instruction_with_signers(
-                &config.get_wallet()?,
+                config.get_wallet(),
                 instruction,
                 &signers,
             )

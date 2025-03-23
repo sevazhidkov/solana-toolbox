@@ -12,6 +12,7 @@ pub struct ToolboxIdlAccount {
     pub name: String,
     pub docs: Option<Value>,
     pub space: Option<usize>,
+    // TODO - support discrimination by data chunks (for token account for example)
     pub discriminator: Vec<u8>,
     pub content_type_flat: ToolboxIdlTypeFlat,
     pub content_type_full: Arc<ToolboxIdlTypeFull>,

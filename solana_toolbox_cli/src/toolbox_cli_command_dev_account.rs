@@ -33,6 +33,7 @@ impl ToolboxCliCommandDevAccountArgs {
                 account.executable,
             )
         );
+        // TODO - nits on display of hexes
         println!("|{: ^78}|", format!("owner: {}", account.owner));
         if !account.data.is_empty() {
             println!("+{:-^78}+", "Data");
