@@ -8,7 +8,13 @@
         { "name": "mint_authority", "type": "pubkey" },
         { "name": "freeze_authority", "type": { "option": "pubkey" } }
       ],
-      "accounts": [{ "name": "mint", "writable": true }, { "name": "rent" }]
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true
+        },
+        { "name": "rent" }
+      ]
     },
     "InitializeAccount": {
       "discriminator": [1],
@@ -31,7 +37,7 @@
       "accounts": [
         { "name": "source", "writable": true },
         { "name": "destination", "writable": true },
-        { "name": "owner" }
+        { "name": "owner", "signer": true }
       ]
     },
     "Approve": {
@@ -40,7 +46,7 @@
       "accounts": [
         { "name": "source", "writable": true },
         { "name": "delegate" },
-        { "name": "owner" }
+        { "name": "owner", "signer": true }
       ]
     },
     "Revoke": {
@@ -68,7 +74,7 @@
       "accounts": [
         { "name": "account", "writable": true },
         { "name": "mint", "writable": true },
-        { "name": "owner" }
+        { "name": "owner", "signer": true }
       ]
     },
     "Close": {
@@ -77,7 +83,7 @@
       "accounts": [
         { "name": "closed", "writable": true },
         { "name": "destination", "writable": true },
-        { "name": "owner" }
+        { "name": "owner", "signer": true }
       ]
     },
     "Freeze": {
@@ -86,7 +92,7 @@
       "accounts": [
         { "name": "account", "writable": true },
         { "name": "mint" },
-        { "name": "owner" }
+        { "name": "freeze_authority", "signer": true }
       ]
     },
     "Thaw": {
@@ -95,7 +101,7 @@
       "accounts": [
         { "name": "account", "writable": true },
         { "name": "mint" },
-        { "name": "owner" }
+        { "name": "freeze_authority", "signer": true }
       ]
     },
     "TransferChecked": {

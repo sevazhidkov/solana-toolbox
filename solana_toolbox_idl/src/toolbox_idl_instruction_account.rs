@@ -1,6 +1,8 @@
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::toolbox_idl_utils::idl_convert_to_value_name;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
     pub name: String,
@@ -44,5 +46,11 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 Some(("account", path))
             },
         }
+    }
+}
+
+impl ToolboxIdlInstructionAccount {
+    pub fn sanitize_name(name: &str) -> String {
+        idl_convert_to_value_name(name)
     }
 }

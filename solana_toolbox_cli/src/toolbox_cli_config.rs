@@ -1,47 +1,22 @@
 use std::str::FromStr;
-use std::sync::Arc;
 
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlResolver;
 use tokio::fs::read_to_string;
 
 use crate::toolbox_cli_error::ToolboxCliError;
+use crate::toolbox_cli_key::ToolboxCliKey;
 
 pub struct ToolboxCliConfig {
     json_rpc_url: String,
     commitment: String,
     keypair_path: String,
     custom_idls: Vec<String>,
-}
-
-// TODO - should this have its own name+file ?
-pub enum ToolboxCliConfigKeypairOrPubkey {
-    Keypair(Arc<Keypair>),
-    Pubkey(Pubkey),
-}
-
-impl ToolboxCliConfigKeypairOrPubkey {
-    pub fn address(&self) -> Pubkey {
-        match self {
-            ToolboxCliConfigKeypairOrPubkey::Keypair(keypair) => {
-                keypair.pubkey()
-            },
-            ToolboxCliConfigKeypairOrPubkey::Pubkey(pubkey) => *pubkey,
-        }
-    }
-
-    pub fn signer(&self) -> Option<&Keypair> {
-        match self {
-            ToolboxCliConfigKeypairOrPubkey::Keypair(keypair) => Some(keypair),
-            ToolboxCliConfigKeypairOrPubkey::Pubkey(_) => None,
-        }
-    }
 }
 
 impl ToolboxCliConfig {
@@ -83,7 +58,7 @@ impl ToolboxCliConfig {
                 );
             } else {
                 return Err(ToolboxCliError::Custom(
-                    "Invalid idl, expected format: [ProgramId:IdlFilePath]"
+                    "Invalid idl, expected format: [ProgramId:IdlFile]"
                         .to_string(),
                 ));
             }
@@ -94,14 +69,13 @@ impl ToolboxCliConfig {
     pub fn parse_account(
         &self,
         account: &str,
-    ) -> Result<(String, ToolboxCliConfigKeypairOrPubkey), ToolboxCliError>
-    {
+    ) -> Result<(String, ToolboxCliKey), ToolboxCliError> {
         let parts = account.split(":").collect::<Vec<_>>();
         if let [name, key] = parts[..] {
             Ok((name.to_string(), self.parse_key(key)?))
         } else {
             Err(ToolboxCliError::Custom(
-                "Invalid account, expected format: [Name:[Pubkey|KeypairFile|'WALLET']]".to_string(),
+                "Invalid account, expected format: [Name:[Pubkey|KeypairFile|'KEYPAIR']]".to_string(),
             ))
         }
     }
@@ -109,22 +83,20 @@ impl ToolboxCliConfig {
     pub fn parse_key(
         &self,
         key: &str,
-    ) -> Result<ToolboxCliConfigKeypairOrPubkey, ToolboxCliError> {
-        if key == "WALLET" {
-            return Ok(ToolboxCliConfigKeypairOrPubkey::Keypair(
-                self.wallet.clone(),
-            ));
+    ) -> Result<ToolboxCliKey, ToolboxCliError> {
+        if key.to_ascii_uppercase() == "KEYPAIR"
+            || key.to_ascii_uppercase() == "WALLET"
+        {
+            return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }
         Ok(if let Ok(keypair) = read_keypair_file(key) {
-            ToolboxCliConfigKeypairOrPubkey::Keypair(keypair.into())
+            ToolboxCliKey::Keypair(keypair)
         } else {
-            ToolboxCliConfigKeypairOrPubkey::Pubkey(Pubkey::from_str(key)?)
+            ToolboxCliKey::Pubkey(Pubkey::from_str(key)?)
         })
     }
 
-    pub fn get_wallet(&self) -> &Keypair {
-        &read_keypair_file(self.keypair_path.clone())
-            .unwrap_or(Keypair::new())
-            .into()
+    pub fn get_keypair(&self) -> Keypair {
+        read_keypair_file(self.keypair_path.clone()).unwrap_or(Keypair::new())
     }
 }

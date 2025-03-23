@@ -14,10 +14,29 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgram {
     // TODO - parse metadata from all versions
-    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
+    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
+}
+
+impl Default for ToolboxIdlProgram {
+    fn default() -> ToolboxIdlProgram {
+        let idl_instruction = ToolboxIdlInstruction::default();
+        let idl_account = ToolboxIdlAccount::default();
+        ToolboxIdlProgram {
+            instructions: HashMap::from_iter([(
+                idl_instruction.name.to_string(),
+                idl_instruction.into(),
+            )]),
+            accounts: HashMap::from_iter([(
+                idl_account.name.to_string(),
+                idl_account.into(),
+            )]),
+            errors: HashMap::new(),
+            typedefs: HashMap::new(),
+        }
+    }
 }
 
 impl ToolboxIdlProgram {

@@ -31,44 +31,45 @@ impl ToolboxIdlResolver {
     pub fn preload_program(
         &mut self,
         program_id: &Pubkey,
-        idl_program: ToolboxIdlProgram,
+        idl_program: Arc<ToolboxIdlProgram>,
     ) {
-        self.programs.insert(*program_id, idl_program.into());
+        self.programs.insert(*program_id, idl_program);
     }
 
     pub async fn resolve_program(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
-    ) -> Result<Arc<ToolboxIdlProgram>, ToolboxIdlError> {
-        if !self.programs.contains_key(program_id) {
-            if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
-                self.programs.insert(*program_id, idl_program.into());
-            } else {
-                let mut source_account = None;
-                if let Some(anchor_account) = endpoint
-                    .get_account(&ToolboxIdlProgram::find_anchor(program_id)?)
-                    .await?
-                {
-                    source_account = Some(anchor_account);
-                } else if let Some(shank_account) = endpoint
-                    .get_account(&ToolboxIdlProgram::find_shank(program_id)?)
-                    .await?
-                {
-                    source_account = Some(shank_account);
-                }
-                let idl_program =
-                    ToolboxIdlProgram::try_parse_from_account_data(
-                        &source_account
-                            .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
-                                program_id: *program_id,
-                            })?
-                            .data,
-                    )?;
-                self.programs.insert(*program_id, idl_program.into());
-            }
+    ) -> Result<Option<Arc<ToolboxIdlProgram>>, ToolboxIdlError> {
+        if let Some(idl_program) = self.programs.get(program_id) {
+            return Ok(Some(idl_program.clone()));
         }
-        Ok(self.programs.get(program_id).unwrap().clone())
+        if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
+            let idl_program = Arc::new(idl_program);
+            self.programs.insert(*program_id, idl_program.clone());
+            return Ok(Some(idl_program));
+        }
+        let mut source_account = None;
+        if let Some(anchor_account) = endpoint
+            .get_account(&ToolboxIdlProgram::find_anchor(program_id)?)
+            .await?
+        {
+            source_account = Some(anchor_account);
+        } else if let Some(shank_account) = endpoint
+            .get_account(&ToolboxIdlProgram::find_shank(program_id)?)
+            .await?
+        {
+            source_account = Some(shank_account);
+        }
+        if let Some(source_account) = source_account {
+            let idl_program =
+                Arc::new(ToolboxIdlProgram::try_parse_from_account_data(
+                    &source_account.data,
+                )?);
+            self.programs.insert(*program_id, idl_program.clone());
+            return Ok(Some(idl_program));
+        };
+        Ok(None)
     }
 
     // TODO - support resolve_execution ?
@@ -88,8 +89,9 @@ impl ToolboxIdlResolver {
         let idl_account = self
             .resolve_program(endpoint, &account_owner)
             .await?
+            .unwrap_or_default()
             .guess_account(&account_data)
-            .ok_or_else(|| ToolboxIdlError::CouldNotFindAccount {})?;
+            .unwrap_or_default();
         let account_state = idl_account.decompile(&account_data)?;
         Ok(Some((idl_account, account_state)))
     }
@@ -111,8 +113,12 @@ impl ToolboxIdlResolver {
                 instruction_addresses,
             )
             .await?;
+        // TODO - this could be partially factored out
         self.resolve_program(endpoint, program_id)
             .await?
+            .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
+                program_id: *program_id,
+            })?
             .instructions
             .get(instruction_name)
             .ok_or_else(|| ToolboxIdlError::CouldNotFindInstruction {})?
@@ -128,7 +134,12 @@ impl ToolboxIdlResolver {
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
-        let idl_program = self.resolve_program(endpoint, program_id).await?;
+        let idl_program = self
+            .resolve_program(endpoint, program_id)
+            .await?
+            .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
+                program_id: *program_id,
+            })?;
         let idl_instruction = idl_program
             .instructions
             .get(instruction_name)

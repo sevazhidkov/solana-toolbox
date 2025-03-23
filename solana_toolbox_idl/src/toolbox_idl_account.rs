@@ -5,7 +5,10 @@ use serde_json::Value;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
@@ -18,7 +21,29 @@ pub struct ToolboxIdlAccount {
     pub content_type_full: Arc<ToolboxIdlTypeFull>,
 }
 
+impl Default for ToolboxIdlAccount {
+    fn default() -> ToolboxIdlAccount {
+        ToolboxIdlAccount {
+            name: ToolboxIdlAccount::sanitize_name("UnknownAccount"),
+            docs: None,
+            space: None,
+            discriminator: vec![],
+            content_type_flat: ToolboxIdlTypeFlat::Struct {
+                fields: ToolboxIdlTypeFlatFields::None,
+            },
+            content_type_full: ToolboxIdlTypeFull::Struct {
+                fields: ToolboxIdlTypeFullFields::None,
+            }
+            .into(),
+        }
+    }
+}
+
 impl ToolboxIdlAccount {
+    pub fn sanitize_name(name: &str) -> String {
+        idl_convert_to_type_name(name)
+    }
+
     pub fn compile(
         &self,
         account_state: &Value,

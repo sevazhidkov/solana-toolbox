@@ -23,7 +23,8 @@ pub async fn run() {
         ToolboxIdlProgram::try_parse_from_str(
             &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
         )
-        .unwrap(),
+        .unwrap()
+        .into(),
     );
     // Read the global market state content using the IDL
     let global_market_state =

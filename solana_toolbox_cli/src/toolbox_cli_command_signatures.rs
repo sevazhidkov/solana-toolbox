@@ -10,7 +10,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search signatures that involve a specific account")]
-pub struct ToolboxCliCommandRawSearchSignaturesArgs {
+pub struct ToolboxCliCommandSignaturesArgs {
     #[arg(help = "The account pubkey that is involved in transactions")]
     with_address: String,
     #[arg(help = "How much signature we'll search for before stopping")]
@@ -21,12 +21,12 @@ pub struct ToolboxCliCommandRawSearchSignaturesArgs {
     rewind_until_signature: Option<String>,
 }
 
-impl ToolboxCliCommandRawSearchSignaturesArgs {
+impl ToolboxCliCommandSignaturesArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint()?;
+        let mut endpoint = config.create_endpoint().await?;
         let with_address = Pubkey::from_str(&self.with_address).unwrap();
         let start_before = self
             .start_before_signature
@@ -46,6 +46,7 @@ impl ToolboxCliCommandRawSearchSignaturesArgs {
                 self.limit.unwrap_or(100),
             )
             .await?;
+        // TODO - add IDL analysis
         println!(
             "{}",
             serde_json::to_string(&json!(signatures

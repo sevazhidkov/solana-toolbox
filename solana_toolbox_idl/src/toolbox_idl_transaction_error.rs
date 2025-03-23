@@ -5,3 +5,13 @@ pub struct ToolboxIdlTransactionError {
     pub name: String,
     pub msg: String,
 }
+
+impl Default for ToolboxIdlTransactionError {
+    fn default() -> ToolboxIdlTransactionError {
+        ToolboxIdlTransactionError {
+            code: 0xFFFFFFFF,
+            name: "UnknownError".to_string(),
+            msg: "Unknown error has happened and couldnt be parsed".to_string(),
+        }
+    }
+}

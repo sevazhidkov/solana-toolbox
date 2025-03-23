@@ -17,20 +17,20 @@ impl ToolboxIdlProgram {
                 json_accounts
                     .push(program_account.export(backward_compatibility));
             }
+            let mut json_errors = vec![];
+            for program_error in self.errors.values() {
+                json_errors.push(program_error.export(backward_compatibility));
+            }
             let mut json_typedefs = vec![];
             for program_typedef in self.typedefs.values() {
                 json_typedefs
                     .push(program_typedef.export(backward_compatibility));
             }
-            let mut json_errors = vec![];
-            for program_error in self.errors.values() {
-                json_errors.push(program_error.export(backward_compatibility));
-            }
             json!({
                 "instructions": json_instructions,
                 "accounts": json_accounts,
-                "types": json_typedefs,
                 "errors": json_errors,
+                "types": json_typedefs,
             })
         } else {
             let mut json_instructions = Map::new();
@@ -47,13 +47,6 @@ impl ToolboxIdlProgram {
                     program_account.export(backward_compatibility),
                 );
             }
-            let mut json_typedefs = Map::new();
-            for program_typedef in self.typedefs.values() {
-                json_typedefs.insert(
-                    program_typedef.name.to_string(),
-                    program_typedef.export(backward_compatibility),
-                );
-            }
             let mut json_errors = Map::new();
             for program_error in self.errors.values() {
                 json_errors.insert(
@@ -61,11 +54,18 @@ impl ToolboxIdlProgram {
                     program_error.export(backward_compatibility),
                 );
             }
+            let mut json_typedefs = Map::new();
+            for program_typedef in self.typedefs.values() {
+                json_typedefs.insert(
+                    program_typedef.name.to_string(),
+                    program_typedef.export(backward_compatibility),
+                );
+            }
             json!({
                 "instructions": json_instructions,
                 "accounts": json_accounts,
-                "types": json_typedefs,
                 "errors": json_errors,
+                "types": json_typedefs,
             })
         }
     }

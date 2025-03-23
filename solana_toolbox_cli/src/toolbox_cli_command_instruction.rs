@@ -9,14 +9,13 @@ use serde_json::Value;
 use solana_sdk::bs58;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::Transaction;
-use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Prepare an instruction using its program's IDL")]
-pub struct ToolboxCliCommandIdlInstructionArgs {
+pub struct ToolboxCliCommandInstructionArgs {
     #[arg(
         value_name = "PROGRAM_ID",
         help = "The instruction's ProgramID pubkey"
@@ -24,7 +23,7 @@ pub struct ToolboxCliCommandIdlInstructionArgs {
     program_id: String,
     #[arg(
         value_name = "INSTRUCTION_NAME",
-        help = "The instruction's IDL name"
+        help = "The instruction's name from the IDL"
     )]
     name: String,
     #[arg(
@@ -35,23 +34,20 @@ pub struct ToolboxCliCommandIdlInstructionArgs {
     #[arg(
         value_delimiter = ',',
         value_name = "NAME:KEY",
-        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFile|'WALLET']]"
+        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFile|'KEYPAIR']]"
     )]
     accounts: Vec<String>,
-    #[arg(
-        long,
-        help = "When specified, this flag actually tries to execute the generated instruction"
-    )]
-    execute: Option<()>,
+    #[arg(long, help = "Execute generated instruction instead of simulate")]
+    execute: bool,
 }
 
-impl ToolboxCliCommandIdlInstructionArgs {
+impl ToolboxCliCommandInstructionArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint()?;
-        let mut idl_resolver = ToolboxIdlResolver::new();
+        let mut endpoint = config.create_endpoint().await?;
+        let mut idl_resolver = config.create_resolver().await?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
         let instruction_name = &self.name;
         let idl_program = idl_resolver
@@ -59,12 +55,16 @@ impl ToolboxCliCommandIdlInstructionArgs {
             .await?;
         let idl_instruction =
             idl_program.instructions.get(instruction_name).unwrap();
-        let mut instruction_addresses = HashMap::new();
+        let instruction_payload = from_str::<Value>(&self.payload)?;
+        let mut instruction_keys = HashMap::new();
         for account in &self.accounts {
             let (name, key) = config.parse_account(account)?;
-            instruction_addresses.insert(name, key.address());
+            instruction_keys.insert(name, key);
         }
-        let instruction_payload = from_str::<Value>(&self.payload)?;
+        let mut instruction_addresses = HashMap::new();
+        for (name, key) in &instruction_keys {
+            instruction_addresses.insert(name.to_string(), key.address());
+        }
         let instruction_addresses = idl_resolver
             .resolve_instruction_addresses(
                 &mut endpoint,
@@ -79,8 +79,6 @@ impl ToolboxCliCommandIdlInstructionArgs {
             &instruction_addresses,
             &instruction_payload,
         );
-        let instruction_addresses_dependencies =
-            idl_instruction.get_addresses_dependencies();
         let mut json_addresses = Map::new();
         for instruction_address in &instruction_addresses {
             json_addresses.insert(
@@ -89,7 +87,8 @@ impl ToolboxCliCommandIdlInstructionArgs {
             );
         }
         let mut json_dependencies_missing = Map::new();
-        for instruction_address_dependency in instruction_addresses_dependencies
+        for instruction_address_dependency in
+            idl_instruction.get_addresses_dependencies()
         {
             if instruction_addresses
                 .contains_key(&instruction_address_dependency.0)
@@ -137,20 +136,40 @@ impl ToolboxCliCommandIdlInstructionArgs {
                     )
                     .into_string()),
                 );
-                let simulation = endpoint
-                    .simulate_instruction(
-                        config.get_wallet(),
-                        instruction.clone(),
-                    )
-                    .await?;
-                json_compile.insert(
-                    "simulation".to_string(),
-                    json!({
-                        "error": simulation.error,
-                        "logs": simulation.logs,
-                        "return_data": simulation.return_data,
-                    }),
-                );
+                let mut signers = vec![];
+                for key in instruction_keys.values() {
+                    if let Some(signer) = key.signer() {
+                        signers.push(signer);
+                    }
+                }
+                if self.execute {
+                    let (signature, _) = endpoint
+                        .process_instruction_with_signers(
+                            &config.get_keypair(),
+                            instruction.clone(),
+                            &signers,
+                        )
+                        .await?;
+                    json_compile.insert(
+                        "signature".to_string(),
+                        json!(signature.to_string()),
+                    );
+                } else {
+                    let simulation = endpoint
+                        .simulate_instruction(
+                            &config.get_keypair(),
+                            instruction.clone(),
+                        )
+                        .await?;
+                    json_compile.insert(
+                        "simulation".to_string(),
+                        json!({
+                            "error": simulation.error,
+                            "logs": simulation.logs,
+                            "return_data": simulation.return_data,
+                        }),
+                    );
+                }
             },
             Err(error) => {
                 json_compile

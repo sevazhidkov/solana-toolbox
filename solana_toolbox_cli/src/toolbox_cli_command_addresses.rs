@@ -15,7 +15,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
-pub struct ToolboxCliCommandRawSearchAddressesArgs {
+pub struct ToolboxCliCommandAddressesArgs {
     #[arg(help = "The ProgramID pubkey that owns the searched accounts")]
     program_id: String,
     #[arg(help = "Expected exact data size of the searched accounts")]
@@ -26,13 +26,14 @@ pub struct ToolboxCliCommandRawSearchAddressesArgs {
     data_chunks: Vec<String>,
 }
 
-impl ToolboxCliCommandRawSearchAddressesArgs {
+impl ToolboxCliCommandAddressesArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint()?;
+        let mut endpoint = config.create_endpoint().await?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
+        // TODO - add IDL analysis
         let mut data_chunks = vec![];
         for data_chunk in &self.data_chunks {
             let parts = data_chunk.split(":").collect::<Vec<_>>();

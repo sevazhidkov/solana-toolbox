@@ -15,7 +15,6 @@ use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -103,10 +102,10 @@ impl ToolboxIdlProgram {
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
         Ok(ToolboxIdlProgram {
-            typedefs,
             instructions,
             accounts,
             errors,
+            typedefs,
         })
     }
 
@@ -150,7 +149,7 @@ impl ToolboxIdlProgram {
             )?
         {
             let idl_instruction_name =
-                idl_convert_to_value_name(idl_instruction_name);
+                ToolboxIdlInstruction::sanitize_name(idl_instruction_name);
             instructions.insert(
                 idl_instruction_name.to_string(),
                 ToolboxIdlInstruction::try_parse(
@@ -178,7 +177,8 @@ impl ToolboxIdlProgram {
                 breadcrumbs,
             )?
         {
-            let idl_account_name = idl_convert_to_type_name(idl_account_name);
+            let idl_account_name =
+                ToolboxIdlAccount::sanitize_name(idl_account_name);
             accounts.insert(
                 idl_account_name.to_string(),
                 ToolboxIdlAccount::try_parse(

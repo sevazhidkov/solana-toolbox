@@ -11,7 +11,6 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -28,11 +27,13 @@ impl ToolboxIdlInstructionAccount {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account, &breadcrumbs.idl())?;
         let instruction_account_name =
-            idl_convert_to_value_name(idl_object_get_key_as_str_or_else(
-                idl_instruction_account,
-                "name",
-                &breadcrumbs.idl(),
-            )?);
+            ToolboxIdlInstructionAccount::sanitize_name(
+                idl_object_get_key_as_str_or_else(
+                    idl_instruction_account,
+                    "name",
+                    &breadcrumbs.idl(),
+                )?,
+            );
         let instruction_account_docs =
             idl_instruction_account.get("docs").cloned();
         let breadcrumbs = &breadcrumbs.with_idl(&instruction_account_name);

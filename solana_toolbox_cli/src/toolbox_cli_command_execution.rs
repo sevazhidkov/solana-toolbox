@@ -4,7 +4,6 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Map;
 use solana_sdk::signature::Signature;
-use solana_toolbox_idl::ToolboxIdlResolver;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
@@ -13,7 +12,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[command(
     about = "Parse the outcome of a signature's execution using the involved programs IDL"
 )]
-pub struct ToolboxCliCommandIdlExecutionArgs {
+pub struct ToolboxCliCommandExecutionArgs {
     #[arg(
         value_name = "SIGNATURE_BASE58",
         help = "The transaction's execution signature"
@@ -21,13 +20,13 @@ pub struct ToolboxCliCommandIdlExecutionArgs {
     signature: String,
 }
 
-impl ToolboxCliCommandIdlExecutionArgs {
+impl ToolboxCliCommandExecutionArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint()?;
-        let mut idl_resolver = ToolboxIdlResolver::new();
+        let mut endpoint = config.create_endpoint().await?;
+        let mut idl_resolver = config.create_resolver().await?;
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
         let mut json_instructions = vec![];
@@ -37,7 +36,7 @@ impl ToolboxCliCommandIdlExecutionArgs {
                 .await?;
             let (program_id, instruction_addresses, instruction_payload) =
                 idl_program.guess_instruction(&instruction.data)
-                .unwrap() // TODO - handle unwrap
+                .unwrap() // TODO - handle unwrap with default ?
                 .decompile(&instruction)?;
             let mut json_addresses = Map::new();
             for instruction_address in instruction_addresses {

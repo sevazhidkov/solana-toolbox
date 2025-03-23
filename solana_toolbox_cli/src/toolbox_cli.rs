@@ -3,16 +3,12 @@ use clap::Subcommand;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
 
-use crate::toolbox_cli_command_dev_account::ToolboxCliCommandDevAccountArgs;
-use crate::toolbox_cli_command_idl_account::ToolboxCliCommandIdlAccountArgs;
-use crate::toolbox_cli_command_idl_execution::ToolboxCliCommandIdlExecutionArgs;
-use crate::toolbox_cli_command_idl_instruction::ToolboxCliCommandIdlInstructionArgs;
-use crate::toolbox_cli_command_idl_process::ToolboxCliCommandIdlProcessArgs;
-use crate::toolbox_cli_command_idl_program::ToolboxCliCommandIdlProgramArgs;
-use crate::toolbox_cli_command_raw_get_account::ToolboxCliCommandRawGetAccountArgs;
-use crate::toolbox_cli_command_raw_get_execution::ToolboxCliCommandRawGetExecutionArgs;
-use crate::toolbox_cli_command_raw_search_addresses::ToolboxCliCommandRawSearchAddressesArgs;
-use crate::toolbox_cli_command_raw_search_signatures::ToolboxCliCommandRawSearchSignaturesArgs;
+use crate::toolbox_cli_command_account::ToolboxCliCommandAccountArgs;
+use crate::toolbox_cli_command_addresses::ToolboxCliCommandAddressesArgs;
+use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
+use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
+use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
+use crate::toolbox_cli_command_signatures::ToolboxCliCommandSignaturesArgs;
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
@@ -44,7 +40,7 @@ pub struct ToolboxCliArgs {
         long,
         alias = "wallet",
         value_name = "KEYPAIR_FILE_PATH",
-        help = "Keypair used as default payer and 'KEYPAIR' account key"
+        help = "Keypair used as payer and 'KEYPAIR' account key"
     )]
     keypair: Option<String>,
     #[arg(
@@ -92,16 +88,12 @@ impl ToolboxCliArgs {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
-    DevAccount(ToolboxCliCommandDevAccountArgs),
-    IdlAccount(ToolboxCliCommandIdlAccountArgs),
-    IdlExecution(ToolboxCliCommandIdlExecutionArgs),
-    IdlInstruction(ToolboxCliCommandIdlInstructionArgs),
-    IdlProgram(ToolboxCliCommandIdlProgramArgs),
-    IdlProcess(ToolboxCliCommandIdlProcessArgs),
-    RawGetAccount(ToolboxCliCommandRawGetAccountArgs),
-    RawGetExecution(ToolboxCliCommandRawGetExecutionArgs),
-    RawSearchAddresses(ToolboxCliCommandRawSearchAddressesArgs),
-    RawSearchSignatures(ToolboxCliCommandRawSearchSignaturesArgs),
+    Account(ToolboxCliCommandAccountArgs),
+    Addresses(ToolboxCliCommandAddressesArgs),
+    Execution(ToolboxCliCommandExecutionArgs),
+    Instruction(ToolboxCliCommandInstructionArgs),
+    Program(ToolboxCliCommandProgramArgs),
+    Signatures(ToolboxCliCommandSignaturesArgs),
 }
 
 // TODO - some type of lookup system for addresses by name or smthg
@@ -112,26 +104,12 @@ impl ToolboxCliCommand {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         match self {
-            ToolboxCliCommand::DevAccount(args) => args.process(config).await,
-            ToolboxCliCommand::IdlAccount(args) => args.process(config).await,
-            ToolboxCliCommand::IdlExecution(args) => args.process(config).await,
-            ToolboxCliCommand::IdlInstruction(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::IdlProgram(args) => args.process(config).await,
-            ToolboxCliCommand::IdlProcess(args) => args.process(config).await,
-            ToolboxCliCommand::RawGetAccount(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::RawGetExecution(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::RawSearchAddresses(args) => {
-                args.process(config).await
-            },
-            ToolboxCliCommand::RawSearchSignatures(args) => {
-                args.process(config).await
-            },
+            ToolboxCliCommand::Account(args) => args.process(config).await,
+            ToolboxCliCommand::Execution(args) => args.process(config).await,
+            ToolboxCliCommand::Instruction(args) => args.process(config).await,
+            ToolboxCliCommand::Program(args) => args.process(config).await,
+            ToolboxCliCommand::Addresses(args) => args.process(config).await,
+            ToolboxCliCommand::Signatures(args) => args.process(config).await,
         }
     }
 }
