@@ -24,37 +24,36 @@ impl ToolboxIdlAccount {
     ) -> Result<ToolboxIdlAccount, ToolboxIdlError> {
         let idl_account =
             idl_as_object_or_else(idl_account, &breadcrumbs.idl())?;
-        let account_discriminator = ToolboxIdlAccount::try_parse_discriminator(
+        let discriminator = ToolboxIdlAccount::try_parse_discriminator(
             idl_account_name,
             idl_account,
             &breadcrumbs.with_idl("discriminator"),
         )?;
-        let account_docs = idl_account.get("docs").cloned();
-        let account_space = idl_object_get_key_as_u64(idl_account, "space")
+        let docs = idl_account.get("docs").cloned();
+        let space = idl_object_get_key_as_u64(idl_account, "space")
             .map(usize::try_from)
             .transpose()
             .map_err(|error| ToolboxIdlError::InvalidInteger {
                 conversion: error,
                 context: breadcrumbs.idl(),
             })?;
-        let account_data_type_flat =
-            ToolboxIdlAccount::try_parse_data_type_flat(
-                idl_account_name,
-                idl_account,
-                breadcrumbs,
-            )?;
-        let account_data_type_full = account_data_type_flat.try_hydrate(
+        let content_type_flat = ToolboxIdlAccount::try_parse_data_type_flat(
+            idl_account_name,
+            idl_account,
+            breadcrumbs,
+        )?;
+        let content_type_full = content_type_flat.try_hydrate(
             &HashMap::new(),
             typedefs,
             breadcrumbs,
         )?;
         Ok(ToolboxIdlAccount {
             name: idl_account_name.to_string(),
-            docs: account_docs,
-            space: account_space,
-            discriminator: account_discriminator,
-            content_type_flat: account_data_type_flat,
-            content_type_full: account_data_type_full.into(),
+            docs,
+            space,
+            discriminator,
+            content_type_flat,
+            content_type_full: content_type_full.into(),
         })
     }
 

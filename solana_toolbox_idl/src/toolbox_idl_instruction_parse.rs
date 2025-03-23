@@ -26,35 +26,33 @@ impl ToolboxIdlInstruction {
     ) -> Result<ToolboxIdlInstruction, ToolboxIdlError> {
         let idl_instruction =
             idl_as_object_or_else(idl_instruction, &breadcrumbs.idl())?;
-        let instruction_discriminator =
-            ToolboxIdlInstruction::try_parse_discriminator(
-                idl_instruction_name,
-                idl_instruction,
-                breadcrumbs,
-            )?;
-        let instruction_docs = idl_instruction.get("docs").cloned();
-        let instruction_accounts = ToolboxIdlInstruction::try_parse_accounts(
+        let discriminator = ToolboxIdlInstruction::try_parse_discriminator(
+            idl_instruction_name,
             idl_instruction,
             breadcrumbs,
         )?;
-        let instruction_args_type_flat_fields =
+        let docs = idl_instruction.get("docs").cloned();
+        let accounts = ToolboxIdlInstruction::try_parse_accounts(
+            idl_instruction,
+            breadcrumbs,
+        )?;
+        let args_type_flat_fields =
             ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,
                 breadcrumbs,
             )?;
-        let instruction_args_type_full_fields =
-            instruction_args_type_flat_fields.try_hydrate(
-                &HashMap::new(),
-                typedefs,
-                breadcrumbs,
-            )?;
+        let args_type_full_fields = args_type_flat_fields.try_hydrate(
+            &HashMap::new(),
+            typedefs,
+            breadcrumbs,
+        )?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
-            docs: instruction_docs,
-            discriminator: instruction_discriminator,
-            accounts: instruction_accounts,
-            args_type_flat_fields: instruction_args_type_flat_fields,
-            args_type_full_fields: instruction_args_type_full_fields.into(),
+            docs,
+            discriminator,
+            accounts,
+            args_type_flat_fields,
+            args_type_full_fields: args_type_full_fields.into(),
         })
     }
 
@@ -87,19 +85,19 @@ impl ToolboxIdlInstruction {
                 "accounts",
                 &breadcrumbs.idl(),
             )?;
-        let mut instruction_accounts = vec![];
+        let mut accounts = vec![];
         for (_, idl_instruction_account, breadcrumbs) in
             idl_iter_get_scoped_values(
                 idl_instruction_accounts_array,
                 breadcrumbs,
             )?
         {
-            instruction_accounts.push(ToolboxIdlInstructionAccount::try_parse(
+            accounts.push(ToolboxIdlInstructionAccount::try_parse(
                 idl_instruction_account,
                 &breadcrumbs,
             )?);
         }
-        Ok(instruction_accounts)
+        Ok(accounts)
     }
 
     fn try_parse_args_type_flat_fields(

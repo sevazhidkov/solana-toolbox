@@ -14,23 +14,24 @@ impl ToolboxIdlTransactionError {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTransactionError, ToolboxIdlError> {
         if let Some(idl_error) = idl_error.as_object() {
-            let idl_error_code = idl_object_get_key_as_u64_or_else(
+            let code = idl_object_get_key_as_u64_or_else(
                 idl_error,
                 "code",
                 &breadcrumbs.idl(),
             )?;
-            let idl_error_msg =
-                idl_object_get_key_as_str(idl_error, "msg").unwrap_or("");
+            let msg = idl_object_get_key_as_str(idl_error, "msg")
+                .unwrap_or("")
+                .to_string();
             return Ok(ToolboxIdlTransactionError {
-                code: idl_error_code,
                 name: idl_error_name.to_string(),
-                msg: idl_error_msg.to_string(),
+                code,
+                msg,
             });
         }
-        if let Some(idl_error_code) = idl_error.as_u64() {
+        if let Some(code) = idl_error.as_u64() {
             return Ok(ToolboxIdlTransactionError {
-                code: idl_error_code,
                 name: idl_error_name.to_string(),
+                code,
                 msg: "".to_string(),
             });
         }

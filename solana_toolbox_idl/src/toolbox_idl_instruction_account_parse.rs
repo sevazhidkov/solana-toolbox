@@ -26,52 +26,52 @@ impl ToolboxIdlInstructionAccount {
     ) -> Result<ToolboxIdlInstructionAccount, ToolboxIdlError> {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account, &breadcrumbs.idl())?;
-        let instruction_account_name =
-            ToolboxIdlInstructionAccount::sanitize_name(
-                idl_object_get_key_as_str_or_else(
-                    idl_instruction_account,
-                    "name",
-                    &breadcrumbs.idl(),
-                )?,
-            );
-        let instruction_account_docs =
-            idl_instruction_account.get("docs").cloned();
-        let breadcrumbs = &breadcrumbs.with_idl(&instruction_account_name);
-        let instruction_account_writable =
+        let name = ToolboxIdlInstructionAccount::sanitize_name(
+            idl_object_get_key_as_str_or_else(
+                idl_instruction_account,
+                "name",
+                &breadcrumbs.idl(),
+            )?,
+        );
+        let docs = idl_instruction_account.get("docs").cloned();
+        let breadcrumbs = &breadcrumbs.with_idl(&name);
+        let writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
                     "isMut",
                 ))
                 .unwrap_or(false);
-        let instruction_account_signer =
+        let signer =
             idl_object_get_key_as_bool(idl_instruction_account, "signer")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
                     "isSigner",
                 ))
                 .unwrap_or(false);
-        let instruction_account_optional =
+        let optional =
             idl_object_get_key_as_bool(idl_instruction_account, "optional")
                 .or(idl_object_get_key_as_bool(
                     idl_instruction_account,
                     "isOptional",
                 ))
                 .unwrap_or(false);
+        let address = ToolboxIdlInstructionAccount::try_parse_address(
+            idl_instruction_account,
+            breadcrumbs,
+        )?;
+        let pda = ToolboxIdlInstructionAccount::try_parse_pda(
+            idl_instruction_account,
+            breadcrumbs,
+        )?;
         Ok(ToolboxIdlInstructionAccount {
-            name: instruction_account_name,
-            docs: instruction_account_docs,
-            writable: instruction_account_writable,
-            signer: instruction_account_signer,
-            optional: instruction_account_optional,
-            address: ToolboxIdlInstructionAccount::try_parse_address(
-                idl_instruction_account,
-                breadcrumbs,
-            )?,
-            pda: ToolboxIdlInstructionAccount::try_parse_pda(
-                idl_instruction_account,
-                breadcrumbs,
-            )?,
+            name,
+            docs,
+            writable,
+            signer,
+            optional,
+            address,
+            pda,
         })
     }
 
@@ -106,7 +106,7 @@ impl ToolboxIdlInstructionAccount {
             None => return Ok(None),
             Some(val) => val,
         };
-        let mut pda_seeds = vec![];
+        let mut seeds = vec![];
         if let Some(idl_instruction_account_pda_seeds) =
             idl_object_get_key_as_array(idl_instruction_account_pda, "seeds")
         {
@@ -116,28 +116,22 @@ impl ToolboxIdlInstructionAccount {
                     breadcrumbs,
                 )?
             {
-                pda_seeds.push(
-                    ToolboxIdlInstructionAccount::try_parse_pda_blob(
-                        idl_instruction_account_pda_seed,
-                        &breadcrumbs,
-                    )?,
-                );
+                seeds.push(ToolboxIdlInstructionAccount::try_parse_pda_blob(
+                    idl_instruction_account_pda_seed,
+                    &breadcrumbs,
+                )?);
             }
         }
-        let mut pda_program = None;
+        let mut program = None;
         if let Some(idl_instruction_account_pda_program) =
             idl_instruction_account_pda.get("program")
         {
-            pda_program =
-                Some(ToolboxIdlInstructionAccount::try_parse_pda_blob(
-                    idl_instruction_account_pda_program,
-                    breadcrumbs,
-                )?);
+            program = Some(ToolboxIdlInstructionAccount::try_parse_pda_blob(
+                idl_instruction_account_pda_program,
+                breadcrumbs,
+            )?);
         }
-        Ok(Some(ToolboxIdlInstructionAccountPda {
-            seeds: pda_seeds,
-            program: pda_program,
-        }))
+        Ok(Some(ToolboxIdlInstructionAccountPda { seeds, program }))
     }
 
     pub fn try_parse_pda_blob(

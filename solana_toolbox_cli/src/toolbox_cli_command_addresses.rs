@@ -39,7 +39,7 @@ impl ToolboxCliCommandAddressesArgs {
             let parts = data_chunk.split(":").collect::<Vec<_>>();
             if let [offset, encoding, data] = parts[..] {
                 data_chunks.push((
-                    offset.parse::<usize>(),
+                    offset.parse::<usize>().unwrap(),
                     parse_blob(encoding, data),
                 ));
             } else {
@@ -49,8 +49,12 @@ impl ToolboxCliCommandAddressesArgs {
                 ));
             }
         }
+        let mut data_chunks_slices = vec![];
+        for data_chunk in &data_chunks {
+            data_chunks_slices.push((data_chunk.0, &data_chunk.1[..]));
+        }
         let addresses = endpoint
-            .search_addresses(&program_id, self.data_len, &[])
+            .search_addresses(&program_id, self.data_len, &data_chunks_slices)
             .await?;
         println!(
             "{}",

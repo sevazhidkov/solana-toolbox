@@ -6,6 +6,7 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
     pub fn export(&self, backward_compatibility: bool) -> Value {
+        // TODO - support exporting metadata
         if backward_compatibility {
             let mut json_instructions = vec![];
             for program_instruction in self.instructions.values() {

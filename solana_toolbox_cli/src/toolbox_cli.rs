@@ -6,9 +6,9 @@ use solana_cli_config::CONFIG_FILE;
 use crate::toolbox_cli_command_account::ToolboxCliCommandAccountArgs;
 use crate::toolbox_cli_command_addresses::ToolboxCliCommandAddressesArgs;
 use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
+use crate::toolbox_cli_command_history::ToolboxCliCommandHistoryArgs;
 use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
 use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
-use crate::toolbox_cli_command_signatures::ToolboxCliCommandSignaturesArgs;
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
@@ -91,9 +91,9 @@ pub enum ToolboxCliCommand {
     Account(ToolboxCliCommandAccountArgs),
     Addresses(ToolboxCliCommandAddressesArgs),
     Execution(ToolboxCliCommandExecutionArgs),
+    History(ToolboxCliCommandHistoryArgs),
     Instruction(ToolboxCliCommandInstructionArgs),
     Program(ToolboxCliCommandProgramArgs),
-    Signatures(ToolboxCliCommandSignaturesArgs),
 }
 
 // TODO - some type of lookup system for addresses by name or smthg
@@ -109,7 +109,7 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::Instruction(args) => args.process(config).await,
             ToolboxCliCommand::Program(args) => args.process(config).await,
             ToolboxCliCommand::Addresses(args) => args.process(config).await,
-            ToolboxCliCommand::Signatures(args) => args.process(config).await,
+            ToolboxCliCommand::History(args) => args.process(config).await,
         }
     }
 }

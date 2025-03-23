@@ -1,8 +1,5 @@
-use std::str::FromStr;
-
 use clap::Args;
 use serde_json::json;
-use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
@@ -21,7 +18,7 @@ impl ToolboxCliCommandAccountArgs {
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
         let mut idl_resolver = config.create_resolver().await?;
-        let address = Pubkey::from_str(&self.address)?;
+        let address = config.parse_key(&self.address)?.address();
         let account = endpoint.get_account(&address).await?.unwrap_or_default();
         let idl_program = idl_resolver
             .resolve_program(&mut endpoint, &account.owner)

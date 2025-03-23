@@ -19,6 +19,7 @@ use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
@@ -87,6 +88,7 @@ impl ToolboxIdlProgram {
     ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
+        let name = ToolboxIdlProgram::try_parse_name(idl_root);
         let typedefs =
             ToolboxIdlProgram::try_parse_typedefs(idl_root, breadcrumbs)?;
         let instructions = ToolboxIdlProgram::try_parse_instructions(
@@ -102,11 +104,27 @@ impl ToolboxIdlProgram {
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
         Ok(ToolboxIdlProgram {
+            name,
             instructions,
             accounts,
             errors,
             typedefs,
         })
+    }
+
+    fn try_parse_name(idl_root: &Map<String, Value>) -> Option<String> {
+        let mut name = idl_object_get_key_as_str(idl_root, "name")
+            .map(ToolboxIdlProgram::sanitize_name);
+        if let Some(idl_metadata) =
+            idl_object_get_key_as_object(idl_root, "metadata")
+        {
+            if let Some(idl_metadata_name) =
+                idl_object_get_key_as_str(idl_metadata, "name")
+            {
+                name = Some(ToolboxIdlProgram::sanitize_name(idl_metadata_name))
+            }
+        }
+        name
     }
 
     fn try_parse_typedefs(

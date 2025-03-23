@@ -10,10 +10,12 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
+use crate::toolbox_idl_utils::idl_convert_to_value_name;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlProgram {
     // TODO - parse metadata from all versions
+    pub name: Option<String>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
@@ -22,17 +24,10 @@ pub struct ToolboxIdlProgram {
 
 impl Default for ToolboxIdlProgram {
     fn default() -> ToolboxIdlProgram {
-        let idl_instruction = ToolboxIdlInstruction::default();
-        let idl_account = ToolboxIdlAccount::default();
         ToolboxIdlProgram {
-            instructions: HashMap::from_iter([(
-                idl_instruction.name.to_string(),
-                idl_instruction.into(),
-            )]),
-            accounts: HashMap::from_iter([(
-                idl_account.name.to_string(),
-                idl_account.into(),
-            )]),
+            name: None,
+            instructions: HashMap::new(),
+            accounts: HashMap::new(),
             errors: HashMap::new(),
             typedefs: HashMap::new(),
         }
@@ -40,6 +35,10 @@ impl Default for ToolboxIdlProgram {
 }
 
 impl ToolboxIdlProgram {
+    pub fn sanitize_name(name: &str) -> String {
+        idl_convert_to_value_name(name)
+    }
+
     pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
         // TODO - provide cached standard implementation for basic contracts such as spl_token and system, and compute_budget ?
         let mut known_programs = HashMap::new();
