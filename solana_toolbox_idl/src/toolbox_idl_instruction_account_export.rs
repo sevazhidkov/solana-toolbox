@@ -70,7 +70,7 @@ impl ToolboxIdlInstructionAccountPda {
 
 impl ToolboxIdlInstructionAccountPdaBlob {
     pub fn export(&self, _backward_compatibility: bool) -> Value {
-        // TODO - support backward compatibility ?
+        // TODO - support backward compatibility for stuff like "account"/"type" fields ?
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => json!({
                 "kind": "const",
