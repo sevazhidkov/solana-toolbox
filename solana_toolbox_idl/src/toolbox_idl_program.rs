@@ -12,7 +12,7 @@ use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgram {
     // TODO - parse metadata from all versions
     pub name: Option<String>,
@@ -20,18 +20,6 @@ pub struct ToolboxIdlProgram {
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
-}
-
-impl Default for ToolboxIdlProgram {
-    fn default() -> ToolboxIdlProgram {
-        ToolboxIdlProgram {
-            name: None,
-            instructions: HashMap::new(),
-            accounts: HashMap::new(),
-            errors: HashMap::new(),
-            typedefs: HashMap::new(),
-        }
-    }
 }
 
 impl ToolboxIdlProgram {
