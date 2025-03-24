@@ -38,7 +38,7 @@ impl ToolboxCliCommandAccountArgs {
                 },
                 "idl": {
                     "kind": format!(
-                        "{}::{}",
+                        "{}.{}",
                         idl_program.name.clone().unwrap_or(account.owner.to_string()),
                         idl_account.name
                     ),

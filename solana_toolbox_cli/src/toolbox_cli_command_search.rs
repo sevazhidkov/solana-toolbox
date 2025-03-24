@@ -88,7 +88,7 @@ impl ToolboxCliCommandSearchArgs {
             json_accounts.push(json!({
                 "address": address.to_string(),
                 "kind": format!(
-                    "{}::{}",
+                    "{}.{}",
                     idl_program.name.clone().unwrap_or(account.owner.to_string()),
                     idl_account.name,
                 ),

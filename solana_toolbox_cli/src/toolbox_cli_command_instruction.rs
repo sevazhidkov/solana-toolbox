@@ -54,11 +54,15 @@ impl ToolboxCliCommandInstructionArgs {
             .resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();
-        let idl_instruction = idl_program
-            .instructions
-            .get(instruction_name)
-            .cloned()
-            .unwrap_or_default();
+        let idl_instruction =
+            match idl_program.instructions.get(instruction_name).cloned() {
+                Some(idl_instruction) => idl_instruction,
+                None => Err(ToolboxCliError::Custom(format!(
+                    "Could not find instruction {}, expected: {:?}",
+                    instruction_name,
+                    idl_program.instructions.keys()
+                )))?,
+            };
         let instruction_payload = from_str::<Value>(&self.payload)?;
         let mut instruction_keys = HashMap::new();
         for account in &self.accounts {

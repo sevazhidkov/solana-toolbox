@@ -35,11 +35,11 @@ impl ToolboxCliCommandExecutionArgs {
                 .resolve_program(&mut endpoint, &instruction.program_id)
                 .await?
                 .unwrap_or_default();
+            let idl_instruction = idl_program
+                .guess_instruction(&instruction.data)
+                .unwrap_or_default();
             let (program_id, instruction_payload, instruction_addresses) =
-                idl_program
-                    .guess_instruction(&instruction.data)
-                    .unwrap_or_default()
-                    .decompile(&instruction)?;
+                idl_instruction.decompile(&instruction)?;
             let mut json_addresses = Map::new();
             for (name, address) in instruction_addresses {
                 let account =
@@ -54,7 +54,7 @@ impl ToolboxCliCommandExecutionArgs {
                 json_addresses.insert(
                     name,
                     json!(format!(
-                        "{} ({}::{})",
+                        "{} ({}.{})",
                         address.to_string(),
                         idl_program
                             .name
@@ -66,6 +66,7 @@ impl ToolboxCliCommandExecutionArgs {
             }
             json_instructions.push(json!({
                 "program": idl_program.name.clone().unwrap_or(program_id.to_string()),
+                "name": idl_instruction.name,
                 "addresses": json_addresses,
                 "payload": instruction_payload,
             }));

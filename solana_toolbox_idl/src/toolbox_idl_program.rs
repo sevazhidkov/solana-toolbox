@@ -29,6 +29,7 @@ impl ToolboxIdlProgram {
 
     pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
         // TODO - provide support for spl-memo ?
+        // TODO - provde support for spl_token _checked IXs (used by wallets)
         let mut known_programs = HashMap::new();
         known_programs.insert(
             ToolboxEndpoint::SYSTEM_PROGRAM_ID,

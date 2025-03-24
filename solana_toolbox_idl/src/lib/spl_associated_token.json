@@ -2,47 +2,7 @@
   "name": "spl_associated_token",
   "instructions": {
     "Create": {
-      "discriminator": [0, 0, 0, 0],
-      "args": [],
-      "accounts": [
-        { "name": "payer" },
-        {
-          "name": "ata",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "wallet"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206,
-                  235, 121, 172, 28, 180, 133, 237, 95, 91, 55, 145, 58, 140,
-                  245, 133, 126, 255, 0, 169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mint"
-              }
-            ]
-          }
-        },
-        { "name": "wallet" },
-        { "name": "mint" },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        }
-      ]
-    },
-    "CreateIdempotent": {
-      "discriminator": [1, 0, 0, 0],
+      "discriminator": [],
       "args": [],
       "accounts": [
         { "name": "payer" },

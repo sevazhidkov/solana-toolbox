@@ -59,7 +59,7 @@ impl ToolboxCliCommandHistoryArgs {
                     .guess_instruction(&instruction.data)
                     .unwrap_or_default();
                 json_instructions.push(format!(
-                    "{}::{}",
+                    "{}.{}",
                     idl_program
                         .name
                         .clone()

@@ -6,15 +6,7 @@ edition = "2021"
 license = "MIT"
 
 [[bin]]
-name = "solana_toolbox_cli"
-path = "src/main.rs"
-
-[[bin]]
-name = "solana_toolbox"
-path = "src/main.rs"
-
-[[bin]]
-name = "stc"
+name = "solana-toolbox"
 path = "src/main.rs"
 
 [dependencies]
