@@ -12,8 +12,8 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
-    pub const SYSVAR_PROGRAM_ID: Pubkey = sysvar::ID;
     pub const SYSVAR_CLOCK_ID: Pubkey = clock::ID;
+    pub const SYSVAR_PROGRAM_ID: Pubkey = sysvar::ID;
     pub const SYSVAR_RENT_ID: Pubkey = rent::ID;
     pub const SYSVAR_SLOT_HASHES: Pubkey = slot_hashes::ID;
 

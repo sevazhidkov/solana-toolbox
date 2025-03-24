@@ -18,10 +18,10 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
-    pub const NATIVE_LOADER_PROGRAM_ID: Pubkey = native_loader::ID;
+    pub const BPF_LOADER_2_PROGRAM_ID: Pubkey = bpf_loader::ID;
     pub const BPF_LOADER_UPGRADEABLE_PROGRAM_ID: Pubkey =
         bpf_loader_upgradeable::ID;
-    pub const BPF_LOADER_2_PROGRAM_ID: Pubkey = bpf_loader::ID;
+    pub const NATIVE_LOADER_PROGRAM_ID: Pubkey = native_loader::ID;
 
     pub async fn get_program_meta(
         &mut self,
