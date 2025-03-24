@@ -92,6 +92,8 @@ impl ToolboxCliCommandHistoryArgs {
             json_history.push(json!({
                 "signature": signature.to_string(),
                 "instructions": json_instructions,
+                "logs": execution.logs,
+                // TODO - expose all execution info, and maybe merge with "execution" command ?
             }));
         }
         println!("{}", serde_json::to_string(&json!(json_history))?);
