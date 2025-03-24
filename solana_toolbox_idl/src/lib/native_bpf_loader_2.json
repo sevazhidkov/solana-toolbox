@@ -1,0 +1,39 @@
+{
+  "name": "bpf_loader_2",
+  "instructions": {
+    "Write": {
+      "discriminator": [0, 0, 0, 0],
+      "args": [
+        { "name": "offset", "type": "u32" },
+        { "name": "bytes", "type": ["u8"] }
+      ],
+      "accounts": [
+        {
+          "name": "program",
+          "writable": true,
+          "signer": true
+        }
+      ]
+    },
+    "Finalize": {
+      "discriminator": [1, 0, 0, 0],
+      "accounts": [
+        {
+          "name": "program",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ]
+    }
+  },
+  "accounts": {
+    "Program": {
+      "discriminator": [],
+      "fields": []
+    }
+  }
+}

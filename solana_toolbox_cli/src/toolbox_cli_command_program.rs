@@ -23,7 +23,8 @@ impl ToolboxCliCommandProgramArgs {
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
         let idl_program = idl_resolver
             .resolve_program(&mut endpoint, &program_id)
-            .await?;
+            .await?
+            .unwrap_or_default();
         // TODO - handle errors ?
         // TODO - add a new description JSON format output
         println!("{}", serde_json::to_string(&idl_program.export(false))?);

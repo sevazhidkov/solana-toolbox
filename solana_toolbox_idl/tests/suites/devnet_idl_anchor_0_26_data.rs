@@ -20,11 +20,14 @@ pub async fn run() {
     // Parse and load IDL from file JSON directly (since it's not available onchain)
     idl_resolver.preload_program(
         &program_id,
-        ToolboxIdlProgram::try_parse_from_str(
-            &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
-        )
-        .unwrap()
-        .into(),
+        Some(
+            ToolboxIdlProgram::try_parse_from_str(
+                &read_to_string("./tests/fixtures/idl_anchor_0_26.json")
+                    .unwrap(),
+            )
+            .unwrap()
+            .into(),
+        ),
     );
     // Read the global market state content using the IDL
     let global_market_state =

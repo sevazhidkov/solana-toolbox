@@ -146,7 +146,7 @@ impl ToolboxIdlInstruction {
             } else {
                 dependencies.insert(
                     account.name.to_string(),
-                    "UNRESOLVABLE".to_string(),
+                    "MUST_BE_SPECIFIED".to_string(),
                 );
             }
         }

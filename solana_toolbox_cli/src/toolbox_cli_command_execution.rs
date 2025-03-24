@@ -33,20 +33,39 @@ impl ToolboxCliCommandExecutionArgs {
         for instruction in execution.instructions {
             let idl_program = idl_resolver
                 .resolve_program(&mut endpoint, &instruction.program_id)
-                .await?;
-            let (program_id, instruction_addresses, instruction_payload) =
-                idl_program.guess_instruction(&instruction.data)
-                .unwrap() // TODO - handle unwrap with default ?
-                .decompile(&instruction)?;
+                .await?
+                .unwrap_or_default();
+            let (program_id, instruction_payload, instruction_addresses) =
+                idl_program
+                    .guess_instruction(&instruction.data)
+                    .unwrap_or_default()
+                    .decompile(&instruction)?;
             let mut json_addresses = Map::new();
-            for instruction_address in instruction_addresses {
+            for (name, address) in instruction_addresses {
+                let account =
+                    endpoint.get_account(&address).await?.unwrap_or_default();
+                let idl_program = idl_resolver
+                    .resolve_program(&mut endpoint, &account.owner)
+                    .await?
+                    .unwrap_or_default();
+                let idl_account = idl_program
+                    .guess_account(&account.data)
+                    .unwrap_or_default();
                 json_addresses.insert(
-                    instruction_address.0,
-                    json!(instruction_address.1.to_string()),
+                    name,
+                    json!(format!(
+                        "{} ({}::{})",
+                        address.to_string(),
+                        idl_program
+                            .name
+                            .clone()
+                            .unwrap_or(account.owner.to_string()),
+                        idl_account.name,
+                    )),
                 );
             }
             json_instructions.push(json!({
-                "program_id": program_id.to_string(),
+                "program": idl_program.name.clone().unwrap_or(program_id.to_string()),
                 "addresses": json_addresses,
                 "payload": instruction_payload,
             }));

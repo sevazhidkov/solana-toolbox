@@ -22,19 +22,29 @@ impl ToolboxCliCommandAccountArgs {
         let account = endpoint.get_account(&address).await?.unwrap_or_default();
         let idl_program = idl_resolver
             .resolve_program(&mut endpoint, &account.owner)
-            .await?;
-        let idl_account = idl_program.guess_account(&account.data).unwrap(); // TODO - unwrap or defualt ?
+            .await?
+            .unwrap_or_default();
+        let idl_account =
+            idl_program.guess_account(&account.data).unwrap_or_default();
         println!(
             "{}",
             serde_json::to_string(&json!({
-                "address": address.to_string(),
-                "program_id": account.owner.to_string(),
-                "lamports": account.lamports,
-                "space": account.data.len(),
-                "executable": account.executable,
+                "metadata": {
+                    "address": address.to_string(),
+                    "owner": account.owner.to_string(),
+                    "lamports": account.lamports,
+                    "space": account.data.len(),
+                    "executable": account.executable,
+                },
+                "idl": {
+                    "kind": format!(
+                        "{}::{}",
+                        idl_program.name.clone().unwrap_or(account.owner.to_string()),
+                        idl_account.name
+                    ),
+                    "state": idl_account.decompile(&account.data)?,
+                },
                 "data": account.data,
-                "name": idl_account.name,
-                "state": idl_account.decompile(&account.data)?,
             }))?
         );
         Ok(())

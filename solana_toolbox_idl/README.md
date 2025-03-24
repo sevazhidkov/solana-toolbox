@@ -64,9 +64,10 @@ If a program's IDL is not available to be automatically downloaded from endpoint
 
 ```rust
 // We can pre-load and save IDLs from file or JSON string directly
-let idl_string = read_to_string("./my_idl.json").unwrap();
-let idl_program = ToolboxIdlProgram::try_parse_from_str(&idl_string)?;
-idl_resolver.preload_program(&program_id, idl_program);
+let idl_program = ToolboxIdlProgram::try_parse_from_str(
+    &read_to_string("./my_idl.json").unwrap()
+)?;
+idl_resolver.preload_program(&program_id, Some(idl_program.into()));
 // We can also manually generate IDLs inline (with or without shortcut syntax)
 let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
     "instructions": {
@@ -89,8 +90,8 @@ let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         }
     },
     "errors": {},
-})).unwrap();
-idl_resolver.preload_program(&program_id, idl_program);
+}))?;
+idl_resolver.preload_program(&program_id, Some(idl_program.into()));
 ```
 
 ## Documentation

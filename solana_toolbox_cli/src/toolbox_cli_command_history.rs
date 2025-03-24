@@ -53,47 +53,23 @@ impl ToolboxCliCommandHistoryArgs {
             for instruction in execution.instructions {
                 let idl_program = idl_resolver
                     .resolve_program(&mut endpoint, &instruction.program_id)
-                    .await?;
-                let idl_instruction =
-                    idl_program.guess_instruction(&instruction.data).unwrap();
-                let (program_id, addresses, payload) =
-                    idl_instruction.decompile(&instruction)?;
-                let mut json_addresses = Map::new();
-                for (name, address) in addresses {
-                    let account = endpoint
-                        .get_account(&address)
-                        .await?
-                        .unwrap_or_default();
-                    let idl_program = idl_resolver
-                        .resolve_program(&mut endpoint, &account.owner)
-                        .await?;
-                    let idl_account =
-                        idl_program.guess_account(&account.data).unwrap();
-                    json_addresses.insert(
-                        name,
-                        json!(format!(
-                            "{} ({}::{})",
-                            address.to_string(),
-                            account.owner.to_string(), // TODO - program name
-                            idl_account.name,
-                        )),
-                    );
-                }
-                json_instructions.push(json!({
-                    "program": format!(
-                        "{}::{}",
-                        program_id.to_string(), // TODO - program name
-                        idl_instruction.name
-                    ),
-                    "addresses": json_addresses,
-                    "payload": payload
-                }));
+                    .await?
+                    .unwrap_or_default();
+                let idl_instruction = idl_program
+                    .guess_instruction(&instruction.data)
+                    .unwrap_or_default();
+                json_instructions.push(format!(
+                    "{}::{}",
+                    idl_program
+                        .name
+                        .clone()
+                        .unwrap_or(instruction.program_id.to_string()),
+                    idl_instruction.name
+                ));
             }
             json_history.push(json!({
                 "signature": signature.to_string(),
                 "instructions": json_instructions,
-                "logs": execution.logs,
-                // TODO - expose all execution info, and maybe merge with "execution" command ?
             }));
         }
         println!("{}", serde_json::to_string(&json!(json_history))?);

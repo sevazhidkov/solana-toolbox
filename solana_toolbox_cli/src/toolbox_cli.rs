@@ -4,11 +4,11 @@ use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
 
 use crate::toolbox_cli_command_account::ToolboxCliCommandAccountArgs;
-use crate::toolbox_cli_command_addresses::ToolboxCliCommandAddressesArgs;
 use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
 use crate::toolbox_cli_command_history::ToolboxCliCommandHistoryArgs;
 use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
 use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
+use crate::toolbox_cli_command_search::ToolboxCliCommandSearchArgs;
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
@@ -44,6 +44,7 @@ pub struct ToolboxCliArgs {
     )]
     keypair: Option<String>,
     #[arg(
+        short,
         long,
         value_delimiter = ',',
         value_name = "PROGRAM_ID:IDL_FILE_PATH",
@@ -89,11 +90,11 @@ impl ToolboxCliArgs {
 #[derive(Debug, Clone, Subcommand)]
 pub enum ToolboxCliCommand {
     Account(ToolboxCliCommandAccountArgs),
-    Addresses(ToolboxCliCommandAddressesArgs),
     Execution(ToolboxCliCommandExecutionArgs),
     History(ToolboxCliCommandHistoryArgs),
     Instruction(ToolboxCliCommandInstructionArgs),
     Program(ToolboxCliCommandProgramArgs),
+    Search(ToolboxCliCommandSearchArgs),
 }
 
 // TODO - some type of lookup system for addresses by name or smthg
@@ -106,10 +107,10 @@ impl ToolboxCliCommand {
         match self {
             ToolboxCliCommand::Account(args) => args.process(config).await,
             ToolboxCliCommand::Execution(args) => args.process(config).await,
+            ToolboxCliCommand::History(args) => args.process(config).await,
             ToolboxCliCommand::Instruction(args) => args.process(config).await,
             ToolboxCliCommand::Program(args) => args.process(config).await,
-            ToolboxCliCommand::Addresses(args) => args.process(config).await,
-            ToolboxCliCommand::History(args) => args.process(config).await,
+            ToolboxCliCommand::Search(args) => args.process(config).await,
         }
     }
 }

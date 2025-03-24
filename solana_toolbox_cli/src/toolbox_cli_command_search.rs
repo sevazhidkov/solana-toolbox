@@ -15,30 +15,40 @@ use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
-pub struct ToolboxCliCommandAddressesArgs {
+pub struct ToolboxCliCommandSearchArgs {
     #[arg(help = "The ProgramID pubkey that owns the searched accounts")]
     program_id: String,
-    #[arg(help = "Expected exact data size of the searched accounts")]
-    data_len: Option<usize>,
+    #[arg(help = "The max amount of accounts being searched")]
+    limit: Option<usize>,
     #[arg(
+        long,
+        help = "Expected exact data byte size of the searched accounts"
+    )]
+    space: Option<usize>,
+    #[arg(
+        long,
+        value_delimiter = ',',
         help = "Expected data slices of the searched accounts, format: [offset:encoding:data]"
     )]
-    data_chunks: Vec<String>,
+    chunks: Vec<String>,
+    #[arg(long, help = "Expected account name")]
+    name: Option<String>,
 }
 
-impl ToolboxCliCommandAddressesArgs {
+impl ToolboxCliCommandSearchArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
+        let mut idl_resolver = config.create_resolver().await?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
         // TODO - add IDL analysis
-        let mut data_chunks = vec![];
-        for data_chunk in &self.data_chunks {
-            let parts = data_chunk.split(":").collect::<Vec<_>>();
+        let mut chunks = vec![];
+        for chunk in &self.chunks {
+            let parts = chunk.split(":").collect::<Vec<_>>();
             if let [offset, encoding, data] = parts[..] {
-                data_chunks.push((
+                chunks.push((
                     offset.parse::<usize>().unwrap(),
                     parse_blob(encoding, data),
                 ));
@@ -49,20 +59,43 @@ impl ToolboxCliCommandAddressesArgs {
                 ));
             }
         }
-        let mut data_chunks_slices = vec![];
-        for data_chunk in &data_chunks {
-            data_chunks_slices.push((data_chunk.0, &data_chunk.1[..]));
+        let mut chunks_slices = vec![];
+        for chunk in &chunks {
+            chunks_slices.push((chunk.0, &chunk.1[..]));
         }
         let addresses = endpoint
-            .search_addresses(&program_id, self.data_len, &data_chunks_slices)
+            .search_addresses(&program_id, self.space, &chunks_slices)
             .await?;
-        println!(
-            "{}",
-            serde_json::to_string(&json!(addresses
-                .iter()
-                .map(|address| address.to_string())
-                .collect::<Vec<_>>()))?
-        );
+        let mut json_accounts = vec![];
+        for address in addresses {
+            if json_accounts.len() >= self.limit.unwrap_or(10) {
+                break;
+            }
+            let account =
+                endpoint.get_account(&address).await?.unwrap_or_default();
+            let idl_program = idl_resolver
+                .resolve_program(&mut endpoint, &account.owner)
+                .await?
+                .unwrap_or_default();
+            let idl_account =
+                idl_program.guess_account(&account.data).unwrap_or_default();
+            if let Some(name) = &self.name {
+                if &idl_account.name != name {
+                    continue;
+                }
+            }
+            let account_state = idl_account.decompile(&account.data)?;
+            json_accounts.push(json!({
+                "address": address.to_string(),
+                "kind": format!(
+                    "{}::{}",
+                    idl_program.name.clone().unwrap_or(account.owner.to_string()),
+                    idl_account.name,
+                ),
+                "state": account_state,
+            }));
+        }
+        println!("{}", serde_json::to_string(&json!(json_accounts))?);
         Ok(())
     }
 }

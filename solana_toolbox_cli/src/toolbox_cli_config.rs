@@ -1,3 +1,4 @@
+use std::fs::read_to_string;
 use std::str::FromStr;
 
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -7,7 +8,6 @@ use solana_sdk::signature::Keypair;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlResolver;
-use tokio::fs::read_to_string;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_key::ToolboxCliKey;
@@ -52,9 +52,10 @@ impl ToolboxCliConfig {
             if let [program_id, idl_file] = parts[..] {
                 idl_resolver.preload_program(
                     &Pubkey::from_str(program_id)?,
-                    ToolboxIdlProgram::try_parse_from_str(
-                        &read_to_string(idl_file).await?,
-                    )?,
+                    ToolboxIdlProgram::try_parse_from_str(&read_to_string(
+                        idl_file,
+                    )?)?
+                    .into(),
                 );
             } else {
                 return Err(ToolboxCliError::Custom(

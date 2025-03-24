@@ -28,7 +28,7 @@ impl ToolboxIdlProgram {
     }
 
     pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
-        // TODO - provide cached standard implementation for basic contracts such as spl_token and system, and compute_budget ?
+        // TODO - provide support for spl-memo ?
         let mut known_programs = HashMap::new();
         known_programs.insert(
             ToolboxEndpoint::SYSTEM_PROGRAM_ID,
@@ -41,6 +41,10 @@ impl ToolboxIdlProgram {
         known_programs.insert(
             ToolboxEndpoint::COMPUTE_BUDGET_PROGRAM_ID,
             include_str!("lib/native_compute_budget.json"),
+        );
+        known_programs.insert(
+            ToolboxEndpoint::BPF_LOADER_2_PROGRAM_ID,
+            include_str!("lib/native_bpf_loader_2.json"),
         );
         known_programs.insert(
             ToolboxEndpoint::BPF_LOADER_UPGRADEABLE_PROGRAM_ID,

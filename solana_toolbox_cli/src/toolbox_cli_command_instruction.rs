@@ -52,9 +52,13 @@ impl ToolboxCliCommandInstructionArgs {
         let instruction_name = &self.name;
         let idl_program = idl_resolver
             .resolve_program(&mut endpoint, &program_id)
-            .await?;
-        let idl_instruction =
-            idl_program.instructions.get(instruction_name).unwrap();
+            .await?
+            .unwrap_or_default();
+        let idl_instruction = idl_program
+            .instructions
+            .get(instruction_name)
+            .cloned()
+            .unwrap_or_default();
         let instruction_payload = from_str::<Value>(&self.payload)?;
         let mut instruction_keys = HashMap::new();
         for account in &self.accounts {
@@ -70,14 +74,14 @@ impl ToolboxCliCommandInstructionArgs {
                 &mut endpoint,
                 &program_id,
                 instruction_name,
-                &instruction_addresses,
                 &instruction_payload,
+                &instruction_addresses,
             )
             .await?;
         let instruction_compile_result = idl_instruction.compile(
             &program_id,
-            &instruction_addresses,
             &instruction_payload,
+            &instruction_addresses,
         );
         let mut json_addresses = Map::new();
         for instruction_address in &instruction_addresses {
@@ -167,6 +171,7 @@ impl ToolboxCliCommandInstructionArgs {
                             "error": simulation.error,
                             "logs": simulation.logs,
                             "return_data": simulation.return_data,
+                            "units_consumed": simulation.units_consumed,
                         }),
                     );
                 }

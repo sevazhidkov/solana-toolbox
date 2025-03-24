@@ -44,11 +44,14 @@ let mut endpoint = ToolboxEndpoint::new_program_test_with_builtin_programs(&[
     ),
 ])
 .await;
-// Alternatively We can create an endpoint that uses devnet instead
+// Alternatively we can create an endpoint that uses custom devnet URL instead
 let mut endpoint = ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
     "https://api.devnet.solana.com", // or "devnet"
     CommitmentConfig::confirmed(),
 );
+// Alternatively we can use some basic commonly used standard endpoints
+let mut endpoint = ToolboxEndpoint::new_devnet().await;
+let mut endpoint = ToolboxEndpoint::new_memnet().await;
 // Optionally make the endpoint print all transactions being processed
 endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
 ```

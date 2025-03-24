@@ -1,5 +1,6 @@
 {
   "version": "3.12.0-alpha.1",
+  "name": "credix",
   "instructions": [
     {
       "name": "initializeMarket",
