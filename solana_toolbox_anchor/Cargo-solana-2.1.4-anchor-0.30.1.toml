@@ -1,7 +1,7 @@
 [package]
 name = "solana_toolbox_anchor"
 description = "Toolbox for interacting with an anchor programs using an endpoint"
-version = "0.3.5-solana-2.1.4-anchor-0.30.1"
+version = "0.3.6-solana-2.1.4-anchor-0.30.1"
 edition = "2021"
 license = "MIT"
 
@@ -9,7 +9,7 @@ license = "MIT"
 anchor-lang = "=0.30.1"
 
 solana-sdk = "=2.1.4"
-solana_toolbox_endpoint = "=0.3.5-solana-2.1.4"
+solana_toolbox_endpoint = "=0.3.6-solana-2.1.4"
 
 [dev-dependencies]
 tokio = "1.42.0"

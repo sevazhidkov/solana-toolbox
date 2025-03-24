@@ -19,9 +19,9 @@ in `Cargo.toml`:
 
 ```toml
 # For example when using solana version 1.18.26"
-solana_toolbox_idl = "=0.3.5-solana-1.18.26"
+solana_toolbox_idl = "=0.3.6-solana-1.18.26"
 # Or when using solana version 2.1.4"
-solana_toolbox_idl = "=0.3.5-solana-2.1.4"
+solana_toolbox_idl = "=0.3.6-solana-2.1.4"
 ```
 
 ## Examples
