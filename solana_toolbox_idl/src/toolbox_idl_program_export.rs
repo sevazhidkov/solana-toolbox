@@ -8,10 +8,10 @@ impl ToolboxIdlProgram {
     pub fn export(&self, backward_compatibility: bool) -> Value {
         let mut json_program = Map::new();
         if backward_compatibility {
-            export_metadata(&mut json_program);
+            self.export_metadata_to(&mut json_program);
         } else {
             let mut json_program_metadata = Map::new();
-            export_metadata(&mut json_program_metadata);
+            self.export_metadata_to(&mut json_program_metadata);
             json_program
                 .insert("metadata".to_string(), json!(json_program_metadata));
         }
@@ -34,7 +34,7 @@ impl ToolboxIdlProgram {
         json!(json_program)
     }
 
-    fn export_metadata(&self, &mut json_object: &Map) {
+    fn export_metadata_to(&self, json_object: &mut Map<String, Value>) {
         if let Some(name) = &self.metadata.name {
             json_object.insert("name".to_string(), json!(name));
         }

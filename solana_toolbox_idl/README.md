@@ -70,6 +70,7 @@ let idl_program = ToolboxIdlProgram::try_parse_from_str(
 idl_resolver.preload_program(&program_id, Some(idl_program.into()));
 // We can also manually generate IDLs inline (with or without shortcut syntax)
 let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
+    "name": "my_program",
     "instructions": {
         "my_ix": {
             "accounts": [{ "name": "payer", "signer": true }],

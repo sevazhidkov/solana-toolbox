@@ -21,7 +21,6 @@ pub struct ToolboxIdlInstruction {
     pub accounts: Vec<ToolboxIdlInstructionAccount>,
     pub args_type_flat_fields: ToolboxIdlTypeFlatFields,
     pub args_type_full_fields: Arc<ToolboxIdlTypeFullFields>,
-    // TODO - support "discriminant" as a type/value const ?
 }
 
 impl Default for ToolboxIdlInstruction {
@@ -121,6 +120,7 @@ impl ToolboxIdlInstruction {
         instruction_addresses
     }
 
+    // TODO - to include args dependency ?
     pub fn get_addresses_dependencies(&self) -> HashMap<String, String> {
         let mut dependencies = HashMap::new();
         for account in &self.accounts {

@@ -75,7 +75,7 @@ pub async fn run() {
         .instructions
         .get("initialize_market")
         .unwrap()
-        .compute_addresses(
+        .find_addresses(
             &program_id,
             &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from([

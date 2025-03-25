@@ -116,36 +116,32 @@ impl ToolboxIdlProgram {
     fn try_parse_metadata(
         idl_root: &Map<String, Value>,
     ) -> ToolboxIdlProgramMetadata {
-        let mut metadata = ToolboxIdlProgramMetadata {
-            name: idl_object_get_key_as_str(idl_root, "name")
-                .map(ToolboxIdlProgram::sanitize_name),
-            version: idl_object_get_key_as_str(idl_root, "version")
-                .map(String::from),
-            description: idl_object_get_key_as_str(idl_root, "description")
-                .map(String::from),
-        };
+        let mut metadata =
+            ToolboxIdlProgram::try_parse_metadata_object(idl_root);
         if let Some(idl_metadata) =
             idl_object_get_key_as_object(idl_root, "metadata")
         {
-            if let Some(idl_metadata_name) =
-                idl_object_get_key_as_str(idl_metadata, "name")
-            {
-                metadata.name =
-                    Some(ToolboxIdlProgram::sanitize_name(idl_metadata_name))
-            }
-            if let Some(idl_metadata_version) =
-                idl_object_get_key_as_str(idl_metadata, "version")
-            {
-                metadata.version = Some(idl_metadata_version.to_string())
-            }
-            if let Some(idl_metadata_description) =
-                idl_object_get_key_as_str(idl_metadata, "description")
-            {
-                metadata.description =
-                    Some(idl_metadata_description.to_string())
-            }
+            let metadata_inner =
+                ToolboxIdlProgram::try_parse_metadata_object(idl_metadata);
+            metadata.name = metadata_inner.name.or(metadata.name);
+            metadata.version = metadata_inner.version.or(metadata.version);
+            metadata.description =
+                metadata_inner.description.or(metadata.description);
         }
         metadata
+    }
+
+    fn try_parse_metadata_object(
+        idl_object: &Map<String, Value>,
+    ) -> ToolboxIdlProgramMetadata {
+        ToolboxIdlProgramMetadata {
+            name: idl_object_get_key_as_str(idl_object, "name")
+                .map(ToolboxIdlProgram::sanitize_name),
+            version: idl_object_get_key_as_str(idl_object, "version")
+                .map(String::from),
+            description: idl_object_get_key_as_str(idl_object, "description")
+                .map(String::from),
+        }
     }
 
     fn try_parse_typedefs(

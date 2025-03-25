@@ -104,18 +104,27 @@ impl ToolboxIdlResolver {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
-        idl_instruction: &ToolboxIdlInstruction,
+        instruction_name: &str,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction, ToolboxIdlError> {
+        let idl_program = self
+            .resolve_program(endpoint, program_id)
+            .await?
+            .unwrap_or_default();
+        let idl_instruction = idl_program
+            .instructions
+            .get(instruction_name)
+            .cloned()
+            .unwrap_or_default();
         idl_instruction.compile(
             program_id,
             instruction_payload,
             &self
-                .resolve_instruction_addresses(
+                .resolve_custom_instruction_addresses(
                     endpoint,
                     program_id,
-                    idl_instruction,
+                    &idl_instruction,
                     instruction_payload,
                     instruction_addresses,
                 )
@@ -124,6 +133,33 @@ impl ToolboxIdlResolver {
     }
 
     pub async fn resolve_instruction_addresses(
+        &mut self,
+        endpoint: &mut ToolboxEndpoint,
+        program_id: &Pubkey,
+        instruction_name: &str,
+        instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
+    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+        let idl_program = self
+            .resolve_program(endpoint, program_id)
+            .await?
+            .unwrap_or_default();
+        let idl_instruction = idl_program
+            .instructions
+            .get(instruction_name)
+            .cloned()
+            .unwrap_or_default();
+        self.resolve_custom_instruction_addresses(
+            endpoint,
+            program_id,
+            &idl_instruction,
+            instruction_payload,
+            instruction_addresses,
+        )
+        .await
+    }
+
+    pub async fn resolve_custom_instruction_addresses(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,

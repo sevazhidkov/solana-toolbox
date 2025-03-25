@@ -51,7 +51,7 @@ pub async fn run() {
         .instructions
         .get("campaign_create")
         .unwrap()
-        .compute_addresses(
+        .find_addresses(
             &program_id,
             &json!({ "params": { "index": campaign_index } }),
             &HashMap::from([
@@ -113,7 +113,7 @@ pub async fn run() {
         .instructions
         .get("pledge_create")
         .unwrap()
-        .compute_addresses(
+        .find_addresses(
             &program_id,
             &json!({}),
             &HashMap::from([

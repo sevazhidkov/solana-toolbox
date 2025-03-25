@@ -9,7 +9,7 @@ pub async fn run() {
             "my_ix": {
                 "discriminator": [77, 78],
                 "accounts": [
-                    { "name": "addr", "signer": true }
+                    { "name": "addr", "signer": true, "writable": true, "optional": true }
                 ],
                 "args": [
                     { "name": "arg1", "type": {"defined": "MyArg"} },
@@ -31,11 +31,12 @@ pub async fn run() {
     assert_eq!(
         idl_program.export(false),
         json!({
+            "metadata": {},
             "instructions": {
                 "my_ix": {
                     "discriminator": [77, 78],
                     "accounts": [
-                        { "name": "addr", "signer": true }
+                        { "name": "addr", "signer": true, "writable": true, "optional": true }
                     ],
                     "args": [
                         { "name": "arg1", "type": "MyArg" },
@@ -66,7 +67,7 @@ pub async fn run() {
                     "name": "my_ix",
                     "discriminator": [77, 78],
                     "accounts": [
-                        { "name": "addr", "isSigner": true }
+                        { "name": "addr", "isSigner": true, "isMut": true, "isOptional": true }
                     ],
                     "args": [
                         { "name": "arg1", "type": {"defined": {"name": "MyArg"}} },

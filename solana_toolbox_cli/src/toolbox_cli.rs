@@ -91,10 +91,10 @@ impl ToolboxCliArgs {
 pub enum ToolboxCliCommand {
     Account(ToolboxCliCommandAccountArgs),
     Execution(ToolboxCliCommandExecutionArgs),
+    Find(ToolboxCliCommandFindArgs),
     History(ToolboxCliCommandHistoryArgs),
     Instruction(ToolboxCliCommandInstructionArgs),
     Program(ToolboxCliCommandProgramArgs),
-    Find(ToolboxCliCommandFindArgs),
 }
 
 // TODO - some type of lookup system for addresses by name or smthg
@@ -107,10 +107,10 @@ impl ToolboxCliCommand {
         match self {
             ToolboxCliCommand::Account(args) => args.process(config).await,
             ToolboxCliCommand::Execution(args) => args.process(config).await,
+            ToolboxCliCommand::Find(args) => args.process(config).await,
             ToolboxCliCommand::History(args) => args.process(config).await,
             ToolboxCliCommand::Instruction(args) => args.process(config).await,
             ToolboxCliCommand::Program(args) => args.process(config).await,
-            ToolboxCliCommand::Find(args) => args.process(config).await,
         }
     }
 }

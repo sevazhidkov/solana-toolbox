@@ -121,7 +121,7 @@ pub async fn run() {
         .instructions
         .get("my_ix")
         .unwrap()
-        .compute_addresses(&program_id1, &Value::Null, &HashMap::new());
+        .find_addresses(&program_id1, &Value::Null, &HashMap::new());
     assert_eq!(
         *instruction_addresses
             .get("const_bytes_without_program")

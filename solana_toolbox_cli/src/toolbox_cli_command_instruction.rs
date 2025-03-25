@@ -78,7 +78,7 @@ impl ToolboxCliCommandInstructionArgs {
             .resolve_instruction_addresses(
                 &mut endpoint,
                 &program_id,
-                instruction_name,
+                &idl_instruction,
                 &instruction_payload,
                 &instruction_addresses,
             )
