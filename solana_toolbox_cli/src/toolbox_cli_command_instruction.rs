@@ -39,6 +39,7 @@ pub struct ToolboxCliCommandInstructionArgs {
     accounts: Vec<String>,
     #[arg(long, help = "Execute generated instruction instead of simulate")]
     execute: bool,
+    // TODO - set compute budget / price
 }
 
 impl ToolboxCliCommandInstructionArgs {

@@ -74,7 +74,7 @@ pub async fn run() {
         .instructions
         .get("my_ix")
         .unwrap()
-        .find_addresses_with_snapshots(
+        .find_addresses_with_accounts_content_types_and_states(
             &dummy_program_id,
             &json!({}),
             &HashMap::new(),

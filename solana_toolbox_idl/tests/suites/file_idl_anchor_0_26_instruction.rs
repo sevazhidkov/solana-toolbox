@@ -35,25 +35,26 @@ pub async fn run() {
         ("system_program".to_string(), Pubkey::new_unique()),
     ]);
     // Find missing instruction accounts
-    let instruction_addresses = idl_instruction.find_addresses_with_snapshots(
-        &program_id,
-        &instruction_payload,
-        &instruction_addresses,
-        &HashMap::from_iter([(
-            "borrower_info".to_string(),
-            (
-                idl_program
-                    .accounts
-                    .get("BorrowerInfo")
-                    .unwrap()
-                    .content_type_full
-                    .clone(),
-                json!({
-                    "num_of_deals": 42,
-                }),
-            ),
-        )]),
-    );
+    let instruction_addresses = idl_instruction
+        .find_addresses_with_accounts_content_types_and_states(
+            &program_id,
+            &instruction_payload,
+            &instruction_addresses,
+            &HashMap::from_iter([(
+                "borrower_info".to_string(),
+                (
+                    idl_program
+                        .accounts
+                        .get("BorrowerInfo")
+                        .unwrap()
+                        .content_type_full
+                        .clone(),
+                    json!({
+                        "num_of_deals": 42,
+                    }),
+                ),
+            )]),
+        );
     // Check that we can compile it and then decompile it
     assert_eq!(
         (

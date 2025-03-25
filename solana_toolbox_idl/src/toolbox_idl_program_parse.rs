@@ -11,6 +11,7 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
+use crate::toolbox_idl_program::ToolboxIdlProgramMetadata;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
@@ -88,7 +89,7 @@ impl ToolboxIdlProgram {
     ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
-        let name = ToolboxIdlProgram::try_parse_name(idl_root);
+        let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root);
         let typedefs =
             ToolboxIdlProgram::try_parse_typedefs(idl_root, breadcrumbs)?;
         let instructions = ToolboxIdlProgram::try_parse_instructions(
@@ -104,7 +105,7 @@ impl ToolboxIdlProgram {
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
         Ok(ToolboxIdlProgram {
-            name,
+            metadata,
             instructions,
             accounts,
             errors,
@@ -112,19 +113,39 @@ impl ToolboxIdlProgram {
         })
     }
 
-    fn try_parse_name(idl_root: &Map<String, Value>) -> Option<String> {
-        let mut name = idl_object_get_key_as_str(idl_root, "name")
-            .map(ToolboxIdlProgram::sanitize_name);
+    fn try_parse_metadata(
+        idl_root: &Map<String, Value>,
+    ) -> ToolboxIdlProgramMetadata {
+        let mut metadata = ToolboxIdlProgramMetadata {
+            name: idl_object_get_key_as_str(idl_root, "name")
+                .map(ToolboxIdlProgram::sanitize_name),
+            version: idl_object_get_key_as_str(idl_root, "version")
+                .map(String::from),
+            description: idl_object_get_key_as_str(idl_root, "description")
+                .map(String::from),
+        };
         if let Some(idl_metadata) =
             idl_object_get_key_as_object(idl_root, "metadata")
         {
             if let Some(idl_metadata_name) =
                 idl_object_get_key_as_str(idl_metadata, "name")
             {
-                name = Some(ToolboxIdlProgram::sanitize_name(idl_metadata_name))
+                metadata.name =
+                    Some(ToolboxIdlProgram::sanitize_name(idl_metadata_name))
+            }
+            if let Some(idl_metadata_version) =
+                idl_object_get_key_as_str(idl_metadata, "version")
+            {
+                metadata.version = Some(idl_metadata_version.to_string())
+            }
+            if let Some(idl_metadata_description) =
+                idl_object_get_key_as_str(idl_metadata, "description")
+            {
+                metadata.description =
+                    Some(idl_metadata_description.to_string())
             }
         }
-        name
+        metadata
     }
 
     fn try_parse_typedefs(

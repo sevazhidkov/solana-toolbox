@@ -53,7 +53,7 @@ pub async fn run() {
     let idl_instruction =
         idl_program.instructions.get("campaign_create").unwrap();
     // Resolve missing instruction accounts
-    let instruction_addresses = idl_instruction.find_addresses(
+    let instruction_addresses = idl_instruction.compute_addresses(
         &program_id,
         &instruction_payload,
         &instruction_addresses,

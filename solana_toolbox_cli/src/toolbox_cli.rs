@@ -5,10 +5,10 @@ use solana_cli_config::CONFIG_FILE;
 
 use crate::toolbox_cli_command_account::ToolboxCliCommandAccountArgs;
 use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
+use crate::toolbox_cli_command_find::ToolboxCliCommandFindArgs;
 use crate::toolbox_cli_command_history::ToolboxCliCommandHistoryArgs;
 use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
 use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
-use crate::toolbox_cli_command_search::ToolboxCliCommandSearchArgs;
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
 
@@ -94,7 +94,7 @@ pub enum ToolboxCliCommand {
     History(ToolboxCliCommandHistoryArgs),
     Instruction(ToolboxCliCommandInstructionArgs),
     Program(ToolboxCliCommandProgramArgs),
-    Search(ToolboxCliCommandSearchArgs),
+    Find(ToolboxCliCommandFindArgs),
 }
 
 // TODO - some type of lookup system for addresses by name or smthg
@@ -110,7 +110,7 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::History(args) => args.process(config).await,
             ToolboxCliCommand::Instruction(args) => args.process(config).await,
             ToolboxCliCommand::Program(args) => args.process(config).await,
-            ToolboxCliCommand::Search(args) => args.process(config).await,
+            ToolboxCliCommand::Find(args) => args.process(config).await,
         }
     }
 }

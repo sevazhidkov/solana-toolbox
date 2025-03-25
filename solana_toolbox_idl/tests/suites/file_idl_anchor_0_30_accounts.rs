@@ -51,7 +51,7 @@ pub async fn run() {
         .instructions
         .get("campaign_create")
         .unwrap()
-        .find_addresses(
+        .compute_addresses(
             &program_id,
             &json!({ "params": { "index": campaign_index } }),
             &HashMap::from([
@@ -77,7 +77,7 @@ pub async fn run() {
         .instructions
         .get("campaign_extract")
         .unwrap()
-        .find_addresses_with_snapshots(
+        .find_addresses_with_accounts_content_types_and_states(
             &program_id,
             &json!({ "params": { "index": campaign_index } }),
             &HashMap::from([
@@ -113,7 +113,7 @@ pub async fn run() {
         .instructions
         .get("pledge_create")
         .unwrap()
-        .find_addresses(
+        .compute_addresses(
             &program_id,
             &json!({}),
             &HashMap::from([
@@ -129,7 +129,7 @@ pub async fn run() {
         .instructions
         .get("pledge_deposit")
         .unwrap()
-        .find_addresses_with_snapshots(
+        .find_addresses_with_accounts_content_types_and_states(
             &program_id,
             &json!({}),
             &HashMap::from([

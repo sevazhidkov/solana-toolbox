@@ -13,9 +13,15 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct ToolboxIdlProgram {
-    // TODO - parse metadata from all versions
+pub struct ToolboxIdlProgramMetadata {
     pub name: Option<String>,
+    pub description: Option<String>,
+    pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct ToolboxIdlProgram {
+    pub metadata: ToolboxIdlProgramMetadata,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,

@@ -33,8 +33,8 @@ impl ToolboxIdlInstructionAccount {
                 &breadcrumbs.idl(),
             )?,
         );
-        let docs = idl_instruction_account.get("docs").cloned();
         let breadcrumbs = &breadcrumbs.with_idl(&name);
+        let docs = idl_instruction_account.get("docs").cloned();
         let writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
                 .or(idl_object_get_key_as_bool(

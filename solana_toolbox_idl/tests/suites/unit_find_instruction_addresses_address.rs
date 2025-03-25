@@ -29,7 +29,11 @@ pub async fn run() {
         .instructions
         .get("my_ix")
         .unwrap()
-        .find_addresses(&Pubkey::new_unique(), &Value::Null, &HashMap::new());
+        .compute_addresses(
+            &Pubkey::new_unique(),
+            &Value::Null,
+            &HashMap::new(),
+        );
     assert_eq!(
         *instruction_addresses.get("const_address").unwrap(),
         dummy_address,

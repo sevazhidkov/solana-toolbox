@@ -44,14 +44,14 @@ let mut endpoint = ToolboxEndpoint::new_program_test_with_builtin_programs(&[
     ),
 ])
 .await;
+// Alternatively we can use some basic commonly used standard endpoints
+let mut endpoint = ToolboxEndpoint::new_devnet().await;
+let mut endpoint = ToolboxEndpoint::new_memnet().await;
 // Alternatively we can create an endpoint that uses custom devnet URL instead
 let mut endpoint = ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
     "https://api.devnet.solana.com", // or "devnet"
     CommitmentConfig::confirmed(),
 );
-// Alternatively we can use some basic commonly used standard endpoints
-let mut endpoint = ToolboxEndpoint::new_devnet().await;
-let mut endpoint = ToolboxEndpoint::new_memnet().await;
 // Optionally make the endpoint print all transactions being processed
 endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
 ```
@@ -59,15 +59,6 @@ endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
 Then we can use our endpoint previously created:
 
 ```rust
-// The endpoint object provides a lot of useful boilerplate utility functions
-endpoint
-    .process_system_transfer(
-        &payer,
-        &source,
-        &destination.pubkey(),
-        1_000_000_000,
-    )
-    .await?;
 // Then we can use the endpoint to run arbitrary transaction instructions
 endpoint
     .process_instruction(
@@ -77,6 +68,15 @@ endpoint
             accounts: vec![],
             data: vec![],
         },
+    )
+    .await?;
+// The endpoint object provides a lot of useful boilerplate utility functions
+endpoint
+    .process_system_transfer(
+        &payer,
+        &source,
+        &destination.pubkey(),
+        1_000_000_000,
     )
     .await?;
 ```

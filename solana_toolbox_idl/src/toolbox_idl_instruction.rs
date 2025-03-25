@@ -72,7 +72,7 @@ impl ToolboxIdlInstruction {
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> HashMap<String, Pubkey> {
-        self.find_addresses_with_snapshots(
+        self.find_addresses_with_accounts_content_types_and_states(
             program_id,
             instruction_payload,
             instruction_addresses,
@@ -80,12 +80,15 @@ impl ToolboxIdlInstruction {
         )
     }
 
-    pub fn find_addresses_with_snapshots(
+    pub fn find_addresses_with_accounts_content_types_and_states(
         &self,
         program_id: &Pubkey,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-        snapshots: &HashMap<String, (Arc<ToolboxIdlTypeFull>, Value)>,
+        accounts_content_types_and_states: &HashMap<
+            String,
+            (Arc<ToolboxIdlTypeFull>, Value),
+        >,
     ) -> HashMap<String, Pubkey> {
         let mut instruction_addresses = instruction_addresses.clone();
         loop {
@@ -96,15 +99,14 @@ impl ToolboxIdlInstruction {
                 {
                     continue;
                 }
-                if let Ok(instruction_address) = instruction_account
-                    .try_compute(
-                        program_id,
-                        &(&self.args_type_full_fields, instruction_payload),
-                        &instruction_addresses,
-                        snapshots,
-                        &breadcrumbs.with_idl(&instruction_account.name),
-                    )
-                {
+                if let Ok(instruction_address) = instruction_account.try_find(
+                    program_id,
+                    &self.args_type_full_fields,
+                    instruction_payload,
+                    &instruction_addresses,
+                    accounts_content_types_and_states,
+                    &breadcrumbs.with_idl(&instruction_account.name),
+                ) {
                     made_progress = true;
                     instruction_addresses.insert(
                         instruction_account.name.to_string(),

@@ -75,7 +75,7 @@ pub async fn run() {
         .instructions
         .get("initialize_market")
         .unwrap()
-        .find_addresses(
+        .compute_addresses(
             &program_id,
             &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from([
@@ -126,7 +126,7 @@ pub async fn run() {
         .instructions
         .get("open_deal")
         .unwrap()
-        .find_addresses_with_snapshots(
+        .find_addresses_with_accounts_content_types_and_states(
             &program_id,
             &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from([

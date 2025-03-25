@@ -7,8 +7,13 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 impl ToolboxIdlProgram {
     pub fn export(&self, backward_compatibility: bool) -> Value {
         let mut json_program = Map::new();
-        if let Some(name) = &self.name {
-            json_program.insert("name".to_string(), json!(name));
+        if backward_compatibility {
+            export_metadata(&mut json_program);
+        } else {
+            let mut json_program_metadata = Map::new();
+            export_metadata(&mut json_program_metadata);
+            json_program
+                .insert("metadata".to_string(), json!(json_program_metadata));
         }
         json_program.insert(
             "instructions".to_string(),
@@ -27,6 +32,18 @@ impl ToolboxIdlProgram {
             self.export_typedefs(backward_compatibility),
         );
         json!(json_program)
+    }
+
+    fn export_metadata(&self, &mut json_object: &Map) {
+        if let Some(name) = &self.metadata.name {
+            json_object.insert("name".to_string(), json!(name));
+        }
+        if let Some(version) = &self.metadata.version {
+            json_object.insert("version".to_string(), json!(version));
+        }
+        if let Some(description) = &self.metadata.description {
+            json_object.insert("description".to_string(), json!(description));
+        }
     }
 
     fn export_instructions(&self, backward_compatibility: bool) -> Value {

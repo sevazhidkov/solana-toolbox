@@ -9,6 +9,7 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 pub struct ToolboxIdlResolver {
@@ -103,52 +104,35 @@ impl ToolboxIdlResolver {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
-        instruction_name: &str, // TODO - this should be the IDL instruction ?
+        idl_instruction: &ToolboxIdlInstruction,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction, ToolboxIdlError> {
-        let instruction_addresses = self
-            .resolve_instruction_addresses(
-                endpoint,
-                program_id,
-                instruction_name,
-                instruction_payload,
-                instruction_addresses,
-            )
-            .await?;
-        // TODO - this could be partially factored out
-        self.resolve_program(endpoint, program_id)
-            .await?
-            .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
-                program_id: *program_id,
-            })?
-            .instructions
-            .get(instruction_name)
-            .ok_or_else(|| ToolboxIdlError::CouldNotFindInstruction {})? // TODO - this probably shouldnt be a thing ?
-            .compile(program_id, instruction_payload, &instruction_addresses)
+        idl_instruction.compile(
+            program_id,
+            instruction_payload,
+            &self
+                .resolve_instruction_addresses(
+                    endpoint,
+                    program_id,
+                    idl_instruction,
+                    instruction_payload,
+                    instruction_addresses,
+                )
+                .await?,
+        )
     }
 
-    // TODO - this should indicate in the name that this may not be all addresses
     pub async fn resolve_instruction_addresses(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
-        instruction_name: &str,
+        idl_instruction: &ToolboxIdlInstruction,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
-        let idl_program = self
-            .resolve_program(endpoint, program_id)
-            .await?
-            .ok_or_else(|| ToolboxIdlError::CouldNotFindIdl {
-                program_id: *program_id,
-            })?;
-        let idl_instruction = idl_program
-            .instructions
-            .get(instruction_name)
-            .ok_or_else(|| ToolboxIdlError::CouldNotFindInstruction {})?;
         let mut instruction_addresses = instruction_addresses.clone();
-        let mut resolved_snapshots = HashMap::new();
+        let mut instruction_content_types_and_states = HashMap::new();
         for (instruction_account_name, instruction_address) in
             &instruction_addresses
         {
@@ -156,7 +140,7 @@ impl ToolboxIdlResolver {
                 .resolve_account_details(endpoint, instruction_address)
                 .await
             {
-                resolved_snapshots.insert(
+                instruction_content_types_and_states.insert(
                     instruction_account_name.to_string(),
                     (idl_account.content_type_full.clone(), account_state),
                 );
@@ -172,14 +156,12 @@ impl ToolboxIdlResolver {
                     continue;
                 }
                 if let Ok(instruction_address) = idl_instruction_account
-                    .try_compute(
+                    .try_find(
                         program_id,
-                        &(
-                            &idl_instruction.args_type_full_fields,
-                            instruction_payload,
-                        ),
+                        &idl_instruction.args_type_full_fields,
+                        instruction_payload,
                         &instruction_addresses,
-                        &resolved_snapshots,
+                        &instruction_content_types_and_states,
                         &breadcrumbs.with_idl(&idl_instruction.name),
                     )
                 {
@@ -192,7 +174,7 @@ impl ToolboxIdlResolver {
                         .resolve_account_details(endpoint, &instruction_address)
                         .await
                     {
-                        resolved_snapshots.insert(
+                        instruction_content_types_and_states.insert(
                             idl_instruction_account.name.to_string(),
                             (
                                 idl_account.content_type_full.clone(),

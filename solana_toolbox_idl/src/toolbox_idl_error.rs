@@ -55,12 +55,6 @@ pub enum ToolboxIdlError {
         failure: String,
         context: ToolboxIdlContext,
     },
-    CouldNotFindIdl {
-        program_id: Pubkey,
-    },
-    CouldNotFindInstruction,
-    CouldNotFindAccount,
-    CouldNotFindError,
 }
 
 impl From<ToolboxEndpointError> for ToolboxIdlError {

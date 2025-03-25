@@ -7,9 +7,17 @@ use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 impl ToolboxEndpoint {
     pub fn print_execution(execution: &ToolboxEndpointExecution) {
+        println!("slot: {:?}", execution.slot);
+        println!("----");
         println!("payer: {:?}", execution.payer);
         println!("----");
         ToolboxEndpoint::print_instructions(&execution.instructions);
+        if let Some(logs) = &execution.logs {
+            println!("----");
+            for log in logs {
+                println!("logs: {}", log);
+            }
+        }
         println!("----");
         match &execution.error {
             None => {
@@ -19,12 +27,6 @@ impl ToolboxEndpoint {
                 println!("result: Err({:?})", error)
             },
         };
-        if let Some(logs) = &execution.logs {
-            println!("----");
-            for log in logs {
-                println!("logs: {}", log);
-            }
-        }
         if let Some(return_data) = &execution.return_data {
             println!("----");
             ToolboxEndpoint::print_data("return_data", return_data);

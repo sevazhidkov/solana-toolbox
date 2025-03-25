@@ -69,7 +69,7 @@ pub async fn run() {
         .instructions
         .get("my_ix")
         .unwrap()
-        .find_addresses(
+        .compute_addresses(
             &dummy_program_id,
             &json!({
                 "u8": 77,

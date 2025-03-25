@@ -15,10 +15,13 @@ use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
-pub struct ToolboxCliCommandSearchArgs {
+pub struct ToolboxCliCommandFindArgs {
     #[arg(help = "The ProgramID pubkey that owns the searched accounts")]
     program_id: String,
-    #[arg(help = "The max amount of accounts being searched")]
+    #[arg(
+        long,
+        help = "The max amount of accounts being searched (to avoid rate limiting)"
+    )]
     limit: Option<usize>,
     #[arg(
         long,
@@ -31,11 +34,13 @@ pub struct ToolboxCliCommandSearchArgs {
         help = "Expected data slices of the searched accounts, format: [offset:encoding:data]"
     )]
     chunks: Vec<String>,
-    #[arg(long, help = "Expected account name")]
+    #[arg(long, help = "Expected parsed IDL account name")]
     name: Option<String>,
+    #[arg(long, help = "Expected parsed IDL account (partial) state")]
+    state: Option<String>,
 }
 
-impl ToolboxCliCommandSearchArgs {
+impl ToolboxCliCommandFindArgs {
     pub async fn process(
         &self,
         config: &ToolboxCliConfig,
@@ -43,7 +48,6 @@ impl ToolboxCliCommandSearchArgs {
         let mut endpoint = config.create_endpoint().await?;
         let mut idl_resolver = config.create_resolver().await?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
-        // TODO - add IDL analysis
         let mut chunks = vec![];
         for chunk in &self.chunks {
             let parts = chunk.split(":").collect::<Vec<_>>();
@@ -68,7 +72,7 @@ impl ToolboxCliCommandSearchArgs {
             .await?;
         let mut json_accounts = vec![];
         for address in addresses {
-            if json_accounts.len() >= self.limit.unwrap_or(10) {
+            if json_accounts.len() >= self.limit.unwrap_or(5) {
                 break;
             }
             let account =
@@ -85,6 +89,12 @@ impl ToolboxCliCommandSearchArgs {
                 }
             }
             let account_state = idl_account.decompile(&account.data)?;
+            if let Some(state) = &self.state {
+                let expected_state = from_str::<Value>(state).unwrap();
+                if !partial_state_matches(expected_state, account_state) {
+                    continue;
+                }
+            }
             json_accounts.push(json!({
                 "address": address.to_string(),
                 "kind": format!(
@@ -124,3 +134,5 @@ fn parse_blob(encoding: &str, data: &str) -> Vec<u8> {
         panic!("unknown encoding: {}", encoding);
     }
 }
+
+fn partial_state_matches(expected: &Value, found: &Value) -> bool {}
