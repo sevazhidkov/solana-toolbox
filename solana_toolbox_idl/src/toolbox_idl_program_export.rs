@@ -44,6 +44,9 @@ impl ToolboxIdlProgram {
         if let Some(description) = &self.metadata.description {
             json_object.insert("description".to_string(), json!(description));
         }
+        if let Some(docs) = &self.metadata.docs {
+            json_object.insert("docs".to_string(), json!(docs));
+        }
     }
 
     fn export_instructions(&self, backward_compatibility: bool) -> Value {
