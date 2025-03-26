@@ -23,7 +23,7 @@ pub async fn run() {
         .instructions
         .get("initialize_realm")
         .unwrap()
-        .compile(
+        .encode(
             &program_id,
             &json!({
                 "params": {

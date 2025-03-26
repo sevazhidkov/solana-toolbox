@@ -70,7 +70,7 @@ pub async fn run() {
         .unwrap();
     // Generate the actual instructions while resolving missing accounts
     let pledge_create_instruction = idl_service
-        .construct_instruction(
+        .resolve_and_encode_instruction(
             &mut endpoint,
             &idl_instruction_pledge_create,
             &program_id,
@@ -84,7 +84,7 @@ pub async fn run() {
         .await
         .unwrap();
     let pledge_deposit_instruction = idl_service
-        .construct_instruction(
+        .resolve_and_encode_instruction(
             &mut endpoint,
             &idl_instruction_pledge_deposit,
             &program_id,

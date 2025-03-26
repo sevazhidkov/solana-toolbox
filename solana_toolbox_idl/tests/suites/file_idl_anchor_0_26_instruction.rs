@@ -55,12 +55,12 @@ pub async fn run() {
                 ),
             )]),
         );
-    // Check that we can compile it and then decompile it
+    // Check that we can encode it and then decode it
     assert_eq!(
         idl_instruction
-            .decompile(
+            .decode(
                 &idl_instruction
-                    .compile(
+                    .encode(
                         &program_id,
                         &instruction_payload,
                         &instruction_addresses,

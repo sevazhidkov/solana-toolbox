@@ -44,7 +44,7 @@ impl ToolboxIdlAccount {
         idl_convert_to_type_name(name)
     }
 
-    pub fn compile(
+    pub fn encode(
         &self,
         account_state: &Value,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
@@ -59,7 +59,7 @@ impl ToolboxIdlAccount {
         Ok(account_data)
     }
 
-    pub fn decompile(
+    pub fn decode(
         &self,
         account_data: &[u8],
     ) -> Result<Value, ToolboxIdlError> {

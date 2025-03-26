@@ -12,7 +12,7 @@ use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::ToolboxIdlTypeFull;
 
 impl ToolboxIdlInstruction {
-    pub fn compile_addresses(
+    pub fn encode_addresses(
         &self,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
@@ -45,7 +45,7 @@ impl ToolboxIdlInstruction {
         Ok(instruction_metas)
     }
 
-    pub fn decompile_addresses(
+    pub fn decode_addresses(
         &self,
         instruction_metas: &[AccountMeta],
     ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {

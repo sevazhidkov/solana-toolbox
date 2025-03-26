@@ -39,36 +39,36 @@ impl ToolboxIdlInstruction {
         idl_convert_to_value_name(name)
     }
 
-    pub fn compile(
+    pub fn encode(
         &self,
-        program_id: &Pubkey,
+        instruction_program_id: &Pubkey,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction, ToolboxIdlError> {
         Ok(Instruction {
-            program_id: *program_id,
-            data: self.compile_payload(instruction_payload)?,
-            accounts: self.compile_addresses(instruction_addresses)?,
+            program_id: *instruction_program_id,
+            data: self.encode_payload(instruction_payload)?,
+            accounts: self.encode_addresses(instruction_addresses)?,
         })
     }
 
-    pub fn decompile(
+    pub fn decode(
         &self,
         instruction: &Instruction,
     ) -> Result<(Pubkey, Value, HashMap<String, Pubkey>), ToolboxIdlError> {
         Ok((
             instruction.program_id,
-            self.decompile_payload(&instruction.data)?,
-            self.decompile_addresses(&instruction.accounts)?,
+            self.decode_payload(&instruction.data)?,
+            self.decode_addresses(&instruction.accounts)?,
         ))
     }
 
-    // TODO - to include args dependency ?
-    pub fn get_addresses_dependencies(&self) -> HashMap<String, String> {
-        let mut dependencies = HashMap::new();
+    pub fn get_dependencies(&self) -> (String, HashMap<String, String>) {
+        let dependencies_payload = self.args_type_full_fields.summarize();
+        let mut dependencies_addresses = HashMap::new();
         for account in &self.accounts {
             if let Some(account_address) = &account.address {
-                dependencies.insert(
+                dependencies_addresses.insert(
                     account.name.to_string(),
                     format!("={}", account_address),
                 );
@@ -84,17 +84,17 @@ impl ToolboxIdlInstruction {
                         dependencies_blobs.push(format!("{}s.{}", kind, path));
                     }
                 }
-                dependencies.insert(
+                dependencies_addresses.insert(
                     account.name.to_string(),
                     format!("[{}]", dependencies_blobs.join(",")),
                 );
             } else {
-                dependencies.insert(
+                dependencies_addresses.insert(
                     account.name.to_string(),
                     "MUST_BE_SPECIFIED".to_string(),
                 );
             }
         }
-        dependencies
+        (dependencies_payload, dependencies_addresses)
     }
 }

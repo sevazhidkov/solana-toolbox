@@ -42,7 +42,7 @@ impl ToolboxCliCommandAccountArgs {
                         idl_program.name.clone().unwrap_or(account.owner.to_string()),
                         idl_account.name
                     ),
-                    "state": idl_account.decompile(&account.data)?,
+                    "state": idl_account.decode(&account.data)?,
                 },
                 "data": account.data,
             }))?

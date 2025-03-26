@@ -6,8 +6,8 @@ This crate provide a framework to interact with solana smart contracts by using 
 
 For example, using an IDL file, or an IDL downloaded from chain we can:
 
-- Read account data into JSON (resolve, decode, decompile the state of the account)
-- Generate transaction data from a JSON IDL (construct, compile an instruction)
+- Read account data into JSON (resolve and decode the state of the account)
+- Generate transaction data from a JSON IDL (resolve and encode an instruction)
 - Resolve an instruction's accounts addresses (by looking at the seeds in the IDL)
 
 ## Install
@@ -45,7 +45,7 @@ let idl_program = idl_service.resolve_program(&mut endpoint, &my_program_id).awa
 let idl_instruction = idl_program.instructions.get("my_ix").unwrap();
 // We can smartly generate an instruction from JSON data and accounts addresses
 let instruction: Instruction = idl_service
-    .construct_instruction(
+    .resolve_and_encode_instruction(
         &mut endpoint,
         &idl_instruction,
         &my_program_id,

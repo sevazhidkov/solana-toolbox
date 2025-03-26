@@ -33,7 +33,7 @@ impl ToolboxIdlService {
             .guess_instruction(&instruction.data)
             .unwrap_or_default();
         let (_, instruction_payload, instruction_addresses) =
-            idl_instruction.decompile(instruction)?;
+            idl_instruction.decode(instruction)?;
         Ok(ToolboxIdlServiceInstructionDecoded {
             program: idl_program,
             instruction: idl_instruction,
@@ -42,7 +42,7 @@ impl ToolboxIdlService {
         })
     }
 
-    pub async fn construct_instruction(
+    pub async fn resolve_and_encode_instruction(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         idl_instruction: &ToolboxIdlInstruction,
@@ -50,7 +50,7 @@ impl ToolboxIdlService {
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction, ToolboxIdlError> {
-        idl_instruction.compile(
+        idl_instruction.encode(
             instruction_program_id,
             instruction_payload,
             &self

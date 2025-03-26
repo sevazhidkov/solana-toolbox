@@ -38,12 +38,12 @@ pub async fn run() {
         "withdraw_epoch_redeem_seconds": 23,
         "withdraw_epoch_available_liquidity_seconds": 24,
     });
-    // Compile / decompile the instruction args and check that they match the original
+    // Encode/decode the instruction args and check that they match the original
     assert_eq!(
         idl_instruction
-            .decompile_payload(
+            .decode_payload(
                 &idl_instruction
-                    .compile_payload(&instruction_payload)
+                    .encode_payload(&instruction_payload)
                     .unwrap(),
             )
             .unwrap(),
@@ -82,10 +82,10 @@ pub async fn run() {
         "has_withdraw_epochs": true,
         "redeem_authority_bump": 9,
     });
-    // Decompile the account content and check that it matches the original
+    // Decode the account content and check that it matches the original
     assert_eq!(
         idl_account
-            .decompile(&idl_account.compile(&account_state).unwrap())
+            .decode(&idl_account.encode(&account_state).unwrap())
             .unwrap(),
         account_state,
     );
@@ -107,10 +107,10 @@ pub async fn run() {
         ],
         "credix_treasury": Pubkey::new_unique().to_string(),
     });
-    // Decompile the account content and check that it matches the original
+    // Decode the account content and check that it matches the original
     assert_eq!(
         idl_account
-            .decompile(&idl_account.compile(&account_state).unwrap())
+            .decode(&idl_account.encode(&account_state).unwrap())
             .unwrap(),
         account_state,
     );

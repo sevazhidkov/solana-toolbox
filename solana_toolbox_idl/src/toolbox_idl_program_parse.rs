@@ -128,6 +128,7 @@ impl ToolboxIdlProgram {
             metadata.version = metadata_inner.version.or(metadata.version);
             metadata.description =
                 metadata_inner.description.or(metadata.description);
+            metadata.docs = metadata_inner.docs.or(metadata.docs);
         }
         metadata
     }
@@ -142,6 +143,7 @@ impl ToolboxIdlProgram {
                 .map(String::from),
             description: idl_object_get_key_as_str(idl_object, "description")
                 .map(String::from),
+            docs: idl_object.get("docs").cloned(),
         }
     }
 

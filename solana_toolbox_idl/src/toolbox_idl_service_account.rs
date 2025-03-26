@@ -13,6 +13,8 @@ use crate::toolbox_idl_service::ToolboxIdlService;
 pub struct ToolboxIdlServiceAccountDecoded {
     pub program: Arc<ToolboxIdlProgram>,
     pub account: Arc<ToolboxIdlAccount>,
+    pub lamports: u64,
+    pub owner: Pubkey,
     pub state: Value,
 }
 
@@ -37,10 +39,12 @@ impl ToolboxIdlService {
             .unwrap_or_default();
         let idl_account =
             idl_program.guess_account(&account.data).unwrap_or_default();
-        let account_state = idl_account.decompile(&account.data)?;
+        let account_state = idl_account.decode(&account.data)?;
         Ok(ToolboxIdlServiceAccountDecoded {
             program: idl_program,
             account: idl_account,
+            lamports: account.lamports,
+            owner: account.owner,
             state: account_state,
         })
     }

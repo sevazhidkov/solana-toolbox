@@ -30,13 +30,13 @@ pub async fn run() {
             },
         },
     });
-    // Compile / decompile the instruction payload and check that they match the original
+    // Encode / decode the instruction payload and check that they match the original
     assert_eq!(
         &instruction_payload,
         &idl_instruction
-            .decompile_payload(
+            .decode_payload(
                 &idl_instruction
-                    .compile_payload(&instruction_payload)
+                    .encode_payload(&instruction_payload)
                     .unwrap(),
             )
             .unwrap()
@@ -65,10 +65,10 @@ pub async fn run() {
             "bytes": account_state_metadata_bytes,
         }
     });
-    // Decompile the account state and check that it matches the original state
-    let account_data = idl_account.compile(&account_state).unwrap();
+    // Encode/decode the account state and check that it matches the original
+    let account_data = idl_account.encode(&account_state).unwrap();
     assert_eq!(account_data.len(), 675);
-    assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
+    assert_eq!(account_state, idl_account.decode(&account_data).unwrap());
     // IDL Account used
     let idl_account = idl_program.accounts.get("Pledge").unwrap();
     let account_state = json!({
@@ -76,8 +76,8 @@ pub async fn run() {
         "deposited_collateral_amount": 999,
         "claimed_redeemable_amount": 22,
     });
-    // Decompile the account content and check that it matches the original
-    let account_data = idl_account.compile(&account_state).unwrap();
+    // Encode/decode the account content and check that it matches the original
+    let account_data = idl_account.encode(&account_state).unwrap();
     assert_eq!(account_data.len(), 25);
-    assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
+    assert_eq!(account_state, idl_account.decode(&account_data).unwrap());
 }

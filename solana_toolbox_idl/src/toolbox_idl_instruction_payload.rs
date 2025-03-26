@@ -5,7 +5,7 @@ use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 
 impl ToolboxIdlInstruction {
-    pub fn compile_payload(
+    pub fn encode_payload(
         &self,
         instruction_payload: &Value,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
@@ -20,7 +20,7 @@ impl ToolboxIdlInstruction {
         Ok(instruction_data)
     }
 
-    pub fn decompile_payload(
+    pub fn decode_payload(
         &self,
         instruction_data: &[u8],
     ) -> Result<Value, ToolboxIdlError> {

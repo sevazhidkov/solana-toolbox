@@ -51,8 +51,8 @@ pub async fn run() {
         "array": [99, 98, 97],
         "vec": [-55, 56, 57],
     });
-    // Check that we can use the manual IDL to compile/decompile our account 1
-    let account_data = idl_account.compile(&account_state).unwrap();
+    // Check that we can use the manual IDL to encode/decode our account 1
+    let account_data = idl_account.encode(&account_state).unwrap();
     assert_eq!(
         vec![
             74, 73, 72, 71, 4, 0, 0, 0, 65, 66, 67, 68, 42, 0, 0, 0, 1, 77, 99,
@@ -60,7 +60,7 @@ pub async fn run() {
         ],
         account_data,
     );
-    assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
+    assert_eq!(account_state, idl_account.decode(&account_data).unwrap());
     // MyAccount2 prepared
     let idl_account = idl_program.accounts.get("MyAccount2").unwrap();
     let account_state = json!({
@@ -75,11 +75,11 @@ pub async fn run() {
             "byte": 79
         },
     });
-    // Check that we can use the manual IDL to compile/decompile our account 2
-    let account_data = idl_account.compile(&account_state).unwrap();
+    // Check that we can use the manual IDL to encode/decode our account 2
+    let account_data = idl_account.encode(&account_state).unwrap();
     assert_eq!(
         vec![99, 43, 0, 0, 0, 0, 78, 44, 0, 0, 0, 2, 79],
         account_data
     );
-    assert_eq!(account_state, idl_account.decompile(&account_data).unwrap());
+    assert_eq!(account_state, idl_account.decode(&account_data).unwrap());
 }

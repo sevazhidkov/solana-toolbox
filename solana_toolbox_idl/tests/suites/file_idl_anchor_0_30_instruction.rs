@@ -60,7 +60,7 @@ pub async fn run() {
     );
     // Actually generate the instruction
     let instruction = idl_instruction
-        .compile(&program_id, &instruction_payload, &instruction_addresses)
+        .encode(&program_id, &instruction_payload, &instruction_addresses)
         .unwrap();
     // Generate expected accounts
     let campaign_collateral =
