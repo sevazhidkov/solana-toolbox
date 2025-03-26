@@ -49,6 +49,7 @@ impl From<ParseCommitmentLevelError> for ToolboxCliError {
     }
 }
 
+// TODO - could remove this regular json completely ?
 impl From<serde_json::Error> for ToolboxCliError {
     fn from(source: serde_json::Error) -> Self {
         ToolboxCliError::SerdeJson(source)
