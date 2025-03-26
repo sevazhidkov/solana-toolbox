@@ -21,7 +21,7 @@ impl ToolboxCliCommandAccountArgs {
         let address = config.parse_key(&self.address)?.address();
         let account = endpoint.get_account(&address).await?.unwrap_or_default();
         let idl_program = idl_service
-            .resolve_program(&mut endpoint, &account.owner)
+            .preload_program(&mut endpoint, &account.owner)
             .await?
             .unwrap_or_default();
         let idl_account =
