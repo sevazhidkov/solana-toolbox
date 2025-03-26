@@ -1,11 +1,8 @@
-use std::str::FromStr;
-
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use clap::Args;
 use serde_json::json;
 use solana_sdk::bs58;
-use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlBreadcrumbs;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
