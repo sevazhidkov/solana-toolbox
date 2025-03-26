@@ -77,7 +77,7 @@ impl ToolboxCliCommandExecutionArgs {
                 "payer": execution.payer.to_string(),
                 "instructions": json_instructions,
                 "logs": execution.logs,
-                "error": execution.error, // TODO - could parse the error using the code
+                "error": execution.error, // TODO (MEDIUM) - could parse the error using the code
                 "return_data": execution.return_data,
                 "units_consumed": execution.units_consumed,
             }))?

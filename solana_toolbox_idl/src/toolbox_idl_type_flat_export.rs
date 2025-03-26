@@ -23,7 +23,7 @@ impl ToolboxIdlTypeFlat {
                     }
                     json!({ "defined": { "name": name, "generics": json_generics }})
                 } else if backward_compatibility {
-                    // TODO - in anchor 0.26, the format is {defined:name}
+                    // TODO (FAR) - in anchor 0.26, the format is {defined:name}
                     json!({ "defined": { "name": name }})
                 } else {
                     json!(name)
@@ -119,7 +119,7 @@ impl ToolboxIdlTypeFlat {
                 }
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
-                json!(primitive.as_str()) // TODO - in anchor 0.26, some names are different
+                json!(primitive.as_str()) // TODO (FAR) - in anchor 0.26, some names are different
             },
         }
     }

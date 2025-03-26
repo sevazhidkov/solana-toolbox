@@ -8,7 +8,7 @@ use solana_toolbox_endpoint::ToolboxEndpointError;
 
 use crate::toolbox_idl_context::ToolboxIdlContext;
 
-// TODO - there has to be a better way to handle errors
+// TODO (MEDIUM) - there has to be a better way to handle errors
 #[derive(Debug)]
 pub enum ToolboxIdlError {
     ToolboxEndpoint(ToolboxEndpointError),

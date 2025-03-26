@@ -1,9 +1,9 @@
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
-// TODO - this type could support a bunch of recursive features such as:
-// TODO - Type MIN/MAX sizing ?
-// TODO - Type Default value ?
-// TODO - Type Example value ?
+// TODO (FAR) - this type could support a bunch of recursive features such as:
+// TODO (FAR) - Type MIN/MAX sizing ?
+// TODO (FAR) - Type Default value ?
+// TODO (FAR) - Type Example value ?
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
     Option {

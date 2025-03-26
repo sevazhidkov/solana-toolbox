@@ -35,7 +35,7 @@ impl ToolboxIdlTransactionError {
                 msg: "".to_string(),
             });
         }
-        // TODO - better error handling
+        // TODO (MEDIUM) - better error handling
         idl_err("Unparsable error", &breadcrumbs.as_idl("@"))
     }
 }

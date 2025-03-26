@@ -36,8 +36,8 @@ mod toolbox_idl_typedef;
 mod toolbox_idl_typedef_export;
 mod toolbox_idl_typedef_parse;
 mod toolbox_idl_utils;
-// TODO - handle events from logs ?
-// TODO - support for uploading IDLs ?
+// TODO (FAR) - handle events from logs ?
+// TODO (FAR) - support for uploading IDLs ?
 
 pub use toolbox_idl_account::ToolboxIdlAccount;
 pub use toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;

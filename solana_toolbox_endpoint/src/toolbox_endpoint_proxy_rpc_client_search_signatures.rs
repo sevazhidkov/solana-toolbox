@@ -7,7 +7,7 @@ use solana_sdk::signature::Signature;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
-// TODO - should it return the first signature "start_before" in results ?
+// TODO (FAR) - should it return the first signature "start_before" in results ?
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn search_signatures_using_rpc(
         &mut self,
@@ -43,7 +43,7 @@ impl ToolboxEndpointProxyRpcClient {
             }
             for signature in &signatures {
                 let found_signature = Signature::from_str(&signature.signature)
-                    .map_err(ToolboxEndpointError::ParseSignature)?; // TODO - map not need any map_err
+                    .map_err(ToolboxEndpointError::ParseSignature)?; // TODO (MEDIUM) - map not need any map_err
                 ordered_signatures.push(found_signature);
                 if ordered_signatures.len() >= limit {
                     return Ok(ordered_signatures);

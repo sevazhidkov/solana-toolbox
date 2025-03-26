@@ -41,7 +41,7 @@ impl ToolboxIdlProgram {
                 found: account_data.to_vec(),
             });
         }
-        // TODO - this could use a struct deserialization ?
+        // TODO (FAR) - this could use a struct deserialization ?
         let authority_offset = discriminator.len();
         let authority = idl_pubkey_from_bytes_at(
             account_data,
@@ -186,7 +186,7 @@ impl ToolboxIdlProgram {
                 breadcrumbs,
             )?
         {
-            // TODO - support instructions with no name (use index ?)
+            // TODO (FAR) - support instructions with no name (use index ?)
             let idl_instruction_name =
                 ToolboxIdlInstruction::sanitize_name(idl_instruction_name);
             instructions.insert(

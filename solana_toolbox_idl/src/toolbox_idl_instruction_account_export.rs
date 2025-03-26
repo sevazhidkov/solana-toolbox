@@ -13,7 +13,7 @@ impl ToolboxIdlInstructionAccount {
         if let Some(docs) = &self.docs {
             json_object.insert("docs".to_string(), json!(docs));
         }
-        // TODO - support multiple anchor versions format
+        // TODO (FAR) - support multiple anchor versions format
         if backward_compatibility {
             if self.signer {
                 json_object.insert("isSigner".to_string(), json!(true));
@@ -70,7 +70,7 @@ impl ToolboxIdlInstructionAccountPda {
 
 impl ToolboxIdlInstructionAccountPdaBlob {
     pub fn export(&self, _backward_compatibility: bool) -> Value {
-        // TODO - support backward compatibility for stuff like "account"/"type" fields ?
+        // TODO (FAR) - support backward compatibility for stuff like "account"/"type" fields ?
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => json!({
                 "kind": "const",

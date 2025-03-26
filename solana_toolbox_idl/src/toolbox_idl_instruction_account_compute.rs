@@ -88,7 +88,7 @@ impl ToolboxIdlInstructionAccountPda {
             Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
                 |err| {
                     ToolboxIdlError::Custom {
-                        failure: format!("value:{:?}", err), // TODO - better error handling and breadcrumbs
+                        failure: format!("value:{:?}", err), // TODO (MEDIUM) - better error handling and breadcrumbs
                         context: breadcrumbs.as_idl("program_id"),
                     }
                 },
@@ -168,7 +168,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<Vec<u8>, ToolboxIdlError> {
         let lookup_name = parts[0];
-        // TODO - support unamed structs as arg ?
+        // TODO (FAR) - support unamed structs as arg ?
         let type_full_fields_named = idl_ok_or_else(
             type_full_fields.as_named(),
             "expected named fields",

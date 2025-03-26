@@ -57,7 +57,7 @@ pub async fn run() {
         })
     );
     // Check the JSON backward compatibility version
-    assert_eq!( // TODO - add more in-depth testing for all anchor version and parts of IDL (should we re-use the parse_ tests?)
+    assert_eq!( // TODO (FAR) - add more in-depth testing for all anchor version and parts of IDL (should we re-use the parse_ tests?)
         idl_program.export(true).to_string(),
         json!({
             "accounts": [],

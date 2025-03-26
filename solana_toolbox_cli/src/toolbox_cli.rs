@@ -97,7 +97,7 @@ pub enum ToolboxCliCommand {
     Program(ToolboxCliCommandProgramArgs),
 }
 
-// TODO - some type of lookup system for addresses by name or smthg
+// TODO (MEDIUM) - some type of lookup system for addresses by name or smthg
 
 impl ToolboxCliCommand {
     pub async fn process(

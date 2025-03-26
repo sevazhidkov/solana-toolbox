@@ -380,7 +380,7 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
 }
 
-// TODO - could be clean'ed
+// TODO (FAR) - could be clean'ed
 pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
     map: &'a HashMap<String, V>,
     key: &str,
