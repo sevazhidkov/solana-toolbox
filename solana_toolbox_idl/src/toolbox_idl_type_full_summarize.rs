@@ -46,7 +46,7 @@ impl ToolboxIdlTypeFullFields {
                 let mut items = vec![];
                 for (field_name, field_type) in fields {
                     items.push(format!(
-                        "\"{}\":{}",
+                        "{}:{}",
                         field_name,
                         field_type.summarize()
                     ));

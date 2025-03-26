@@ -1,13 +1,9 @@
 use std::collections::HashMap;
-use std::str::FromStr;
 
 use clap::Args;
-use serde_json::from_str;
 use serde_json::json;
 use serde_json::Map;
-use serde_json::Value;
 use solana_sdk::bs58;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
@@ -48,23 +44,30 @@ impl ToolboxCliCommandInstructionArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_resolver().await?;
-        let program_id = Pubkey::from_str(&self.program_id).unwrap();
+        let mut idl_service = config.create_idl_service().await?;
+        let instruction_program_id =
+            config.parse_key(&self.program_id)?.address();
         let instruction_name = &self.name;
-        let idl_program = idl_service
-            .resolve_program(&mut endpoint, &program_id)
+        let idl_program = match idl_service
+            .resolve_program(&mut endpoint, &instruction_program_id)
             .await?
-            .unwrap_or_default();
+        {
+            Some(idl_program) => idl_program,
+            None => Err(ToolboxCliError::Custom(format!(
+                "Could not resolve program with program_id: {}",
+                instruction_program_id.to_string(),
+            )))?,
+        };
         let idl_instruction =
             match idl_program.instructions.get(instruction_name).cloned() {
                 Some(idl_instruction) => idl_instruction,
                 None => Err(ToolboxCliError::Custom(format!(
-                    "Could not find instruction {}, expected: {:?}",
+                    "Could not find instruction {}, available: {:?}",
                     instruction_name,
                     idl_program.instructions.keys()
                 )))?,
             };
-        let instruction_payload = from_str::<Value>(&self.payload)?;
+        let instruction_payload = config.parse_json(&self.payload)?;
         let mut instruction_keys = HashMap::new();
         for account in &self.accounts {
             let (name, key) = config.parse_account(account)?;
@@ -77,14 +80,14 @@ impl ToolboxCliCommandInstructionArgs {
         let instruction_addresses = idl_service
             .resolve_instruction_addresses(
                 &mut endpoint,
-                &program_id,
                 &idl_instruction,
+                &instruction_program_id,
                 &instruction_payload,
                 &instruction_addresses,
             )
             .await?;
-        let instruction_compile_result = idl_instruction.compile(
-            &program_id,
+        let instruction_encode_result = idl_instruction.encode(
+            &instruction_program_id,
             &instruction_payload,
             &instruction_addresses,
         );
@@ -95,45 +98,25 @@ impl ToolboxCliCommandInstructionArgs {
                 json!(instruction_address.1.to_string()),
             );
         }
-        let mut json_dependencies_missing = Map::new();
-        for instruction_address_dependency in
-            idl_instruction.get_addresses_dependencies()
-        {
-            if instruction_addresses
-                .contains_key(&instruction_address_dependency.0)
-            {
+        let (payload_dependencies, addresses_dependencies) =
+            idl_instruction.get_dependencies();
+        let mut json_dependencies_addresses = Map::new();
+        for address_dependency in addresses_dependencies {
+            if instruction_addresses.contains_key(&address_dependency.0) {
                 continue;
             }
-            json_dependencies_missing.insert(
-                instruction_address_dependency.0,
-                json!(instruction_address_dependency.1),
-            );
+            json_dependencies_addresses
+                .insert(address_dependency.0, json!(address_dependency.1));
         }
-        let mut json_compile = Map::new();
-        match instruction_compile_result {
+        let json_dependencies = json!({
+            "payload": payload_dependencies,
+            "addresses": json_dependencies_addresses,
+        });
+        let mut json_outcome = Map::new();
+        match instruction_encode_result {
             Ok(instruction) => {
-                let mut json_compile_content = Map::new();
-                json_compile_content.insert(
-                    "program_id".to_string(),
-                    json!(instruction.program_id.to_string()),
-                );
-                let mut json_compile_content_accounts = vec![];
-                for instruction_account in &instruction.accounts {
-                    json_compile_content_accounts.push(json!({
-                        "address": instruction_account.pubkey.to_string(),
-                        "is_writable": instruction_account.is_writable,
-                        "is_signer": instruction_account.is_signer,
-                    }));
-                }
-                json_compile_content.insert(
-                    "accounts".to_string(),
-                    json!(json_compile_content_accounts),
-                );
-                json_compile_content
-                    .insert("data".to_string(), json!(instruction.data));
-                json_compile
-                    .insert("content".to_string(), json!(json_compile_content));
-                json_compile.insert(
+                // TODO - provide link to simulation explorer instead of encoded
+                json_outcome.insert(
                     "message_base58".to_string(),
                     json!(bs58::encode(
                         Transaction::new_with_payer(
@@ -159,18 +142,19 @@ impl ToolboxCliCommandInstructionArgs {
                             &signers,
                         )
                         .await?;
-                    json_compile.insert(
+                    json_outcome.insert(
                         "signature".to_string(),
                         json!(signature.to_string()),
                     );
                 } else {
                     let simulation = endpoint
-                        .simulate_instruction(
+                        .simulate_instruction_with_signers(
                             &config.get_keypair(),
                             instruction.clone(),
+                            &signers,
                         )
                         .await?;
-                    json_compile.insert(
+                    json_outcome.insert(
                         "simulation".to_string(),
                         json!({
                             "error": simulation.error,
@@ -182,16 +166,19 @@ impl ToolboxCliCommandInstructionArgs {
                 }
             },
             Err(error) => {
-                json_compile
+                json_outcome
                     .insert("error".to_string(), json!(format!("{:?}", error)));
             },
         };
         println!(
             "{}",
             serde_json::to_string(&json!({
-                "dependencies_missing": json_dependencies_missing,
-                "addresses": json_addresses,
-                "compile": json_compile,
+                "resolved": {
+                    "payload": instruction_payload,
+                    "addresses": json_addresses,
+                },
+                "dependencies": json_dependencies,
+                "outcome": json_outcome,
             }))?
         );
         Ok(())

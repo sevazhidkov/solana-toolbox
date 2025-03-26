@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use clap::Args;
 use serde_json::json;
-use serde_json::Map;
 use solana_sdk::signature::Signature;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
@@ -27,7 +26,7 @@ impl ToolboxCliCommandHistoryArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_resolver().await?;
+        let mut idl_service = config.create_idl_service().await?;
         let address = config.parse_key(&self.address)?.address();
         let start_before = self
             .start_before_signature
@@ -52,27 +51,23 @@ impl ToolboxCliCommandHistoryArgs {
             let mut json_instructions = vec![];
             let execution = endpoint.get_execution(&signature).await?;
             for instruction in execution.instructions {
-                let idl_program = idl_service
-                    .resolve_program(&mut endpoint, &instruction.program_id)
-                    .await?
-                    .unwrap_or_default();
-                let idl_instruction = idl_program
-                    .guess_instruction(&instruction.data)
-                    .unwrap_or_default();
+                let instruction_decoded = idl_service
+                    .decode_instruction(&mut endpoint, &instruction)
+                    .await?;
                 json_instructions.push(format!(
                     "{}.{}",
-                    idl_program
+                    instruction_decoded
+                        .program
+                        .metadata
                         .name
                         .clone()
                         .unwrap_or(instruction.program_id.to_string()),
-                    idl_instruction.name
+                    instruction_decoded.instruction.name
                 ));
             }
             json_history.push(json!({
                 "signature": signature.to_string(),
-                "idl": {
-                    "instructions": json_instructions,
-                },
+                "instructions": json_instructions,
             }));
         }
         println!("{}", serde_json::to_string(&json!(json_history))?);

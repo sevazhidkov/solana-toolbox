@@ -1,7 +1,4 @@
-use std::str::FromStr;
-
 use clap::Args;
-use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_cli_config::ToolboxCliConfig;
 use crate::toolbox_cli_error::ToolboxCliError;
@@ -20,8 +17,8 @@ impl ToolboxCliCommandProgramArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_resolver().await?;
-        let program_id = Pubkey::from_str(&self.program_id).unwrap();
+        let mut idl_service = config.create_idl_service().await?;
+        let program_id = config.parse_key(&self.program_id)?.address();
         let idl_program = idl_service
             .resolve_program(&mut endpoint, &program_id)
             .await?

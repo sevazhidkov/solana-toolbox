@@ -46,8 +46,8 @@ impl ToolboxCliCommandFindArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_resolver().await?;
-        let program_id = Pubkey::from_str(&self.program_id).unwrap();
+        let mut idl_service = config.create_idl_service().await?;
+        let program_id = config.parse_key(&self.program_id)?.address();
         let mut chunks = vec![];
         for chunk in &self.chunks {
             let parts = chunk.split(":").collect::<Vec<_>>();
@@ -75,34 +75,34 @@ impl ToolboxCliCommandFindArgs {
             if json_accounts.len() >= self.limit.unwrap_or(5) {
                 break;
             }
-            let account =
-                endpoint.get_account(&address).await?.unwrap_or_default();
-            let idl_program = idl_service
-                .resolve_program(&mut endpoint, &account.owner)
-                .await?
-                .unwrap_or_default();
-            let idl_account =
-                idl_program.guess_account(&account.data).unwrap_or_default();
+            // TODO (MEDIUM) - filter by state content
+            let account_decoded = idl_service
+                .get_and_decode_account(&mut endpoint, &address)
+                .await?;
             if let Some(name) = &self.name {
-                if &idl_account.name != name {
+                if &account_decoded.account.name != name {
                     continue;
                 }
             }
-            let account_state = idl_account.decompile(&account.data)?;
+            /*
             if let Some(state) = &self.state {
                 let expected_state = from_str::<Value>(state).unwrap();
-                if !partial_state_matches(expected_state, account_state) {
+                if !partial_state_matches(
+                    &expected_state,
+                    &account_decoded.state,
+                ) {
                     continue;
                 }
             }
+            */
             json_accounts.push(json!({
                 "address": address.to_string(),
                 "kind": format!(
                     "{}.{}",
-                    idl_program.name.clone().unwrap_or(account.owner.to_string()),
-                    idl_account.name,
+                    account_decoded.program.metadata.name.clone().unwrap_or(account_decoded.owner.to_string()),
+                    account_decoded.account.name,
                 ),
-                "state": account_state,
+                "state": account_decoded.state,
             }));
         }
         println!("{}", serde_json::to_string(&json!(json_accounts))?);
@@ -134,5 +134,3 @@ fn parse_blob(encoding: &str, data: &str) -> Vec<u8> {
         panic!("unknown encoding: {}", encoding);
     }
 }
-
-fn partial_state_matches(expected: &Value, found: &Value) -> bool {}

@@ -371,6 +371,7 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(value_str.as_bytes());
             },
             ToolboxIdlTypePrimitive::PublicKey => {
+                // TODO (FAR) - support pubkeys as keypair arrays ?
                 let value_str = idl_as_str_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(
                     &Pubkey::from_str(value_str).map_err(|err| {

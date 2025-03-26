@@ -17,34 +17,23 @@ impl ToolboxCliCommandAccountArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_resolver().await?;
+        let mut idl_service = config.create_idl_service().await?;
         let address = config.parse_key(&self.address)?.address();
-        let account = endpoint.get_account(&address).await?.unwrap_or_default();
-        let idl_program = idl_service
-            .preload_program(&mut endpoint, &account.owner)
-            .await?
-            .unwrap_or_default();
-        let idl_account =
-            idl_program.guess_account(&account.data).unwrap_or_default();
+        let account_decoded = idl_service
+            .get_and_decode_account(&mut endpoint, &address)
+            .await?;
         println!(
             "{}",
             serde_json::to_string(&json!({
-                "metadata": {
-                    "address": address.to_string(),
-                    "owner": account.owner.to_string(),
-                    "lamports": account.lamports,
-                    "space": account.data.len(),
-                    "executable": account.executable,
-                },
-                "idl": {
-                    "kind": format!(
-                        "{}.{}",
-                        idl_program.name.clone().unwrap_or(account.owner.to_string()),
-                        idl_account.name
-                    ),
-                    "state": idl_account.decode(&account.data)?,
-                },
-                "data": account.data,
+                "address": address.to_string(),
+                "owner": account_decoded.owner.to_string(),
+                "lamports": account_decoded.lamports,
+                "kind": format!(
+                    "{}.{}",
+                    account_decoded.program.metadata.name.clone().unwrap_or(account_decoded.owner.to_string()),
+                    account_decoded.account.name
+                ),
+                "state": account_decoded.state,
             }))?
         );
         Ok(())

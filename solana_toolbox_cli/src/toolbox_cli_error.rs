@@ -14,6 +14,7 @@ pub enum ToolboxCliError {
     ParseSignature(ParseSignatureError),
     ParseCommitmentLevel(ParseCommitmentLevelError),
     SerdeJson(serde_json::Error),
+    SerdeHjson(serde_hjson::Error),
     Io(io::Error),
     Custom(String),
 }
@@ -51,6 +52,12 @@ impl From<ParseCommitmentLevelError> for ToolboxCliError {
 impl From<serde_json::Error> for ToolboxCliError {
     fn from(source: serde_json::Error) -> Self {
         ToolboxCliError::SerdeJson(source)
+    }
+}
+
+impl From<serde_hjson::Error> for ToolboxCliError {
+    fn from(source: serde_hjson::Error) -> Self {
+        ToolboxCliError::SerdeHjson(source)
     }
 }
 

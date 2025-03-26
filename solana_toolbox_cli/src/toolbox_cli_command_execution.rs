@@ -26,49 +26,41 @@ impl ToolboxCliCommandExecutionArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_resolver().await?;
+        let mut idl_service = config.create_idl_service().await?;
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
         let mut json_instructions = vec![];
         for instruction in execution.instructions {
-            let idl_program = idl_service
-                .resolve_program(&mut endpoint, &instruction.program_id)
-                .await?
-                .unwrap_or_default();
-            let idl_instruction = idl_program
-                .guess_instruction(&instruction.data)
-                .unwrap_or_default();
-            let (program_id, instruction_payload, instruction_addresses) =
-                idl_instruction.decompile(&instruction)?;
+            let instruction_decoded = idl_service
+                .decode_instruction(&mut endpoint, &instruction)
+                .await?;
             let mut json_addresses = Map::new();
-            for (name, address) in instruction_addresses {
-                let account =
-                    endpoint.get_account(&address).await?.unwrap_or_default();
-                let idl_program = idl_service
-                    .resolve_program(&mut endpoint, &account.owner)
-                    .await?
-                    .unwrap_or_default();
-                let idl_account = idl_program
-                    .guess_account(&account.data)
-                    .unwrap_or_default();
+            for (name, address) in instruction_decoded.addresses {
+                let instruction_account_decoded = idl_service
+                    .get_and_decode_account(&mut endpoint, &address)
+                    .await?;
                 json_addresses.insert(
                     name,
                     json!(format!(
                         "{} ({}.{})",
                         address.to_string(),
-                        idl_program
+                        instruction_account_decoded
+                            .program
+                            .metadata
                             .name
                             .clone()
-                            .unwrap_or(account.owner.to_string()),
-                        idl_account.name,
+                            .unwrap_or(
+                                instruction_account_decoded.owner.to_string()
+                            ),
+                        instruction_account_decoded.account.name,
                     )),
                 );
             }
             json_instructions.push(json!({
-                "program": idl_program.name.clone().unwrap_or(program_id.to_string()),
-                "name": idl_instruction.name,
+                "program": instruction_decoded.program.metadata.name.clone().unwrap_or(instruction.program_id.to_string()),
+                "name": instruction_decoded.instruction.name,
                 "addresses": json_addresses,
-                "payload": instruction_payload,
+                "payload": instruction_decoded.payload,
             }));
         }
         println!(
