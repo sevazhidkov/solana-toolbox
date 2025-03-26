@@ -72,7 +72,7 @@ pub async fn run() {
     let pledge_create_instruction = idl_service
         .resolve_and_encode_instruction(
             &mut endpoint,
-            &idl_instruction_pledge_create,
+            idl_instruction_pledge_create,
             &program_id,
             &json!({ "params": {} }),
             &HashMap::from_iter([
@@ -86,7 +86,7 @@ pub async fn run() {
     let pledge_deposit_instruction = idl_service
         .resolve_and_encode_instruction(
             &mut endpoint,
-            &idl_instruction_pledge_deposit,
+            idl_instruction_pledge_deposit,
             &program_id,
             &json!({ "params": { "collateral_amount": 0 } }),
             &HashMap::from_iter([

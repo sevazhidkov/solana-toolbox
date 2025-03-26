@@ -1,17 +1,18 @@
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 
+// TODO (SHORT) - add tests for this
 impl ToolboxIdlTypeFull {
     pub fn summarize(&self) -> String {
         match self {
             ToolboxIdlTypeFull::Option { content, .. } => {
-                format!("undefined|null|{}", content.summarize())
+                format!("(null|{})", content.summarize())
             },
             ToolboxIdlTypeFull::Vec { items } => {
                 format!("[{}..]", items.summarize())
             },
             ToolboxIdlTypeFull::Array { items, length } => {
-                format!("[{}(x{})]", items.summarize(), length)
+                format!("[{}x{}]", length, items.summarize())
             },
             ToolboxIdlTypeFull::Struct { fields } => fields.summarize(),
             ToolboxIdlTypeFull::Enum { variants } => {
@@ -21,7 +22,7 @@ impl ToolboxIdlTypeFull {
                         cases.push(variant_name.to_string());
                     } else {
                         cases.push(format!(
-                            "[{}, {}]",
+                            "[\"{}\",{}]",
                             variant_name,
                             variant_fields.summarize()
                         ));
@@ -45,7 +46,7 @@ impl ToolboxIdlTypeFullFields {
                 let mut items = vec![];
                 for (field_name, field_type) in fields {
                     items.push(format!(
-                        "{}:{}",
+                        "\"{}\":{}",
                         field_name,
                         field_type.summarize()
                     ));
