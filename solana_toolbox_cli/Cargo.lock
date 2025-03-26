@@ -2364,6 +2364,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "linked-hash-map"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.4.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3659,6 +3668,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8dfc9d19bdbf6d17e22319da49161d5d0108e4188e8b680aef6299eed22df60"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-hjson"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00962f7686acc7ab668cb70932997c078876fd4adcf4cb951cade6784e6d89ee"
+dependencies = [
+ "lazy_static",
+ "linked-hash-map",
+ "num-traits",
+ "regex",
+ "serde",
 ]
 
 [[package]]
@@ -5790,10 +5812,11 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_cli"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "base64 0.22.1",
  "clap 4.5.31",
+ "serde-hjson",
  "serde_json",
  "solana-cli-config",
  "solana-sdk",
@@ -5804,9 +5827,9 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.3.6-solana-2.1.4"
+version = "0.3.7-solana-2.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45014a682e0ccbf51d8fea89ec873faa6e827033a996e15029a4f4dd7d691b0f"
+checksum = "ea35589ee024df377382d95335144c8ff0843afaffffd2182d59bffe9d4cd5fa"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5827,9 +5850,9 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_idl"
-version = "0.3.6-solana-2.1.4"
+version = "0.3.7-solana-2.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84a39c34c3e05648a7979d4c385f2ed8ddc9fb89978a61dedddbab3e71e7d610"
+checksum = "d5f5717b4a2f9db4c133e9c0fae957e02d41a33bb8e61d20f2fc3fe58dc0a85f"
 dependencies = [
  "bytemuck",
  "convert_case",
