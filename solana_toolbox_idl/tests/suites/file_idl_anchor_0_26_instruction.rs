@@ -57,11 +57,6 @@ pub async fn run() {
         );
     // Check that we can compile it and then decompile it
     assert_eq!(
-        (
-            program_id,
-            instruction_payload.clone(),
-            instruction_addresses.clone(),
-        ),
         idl_instruction
             .decompile(
                 &idl_instruction
@@ -72,6 +67,11 @@ pub async fn run() {
                     )
                     .unwrap()
             )
-            .unwrap()
+            .unwrap(),
+        (
+            program_id,
+            instruction_payload.clone(),
+            instruction_addresses.clone(),
+        ),
     );
 }

@@ -98,28 +98,28 @@ pub async fn run() {
         );
     // Check the outcomes
     assert_eq!(
-        global_market_state,
         *initialize_market_addresses
             .get("global_market_state")
-            .unwrap()
+            .unwrap(),
+        global_market_state,
     );
     assert_eq!(
+        *initialize_market_addresses.get("market_admins").unwrap(),
         market_admins,
-        *initialize_market_addresses.get("market_admins").unwrap()
     );
     assert_eq!(
+        *initialize_market_addresses.get("program_state").unwrap(),
         program_state,
-        *initialize_market_addresses.get("program_state").unwrap()
     );
     assert_eq!(
-        signing_authority,
         *initialize_market_addresses
             .get("signing_authority")
-            .unwrap()
+            .unwrap(),
+        signing_authority,
     );
     assert_eq!(
+        *initialize_market_addresses.get("lp_token_mint").unwrap(),
         lp_token_mint,
-        *initialize_market_addresses.get("lp_token_mint").unwrap()
     );
     // Generate all missing IX accounts with just the minimum information
     let open_deal_addresses = idl_program
@@ -151,16 +151,16 @@ pub async fn run() {
         );
     // Check the outcomes
     assert_eq!(
+        *open_deal_addresses.get("market_admins").unwrap(),
         market_admins,
-        *open_deal_addresses.get("market_admins").unwrap()
     );
-    assert_eq!(deal, *open_deal_addresses.get("deal").unwrap());
+    assert_eq!(*open_deal_addresses.get("deal").unwrap(), deal);
     assert_eq!(
+        *open_deal_addresses.get("deal_tranches").unwrap(),
         deal_tranches,
-        *open_deal_addresses.get("deal_tranches").unwrap()
     );
     assert_eq!(
+        *open_deal_addresses.get("repayment_schedule").unwrap(),
         repayment_schedule,
-        *open_deal_addresses.get("repayment_schedule").unwrap()
     );
 }

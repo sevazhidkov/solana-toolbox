@@ -12,13 +12,13 @@ pub async fn run() {
     endpoint.forward_clock_slot(1).await.unwrap();
     // Fetch and check the rent
     let rent = endpoint.get_sysvar_rent().await.unwrap();
-    assert_eq!(3480, rent.lamports_per_byte_year);
-    assert_eq!(2.0, rent.exemption_threshold);
-    assert_eq!(890880, rent.minimum_balance(0));
+    assert_eq!(rent.lamports_per_byte_year, 3480);
+    assert_eq!(rent.exemption_threshold, 2.0);
+    assert_eq!(rent.minimum_balance(0), 890880);
     assert_eq!(
-        128, // It costs 128 bytes worth of lamports for account to exist empty
         ((rent.minimum_balance(0) / rent.lamports_per_byte_year) as f64
-            / rent.exemption_threshold) as u64
+            / rent.exemption_threshold) as u64,
+        128, // It costs 128 bytes worth of lamports for account to exist empty
     );
     // Fetch and check the slot_hashes
     let slot_hashes = endpoint.get_sysvar_slot_hashes().await.unwrap();

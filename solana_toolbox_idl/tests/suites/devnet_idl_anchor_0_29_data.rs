@@ -1,8 +1,9 @@
+use serde_json::json;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_idl::ToolboxIdlResolver;
+use solana_toolbox_idl::ToolboxIdlService;
 
 #[tokio::test]
 pub async fn run() {
@@ -23,34 +24,29 @@ pub async fn run() {
     let uct_mint = uct_mint_pda.0;
     let uct_mint_bump = uct_mint_pda.1;
     // Actually fetch our account using the auto-resolved IDL on-chain
-    let realm_details = ToolboxIdlResolver::new()
-        .resolve_account_details(&mut endpoint, &realm)
+    let realm_decoded = ToolboxIdlService::new()
+        .get_and_decode_account(&mut endpoint, &realm)
         .await
-        .unwrap()
         .unwrap();
     // Check that the account was parsed properly and values matches
-    assert_eq!("Realm", realm_details.0.name);
     assert_eq!(
-        u64::from(realm_bump),
-        realm_details.1.get("bump").unwrap().as_u64().unwrap()
+        realm_decoded.program.metadata.name,
+        Some("redemption".to_string()),
     );
+    assert_eq!(realm_decoded.account.name, "Realm");
+    assert_eq!(realm_decoded.state.get("bump").unwrap(), &json!(realm_bump));
     // Related "USDC mint" account checks
     assert_eq!(
-        "H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B",
-        realm_details.1.get("usdc_mint").unwrap().as_str().unwrap(),
+        realm_decoded.state.get("usdc_mint").unwrap(),
+        &json!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B"),
     );
     // Related "UCT mint" account checks
     assert_eq!(
-        u64::from(uct_mint_bump),
-        realm_details
-            .1
-            .get("uct_mint_bump")
-            .unwrap()
-            .as_u64()
-            .unwrap(),
+        realm_decoded.state.get("uct_mint_bump").unwrap(),
+        &json!(uct_mint_bump),
     );
     assert_eq!(
-        uct_mint.to_string(),
-        realm_details.1.get("uct_mint").unwrap().as_str().unwrap(),
+        realm_decoded.state.get("uct_mint").unwrap(),
+        &json!(uct_mint.to_string()),
     );
 }

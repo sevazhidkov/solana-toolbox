@@ -7,7 +7,7 @@ use solana_sdk::signature::read_keypair_file;
 use solana_sdk::signature::Keypair;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlResolver;
+use solana_toolbox_idl::ToolboxIdlService;
 
 use crate::toolbox_cli_error::ToolboxCliError;
 use crate::toolbox_cli_key::ToolboxCliKey;
@@ -45,12 +45,12 @@ impl ToolboxCliConfig {
 
     pub async fn create_resolver(
         &self,
-    ) -> Result<ToolboxIdlResolver, ToolboxCliError> {
-        let mut idl_resolver = ToolboxIdlResolver::new();
+    ) -> Result<ToolboxIdlService, ToolboxCliError> {
+        let mut idl_service = ToolboxIdlService::new();
         for custom_idl in &self.custom_idls {
             let parts = custom_idl.split(":").collect::<Vec<_>>();
             if let [program_id, idl_file] = parts[..] {
-                idl_resolver.preload_program(
+                idl_service.preload_program(
                     &Pubkey::from_str(program_id)?,
                     ToolboxIdlProgram::try_parse_from_str(&read_to_string(
                         idl_file,
@@ -64,7 +64,7 @@ impl ToolboxCliConfig {
                 ));
             }
         }
-        Ok(idl_resolver)
+        Ok(idl_service)
     }
 
     pub fn parse_account(

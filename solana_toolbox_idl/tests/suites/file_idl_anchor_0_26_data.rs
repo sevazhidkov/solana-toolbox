@@ -40,14 +40,14 @@ pub async fn run() {
     });
     // Compile / decompile the instruction args and check that they match the original
     assert_eq!(
-        instruction_payload,
         idl_instruction
             .decompile_payload(
                 &idl_instruction
                     .compile_payload(&instruction_payload)
                     .unwrap(),
             )
-            .unwrap()
+            .unwrap(),
+        instruction_payload,
     );
     // Prepare an account contents
     let idl_account = idl_program.accounts.get("GlobalMarketState").unwrap();
@@ -84,10 +84,10 @@ pub async fn run() {
     });
     // Decompile the account content and check that it matches the original
     assert_eq!(
-        account_state,
         idl_account
             .decompile(&idl_account.compile(&account_state).unwrap())
-            .unwrap()
+            .unwrap(),
+        account_state,
     );
     // Prepare an account contents
     let idl_account = idl_program.accounts.get("ProgramState").unwrap();
@@ -109,9 +109,9 @@ pub async fn run() {
     });
     // Decompile the account content and check that it matches the original
     assert_eq!(
-        account_state,
         idl_account
             .decompile(&idl_account.compile(&account_state).unwrap())
-            .unwrap()
+            .unwrap(),
+        account_state,
     );
 }

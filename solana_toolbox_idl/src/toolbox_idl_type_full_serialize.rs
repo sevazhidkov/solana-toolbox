@@ -222,11 +222,11 @@ impl ToolboxIdlTypeFull {
                     idl_as_str_or_else(&values[0], &breadcrumbs.val())?;
                 (value_string, &values[1])
             };
-        for (enum_variant_index, enum_variant, breadcrumbs) in
+        for (enum_code, enum_variant, breadcrumbs) in
             idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
         {
             if enum_variant.0 == value_enum {
-                data.push(u8::try_from(enum_variant_index).unwrap());
+                data.push(u8::try_from(enum_code).unwrap());
                 return enum_variant.1.try_serialize(
                     value_fields,
                     data,

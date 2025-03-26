@@ -48,10 +48,10 @@ impl ToolboxCliCommandInstructionArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_resolver = config.create_resolver().await?;
+        let mut idl_service = config.create_resolver().await?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
         let instruction_name = &self.name;
-        let idl_program = idl_resolver
+        let idl_program = idl_service
             .resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();
@@ -74,7 +74,7 @@ impl ToolboxCliCommandInstructionArgs {
         for (name, key) in &instruction_keys {
             instruction_addresses.insert(name.to_string(), key.address());
         }
-        let instruction_addresses = idl_resolver
+        let instruction_addresses = idl_service
             .resolve_instruction_addresses(
                 &mut endpoint,
                 &program_id,

@@ -86,7 +86,7 @@ impl ToolboxIdlAccount {
             || idl_account.contains_key("generic")
             || idl_account.contains_key("option")
             || idl_account.contains_key("option32")
-            || idl_account.contains_key("vec")
+            || idl_account.contains_key("vec") // TODO - should we support vec8/variants32 ??
             || idl_account.contains_key("array")
             || idl_account.contains_key("fields")
             || idl_account.contains_key("variants")

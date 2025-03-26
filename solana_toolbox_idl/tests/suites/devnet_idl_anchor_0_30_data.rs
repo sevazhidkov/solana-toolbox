@@ -1,8 +1,9 @@
+use serde_json::json;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_idl::ToolboxIdlResolver;
+use solana_toolbox_idl::ToolboxIdlService;
 
 #[tokio::test]
 pub async fn run() {
@@ -19,46 +20,34 @@ pub async fn run() {
     let campaign = campaign_pda.0;
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly auto-downloaded from the chain
-    let campaign_details = ToolboxIdlResolver::new()
-        .resolve_account_details(&mut endpoint, &campaign)
+    let campaign_decoded = ToolboxIdlService::new()
+        .get_and_decode_account(&mut endpoint, &campaign)
         .await
-        .unwrap()
         .unwrap();
     // Check that the account was parsed properly and values matches
-    assert_eq!("Campaign", campaign_details.0.name);
+    assert_eq!(campaign_decoded.account.name, "Campaign");
     assert_eq!(
-        u64::from(campaign_bump),
-        campaign_details.1.get("bump").unwrap().as_u64().unwrap()
+        campaign_decoded.program.metadata.name,
+        Some("psyche_crowd_funding".to_string()),
     );
     assert_eq!(
-        campaign_index,
-        campaign_details.1.get("index").unwrap().as_u64().unwrap()
+        campaign_decoded.state.get("bump").unwrap(),
+        &json!(campaign_bump),
     );
     assert_eq!(
-        "Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9",
-        campaign_details
-            .1
-            .get("authority")
-            .unwrap()
-            .as_str()
-            .unwrap()
+        campaign_decoded.state.get("index").unwrap(),
+        &json!(campaign_index),
     );
     assert_eq!(
-        "EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3",
-        campaign_details
-            .1
-            .get("collateral_mint")
-            .unwrap()
-            .as_str()
-            .unwrap()
+        campaign_decoded.state.get("authority").unwrap(),
+        &json!("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
     );
     assert_eq!(
-        "3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9",
-        campaign_details
-            .1
-            .get("redeemable_mint")
-            .unwrap()
-            .as_str()
-            .unwrap()
+        campaign_decoded.state.get("collateral_mint").unwrap(),
+        &json!("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3"),
+    );
+    assert_eq!(
+        campaign_decoded.state.get("redeemable_mint").unwrap(),
+        &json!("3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9"),
     );
 }

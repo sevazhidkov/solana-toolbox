@@ -6,8 +6,8 @@ This crate provide a framework to interact with solana smart contracts by using 
 
 For example, using an IDL file, or an IDL downloaded from chain we can:
 
-- Read account data into JSON (resolve and decompile the account)
-- Generate transaction data from JSON (compile the transaction data)
+- Read account data into JSON (resolve, decode, decompile the state of the account)
+- Generate transaction data from a JSON IDL (construct, compile an instruction)
 - Resolve an instruction's accounts addresses (by looking at the seeds in the IDL)
 
 ## Install
@@ -26,33 +26,40 @@ solana_toolbox_idl = "=0.3.6-solana-2.1.4"
 
 ## Examples
 
-The main type provided is the `ToolboxIdlResolver`. It contains cached a set of `ToolboxIdlProgram` that can be parsed from an IDL's JSON string, or downloaded from the chain directly by looking at a `program_id`.
+The main type provided is the `ToolboxIdlService`. It contains a cached set of `ToolboxIdlProgram` that can be parsed from an IDL's JSON string, or fetched from the chain directly by looking at a `program_id`'s anchor's IDL account.
+
+`ToolboxIdlService` is useful for actions that may involve unknown programs such as fetching accounts or compiling an instruction, otherwise a `ToolboxIdlProgram` can be used directly for specialized computations.
 
 Note: see `solana_toolbox_endpoint` crate for interacting with a RPC or ProgramTest environment.
 
 ```rust
-// Instantiate our IDL resolver that fetch and caches all known IDLs
-let mut idl_resolver = ToolboxIdlResolver::new();
-// We can fetch and resolve all account details (metadata and state)
-let account_details = idl_resolver
-    .resolve_account_details(&mut endpoint, &my_account)
-    .await?
-    .unwrap();
-// We can generate an instruction from JSON data and accounts addresses
-let instruction: Instruction = idl_resolver
-    .resolve_instruction(
-        program_id,
-        "my_ix",
+// Instantiate our IDL service that fetch and caches all known IDLs
+let mut idl_service = ToolboxIdlService::new();
+// We can easily fetch, resolve and decode an account
+let my_account_decoded = idl_service
+    .get_and_decode_account(&mut endpoint, &my_account_address)
+    .await?;
+// We'll need a ToolboxIdlProgram when we know exactly which program we're using
+let idl_program = idl_service.resolve_program(&mut endpoint, &my_program_id).await?;
+// From there we can read the content of our IDL's program
+let idl_instruction = idl_program.instructions.get("my_ix").unwrap();
+// We can smartly generate an instruction from JSON data and accounts addresses
+let instruction: Instruction = idl_service
+    .construct_instruction(
+        &mut endpoint,
+        &idl_instruction,
+        &my_program_id,
         json!({ "param_object": {"info": 42} }),
         HashMap::from_iter([
             ("payer".to_string(), payer.pubkey()),
         ]),
     )?;
 // We can also resolve the accounts named addresses using the seeds in the IDL
-let instruction_addresses: HashMap<String, Pubkey> = idl_resolver
+let instruction_addresses: HashMap<String, Pubkey> = idl_service
     .resolve_instruction_addresses(
-        program_id,
-        "my_ix",
+        &mut endpoint,
+        &idl_instruction,
+        &my_program_id,
         json!({ "param_object": {"info": 42} }),
         HashMap::from_iter([
             ("payer".to_string(), payer.pubkey()),
@@ -60,14 +67,14 @@ let instruction_addresses: HashMap<String, Pubkey> = idl_resolver
     )?;
 ```
 
-If a program's IDL is not available to be automatically downloaded from endpoint to the `ToolboxIdlResolver`, we can preload it and provide it for future lookups manually:
+If a program's IDL is not available to be automatically downloaded from endpoint to the `ToolboxIdlService`, we can preload it and provide it for future lookups manually:
 
 ```rust
 // We can pre-load and save IDLs from file or JSON string directly
 let idl_program = ToolboxIdlProgram::try_parse_from_str(
     &read_to_string("./my_idl.json").unwrap()
 )?;
-idl_resolver.preload_program(&program_id, Some(idl_program.into()));
+idl_service.preload_program(&program_id, Some(idl_program.into()));
 // We can also manually generate IDLs inline (with or without shortcut syntax)
 let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
     "name": "my_program",
@@ -92,11 +99,11 @@ let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
     },
     "errors": {},
 }))?;
-idl_resolver.preload_program(&program_id, Some(idl_program.into()));
+idl_service.preload_program(&program_id, Some(idl_program.into()));
 ```
 
 ## Documentation
 
-See the docs for the exhaustive list of the `ToolboxIdlResolver` capabilities:
+See the docs for the exhaustive list of the `ToolboxIdlService` capabilities:
 
-- [https://docs.rs/solana_toolbox_idl/latest/solana_toolbox_idl/struct.ToolboxIdlResolver.html](https://docs.rs/solana_toolbox_idl/latest/solana_toolbox_idl/struct.ToolboxIdlResolver.html)
+- [https://docs.rs/solana_toolbox_idl/latest/solana_toolbox_idl/struct.ToolboxIdlService.html](https://docs.rs/solana_toolbox_idl/latest/solana_toolbox_idl/struct.ToolboxIdlService.html)

@@ -27,7 +27,7 @@ impl ToolboxCliCommandHistoryArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_resolver = config.create_resolver().await?;
+        let mut idl_service = config.create_resolver().await?;
         let address = config.parse_key(&self.address)?.address();
         let start_before = self
             .start_before_signature
@@ -52,7 +52,7 @@ impl ToolboxCliCommandHistoryArgs {
             let mut json_instructions = vec![];
             let execution = endpoint.get_execution(&signature).await?;
             for instruction in execution.instructions {
-                let idl_program = idl_resolver
+                let idl_program = idl_service
                     .resolve_program(&mut endpoint, &instruction.program_id)
                     .await?
                     .unwrap_or_default();
@@ -70,7 +70,9 @@ impl ToolboxCliCommandHistoryArgs {
             }
             json_history.push(json!({
                 "signature": signature.to_string(),
-                "instructions": json_instructions,
+                "idl": {
+                    "instructions": json_instructions,
+                },
             }));
         }
         println!("{}", serde_json::to_string(&json!(json_history))?);

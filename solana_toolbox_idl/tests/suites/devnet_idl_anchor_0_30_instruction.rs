@@ -8,7 +8,7 @@ use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
-use solana_toolbox_idl::ToolboxIdlResolver;
+use solana_toolbox_idl::ToolboxIdlService;
 
 #[tokio::test]
 pub async fn run() {
@@ -16,17 +16,28 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
-    // We'll use an IDL resolve to automatically resolve htings using the endpoint
-    let mut idl_resolver = ToolboxIdlResolver::new();
     // The devnet program that we'll use (it has an on-chain IDL already)
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
+    // We'll use an IDL resolve to automatically resolve htings using the endpoint
+    let mut idl_service = ToolboxIdlService::new();
+    let idl_program = idl_service
+        .resolve_program(&mut endpoint, &program_id)
+        .await
+        .unwrap()
+        .unwrap();
+    let idl_instruction_campaign_create =
+        idl_program.instructions.get("campaign_create").unwrap();
+    let idl_instruction_pledge_create =
+        idl_program.instructions.get("pledge_create").unwrap();
+    let idl_instruction_pledge_deposit =
+        idl_program.instructions.get("pledge_deposit").unwrap();
     // Find an account from another instruction so that we can re-use it
     let campaign_index = 3u64;
-    let campaign_create_addresses = idl_resolver
+    let campaign_create_addresses = idl_service
         .resolve_instruction_addresses(
             &mut endpoint,
+            idl_instruction_campaign_create,
             &program_id,
-            "campaign_create",
             &json!({ "params": { "index": campaign_index } }),
             &HashMap::from_iter([]),
         )
@@ -58,11 +69,11 @@ pub async fn run() {
         .await
         .unwrap();
     // Generate the actual instructions while resolving missing accounts
-    let pledge_create_instruction = idl_resolver
-        .resolve_instruction(
+    let pledge_create_instruction = idl_service
+        .construct_instruction(
             &mut endpoint,
+            &idl_instruction_pledge_create,
             &program_id,
-            "pledge_create",
             &json!({ "params": {} }),
             &HashMap::from_iter([
                 ("payer".to_string(), payer.pubkey()),
@@ -72,11 +83,11 @@ pub async fn run() {
         )
         .await
         .unwrap();
-    let pledge_deposit_instruction = idl_resolver
-        .resolve_instruction(
+    let pledge_deposit_instruction = idl_service
+        .construct_instruction(
             &mut endpoint,
+            &idl_instruction_pledge_deposit,
             &program_id,
-            "pledge_deposit",
             &json!({ "params": { "collateral_amount": 0 } }),
             &HashMap::from_iter([
                 ("payer".to_string(), payer.pubkey()),

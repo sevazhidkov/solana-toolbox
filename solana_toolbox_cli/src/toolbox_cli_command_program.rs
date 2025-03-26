@@ -19,9 +19,9 @@ impl ToolboxCliCommandProgramArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_resolver = config.create_resolver().await?;
+        let mut idl_service = config.create_resolver().await?;
         let program_id = Pubkey::from_str(&self.program_id).unwrap();
-        let idl_program = idl_resolver
+        let idl_program = idl_service
             .resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();

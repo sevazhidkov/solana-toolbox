@@ -21,7 +21,7 @@ use crate::toolbox_idl_utils::idl_ok_or_else;
 impl ToolboxIdlInstructionAccount {
     pub fn try_find(
         &self,
-        program_id: &Pubkey,
+        instruction_program_id: &Pubkey,
         instruction_args_type_fields: &ToolboxIdlTypeFullFields,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
@@ -39,7 +39,7 @@ impl ToolboxIdlInstructionAccount {
         }
         if let Some(instruction_account_pda) = &self.pda {
             return instruction_account_pda.try_find(
-                program_id,
+                instruction_program_id,
                 instruction_args_type_fields,
                 instruction_payload,
                 instruction_addresses,
@@ -54,7 +54,7 @@ impl ToolboxIdlInstructionAccount {
 impl ToolboxIdlInstructionAccountPda {
     pub fn try_find(
         &self,
-        program_id: &Pubkey,
+        instruction_program_id: &Pubkey,
         instruction_args_type_fields: &ToolboxIdlTypeFullFields,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
@@ -94,7 +94,7 @@ impl ToolboxIdlInstructionAccountPda {
                 },
             )?)
         } else {
-            *program_id
+            *instruction_program_id
         };
         let mut pda_seeds_slices = vec![];
         for pda_seed_bytes in pda_seeds_bytes.iter() {

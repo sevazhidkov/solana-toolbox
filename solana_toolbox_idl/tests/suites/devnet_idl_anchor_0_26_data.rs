@@ -1,11 +1,14 @@
 use std::fs::read_to_string;
 
+use serde_json::json;
+use serde_json::Value;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlResolver;
+use solana_toolbox_idl::ToolboxIdlService;
+use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
 
 #[tokio::test]
 pub async fn run() {
@@ -15,10 +18,9 @@ pub async fn run() {
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Choosing our program_id
     let program_id = pubkey!("crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu");
-    // Prepare our IDL resolver
-    let mut idl_resolver = ToolboxIdlResolver::new();
     // Parse and load IDL from file JSON directly (since it's not available onchain)
-    idl_resolver.preload_program(
+    let mut idl_service = ToolboxIdlService::new();
+    idl_service.preload_program(
         &program_id,
         Some(
             ToolboxIdlProgram::try_parse_from_str(
@@ -32,38 +34,30 @@ pub async fn run() {
     // Read the global market state content using the IDL
     let global_market_state =
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;
-    let global_market_state_details = idl_resolver
-        .resolve_account_details(&mut endpoint, &global_market_state)
+    let global_market_state_decoded = idl_service
+        .get_and_decode_account(&mut endpoint, &global_market_state)
         .await
-        .unwrap()
         .unwrap();
-    assert_eq!("GlobalMarketState", global_market_state_details.0.name);
-    assert_eq!(
-        "credix-marketplace",
-        global_market_state_details
-            .1
-            .get("seed")
-            .unwrap()
-            .as_str()
-            .unwrap()
+    assert_account_decoded_properly(
+        &global_market_state_decoded,
+        "credix",
+        "GlobalMarketState",
+        "seed",
+        &json!("credix-marketplace"),
     );
     // Read the program state content using the IDL
     let program_state =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
-    let program_state_details = idl_resolver
-        .resolve_account_details(&mut endpoint, &program_state)
+    let program_state_decoded = idl_service
+        .get_and_decode_account(&mut endpoint, &program_state)
         .await
-        .unwrap()
         .unwrap();
-    assert_eq!("ProgramState", program_state_details.0.name);
-    assert_eq!(
-        "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        program_state_details
-            .1
-            .get("credix_multisig_key")
-            .unwrap()
-            .as_str()
-            .unwrap()
+    assert_account_decoded_properly(
+        &program_state_decoded,
+        "credix",
+        "ProgramState",
+        "credix_multisig_key",
+        &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),
     );
     // Read the market admins content using the IDL
     let market_admins = Pubkey::find_program_address(
@@ -71,19 +65,33 @@ pub async fn run() {
         &program_id,
     )
     .0;
-    let market_admins_details = idl_resolver
-        .resolve_account_details(&mut endpoint, &market_admins)
+    let market_admins_decoded = idl_service
+        .get_and_decode_account(&mut endpoint, &market_admins)
         .await
-        .unwrap()
         .unwrap();
-    assert_eq!("MarketAdmins", market_admins_details.0.name);
+    assert_account_decoded_properly(
+        &market_admins_decoded,
+        "credix",
+        "MarketAdmins",
+        "multisig",
+        &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),
+    );
+}
+
+fn assert_account_decoded_properly(
+    account_decoded: &ToolboxIdlServiceAccountDecoded,
+    program_name: &str,
+    account_name: &str,
+    account_state_key: &str,
+    account_state_value: &Value,
+) {
     assert_eq!(
-        "Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL",
-        market_admins_details
-            .1
-            .get("multisig")
-            .unwrap()
-            .as_str()
-            .unwrap()
+        account_decoded.program.metadata.name,
+        Some(program_name.to_string()),
+    );
+    assert_eq!(account_decoded.account.name, account_name);
+    assert_eq!(
+        account_decoded.state.get(account_state_key).unwrap(),
+        account_state_value,
     );
 }

@@ -194,20 +194,19 @@ impl ToolboxIdlTypeFull {
         data_offset: usize,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(usize, Value), ToolboxIdlError> {
-        let data_enum = idl_u8_from_bytes_at(
+        let data_code = usize::from(idl_u8_from_bytes_at(
             data,
             data_offset,
             &breadcrumbs.as_val("enum"),
-        )?;
-        let data_index = usize::from(data_enum);
-        if data_index >= enum_variants.len() {
+        )?);
+        if data_code >= enum_variants.len() {
             return idl_err(
-                &format!("Invalid enum value: {}", data_index),
+                &format!("Invalid enum value: {}", data_code),
                 &breadcrumbs.as_idl("variants"),
             );
         }
-        let mut data_size = std::mem::size_of_val(&data_enum);
-        let enum_variant = &enum_variants[data_index];
+        let mut data_size = std::mem::size_of::<u8>();
+        let enum_variant = &enum_variants[data_code];
         let (data_fields_size, data_fields) = enum_variant.1.try_deserialize(
             data,
             data_offset + data_size,

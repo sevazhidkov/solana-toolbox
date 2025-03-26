@@ -26,12 +26,12 @@ impl ToolboxCliCommandExecutionArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_resolver = config.create_resolver().await?;
+        let mut idl_service = config.create_resolver().await?;
         let signature = Signature::from_str(&self.signature).unwrap();
         let execution = endpoint.get_execution(&signature).await?;
         let mut json_instructions = vec![];
         for instruction in execution.instructions {
-            let idl_program = idl_resolver
+            let idl_program = idl_service
                 .resolve_program(&mut endpoint, &instruction.program_id)
                 .await?
                 .unwrap_or_default();
@@ -44,7 +44,7 @@ impl ToolboxCliCommandExecutionArgs {
             for (name, address) in instruction_addresses {
                 let account =
                     endpoint.get_account(&address).await?.unwrap_or_default();
-                let idl_program = idl_resolver
+                let idl_program = idl_service
                     .resolve_program(&mut endpoint, &account.owner)
                     .await?
                     .unwrap_or_default();

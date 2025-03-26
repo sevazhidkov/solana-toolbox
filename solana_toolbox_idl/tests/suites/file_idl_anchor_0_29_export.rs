@@ -11,13 +11,13 @@ pub async fn run() {
     .unwrap();
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
-        idl_program,
         ToolboxIdlProgram::try_parse_from_value(&idl_program.export(true))
             .unwrap(),
+        idl_program,
     );
     assert_eq!(
-        idl_program,
         ToolboxIdlProgram::try_parse_from_value(&idl_program.export(false))
             .unwrap(),
+        idl_program,
     );
 }

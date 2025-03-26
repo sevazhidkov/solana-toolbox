@@ -6,7 +6,10 @@
       "args": [
         { "name": "decimals", "type": "u8" },
         { "name": "mint_authority", "type": "pubkey" },
-        { "name": "freeze_authority", "type": { "option": "pubkey" } }
+        {
+          "name": "freeze_authority",
+          "padded": { "size": 36, "option32": "pubkey" }
+        }
       ],
       "accounts": [
         {
@@ -56,8 +59,25 @@
     },
     "SetAuthority": {
       "discriminator": [6],
-      "args": [],
-      "accounts": []
+      "args": [
+        {
+          "name": "authority_type",
+          "variants": [
+            "MintTokens",
+            "FreezeAccount",
+            "AccountOwner",
+            "CloseAccount"
+          ]
+        },
+        {
+          "name": "new_authority",
+          "padded": { "size": 36, "option32": "pubkey" }
+        }
+      ],
+      "accounts": [
+        { "name": "modified", "writable": true },
+        { "name": "authority", "signer": true }
+      ]
     },
     "MintTo": {
       "discriminator": [7],
@@ -179,7 +199,10 @@
       "args": [
         { "name": "decimals", "type": "u8" },
         { "name": "mint_authority", "type": "pubkey" },
-        { "name": "freeze_authority", "type": { "option32": "pubkey" } }
+        {
+          "name": "freeze_authority",
+          "padded": { "size": 36, "option32": "pubkey" }
+        }
       ],
       "accounts": []
     }
@@ -205,7 +228,10 @@
           "padded": { "size": 12, "option32": "u64" }
         },
         { "name": "delegated_amount", "type": "u64" },
-        { "name": "close_authority", "type": { "option32": "pubkey" } }
+        {
+          "name": "close_authority",
+          "padded": { "size": 36, "option32": "pubkey" }
+        }
       ]
     },
     "Mint": {

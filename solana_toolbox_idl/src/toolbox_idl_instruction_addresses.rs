@@ -1,5 +1,7 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
+use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 
@@ -7,6 +9,7 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
+use crate::ToolboxIdlTypeFull;
 
 impl ToolboxIdlInstruction {
     pub fn compile_addresses(
@@ -76,5 +79,60 @@ impl ToolboxIdlInstruction {
             instruction_meta_index += 1;
         }
         Ok(instruction_addresses)
+    }
+
+    pub fn find_addresses(
+        &self,
+        instruction_program_id: &Pubkey,
+        instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
+    ) -> HashMap<String, Pubkey> {
+        self.find_addresses_with_accounts_content_types_and_states(
+            instruction_program_id,
+            instruction_payload,
+            instruction_addresses,
+            &HashMap::new(),
+        )
+    }
+
+    pub fn find_addresses_with_accounts_content_types_and_states(
+        &self,
+        instruction_program_id: &Pubkey,
+        instruction_payload: &Value,
+        instruction_addresses: &HashMap<String, Pubkey>,
+        accounts_content_types_and_states: &HashMap<
+            String,
+            (Arc<ToolboxIdlTypeFull>, Value),
+        >,
+    ) -> HashMap<String, Pubkey> {
+        let mut instruction_addresses = instruction_addresses.clone();
+        loop {
+            let breadcrumbs = ToolboxIdlBreadcrumbs::default();
+            let mut made_progress = false;
+            for instruction_account in &self.accounts {
+                if instruction_addresses.contains_key(&instruction_account.name)
+                {
+                    continue;
+                }
+                if let Ok(instruction_address) = instruction_account.try_find(
+                    instruction_program_id,
+                    &self.args_type_full_fields,
+                    instruction_payload,
+                    &instruction_addresses,
+                    accounts_content_types_and_states,
+                    &breadcrumbs.with_idl(&instruction_account.name),
+                ) {
+                    made_progress = true;
+                    instruction_addresses.insert(
+                        instruction_account.name.to_string(),
+                        instruction_address,
+                    );
+                }
+            }
+            if !made_progress {
+                break;
+            }
+        }
+        instruction_addresses
     }
 }

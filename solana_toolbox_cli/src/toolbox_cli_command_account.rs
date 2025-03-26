@@ -17,10 +17,10 @@ impl ToolboxCliCommandAccountArgs {
         config: &ToolboxCliConfig,
     ) -> Result<(), ToolboxCliError> {
         let mut endpoint = config.create_endpoint().await?;
-        let mut idl_resolver = config.create_resolver().await?;
+        let mut idl_service = config.create_resolver().await?;
         let address = config.parse_key(&self.address)?.address();
         let account = endpoint.get_account(&address).await?.unwrap_or_default();
-        let idl_program = idl_resolver
+        let idl_program = idl_service
             .resolve_program(&mut endpoint, &account.owner)
             .await?
             .unwrap_or_default();
