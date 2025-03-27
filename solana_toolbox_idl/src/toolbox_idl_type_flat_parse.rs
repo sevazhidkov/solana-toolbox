@@ -158,6 +158,18 @@ impl ToolboxIdlTypeFlat {
         idl_str: &str,
         _breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+        if idl_str == "bytes" {
+            return Ok(ToolboxIdlTypeFlat::Vec {
+                items: Box::new(ToolboxIdlTypeFlat::Primitive {
+                    primitive: ToolboxIdlTypePrimitive::U8,
+                }),
+            });
+        }
+        if idl_str == "publicKey" {
+            return Ok(ToolboxIdlTypeFlat::Primitive {
+                primitive: ToolboxIdlTypePrimitive::PublicKey,
+            });
+        }
         Ok(match ToolboxIdlTypePrimitive::try_parse(idl_str) {
             Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
             None => ToolboxIdlTypeFlat::Defined {

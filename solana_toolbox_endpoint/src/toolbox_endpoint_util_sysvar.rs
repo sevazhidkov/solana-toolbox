@@ -1,7 +1,6 @@
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::slot_hashes::SlotHashes;
-use solana_sdk::sysvar;
 use solana_sdk::sysvar::clock;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::sysvar::rent;
@@ -13,7 +12,6 @@ use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub const SYSVAR_CLOCK_ID: Pubkey = clock::ID;
-    pub const SYSVAR_PROGRAM_ID: Pubkey = sysvar::ID;
     pub const SYSVAR_RENT_ID: Pubkey = rent::ID;
     pub const SYSVAR_SLOT_HASHES: Pubkey = slot_hashes::ID;
 

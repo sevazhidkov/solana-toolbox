@@ -19,9 +19,9 @@ in `Cargo.toml`:
 
 ```toml
 # For example when using solana version 1.18.26"
-solana_toolbox_idl = "=0.3.7-solana-1.18.26"
+solana_toolbox_idl = "=0.3.8-solana-1.18.26"
 # Or when using solana version 2.1.4"
-solana_toolbox_idl = "=0.3.7-solana-2.1.4"
+solana_toolbox_idl = "=0.3.8-solana-2.1.4"
 ```
 
 ## Examples
@@ -93,7 +93,7 @@ let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
         "MyAccount": {
             "fields": [
                 { "name": "id", "type": "pubkey" },
-                { "name": "bytes", "type": ["u8", 42] },
+                { "name": "data", "type": ["u8", 42] },
             ]
         }
     },

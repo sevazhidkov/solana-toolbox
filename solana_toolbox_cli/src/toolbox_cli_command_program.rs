@@ -1,6 +1,7 @@
 use clap::Args;
+use serde_json::Value;
 
-use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
@@ -8,22 +9,22 @@ use crate::toolbox_cli_error::ToolboxCliError;
 pub struct ToolboxCliCommandProgramArgs {
     #[arg(value_name = "PROGRAM_ID", help = "The Program ID pubkey in base58")]
     program_id: String,
-    // TODO (FAR) - support selecting the output format version
+    #[arg(long, action)]
+    backward_compatibility: bool,
 }
 
 impl ToolboxCliCommandProgramArgs {
     pub async fn process(
         &self,
-        config: &ToolboxCliConfig,
-    ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_idl_service().await?;
-        let program_id = config.parse_key(&self.program_id)?.address();
+        context: &ToolboxCliContext,
+    ) -> Result<Value, ToolboxCliError> {
+        let mut endpoint = context.create_endpoint().await?;
+        let mut idl_service = context.create_service().await?;
+        let program_id = context.parse_key(&self.program_id)?.address();
         let idl_program = idl_service
             .resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();
-        println!("{}", serde_json::to_string(&idl_program.export(false))?);
-        Ok(())
+        Ok(idl_program.export(self.backward_compatibility))
     }
 }

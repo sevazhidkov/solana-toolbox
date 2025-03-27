@@ -1,13 +1,11 @@
-use base64::engine::general_purpose::STANDARD;
-use base64::Engine;
 use clap::Args;
 use serde_json::json;
-use solana_sdk::bs58;
+use serde_json::Value;
 use solana_toolbox_idl::ToolboxIdlBreadcrumbs;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
-use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
@@ -34,29 +32,37 @@ pub struct ToolboxCliCommandFindArgs {
     #[arg(long, help = "Expected parsed IDL account name")]
     name: Option<String>,
     #[arg(long, help = "Expected parsed IDL account (partial) state")]
-    state: Option<String>,
+    states: Vec<String>,
 }
 
 impl ToolboxCliCommandFindArgs {
     pub async fn process(
         &self,
-        config: &ToolboxCliConfig,
-    ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_idl_service().await?;
-        let program_id = config.parse_key(&self.program_id)?.address();
+        context: &ToolboxCliContext,
+    ) -> Result<Value, ToolboxCliError> {
+        let mut endpoint = context.create_endpoint().await?;
+        let mut idl_service = context.create_service().await?;
+        let program_id = context.parse_key(&self.program_id)?.address();
         let mut chunks = vec![];
         for chunk in &self.chunks {
-            let parts = chunk.split(":").collect::<Vec<_>>();
-            if let [offset, encoding, data] = parts[..] {
-                chunks.push((
-                    offset.parse::<usize>().unwrap(),
-                    parse_blob(encoding, data),
-                ));
+            if let Some((offset, encoded)) = chunk.split_once(":") {
+                let mut bytes = vec![];
+                ToolboxIdlTypeFull::Vec {
+                    items: Box::new(ToolboxIdlTypeFull::Primitive {
+                        primitive: ToolboxIdlTypePrimitive::U8,
+                    }),
+                }
+                .try_serialize(
+                    &serde_hjson::from_str(encoded).unwrap(),
+                    &mut bytes,
+                    false,
+                    &ToolboxIdlBreadcrumbs::default(),
+                )
+                .unwrap();
+                chunks.push((offset.parse::<usize>().unwrap(), bytes));
             } else {
                 return Err(ToolboxCliError::Custom(
-                    "Invalid data chunk, expected: offset:encoding:data"
-                        .to_string(),
+                    "Invalid data chunk, expected: offset:bytes".to_string(),
                 ));
             }
         }
@@ -72,7 +78,6 @@ impl ToolboxCliCommandFindArgs {
             if json_accounts.len() >= self.limit.unwrap_or(5) {
                 break;
             }
-            // TODO (MEDIUM) - filter by state content
             let account_decoded = idl_service
                 .get_and_decode_account(&mut endpoint, &address)
                 .await?;
@@ -81,17 +86,12 @@ impl ToolboxCliCommandFindArgs {
                     continue;
                 }
             }
-            /*
-            if let Some(state) = &self.state {
-                let expected_state = from_str::<Value>(state).unwrap();
-                if !partial_state_matches(
-                    &expected_state,
-                    &account_decoded.state,
-                ) {
+            for state in &self.states {
+                let expected_state = context.parse_hjson(&state)?;
+                if !json_match(&account_decoded.state, &expected_state) {
                     continue;
                 }
             }
-            */
             json_accounts.push(json!({
                 "address": address.to_string(),
                 "kind": format!(
@@ -102,32 +102,65 @@ impl ToolboxCliCommandFindArgs {
                 "state": account_decoded.state,
             }));
         }
-        println!("{}", serde_json::to_string(&json!(json_accounts))?);
-        Ok(())
+        Ok(json!(json_accounts))
     }
 }
 
-fn parse_blob(encoding: &str, data: &str) -> Vec<u8> {
-    if encoding == "base58" {
-        bs58::decode(data).into_vec().unwrap()
-    } else if encoding == "base64" {
-        STANDARD.decode(data).unwrap()
-    } else if encoding == "bytes" {
-        let mut bytes = vec![];
-        ToolboxIdlTypeFull::Vec {
-            items: Box::new(ToolboxIdlTypeFull::Primitive {
-                primitive: ToolboxIdlTypePrimitive::U8,
-            }),
-        }
-        .try_serialize(
-            &serde_json::from_str(data).unwrap(),
-            &mut bytes,
-            false,
-            &ToolboxIdlBreadcrumbs::default(),
-        )
-        .unwrap();
-        bytes
-    } else {
-        panic!("unknown encoding: {}", encoding);
+// TODO (MEDIUM) - where should this go ?
+fn json_match(found: &Value, expected: &Value) -> bool {
+    match expected {
+        Value::Null => {
+            if let Some(()) = found.as_null() {
+                return true;
+            }
+            false
+        },
+        Value::Bool(expected) => {
+            if let Some(found) = found.as_bool() {
+                return found == *expected;
+            }
+            false
+        },
+        Value::Number(expected) => {
+            if let Some(found) = found.as_number() {
+                return found == expected;
+            }
+            false
+        },
+        Value::String(expected) => {
+            if let Some(found) = found.as_str() {
+                return found == expected;
+            }
+            false
+        },
+        Value::Array(expected) => {
+            if let Some(found) = found.as_array() {
+                if found.len() < expected.len() {
+                    return false;
+                }
+                for (idx, expected) in expected.iter().enumerate() {
+                    if !json_match(&found[idx], expected) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            false
+        },
+        Value::Object(expected) => {
+            if let Some(found) = found.as_object() {
+                for (key, expected) in expected {
+                    if let Some(found) = found.get(key) {
+                        if !json_match(found, expected) {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            false
+        },
     }
 }

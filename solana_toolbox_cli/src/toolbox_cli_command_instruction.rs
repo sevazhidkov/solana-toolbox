@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use clap::Args;
 use serde_json::json;
 use serde_json::Map;
+use serde_json::Value;
 use solana_sdk::bs58;
 use solana_sdk::transaction::Transaction;
 
-use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
@@ -19,12 +20,14 @@ pub struct ToolboxCliCommandInstructionArgs {
     program_id: String,
     #[arg(
         value_name = "INSTRUCTION_NAME",
+        default_value = "",
         help = "The instruction's name from the IDL"
     )]
     name: String,
     #[arg(
         value_name = "JSON",
-        help = "The instruction's args object in JSON format"
+        default_value = "{}",
+        help = "The instruction's args object in (human)JSON format"
     )]
     payload: String,
     #[arg(
@@ -33,7 +36,11 @@ pub struct ToolboxCliCommandInstructionArgs {
         help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFile|'KEYPAIR']]"
     )]
     accounts: Vec<String>,
-    #[arg(long, help = "Execute generated instruction instead of simulate")]
+    #[arg(
+        long,
+        action,
+        help = "Execute generated instruction instead of simulate"
+    )]
     execute: bool,
     // TODO (SHORT) - set compute budget / price
 }
@@ -41,12 +48,12 @@ pub struct ToolboxCliCommandInstructionArgs {
 impl ToolboxCliCommandInstructionArgs {
     pub async fn process(
         &self,
-        config: &ToolboxCliConfig,
-    ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_idl_service().await?;
+        context: &ToolboxCliContext,
+    ) -> Result<Value, ToolboxCliError> {
+        let mut endpoint = context.create_endpoint().await?;
+        let mut idl_service = context.create_service().await?;
         let instruction_program_id =
-            config.parse_key(&self.program_id)?.address();
+            context.parse_key(&self.program_id)?.address();
         let instruction_name = &self.name;
         let idl_program = match idl_service
             .resolve_program(&mut endpoint, &instruction_program_id)
@@ -58,19 +65,28 @@ impl ToolboxCliCommandInstructionArgs {
                 instruction_program_id.to_string(),
             )))?,
         };
-        let idl_instruction =
-            match idl_program.instructions.get(instruction_name).cloned() {
-                Some(idl_instruction) => idl_instruction,
-                None => Err(ToolboxCliError::Custom(format!(
-                    "Could not find instruction {}, available: {:?}",
-                    instruction_name,
-                    idl_program.instructions.keys()
-                )))?,
-            };
-        let instruction_payload = config.parse_json(&self.payload)?;
+        let idl_instruction = match idl_program
+            .instructions
+            .get(instruction_name)
+            .cloned()
+        {
+            Some(idl_instruction) => idl_instruction,
+            None => {
+                return Ok(json!({
+                    "outcome": {
+                        "error": format!(
+                            "Could not select instruction: {}",
+                            instruction_name
+                        )
+                    },
+                    "instructions": idl_program.instructions.keys().collect::<Vec<_>>(),
+                }))
+            },
+        };
+        let instruction_payload = context.parse_hjson(&self.payload)?;
         let mut instruction_keys = HashMap::new();
         for account in &self.accounts {
-            let (name, key) = config.parse_account(account)?;
+            let (name, key) = context.parse_account(account)?;
             instruction_keys.insert(name, key);
         }
         let mut instruction_addresses = HashMap::new();
@@ -137,7 +153,7 @@ impl ToolboxCliCommandInstructionArgs {
                 if self.execute {
                     let (signature, _) = endpoint
                         .process_instruction_with_signers(
-                            &config.get_keypair(),
+                            &context.get_keypair(),
                             instruction.clone(),
                             &signers,
                         )
@@ -149,7 +165,7 @@ impl ToolboxCliCommandInstructionArgs {
                 } else {
                     let simulation = endpoint
                         .simulate_instruction_with_signers(
-                            &config.get_keypair(),
+                            &context.get_keypair(),
                             instruction.clone(),
                             &signers,
                         )
@@ -170,17 +186,13 @@ impl ToolboxCliCommandInstructionArgs {
                     .insert("error".to_string(), json!(format!("{:?}", error)));
             },
         };
-        println!(
-            "{}",
-            serde_json::to_string(&json!({
-                "resolved": {
-                    "payload": instruction_payload,
-                    "addresses": json_addresses,
-                },
-                "dependencies": json_dependencies,
-                "outcome": json_outcome,
-            }))?
-        );
-        Ok(())
+        Ok(json!({
+            "resolved": {
+                "payload": instruction_payload,
+                "addresses": json_addresses,
+            },
+            "dependencies": json_dependencies,
+            "outcome": json_outcome,
+        }))
     }
 }

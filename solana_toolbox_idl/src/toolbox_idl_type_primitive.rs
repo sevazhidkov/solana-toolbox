@@ -12,12 +12,10 @@ pub enum ToolboxIdlTypePrimitive {
     I128,
     F32,
     F64,
-    Bytes, // TODO (MEDIUM) - what's the usecase for this ?
-    // TODO (MEDIUM) - should this be supporting something like a base58, base64 ?
-    // TODO (MEDIUM) - should support like a "Rest" type which returns byte[]
     Boolean,
     String,
     PublicKey,
+    // TODO (MEDIUM) - should support like a "Rest" type which returns byte[]
 }
 
 impl ToolboxIdlTypePrimitive {
@@ -35,11 +33,9 @@ impl ToolboxIdlTypePrimitive {
             "i128" => Some(ToolboxIdlTypePrimitive::I128),
             "f32" => Some(ToolboxIdlTypePrimitive::F32),
             "f64" => Some(ToolboxIdlTypePrimitive::F64),
-            "bytes" => Some(ToolboxIdlTypePrimitive::Bytes),
             "bool" => Some(ToolboxIdlTypePrimitive::Boolean),
             "string" => Some(ToolboxIdlTypePrimitive::String),
             "pubkey" => Some(ToolboxIdlTypePrimitive::PublicKey),
-            "publicKey" => Some(ToolboxIdlTypePrimitive::PublicKey),
             _ => None,
         }
     }
@@ -58,7 +54,6 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::I128 => "i128",
             ToolboxIdlTypePrimitive::F32 => "f32",
             ToolboxIdlTypePrimitive::F64 => "f64",
-            ToolboxIdlTypePrimitive::Bytes => "bytes",
             ToolboxIdlTypePrimitive::Boolean => "bool",
             ToolboxIdlTypePrimitive::String => "string",
             ToolboxIdlTypePrimitive::PublicKey => "pubkey",

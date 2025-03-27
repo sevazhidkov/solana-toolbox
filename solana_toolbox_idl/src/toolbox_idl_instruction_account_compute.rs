@@ -121,7 +121,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 Ok(bytes.clone())
             },
             ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
-                let idl_blob_parts = Vec::from_iter(path.split("."));
+                let idl_blob_parts = path.split(".").collect::<Vec<_>>();
                 ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
                     instruction_args_type_fields,
                     instruction_payload,
@@ -130,7 +130,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 )
             },
             ToolboxIdlInstructionAccountPdaBlob::Account { path } => {
-                let idl_blob_parts = Vec::from_iter(path.split("."));
+                let idl_blob_parts = path.split(".").collect::<Vec<_>>();
                 if idl_blob_parts.len() == 1 {
                     return idl_map_get_key_or_else(
                         instruction_addresses,

@@ -290,26 +290,6 @@ impl ToolboxIdlTypeFull {
                 let float = idl_f64_from_bytes_at(data, data_offset, context)?;
                 (std::mem::size_of_val(&float), json!(float))
             },
-            ToolboxIdlTypePrimitive::Bytes => {
-                let data_length =
-                    idl_u32_from_bytes_at(data, data_offset, context)?;
-                let mut data_size = std::mem::size_of_val(&data_length);
-                let data_bytes = idl_slice_from_bytes(
-                    data,
-                    data_offset + data_size,
-                    idl_map_err_invalid_integer(
-                        usize::try_from(data_length),
-                        context,
-                    )?,
-                    context,
-                )?;
-                data_size += data_bytes.len();
-                let mut data = vec![];
-                for data_byte in data_bytes {
-                    data.push(json!(*data_byte));
-                }
-                (data_size, json!(data))
-            },
             ToolboxIdlTypePrimitive::Boolean => {
                 let data_flag =
                     idl_u8_from_bytes_at(data, data_offset, context)?;

@@ -1,11 +1,9 @@
-use std::str::FromStr;
-
 use clap::Args;
 use serde_json::json;
 use serde_json::Map;
-use solana_sdk::signature::Signature;
+use serde_json::Value;
 
-use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
@@ -23,11 +21,11 @@ pub struct ToolboxCliCommandExecutionArgs {
 impl ToolboxCliCommandExecutionArgs {
     pub async fn process(
         &self,
-        config: &ToolboxCliConfig,
-    ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_idl_service().await?;
-        let signature = Signature::from_str(&self.signature).unwrap();
+        context: &ToolboxCliContext,
+    ) -> Result<Value, ToolboxCliError> {
+        let mut endpoint = context.create_endpoint().await?;
+        let mut idl_service = context.create_service().await?;
+        let signature = context.parse_signature(&self.signature)?;
         let execution = endpoint.get_execution(&signature).await?;
         let mut json_instructions = vec![];
         for instruction in execution.instructions {
@@ -41,39 +39,33 @@ impl ToolboxCliCommandExecutionArgs {
                     .await?;
                 json_addresses.insert(
                     name,
-                    json!(format!(
-                        "{} ({}.{})",
-                        address.to_string(),
-                        instruction_account_decoded
-                            .program
-                            .metadata
-                            .name
-                            .clone()
-                            .unwrap_or(
-                                instruction_account_decoded.owner.to_string()
-                            ),
-                        instruction_account_decoded.account.name,
-                    )),
+                    json!({
+                        "kind": context.compute_account_kind(
+                            &instruction_account_decoded.owner,
+                            &instruction_account_decoded.program,
+                            &instruction_account_decoded.account
+                        ),
+                        "address": address.to_string(),
+                    }),
                 );
             }
             json_instructions.push(json!({
-                "program": instruction_decoded.program.metadata.name.clone().unwrap_or(instruction.program_id.to_string()),
-                "name": instruction_decoded.instruction.name,
+                "kind": context.compute_instruction_kind(
+                    &instruction.program_id,
+                    &instruction_decoded.program,
+                    &instruction_decoded.instruction
+                ),
                 "addresses": json_addresses,
                 "payload": instruction_decoded.payload,
             }));
         }
-        println!(
-            "{}",
-            serde_json::to_string(&json!({
-                "payer": execution.payer.to_string(),
-                "instructions": json_instructions,
-                "logs": execution.logs,
-                "error": execution.error, // TODO (MEDIUM) - could parse the error using the code
-                "return_data": execution.return_data,
-                "units_consumed": execution.units_consumed,
-            }))?
-        );
-        Ok(())
+        Ok(json!({
+            "payer": execution.payer.to_string(),
+            "instructions": json_instructions,
+            "logs": execution.logs,
+            "error": execution.error, // TODO (MEDIUM) - could parse the error using the code
+            "return_data": execution.return_data,
+            "units_consumed": execution.units_consumed,
+        }))
     }
 }

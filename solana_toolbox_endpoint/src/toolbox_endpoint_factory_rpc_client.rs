@@ -6,17 +6,21 @@ use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
 impl ToolboxEndpoint {
-    pub fn new_rpc_with_url_or_moniker_and_commitment(
-        url_or_moniker: &str,
-        commitment_config: CommitmentConfig,
-    ) -> ToolboxEndpoint {
-        let url = match url_or_moniker {
+    pub fn get_url_from_url_or_moniker(url_or_moniker: &str) -> &str {
+        match url_or_moniker {
             "m" | "mainnet-beta" => "https://api.mainnet-beta.solana.com",
             "t" | "testnet" => "https://api.testnet.solana.com",
             "d" | "devnet" => "https://api.devnet.solana.com",
             "l" | "localhost" => "http://localhost:8899",
             url => url,
-        };
+        }
+    }
+
+    pub fn new_rpc_with_url_or_moniker_and_commitment(
+        url_or_moniker: &str,
+        commitment_config: CommitmentConfig,
+    ) -> ToolboxEndpoint {
+        let url = ToolboxEndpoint::get_url_from_url_or_moniker(url_or_moniker);
         RpcClient::new_with_commitment(url.to_string(), commitment_config)
             .into()
     }

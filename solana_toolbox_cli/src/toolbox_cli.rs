@@ -1,5 +1,6 @@
 use clap::Parser;
 use clap::Subcommand;
+use serde_json::Value;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
 
@@ -9,7 +10,7 @@ use crate::toolbox_cli_command_find::ToolboxCliCommandFindArgs;
 use crate::toolbox_cli_command_history::ToolboxCliCommandHistoryArgs;
 use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
 use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
-use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Parser)]
@@ -51,6 +52,8 @@ pub struct ToolboxCliArgs {
         help = "Use custom IDLs for programs, format: [ProgramId:IdlFile]"
     )]
     idls: Vec<String>,
+    #[arg(long, help = "Output compacted JSON")]
+    compact: bool,
     #[command(subcommand)]
     command: ToolboxCliCommand,
 }
@@ -76,14 +79,19 @@ impl ToolboxCliArgs {
         if let Some(keypair) = &self.keypair {
             solana_cli_config.keypair_path = keypair.to_string();
         }
-        self.command
-            .process(&ToolboxCliConfig::new(
-                solana_cli_config.json_rpc_url,
-                solana_cli_config.commitment,
-                solana_cli_config.keypair_path,
-                self.idls.clone(),
-            ))
-            .await
+        let context = ToolboxCliContext::new(
+            solana_cli_config.json_rpc_url,
+            solana_cli_config.commitment,
+            solana_cli_config.keypair_path,
+            self.idls.clone(),
+        );
+        let json = self.command.process(&context).await?;
+        if self.compact {
+            println!("{}", serde_json::to_string(&json)?);
+        } else {
+            println!("{}", serde_json::to_string_pretty(&json)?);
+        }
+        Ok(())
     }
 }
 
@@ -102,15 +110,15 @@ pub enum ToolboxCliCommand {
 impl ToolboxCliCommand {
     pub async fn process(
         &self,
-        config: &ToolboxCliConfig,
-    ) -> Result<(), ToolboxCliError> {
+        context: &ToolboxCliContext,
+    ) -> Result<Value, ToolboxCliError> {
         match self {
-            ToolboxCliCommand::Account(args) => args.process(config).await,
-            ToolboxCliCommand::Execution(args) => args.process(config).await,
-            ToolboxCliCommand::Find(args) => args.process(config).await,
-            ToolboxCliCommand::History(args) => args.process(config).await,
-            ToolboxCliCommand::Instruction(args) => args.process(config).await,
-            ToolboxCliCommand::Program(args) => args.process(config).await,
+            ToolboxCliCommand::Account(args) => args.process(context).await,
+            ToolboxCliCommand::Execution(args) => args.process(context).await,
+            ToolboxCliCommand::Find(args) => args.process(context).await,
+            ToolboxCliCommand::History(args) => args.process(context).await,
+            ToolboxCliCommand::Instruction(args) => args.process(context).await,
+            ToolboxCliCommand::Program(args) => args.process(context).await,
         }
     }
 }

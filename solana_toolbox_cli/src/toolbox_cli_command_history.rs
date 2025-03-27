@@ -1,16 +1,17 @@
-use std::str::FromStr;
-
 use clap::Args;
 use serde_json::json;
-use solana_sdk::signature::Signature;
+use serde_json::Value;
 
-use crate::toolbox_cli_config::ToolboxCliConfig;
+use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search signatures that involve a specific account")]
 pub struct ToolboxCliCommandHistoryArgs {
-    #[arg(help = "The account pubkey that is involved in transactions")]
+    #[arg(
+        default_value = "KEYPAIR",
+        help = "The account pubkey that is involved in transactions"
+    )]
     address: String,
     #[arg(help = "How much signature we'll search for before stopping")]
     limit: Option<usize>,
@@ -23,20 +24,20 @@ pub struct ToolboxCliCommandHistoryArgs {
 impl ToolboxCliCommandHistoryArgs {
     pub async fn process(
         &self,
-        config: &ToolboxCliConfig,
-    ) -> Result<(), ToolboxCliError> {
-        let mut endpoint = config.create_endpoint().await?;
-        let mut idl_service = config.create_idl_service().await?;
-        let address = config.parse_key(&self.address)?.address();
+        context: &ToolboxCliContext,
+    ) -> Result<Value, ToolboxCliError> {
+        let mut endpoint = context.create_endpoint().await?;
+        let mut idl_service = context.create_service().await?;
+        let address = context.parse_key(&self.address)?.address();
         let start_before = self
             .start_before_signature
             .as_ref()
-            .map(|signature| Signature::from_str(signature))
+            .map(|signature| context.parse_signature(signature))
             .transpose()?;
         let rewind_until = self
             .rewind_until_signature
             .as_ref()
-            .map(|signature| Signature::from_str(signature))
+            .map(|signature| context.parse_signature(signature))
             .transpose()?;
         let signatures = endpoint
             .search_signatures(
@@ -54,23 +55,17 @@ impl ToolboxCliCommandHistoryArgs {
                 let instruction_decoded = idl_service
                     .decode_instruction(&mut endpoint, &instruction)
                     .await?;
-                json_instructions.push(format!(
-                    "{}.{}",
-                    instruction_decoded
-                        .program
-                        .metadata
-                        .name
-                        .clone()
-                        .unwrap_or(instruction.program_id.to_string()),
-                    instruction_decoded.instruction.name
+                json_instructions.push(context.compute_instruction_kind(
+                    &instruction.program_id,
+                    &instruction_decoded.program,
+                    &instruction_decoded.instruction,
                 ));
             }
             json_history.push(json!({
                 "signature": signature.to_string(),
-                "instructions": json_instructions,
+                "instructions_kinds": json_instructions,
             }));
         }
-        println!("{}", serde_json::to_string(&json!(json_history))?);
-        Ok(())
+        Ok(json!(json_history))
     }
 }

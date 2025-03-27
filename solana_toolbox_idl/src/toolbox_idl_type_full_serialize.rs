@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use serde_json::Value;
+use solana_sdk::bs58;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -139,10 +140,25 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
+        if vec_items
+            == (&ToolboxIdlTypeFull::Primitive {
+                primitive: ToolboxIdlTypePrimitive::U8,
+            })
+        {
+            let bytes = try_read_value_to_bytes(value, breadcrumbs)?;
+            if deserializable {
+                data.extend_from_slice(bytemuck::bytes_of::<u32>(
+                    &u32::try_from(bytes.len()).unwrap(),
+                ));
+            }
+            data.extend_from_slice(&bytes);
+            return Ok(());
+        }
         let values = idl_as_array_or_else(value, &breadcrumbs.as_val("vec"))?;
         if deserializable {
-            let value_length = u32::try_from(values.len()).unwrap();
-            data.extend_from_slice(bytemuck::bytes_of::<u32>(&value_length));
+            data.extend_from_slice(bytemuck::bytes_of::<u32>(
+                &u32::try_from(values.len()).unwrap(),
+            ));
         }
         for (_, value_item, breadcrumbs) in
             idl_iter_get_scoped_values(values, breadcrumbs)?
@@ -344,16 +360,6 @@ impl ToolboxIdlTypeFull {
                     &value_floating,
                 ));
             },
-            ToolboxIdlTypePrimitive::Bytes => {
-                let values = idl_as_array_or_else(value, context)?;
-                let value_bytes = idl_as_bytes_or_else(values, context)?;
-                if deserializable {
-                    data.extend_from_slice(bytemuck::bytes_of::<u32>(
-                        &u32::try_from(value_bytes.len()).unwrap(),
-                    ));
-                }
-                data.extend_from_slice(&value_bytes);
-            },
             ToolboxIdlTypePrimitive::Boolean => {
                 data.push(if idl_as_bool_or_else(value, context)? {
                     1
@@ -435,4 +441,67 @@ impl ToolboxIdlTypeFullFields {
         }
         Ok(())
     }
+}
+
+fn try_read_value_to_bytes(
+    value: &Value,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Vec<u8>, ToolboxIdlError> {
+    if let Some(value_array) = value.as_array() {
+        return idl_as_bytes_or_else(value_array, &breadcrumbs.val());
+    }
+    if let Some(value_string) = value.as_str() {
+        if let Some((encoding, data)) = value_string.split_once(":") {
+            return match encoding {
+                "utf8" => try_read_utf8_to_bytes(data),
+                "base58" => try_read_base58_to_bytes(data),
+                "hex" => try_read_hex_to_bytes(data, breadcrumbs),
+                _ => idl_err(
+                    &format!("Unknown encoding: {}", encoding),
+                    &breadcrumbs.val(),
+                ),
+            };
+        }
+        if value_string.starts_with("0x") || value_string.starts_with("0X") {
+            return try_read_hex_to_bytes(&value_string[2..], breadcrumbs);
+        }
+        return idl_err(
+            "Could not decode byte-string, expected format: [encoding:data]",
+            &breadcrumbs.val(),
+        );
+    }
+    idl_err(
+        "Could not read bytes, expected an array/string",
+        &breadcrumbs.val(),
+    )
+}
+
+fn try_read_utf8_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
+    Ok(data.as_bytes().to_vec())
+}
+
+fn try_read_base58_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
+    let base58 = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
+    bs58::decode(base58)
+        .into_vec()
+        .map_err(ToolboxIdlError::Bs58DecodeError)
+}
+
+fn try_read_hex_to_bytes(
+    data: &str,
+    breadcrumbs: &ToolboxIdlBreadcrumbs,
+) -> Result<Vec<u8>, ToolboxIdlError> {
+    let hex = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
+    let mut bytes = vec![];
+    for byte in 0..(hex.len() / 2) {
+        let byte_idx = byte * 2;
+        let byte_hex = &hex[byte_idx..byte_idx + 2];
+        bytes.push(u8::from_str_radix(byte_hex, 16).map_err(|err| {
+            ToolboxIdlError::InvalidNumber {
+                parsing: err,
+                context: breadcrumbs.as_val(&format!("[{}]", byte_idx)),
+            }
+        })?);
+    }
+    Ok(bytes)
 }

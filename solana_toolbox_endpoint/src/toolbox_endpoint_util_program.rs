@@ -9,7 +9,6 @@ use solana_sdk::bpf_loader_upgradeable::set_buffer_authority;
 use solana_sdk::bpf_loader_upgradeable::upgrade;
 use solana_sdk::bpf_loader_upgradeable::write;
 use solana_sdk::bpf_loader_upgradeable::UpgradeableLoaderState;
-use solana_sdk::native_loader;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -21,7 +20,6 @@ impl ToolboxEndpoint {
     pub const BPF_LOADER_2_PROGRAM_ID: Pubkey = bpf_loader::ID;
     pub const BPF_LOADER_UPGRADEABLE_PROGRAM_ID: Pubkey =
         bpf_loader_upgradeable::ID;
-    pub const NATIVE_LOADER_PROGRAM_ID: Pubkey = native_loader::ID;
 
     pub async fn get_program_meta(
         &mut self,

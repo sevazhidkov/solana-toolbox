@@ -1,0 +1,12 @@
+{
+  "name": "native_loader",
+  "instructions": {},
+  "accounts": {
+    "Account": {
+      "discriminator": [],
+      "fields": []
+    }
+  },
+  "types": {},
+  "errors": {}
+}

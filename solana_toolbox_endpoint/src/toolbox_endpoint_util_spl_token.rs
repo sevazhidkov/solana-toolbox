@@ -12,6 +12,7 @@ use spl_token::instruction::set_authority;
 use spl_token::instruction::thaw_account;
 use spl_token::instruction::transfer;
 use spl_token::instruction::AuthorityType;
+use spl_token::native_mint;
 use spl_token::state::Account;
 use spl_token::state::Mint;
 
@@ -19,6 +20,7 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
+    pub const SPL_TOKEN_NATIVE_MINT: Pubkey = native_mint::ID;
     pub const SPL_TOKEN_PROGRAM_ID: Pubkey = spl_token::ID;
 
     pub async fn process_spl_token_mint_new(

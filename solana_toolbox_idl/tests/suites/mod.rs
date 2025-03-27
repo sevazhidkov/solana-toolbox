@@ -36,4 +36,5 @@ pub mod unit_parse_typedef_struct_generics;
 pub mod unit_transform_account_enums_fields;
 pub mod unit_transform_account_nested;
 pub mod unit_transform_account_structs_fields;
+pub mod unit_transform_account_vec_u8;
 pub mod unit_transform_instruction_struct;

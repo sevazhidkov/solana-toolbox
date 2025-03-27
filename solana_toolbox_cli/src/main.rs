@@ -5,7 +5,7 @@ mod toolbox_cli_command_find;
 mod toolbox_cli_command_history;
 mod toolbox_cli_command_instruction;
 mod toolbox_cli_command_program;
-mod toolbox_cli_config;
+mod toolbox_cli_context;
 mod toolbox_cli_error;
 mod toolbox_cli_key;
 
