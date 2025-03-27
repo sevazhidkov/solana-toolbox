@@ -23,6 +23,10 @@ impl ToolboxIdlProgram {
             include_str!("lib/native_compute_budget.json"),
         );
         known_programs.insert(
+            ToolboxEndpoint::NATIVE_LOADER_PROGRAM_ID,
+            include_str!("lib/native_loader.json"),
+        );
+        known_programs.insert(
             ToolboxEndpoint::BPF_LOADER_2_PROGRAM_ID,
             include_str!("lib/native_bpf_loader_2.json"),
         );
