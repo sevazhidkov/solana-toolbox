@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::str::FromStr;
 
+use serde_hjson::to_string;
 use serde_json::Value;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
@@ -124,15 +126,10 @@ impl ToolboxCliContext {
         program: &ToolboxIdlProgram,
         account: &ToolboxIdlAccount,
     ) -> String {
-        format!(
-            "{}.{}",
-            program
-                .metadata
-                .name
-                .clone()
-                .unwrap_or(program_id.to_string()),
-            account.name
-        )
+        if let Some(program_name) = &program.metadata.name {
+            return format!("{}.{}.{}", program_id, program_name, account.name);
+        }
+        return format!("{}.{}", program_id, account.name);
     }
 
     pub fn compute_instruction_kind(
@@ -141,23 +138,82 @@ impl ToolboxCliContext {
         program: &ToolboxIdlProgram,
         instruction: &ToolboxIdlInstruction,
     ) -> String {
-        format!(
-            "{}.{}",
-            program
-                .metadata
-                .name
-                .clone()
-                .unwrap_or(program_id.to_string()),
-            instruction.name
+        if let Some(program_name) = &program.metadata.name {
+            return format!(
+                "{}.{}.{}",
+                program_id, program_name, instruction.name
+            );
+        }
+        return format!("{}.{}", program_id, instruction.name);
+    }
+
+    pub fn compute_explorer_address_link(&self, address: &Pubkey) -> String {
+        self.compute_explorer_link(
+            "address",
+            &address.to_string(),
+            &HashMap::new(),
         )
     }
 
-    pub fn compute_explorer_link(&self, kind: &str, payload: &str) -> String {
-        format!(
-            "https://explorer.solana.com/{}/{}?customUrl={}",
-            kind,
-            payload,
+    pub fn compute_explorer_signature_link(
+        &self,
+        signature: &Signature,
+    ) -> String {
+        self.compute_explorer_link(
+            "tx",
+            &signature.to_string(),
+            &HashMap::new(),
+        )
+    }
+
+    pub fn compute_explorer_simulation_link(
+        &self,
+        transaction_signatures: &[Signature],
+        transaction_message_serialized: &[u8],
+    ) -> Result<String, ToolboxCliError> {
+        let mut params = HashMap::new();
+        params.insert(
+            "signatures".to_string(),
+            format!(
+                "[{}]",
+                transaction_signatures
+                    .iter()
+                    .map(|signature| format!("\"{}\"", signature.to_string()))
+                    .collect::<Vec<_>>()
+                    .join(","),
+            ),
+        );
+        params.insert(
+            "message".to_string(),
+            ToolboxEndpoint::encode_base64(transaction_message_serialized)?,
+        );
+        Ok(self.compute_explorer_link("tx", "inspector", &params))
+    }
+
+    fn compute_explorer_link(
+        &self,
+        category: &str,
+        payload: &str,
+        params: &HashMap<String, String>,
+    ) -> String {
+        let mut args = vec![];
+        for (param_name, param_content) in params {
+            args.push(format!(
+                "{}={}",
+                urlencoding::encode(param_name),
+                urlencoding::encode(param_content)
+            ));
+        }
+        args.push("cluster=custom".to_string());
+        args.push(format!(
+            "customUrl={}",
             urlencoding::encode(&self.json_rpc_url)
+        ));
+        format!(
+            "https://explorer.solana.com/{}/{}?{}",
+            category,
+            payload,
+            args.join("&"),
         )
     }
 }

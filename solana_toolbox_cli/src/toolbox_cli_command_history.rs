@@ -63,7 +63,7 @@ impl ToolboxCliCommandHistoryArgs {
             }
             json_history.push(json!({
                 "signature": signature.to_string(),
-                "instructions_kinds": json_instructions,
+                "instructions": json_instructions,
             }));
         }
         Ok(json!(json_history))

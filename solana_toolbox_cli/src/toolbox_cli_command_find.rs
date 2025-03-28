@@ -94,10 +94,10 @@ impl ToolboxCliCommandFindArgs {
             }
             json_accounts.push(json!({
                 "address": address.to_string(),
-                "kind": format!(
-                    "{}.{}",
-                    account_decoded.program.metadata.name.clone().unwrap_or(account_decoded.owner.to_string()),
-                    account_decoded.account.name,
+                "kind": context.compute_account_kind(
+                    &account_decoded.owner,
+                    &account_decoded.program,
+                    &account_decoded.account,
                 ),
                 "state": account_decoded.state,
             }));

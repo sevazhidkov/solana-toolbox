@@ -7,7 +7,7 @@ use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
+use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgramMetadata {
@@ -28,7 +28,7 @@ pub struct ToolboxIdlProgram {
 
 impl ToolboxIdlProgram {
     pub fn sanitize_name(name: &str) -> String {
-        idl_convert_to_value_name(name)
+        idl_convert_to_type_name(name)
     }
 
     pub fn guess_account(

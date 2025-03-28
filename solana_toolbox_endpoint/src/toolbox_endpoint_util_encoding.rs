@@ -6,8 +6,8 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
-    pub fn encode_base58(data: &[u8]) -> Result<String, ToolboxEndpointError> {
-        Ok(bs58::encode(data).into_string())
+    pub fn encode_base58(data: &[u8]) -> String {
+        bs58::encode(data).into_string()
     }
 
     pub fn decode_base58(data: &str) -> Result<Vec<u8>, ToolboxEndpointError> {
@@ -16,8 +16,8 @@ impl ToolboxEndpoint {
             .map_err(ToolboxEndpointError::Bs58Decode)
     }
 
-    pub fn encode_base64(data: &[u8]) -> Result<String, ToolboxEndpointError> {
-        Ok(STANDARD.encode(data))
+    pub fn encode_base64(data: &[u8]) -> String {
+        STANDARD.encode(data)
     }
 
     pub fn decode_base64(data: &str) -> Result<Vec<u8>, ToolboxEndpointError> {
@@ -27,4 +27,5 @@ impl ToolboxEndpoint {
     }
 
     // TODO - add base64/base58 sanitizing functions ?
+    // TODO - add functions to generate explorer links ?
 }

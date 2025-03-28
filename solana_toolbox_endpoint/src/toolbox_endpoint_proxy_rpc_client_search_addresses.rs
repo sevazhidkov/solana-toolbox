@@ -27,7 +27,7 @@ impl ToolboxEndpointProxyRpcClient {
             ));
         }
         for (slice_offset, slice_bytes) in data_chunks {
-            let slice_base64 = ToolboxEndpoint::encode_base64(slice_bytes)?;
+            let slice_base64 = ToolboxEndpoint::encode_base64(slice_bytes);
             program_accounts_filters.push(RpcFilterType::Memcmp(Memcmp::new(
                 *slice_offset,
                 MemcmpEncodedBytes::Base64(slice_base64),

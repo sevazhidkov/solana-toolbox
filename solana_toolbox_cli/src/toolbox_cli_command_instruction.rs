@@ -4,7 +4,6 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
-use solana_sdk::transaction::Transaction;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
@@ -131,59 +130,47 @@ impl ToolboxCliCommandInstructionArgs {
         let mut json_outcome = Map::new();
         match instruction_encode_result {
             Ok(instruction) => {
-                // TODO (SHORT) - provide link to simulation explorer instead of encoded
-                json_outcome.insert(
-                    "message_base58".to_string(),
-                    json!(ToolboxEndpoint::encode_base58(
-                        Transaction::new_with_payer(
-                            &[instruction.clone()],
-                            None
-                        )
-                        .message
-                        .serialize(),
-                    )
-                    .into_string()),
-                );
                 let mut signers = vec![];
                 for key in instruction_keys.values() {
                     if let Some(signer) = key.signer() {
                         signers.push(signer);
                     }
                 }
+                let transaction =
+                    ToolboxEndpoint::compile_versioned_transaction(
+                        &context.get_keypair(),
+                        &[instruction.clone()],
+                        &signers,
+                        &[],
+                        endpoint.get_latest_blockhash().await?,
+                    )?;
+                let transaction_signatures = transaction.signatures.clone();
+                let transaction_message_serialized =
+                    transaction.message.serialize();
+                // TODO (SHORT) - provide link to simulation explorer instead of encoded
+                json_outcome.insert(
+                    "message_base58".to_string(),
+                    json!(ToolboxEndpoint::encode_base58(
+                        &transaction_message_serialized,
+                    )?),
+                );
                 if self.execute {
                     let (signature, _) = endpoint
-                        .process_instruction_with_signers(
-                            &context.get_keypair(),
-                            instruction.clone(),
-                            &signers,
-                        )
+                        .process_versioned_transaction(transaction, false)
                         .await?;
-                    let transaction =
-                        ToolboxEndpoint::compile_versioned_transaction(
-                            &context.get_keypair(),
-                            &[instruction.clone()],
-                            &signers,
-                            &[],
-                            endpoint.get_latest_blockhash().await?,
-                        )?;
                     json_outcome.insert(
                         "signature".to_string(),
                         json!(signature.to_string()),
                     );
                     json_outcome.insert(
-                        "explorer_link".to_string(),
-                        json!(context.compute_explorer_link(
-                            "tx",
-                            &signature.to_string(),
-                        )),
+                        "explorer".to_string(),
+                        json!(
+                            context.compute_explorer_signature_link(&signature)
+                        ),
                     );
                 } else {
                     let simulation = endpoint
-                        .simulate_instruction_with_signers(
-                            &context.get_keypair(),
-                            instruction.clone(),
-                            &signers,
-                        )
+                        .simulate_versioned_transaction(transaction)
                         .await?;
                     json_outcome.insert(
                         "simulation".to_string(),
@@ -195,11 +182,11 @@ impl ToolboxCliCommandInstructionArgs {
                         }),
                     );
                     json_outcome.insert(
-                        "explorer_link".to_string(),
-                        json!(context.compute_explorer_link(
-                            "tx",
-                            &signature.to_string(),
-                        )),
+                        "explorer".to_string(),
+                        json!(context.compute_explorer_simulation_link(
+                            &transaction_signatures,
+                            &transaction_message_serialized
+                        )?),
                     );
                 }
             },
