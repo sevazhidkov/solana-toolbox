@@ -100,6 +100,7 @@ impl ToolboxCliCommandFindArgs {
                     &account_decoded.account,
                 ),
                 "state": account_decoded.state,
+                "explorer": context.compute_explorer_address_link(&address)
             }));
         }
         Ok(json!(json_accounts))

@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::str::FromStr;
 
-use serde_hjson::to_string;
 use serde_json::Value;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
