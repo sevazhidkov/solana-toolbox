@@ -20,6 +20,8 @@ use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
+use crate::toolbox_idl_utils::idl_object_get_key_as_str;
+use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
 impl ToolboxIdlTypeFull {
@@ -449,6 +451,20 @@ fn try_read_value_to_bytes(
 ) -> Result<Vec<u8>, ToolboxIdlError> {
     if let Some(value_array) = value.as_array() {
         return idl_as_bytes_or_else(value_array, &breadcrumbs.val());
+    }
+    if let Some(value_object) = value.as_object() {
+        if let Some(data) = idl_object_get_key_as_str(value_object, "hex") {
+            return try_read_hex_to_bytes(data, breadcrumbs);
+        }
+        if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
+            return try_read_base58_to_bytes(data);
+        }
+        if let Some(data) = idl_object_get_key_as_str(value_object, "utf8") {
+            return try_read_utf8_to_bytes(data);
+        }
+        if let Some(data) = idl_object_get_key_as_u64(value_object, "zeroes") {
+            return Ok(vec![0; usize::try_from(data).unwrap()]);
+        }
     }
     if let Some(value_string) = value.as_str() {
         if let Some((encoding, data)) = value_string.split_once(":") {

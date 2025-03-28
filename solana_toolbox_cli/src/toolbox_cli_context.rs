@@ -151,4 +151,13 @@ impl ToolboxCliContext {
             instruction.name
         )
     }
+
+    pub fn compute_explorer_link(&self, kind: &str, payload: &str) -> String {
+        format!(
+            "https://explorer.solana.com/{}/{}?customUrl={}",
+            kind,
+            payload,
+            urlencoding::encode(&self.json_rpc_url)
+        )
+    }
 }

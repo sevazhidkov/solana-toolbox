@@ -4,7 +4,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use solana_client::rpc_request::RpcRequest;
-use solana_sdk::bs58;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
@@ -116,9 +115,9 @@ impl ToolboxEndpointProxyRpcClient {
             compiled_instructions.push(CompiledInstruction {
                 program_id_index: response_instruction.program_id_index,
                 accounts: response_instruction.accounts,
-                data: bs58::decode(response_instruction.data)
-                    .into_vec()
-                    .map_err(ToolboxEndpointError::Bs58Decode)?,
+                data: ToolboxEndpoint::decode_base58(
+                    &response_instruction.data,
+                )?,
             });
         }
         let payer =

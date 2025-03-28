@@ -19,6 +19,7 @@ mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_address_lookup_table;
 mod toolbox_endpoint_util_compute_budget;
 mod toolbox_endpoint_util_consts;
+mod toolbox_endpoint_util_encoding;
 mod toolbox_endpoint_util_instruction_decompile;
 mod toolbox_endpoint_util_instruction_process;
 mod toolbox_endpoint_util_instruction_simulate;

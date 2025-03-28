@@ -123,6 +123,16 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         skip_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
     {
+        let transaction_message_serialized =
+            versioned_transaction.message.serialize();
+        if transaction_message_serialized.len()
+            > ToolboxEndpoint::TRANSACTION_DATA_SIZE_LIMIT
+        {
+            return Err(ToolboxEndpointError::Custom(format!(
+                "Serialized transaction size is too large: {} bytes",
+                transaction_message_serialized.len()
+            )));
+        }
         if !skip_preflight {
             if let Some(Err(error)) = self
                 .inner

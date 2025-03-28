@@ -1,7 +1,5 @@
 use std::collections::HashSet;
 
-use base64::engine::general_purpose::STANDARD;
-use base64::Engine;
 use solana_account_decoder::UiDataSliceConfig;
 use solana_client::rpc_config::RpcAccountInfoConfig;
 use solana_client::rpc_config::RpcProgramAccountsConfig;
@@ -13,6 +11,7 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
+use crate::ToolboxEndpoint;
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn search_addresses_using_rpc(
@@ -28,9 +27,10 @@ impl ToolboxEndpointProxyRpcClient {
             ));
         }
         for (slice_offset, slice_bytes) in data_chunks {
+            let slice_base64 = ToolboxEndpoint::encode_base64(slice_bytes)?;
             program_accounts_filters.push(RpcFilterType::Memcmp(Memcmp::new(
                 *slice_offset,
-                MemcmpEncodedBytes::Base64(STANDARD.encode(slice_bytes)),
+                MemcmpEncodedBytes::Base64(slice_base64),
             )));
         }
         Ok(HashSet::from_iter(

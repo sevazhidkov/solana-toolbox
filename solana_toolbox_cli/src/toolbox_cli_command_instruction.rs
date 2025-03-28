@@ -6,6 +6,7 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::bs58;
 use solana_sdk::transaction::Transaction;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
@@ -131,7 +132,7 @@ impl ToolboxCliCommandInstructionArgs {
         let mut json_outcome = Map::new();
         match instruction_encode_result {
             Ok(instruction) => {
-                // TODO - provide link to simulation explorer instead of encoded
+                // TODO (SHORT) - provide link to simulation explorer instead of encoded
                 json_outcome.insert(
                     "message_base58".to_string(),
                     json!(bs58::encode(
@@ -158,9 +159,24 @@ impl ToolboxCliCommandInstructionArgs {
                             &signers,
                         )
                         .await?;
+                    let transaction =
+                        ToolboxEndpoint::compile_versioned_transaction(
+                            &context.get_keypair(),
+                            &[instruction.clone()],
+                            &signers,
+                            &[],
+                            endpoint.get_latest_blockhash().await?,
+                        )?;
                     json_outcome.insert(
                         "signature".to_string(),
                         json!(signature.to_string()),
+                    );
+                    json_outcome.insert(
+                        "explorer_link".to_string(),
+                        json!(context.compute_explorer_link(
+                            "tx",
+                            &signature.to_string(),
+                        )),
                     );
                 } else {
                     let simulation = endpoint
@@ -178,6 +194,13 @@ impl ToolboxCliCommandInstructionArgs {
                             "return_data": simulation.return_data,
                             "units_consumed": simulation.units_consumed,
                         }),
+                    );
+                    json_outcome.insert(
+                        "explorer_link".to_string(),
+                        json!(context.compute_explorer_link(
+                            "tx",
+                            &signature.to_string(),
+                        )),
                     );
                 }
             },

@@ -125,7 +125,7 @@ impl ToolboxEndpoint {
             &[&program_buffer],
         )
         .await?;
-        let write_packing = 1216;
+        let write_packing = 1024;
         let write_count = program_bytecode_len.div_ceil(write_packing);
         for write_index in 0..write_count {
             let write_before = write_index * write_packing;

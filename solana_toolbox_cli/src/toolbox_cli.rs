@@ -3,6 +3,7 @@ use clap::Subcommand;
 use serde_json::Value;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_command_account::ToolboxCliCommandAccountArgs;
 use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
@@ -74,7 +75,8 @@ impl ToolboxCliArgs {
             solana_cli_config.commitment = commitment.to_string();
         }
         if let Some(url) = &self.url {
-            solana_cli_config.json_rpc_url = url.to_string();
+            solana_cli_config.json_rpc_url =
+                ToolboxEndpoint::get_url_from_url_or_moniker(url).to_string();
         }
         if let Some(keypair) = &self.keypair {
             solana_cli_config.keypair_path = keypair.to_string();
