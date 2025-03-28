@@ -5548,9 +5548,9 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.3.8-solana-2.1.4"
+version = "0.3.9-solana-2.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26a2d48846d7c12d3c8a6e41cd77f9c665486310d0ea5c9222864d78b7130833"
+checksum = "58a646c0f84e5a336a9453ca5daf74c5db93c3918e864b57e2c92ca1450ab0f0"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5571,7 +5571,7 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_idl"
-version = "0.3.8-solana-2.1.4"
+version = "0.3.9-solana-2.1.4"
 dependencies = [
  "bytemuck",
  "convert_case",

@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
 use serde_json::Value;
-use solana_sdk::bs58;
 use solana_sdk::pubkey::Pubkey;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
@@ -459,48 +459,25 @@ fn try_read_value_to_bytes(
         if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
             return try_read_base58_to_bytes(data);
         }
+        if let Some(data) = idl_object_get_key_as_str(value_object, "base64") {
+            return try_read_base64_to_bytes(data);
+        }
         if let Some(data) = idl_object_get_key_as_str(value_object, "utf8") {
-            return try_read_utf8_to_bytes(data);
+            return Ok(data.as_bytes().to_vec());
         }
         if let Some(data) = idl_object_get_key_as_u64(value_object, "zeroes") {
             return Ok(vec![0; usize::try_from(data).unwrap()]);
         }
     }
     if let Some(value_string) = value.as_str() {
-        if let Some((encoding, data)) = value_string.split_once(":") {
-            return match encoding {
-                "utf8" => try_read_utf8_to_bytes(data),
-                "base58" => try_read_base58_to_bytes(data),
-                "hex" => try_read_hex_to_bytes(data, breadcrumbs),
-                _ => idl_err(
-                    &format!("Unknown encoding: {}", encoding),
-                    &breadcrumbs.val(),
-                ),
-            };
-        }
         if value_string.starts_with("0x") || value_string.starts_with("0X") {
             return try_read_hex_to_bytes(&value_string[2..], breadcrumbs);
         }
-        return idl_err(
-            "Could not decode byte-string, expected format: [encoding:data]",
-            &breadcrumbs.val(),
-        );
     }
     idl_err(
-        "Could not read bytes, expected an array/string",
+        "Could not read bytes, expected an array/object/string",
         &breadcrumbs.val(),
     )
-}
-
-fn try_read_utf8_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
-    Ok(data.as_bytes().to_vec())
-}
-
-fn try_read_base58_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
-    let base58 = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-    bs58::decode(base58)
-        .into_vec()
-        .map_err(ToolboxIdlError::Bs58DecodeError)
 }
 
 fn try_read_hex_to_bytes(
@@ -520,4 +497,19 @@ fn try_read_hex_to_bytes(
         })?);
     }
     Ok(bytes)
+}
+
+fn try_read_base58_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
+    let base58 = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
+    Ok(ToolboxEndpoint::decode_base58(&base58)?)
+}
+
+fn try_read_base64_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
+    let base64 = data.replace(
+        |c| {
+            !char::is_ascii_alphanumeric(&c) && c != '+' && c != '/' && c != '='
+        },
+        "",
+    );
+    Ok(ToolboxEndpoint::decode_base64(&base64)?)
 }

@@ -25,4 +25,6 @@ impl ToolboxEndpoint {
             .decode(data)
             .map_err(ToolboxEndpointError::Base64Decode)
     }
+
+    // TODO - add base64/base58 sanitizing functions ?
 }

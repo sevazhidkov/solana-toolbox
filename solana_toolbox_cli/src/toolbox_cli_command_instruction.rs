@@ -4,7 +4,6 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
-use solana_sdk::bs58;
 use solana_sdk::transaction::Transaction;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
@@ -135,7 +134,7 @@ impl ToolboxCliCommandInstructionArgs {
                 // TODO (SHORT) - provide link to simulation explorer instead of encoded
                 json_outcome.insert(
                     "message_base58".to_string(),
-                    json!(bs58::encode(
+                    json!(ToolboxEndpoint::encode_base58(
                         Transaction::new_with_payer(
                             &[instruction.clone()],
                             None

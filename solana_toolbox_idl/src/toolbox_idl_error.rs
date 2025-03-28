@@ -14,7 +14,6 @@ pub enum ToolboxIdlError {
     ToolboxEndpoint(ToolboxEndpointError),
     Pubkey(PubkeyError),
     Inflate(String),
-    Bs58DecodeError(solana_sdk::bs58::decode::Error),
     SerdeJson(serde_json::Error),
     InvalidDiscriminator {
         expected: Vec<u8>,
