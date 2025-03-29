@@ -7,10 +7,11 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 impl ToolboxIdlTypedef {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        if self.generics.is_empty() && self.docs.is_none() {
-            if format.can_skip_type_object_wrapping() {
-                return self.type_flat.export(format);
-            }
+        if self.generics.is_empty()
+            && self.docs.is_none()
+            && format.can_skip_type_object_wrapping()
+        {
+            return self.type_flat.export(format);
         }
         let mut json_object = Map::new();
         if !self.generics.is_empty() {

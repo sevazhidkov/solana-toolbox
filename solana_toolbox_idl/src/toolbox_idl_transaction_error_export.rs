@@ -7,10 +7,10 @@ use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 
 impl ToolboxIdlTransactionError {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        if self.msg.is_empty() {
-            if format.can_shortcut_error_to_number_if_no_msg() {
-                return json!(self.code);
-            }
+        if self.msg.is_empty()
+            && format.can_shortcut_error_to_number_if_no_msg()
+        {
+            return json!(self.code);
         }
         let mut json_object = Map::new();
         if !format.use_object_for_unordered_named_array() {
