@@ -1,5 +1,6 @@
 use clap::Args;
 use serde_json::Value;
+use solana_toolbox_idl::ToolboxIdlFormat;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
@@ -9,8 +10,6 @@ use crate::toolbox_cli_error::ToolboxCliError;
 pub struct ToolboxCliCommandProgramArgs {
     #[arg(value_name = "PROGRAM_ID", help = "The Program ID pubkey in base58")]
     program_id: String,
-    #[arg(long, action)]
-    backward_compatibility: bool,
 }
 
 impl ToolboxCliCommandProgramArgs {
@@ -25,6 +24,6 @@ impl ToolboxCliCommandProgramArgs {
             .resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();
-        Ok(idl_program.export(self.backward_compatibility))
+        Ok(idl_program.export(&ToolboxIdlFormat::Human))
     }
 }

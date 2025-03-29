@@ -74,20 +74,22 @@ impl ToolboxEndpoint {
                 ToolboxEndpoint::encode_url(param_content)
             ));
         }
-        if let Some(cluster) =
-            ToolboxEndpoint::get_cluster_from_url_or_moniker(rpc_url)
-        {
-            args.push(format!(
-                "cluster={}",
-                ToolboxEndpoint::encode_url(cluster)
-            ));
-        } else {
-            args.push("cluster=custom".to_string());
-            args.push(format!(
-                "customUrl={}",
-                ToolboxEndpoint::encode_url(rpc_url)
-            ));
-        }
+        match ToolboxEndpoint::get_cluster_from_url_or_moniker(rpc_url) {
+            Some("mainnet-beta") => {},
+            Some("devnet") => {
+                args.push("cluster=devnet".to_string());
+            },
+            Some("testnet") => {
+                args.push("cluster=testnet".to_string());
+            },
+            _ => {
+                args.push("cluster=custom".to_string());
+                args.push(format!(
+                    "customUrl={}",
+                    ToolboxEndpoint::encode_url(rpc_url)
+                ));
+            },
+        };
         format!(
             "https://explorer.solana.com/{}/{}?{}",
             category,

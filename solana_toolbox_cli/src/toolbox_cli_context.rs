@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::str::FromStr;
 
@@ -136,10 +135,9 @@ impl ToolboxCliContext {
     }
 
     pub fn compute_explorer_address_link(&self, address: &Pubkey) -> String {
-        self.compute_explorer_link(
-            "address",
-            &address.to_string(),
-            &HashMap::new(),
+        ToolboxEndpoint::compute_explorer_address_link(
+            &self.json_rpc_url,
+            address,
         )
     }
 
@@ -147,10 +145,9 @@ impl ToolboxCliContext {
         &self,
         signature: &Signature,
     ) -> String {
-        self.compute_explorer_link(
-            "tx",
-            &signature.to_string(),
-            &HashMap::new(),
+        ToolboxEndpoint::compute_explorer_signature_link(
+            &self.json_rpc_url,
+            signature,
         )
     }
 
@@ -159,49 +156,10 @@ impl ToolboxCliContext {
         transaction_signatures: &[Signature],
         transaction_message_serialized: &[u8],
     ) -> Result<String, ToolboxCliError> {
-        let mut params = HashMap::new();
-        params.insert(
-            "signatures".to_string(),
-            format!(
-                "[{}]",
-                transaction_signatures
-                    .iter()
-                    .map(|signature| format!("\"{}\"", signature.to_string()))
-                    .collect::<Vec<_>>()
-                    .join(","),
-            ),
-        );
-        params.insert(
-            "message".to_string(),
-            ToolboxEndpoint::encode_base64(transaction_message_serialized)?,
-        );
-        Ok(self.compute_explorer_link("tx", "inspector", &params))
-    }
-
-    fn compute_explorer_link(
-        &self,
-        category: &str,
-        payload: &str,
-        params: &HashMap<String, String>,
-    ) -> String {
-        let mut args = vec![];
-        for (param_name, param_content) in params {
-            args.push(format!(
-                "{}={}",
-                urlencoding::encode(param_name),
-                urlencoding::encode(param_content)
-            ));
-        }
-        args.push("cluster=custom".to_string());
-        args.push(format!(
-            "customUrl={}",
-            urlencoding::encode(&self.json_rpc_url)
-        ));
-        format!(
-            "https://explorer.solana.com/{}/{}?{}",
-            category,
-            payload,
-            args.join("&"),
-        )
+        Ok(ToolboxEndpoint::compute_explorer_simulation_link(
+            &self.json_rpc_url,
+            transaction_signatures,
+            transaction_message_serialized,
+        )?)
     }
 }

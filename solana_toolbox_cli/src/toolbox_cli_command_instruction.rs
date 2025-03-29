@@ -103,7 +103,7 @@ impl ToolboxCliCommandInstructionArgs {
         }
 
         let (instruction_specs_payload, instruction_specs_addresses) =
-            idl_instruction.get_dependencies();
+            idl_instruction.get_specs();
         let json_specs_payload = json!(instruction_specs_payload);
         let mut json_specs_addresses = Map::new();
         for (instruction_specs_address_name, instruction_specs_address_value) in
@@ -177,7 +177,7 @@ impl ToolboxCliCommandInstructionArgs {
                     "message_base58".to_string(),
                     json!(ToolboxEndpoint::encode_base58(
                         &transaction_message_serialized,
-                    )?),
+                    )),
                 );
                 if self.execute {
                     let (signature, _) = endpoint
