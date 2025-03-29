@@ -2,15 +2,18 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
+use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 
 impl ToolboxIdlTransactionError {
-    pub fn export(&self, backward_compatibility: bool) -> Value {
-        if !backward_compatibility && self.msg.is_empty() {
-            return json!(self.code);
+    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+        if self.msg.is_empty() {
+            if format.can_shortcut_error_to_just_code_value() {
+                return json!(self.code);
+            }
         }
         let mut json_object = Map::new();
-        if backward_compatibility {
+        if !format.use_object_for_unordered_named_array() {
             json_object.insert("name".to_string(), json!(self.name));
         }
         json_object.insert("code".to_string(), json!(self.code));

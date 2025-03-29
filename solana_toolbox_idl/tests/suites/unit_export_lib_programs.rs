@@ -1,6 +1,7 @@
 use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::compute_budget;
 use solana_sdk::system_program;
+use solana_toolbox_idl::ToolboxIdlFormat;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
@@ -12,14 +13,21 @@ pub async fn run() {
     assert_eq!(
         idl_program_native_system,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_system.export(true)
+            &idl_program_native_system.export(&ToolboxIdlFormat::Human)
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_system,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_system.export(false)
+            &idl_program_native_system.export(&ToolboxIdlFormat::Anchor26)
+        )
+        .unwrap()
+    );
+    assert_eq!(
+        idl_program_native_system,
+        ToolboxIdlProgram::try_parse_from_value(
+            &idl_program_native_system.export(&ToolboxIdlFormat::Anchor30)
         )
         .unwrap()
     );
@@ -30,14 +38,23 @@ pub async fn run() {
     assert_eq!(
         idl_program_native_compute_budget,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_compute_budget.export(true)
+            &idl_program_native_compute_budget.export(&ToolboxIdlFormat::Human)
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_compute_budget,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_compute_budget.export(false)
+            &idl_program_native_compute_budget
+                .export(&ToolboxIdlFormat::Anchor26)
+        )
+        .unwrap()
+    );
+    assert_eq!(
+        idl_program_native_compute_budget,
+        ToolboxIdlProgram::try_parse_from_value(
+            &idl_program_native_compute_budget
+                .export(&ToolboxIdlFormat::Anchor30)
         )
         .unwrap()
     );
@@ -48,14 +65,24 @@ pub async fn run() {
     assert_eq!(
         idl_program_native_loader_upgradeable,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_loader_upgradeable.export(true)
+            &idl_program_native_loader_upgradeable
+                .export(&ToolboxIdlFormat::Human)
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_loader_upgradeable,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_loader_upgradeable.export(false)
+            &idl_program_native_loader_upgradeable
+                .export(&ToolboxIdlFormat::Anchor26)
+        )
+        .unwrap()
+    );
+    assert_eq!(
+        idl_program_native_loader_upgradeable,
+        ToolboxIdlProgram::try_parse_from_value(
+            &idl_program_native_loader_upgradeable
+                .export(&ToolboxIdlFormat::Anchor30)
         )
         .unwrap()
     );

@@ -169,6 +169,7 @@ impl ToolboxCliCommandInstructionArgs {
                         ),
                     );
                 } else {
+                    // TODO (SHORT) - DONT FAIL IF MISSING SIGNERS !
                     let simulation = endpoint
                         .simulate_versioned_transaction(transaction)
                         .await?;

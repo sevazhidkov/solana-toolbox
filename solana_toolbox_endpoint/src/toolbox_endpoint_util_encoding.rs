@@ -26,6 +26,9 @@ impl ToolboxEndpoint {
             .map_err(ToolboxEndpointError::Base64Decode)
     }
 
+    pub fn encode_url(data: &str) -> String {
+        urlencoding::encode(data).to_string()
+    }
+
     // TODO - add base64/base58 sanitizing functions ?
-    // TODO - add functions to generate explorer links ?
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use serde_json::Value;
+use serde_json::{json, Map, Value};
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 
@@ -63,38 +63,33 @@ impl ToolboxIdlInstruction {
         ))
     }
 
-    pub fn get_dependencies(&self) -> (String, HashMap<String, String>) {
-        let dependencies_payload = self.args_type_full_fields.summarize();
-        let mut dependencies_addresses = HashMap::new();
+    pub fn get_specs(&self) -> (Value, Map<String, Value>) {
+        let specs_payload = self.args_type_full_fields.explain();
+        let mut specs_addresses = Map::new();
         for account in &self.accounts {
             if let Some(account_address) = &account.address {
-                dependencies_addresses.insert(
+                specs_addresses.insert(
                     account.name.to_string(),
-                    format!("={}", account_address),
+                    json!(account_address.to_string()),
                 );
             } else if let Some(account_pda) = &account.pda {
-                let mut dependencies_blobs = vec![];
+                let mut specs_blobs = vec![];
                 for account_pda_seed in &account_pda.seeds {
                     if let Some((kind, path)) = account_pda_seed.info() {
-                        dependencies_blobs.push(format!("{}s.{}", kind, path));
+                        specs_blobs.push(format!("{}.{}", kind, path));
                     }
                 }
                 if let Some(account_pda_program) = &account_pda.program {
                     if let Some((kind, path)) = account_pda_program.info() {
-                        dependencies_blobs.push(format!("{}s.{}", kind, path));
+                        specs_blobs.push(format!("{}.{}", kind, path));
                     }
                 }
-                dependencies_addresses.insert(
-                    account.name.to_string(),
-                    format!("[{}]", dependencies_blobs.join(",")),
-                );
+                specs_addresses
+                    .insert(account.name.to_string(), json!(specs_blobs));
             } else {
-                dependencies_addresses.insert(
-                    account.name.to_string(),
-                    "MUST_BE_SPECIFIED".to_string(),
-                );
+                specs_addresses.insert(account.name.to_string(), json!(null));
             }
         }
-        (dependencies_payload, dependencies_addresses)
+        (specs_payload, specs_addresses)
     }
 }

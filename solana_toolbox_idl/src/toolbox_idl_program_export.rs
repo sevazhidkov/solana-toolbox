@@ -2,12 +2,13 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
+use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
-    pub fn export(&self, backward_compatibility: bool) -> Value {
+    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         let mut json_program = Map::new();
-        if backward_compatibility {
+        if !format.use_root_metadata_object() {
             self.export_metadata_to(&mut json_program);
         } else {
             let mut json_program_metadata = Map::new();
@@ -17,20 +18,12 @@ impl ToolboxIdlProgram {
         }
         json_program.insert(
             "instructions".to_string(),
-            self.export_instructions(backward_compatibility),
+            self.export_instructions(format),
         );
-        json_program.insert(
-            "accounts".to_string(),
-            self.export_accounts(backward_compatibility),
-        );
-        json_program.insert(
-            "errors".to_string(),
-            self.export_errors(backward_compatibility),
-        );
-        json_program.insert(
-            "types".to_string(),
-            self.export_typedefs(backward_compatibility),
-        );
+        json_program
+            .insert("accounts".to_string(), self.export_accounts(format));
+        json_program.insert("errors".to_string(), self.export_errors(format));
+        json_program.insert("types".to_string(), self.export_typedefs(format));
         json!(json_program)
     }
 
@@ -49,82 +42,75 @@ impl ToolboxIdlProgram {
         }
     }
 
-    fn export_instructions(&self, backward_compatibility: bool) -> Value {
-        if backward_compatibility {
-            let mut json_instructions = vec![];
-            for program_instruction in self.instructions.values() {
-                json_instructions
-                    .push(program_instruction.export(backward_compatibility));
-            }
-            json!(json_instructions)
-        } else {
+    fn export_instructions(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.use_object_for_unordered_named_array() {
             let mut json_instructions = Map::new();
             for program_instruction in self.instructions.values() {
                 json_instructions.insert(
                     program_instruction.name.to_string(),
-                    program_instruction.export(backward_compatibility),
+                    program_instruction.export(format),
                 );
             }
-            json!(json_instructions)
+            return json!(json_instructions);
         }
+        let mut json_instructions = vec![];
+        for program_instruction in self.instructions.values() {
+            json_instructions.push(program_instruction.export(format));
+        }
+        json!(json_instructions)
     }
 
-    fn export_accounts(&self, backward_compatibility: bool) -> Value {
-        if backward_compatibility {
-            let mut json_accounts = vec![];
-            for program_account in self.accounts.values() {
-                json_accounts
-                    .push(program_account.export(backward_compatibility));
-            }
-            json!(json_accounts)
-        } else {
+    fn export_accounts(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.use_object_for_unordered_named_array() {
             let mut json_accounts = Map::new();
             for program_account in self.accounts.values() {
                 json_accounts.insert(
                     program_account.name.to_string(),
-                    program_account.export(backward_compatibility),
+                    program_account.export(format),
                 );
             }
-            json!(json_accounts)
+            return json!(json_accounts);
         }
+        let mut json_accounts = vec![];
+        for program_account in self.accounts.values() {
+            json_accounts.push(program_account.export(format));
+        }
+        json!(json_accounts)
     }
 
-    fn export_errors(&self, backward_compatibility: bool) -> Value {
-        if backward_compatibility {
-            let mut json_errors = vec![];
-            for program_error in self.errors.values() {
-                json_errors.push(program_error.export(backward_compatibility));
-            }
-            json!(json_errors)
-        } else {
+    fn export_errors(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.use_object_for_unordered_named_array() {
             let mut json_errors = Map::new();
             for program_error in self.errors.values() {
                 json_errors.insert(
                     program_error.name.to_string(),
-                    program_error.export(backward_compatibility),
+                    program_error.export(format),
                 );
             }
-            json!(json_errors)
+            return json!(json_errors);
         }
+        let mut json_errors = vec![];
+        for program_error in self.errors.values() {
+            json_errors.push(program_error.export(format));
+        }
+        json!(json_errors)
     }
 
-    fn export_typedefs(&self, backward_compatibility: bool) -> Value {
-        if backward_compatibility {
-            let mut json_typedefs = vec![];
-            for program_typedef in self.typedefs.values() {
-                json_typedefs
-                    .push(program_typedef.export(backward_compatibility));
-            }
-            json!(json_typedefs)
-        } else {
+    fn export_typedefs(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.use_object_for_unordered_named_array() {
             let mut json_typedefs = Map::new();
             for program_typedef in self.typedefs.values() {
                 json_typedefs.insert(
                     program_typedef.name.to_string(),
-                    program_typedef.export(backward_compatibility),
+                    program_typedef.export(format),
                 );
             }
-            json!(json_typedefs)
+            return json!(json_typedefs);
         }
+        let mut json_typedefs = vec![];
+        for program_typedef in self.typedefs.values() {
+            json_typedefs.push(program_typedef.export(format));
+        }
+        json!(json_typedefs)
     }
 }

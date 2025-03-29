@@ -29,6 +29,7 @@ impl ToolboxIdlTypeFull {
         &self,
         value: &Value,
         data: &mut Vec<u8>,
+        // Config object for pubkey hashmap
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
@@ -469,13 +470,8 @@ fn try_read_value_to_bytes(
             return Ok(vec![0; usize::try_from(data).unwrap()]);
         }
     }
-    if let Some(value_string) = value.as_str() {
-        if value_string.starts_with("0x") || value_string.starts_with("0X") {
-            return try_read_hex_to_bytes(&value_string[2..], breadcrumbs);
-        }
-    }
     idl_err(
-        "Could not read bytes, expected an array/object/string",
+        "Could not read bytes, expected an array/object",
         &breadcrumbs.val(),
     )
 }

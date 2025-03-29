@@ -16,6 +16,21 @@ impl ToolboxEndpoint {
         }
     }
 
+    pub fn get_cluster_from_url_or_moniker(
+        url_or_moniker: &str,
+    ) -> Option<&str> {
+        match url_or_moniker {
+            "m" | "mainnet-beta" | "https://api.mainnet-beta.solana.com" => {
+                Some("mainnet-beta")
+            },
+            "t" | "testnet" | "https://api.testnet.solana.com" => {
+                Some("testnet")
+            },
+            "d" | "devnet" | "https://api.devnet.solana.com" => Some("devnet"),
+            _ => None,
+        }
+    }
+
     pub fn new_rpc_with_url_or_moniker_and_commitment(
         url_or_moniker: &str,
         commitment_config: CommitmentConfig,

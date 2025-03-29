@@ -26,6 +26,13 @@ pub struct ToolboxIdlProgram {
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum ToolboxIdlProgramSpec {
+    Human,
+    Anchor26,
+    Anchor30,
+}
+
 impl ToolboxIdlProgram {
     pub fn sanitize_name(name: &str) -> String {
         idl_convert_to_type_name(name)
