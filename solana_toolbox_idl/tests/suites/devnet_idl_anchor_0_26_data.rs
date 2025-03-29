@@ -76,20 +76,6 @@ pub async fn run() {
         "multisig",
         &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),
     );
-
-    eprintln!(
-        "{}",
-        serde_json::to_string_pretty(
-            &idl_service
-                .resolve_program(&mut endpoint, &program_id)
-                .await
-                .unwrap()
-                .unwrap()
-                .export(&solana_toolbox_idl::ToolboxIdlFormat::Anchor26)
-        )
-        .unwrap()
-    );
-    panic!("LOL");
 }
 
 fn assert_account_decoded_properly(
