@@ -73,6 +73,7 @@ pub async fn run() {
         *idl_program1.typedefs.get("MyEnum").unwrap(),
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
+            docs: None,
             generics: vec!["A".to_string(), "B".to_string()],
             type_flat: ToolboxIdlTypeFlat::Enum { variants: vec![] }
         }

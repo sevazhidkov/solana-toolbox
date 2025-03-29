@@ -10,6 +10,7 @@ pub async fn run() {
         "types": [
             {
                 "name": "MyEnum",
+                "docs": ["Hello world!"],
                 "type": { "variants": [] }
             },
         ],
@@ -19,6 +20,7 @@ pub async fn run() {
         "types": [
             {
                 "name": "MyEnum",
+                "docs": ["Hello world!"],
                 "variants": [],
             },
         ],
@@ -27,6 +29,7 @@ pub async fn run() {
     let idl_program3 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyEnum": {
+                "docs": ["Hello world!"],
                 "type": { "variants": [] }
             },
         },
@@ -34,7 +37,10 @@ pub async fn run() {
     .unwrap();
     let idl_program4 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
-            "MyEnum": { "variants": [] },
+            "MyEnum": {
+                "docs": ["Hello world!"],
+                "variants": []
+            },
         },
     }))
     .unwrap();
@@ -47,6 +53,7 @@ pub async fn run() {
         *idl_program1.typedefs.get("MyEnum").unwrap(),
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
+            docs: Some(json!(vec!["Hello world!"])),
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum { variants: vec![] }
         }

@@ -11,6 +11,7 @@ pub async fn run() {
         "types": [
             {
                 "name": "MyStruct",
+                "docs": ["Hello world!"],
                 "type": { "fields": [] }
             },
         ],
@@ -20,6 +21,7 @@ pub async fn run() {
         "types": [
             {
                 "name": "MyStruct",
+                "docs": ["Hello world!"],
                 "fields": [],
             },
         ],
@@ -28,6 +30,7 @@ pub async fn run() {
     let idl_program3 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
             "MyStruct": {
+                "docs": ["Hello world!"],
                 "type": { "fields": [] }
             },
         },
@@ -35,7 +38,10 @@ pub async fn run() {
     .unwrap();
     let idl_program4 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
-            "MyStruct": { "fields": [] },
+            "MyStruct": {
+                "docs": ["Hello world!"],
+                "fields": []
+            },
         },
     }))
     .unwrap();
@@ -48,6 +54,7 @@ pub async fn run() {
         *idl_program1.typedefs.get("MyStruct").unwrap(),
         ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
+            docs: Some(json!(vec!["Hello world!"])),
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::None

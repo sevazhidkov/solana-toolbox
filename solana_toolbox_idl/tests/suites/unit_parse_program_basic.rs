@@ -1,7 +1,11 @@
 use serde_json::json;
+use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::ToolboxIdlTransactionError;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypeFull;
+use solana_toolbox_idl::ToolboxIdlTypeFullFields;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
@@ -11,6 +15,7 @@ pub async fn run() {
         "instructions": [
             {
                 "name": "my_ix",
+                "docs": ["my ix doc"],
                 "accounts": [
                     { "name": "payer", "isSigner": true },
                     { "name": "authority", "isMut": true },
@@ -24,24 +29,13 @@ pub async fn run() {
         "accounts": [
             {
                 "name": "MyAccount",
+                "docs": ["My Account doc"],
                 "type": {
                     "kind": "struct",
                     "fields": [
                         { "name": "field1", "type": "u64" },
                         { "name": "field2", "type": "u32" },
                     ],
-                }
-            }
-        ],
-        "types": [
-            {
-                "name": "MyStruct",
-                "type": {
-                    "kind": "struct",
-                    "fields": [
-                        { "name": "addr", "type": "pubkey" },
-                        { "name": "name", "type": "string" },
-                    ]
                 }
             }
         ],
@@ -58,6 +52,7 @@ pub async fn run() {
     let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": {
             "my_ix": {
+                "docs": ["my ix doc"],
                 "accounts": [
                     { "name": "payer", "signer": true },
                     { "name": "authority", "writable": true },
@@ -70,18 +65,11 @@ pub async fn run() {
         },
         "accounts": {
             "MyAccount": {
+                "docs": ["My Account doc"],
                 "fields": [
                     { "name": "field1", "type": "u64" },
                     { "name": "field2", "type": "u32" },
                 ],
-            }
-        },
-        "types": {
-            "MyStruct": {
-                "fields": [
-                    { "name": "addr", "type": "pubkey" },
-                    { "name": "name", "type": "string" },
-                ]
             }
         },
         "errors": {
@@ -129,56 +117,57 @@ pub async fn run() {
         ])
     );
     // Assert account was parsed correctly
-    let idl_account = idl_program1.accounts.get("MyAccount").unwrap();
-    assert_eq!(idl_account.name, "MyAccount");
     assert_eq!(
-        idl_account.discriminator,
-        &[246, 28, 6, 87, 251, 45, 50, 42]
-    );
-    assert_eq!(
-        idl_account.content_type_flat,
-        ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlatFields::Named(vec![
-                (
-                    "field1".to_string(),
-                    ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U64
-                    }
-                ),
-                (
-                    "field2".to_string(),
-                    ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U32
-                    }
-                )
-            ])
+        *idl_program1.accounts.get("MyAccount").unwrap(),
+        ToolboxIdlAccount {
+            name: "MyAccount".to_string(),
+            docs: Some(json!(vec!["My Account doc"])),
+            space: None,
+            discriminator: vec![246, 28, 6, 87, 251, 45, 50, 42],
+            content_type_flat: ToolboxIdlTypeFlat::Struct {
+                fields: ToolboxIdlTypeFlatFields::Named(vec![
+                    (
+                        "field1".to_string(),
+                        ToolboxIdlTypeFlat::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U64
+                        }
+                    ),
+                    (
+                        "field2".to_string(),
+                        ToolboxIdlTypeFlat::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U32
+                        }
+                    )
+                ])
+            },
+            content_type_full: ToolboxIdlTypeFull::Struct {
+                fields: ToolboxIdlTypeFullFields::Named(vec![
+                    (
+                        "field1".to_string(),
+                        ToolboxIdlTypeFull::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U64
+                        }
+                    ),
+                    (
+                        "field2".to_string(),
+                        ToolboxIdlTypeFull::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U32
+                        }
+                    )
+                ])
+            }
+            .into()
         }
-    );
-    // Assert struct was parsed correctly
-    let idl_typedef = idl_program1.typedefs.get("MyStruct").unwrap();
-    assert_eq!(idl_typedef.name, "MyStruct");
-    assert_eq!(
-        idl_typedef.type_flat,
-        ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlatFields::Named(vec![
-                (
-                    "addr".to_string(),
-                    ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::PublicKey
-                    }
-                ),
-                (
-                    "name".to_string(),
-                    ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::String
-                    }
-                )
-            ])
-        }
+        .into()
     );
     // Assert error was parsed correctly
-    let idl_error = idl_program1.errors.get("MyError").unwrap();
-    assert_eq!(idl_error.name, "MyError");
-    assert_eq!(idl_error.code, 4242);
-    assert_eq!(idl_error.msg, "My error message");
+    assert_eq!(
+        *idl_program1.errors.get("MyError").unwrap(),
+        ToolboxIdlTransactionError {
+            name: "MyError".to_string(),
+            code: 4242,
+            msg: "My error message".to_string()
+        }
+        .into()
+    )
 }

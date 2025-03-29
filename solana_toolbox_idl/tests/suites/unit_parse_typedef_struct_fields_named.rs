@@ -45,6 +45,7 @@ pub async fn run() {
         *idl_program.typedefs.get("MyStruct").unwrap(),
         ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
+            docs: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Named(vec![

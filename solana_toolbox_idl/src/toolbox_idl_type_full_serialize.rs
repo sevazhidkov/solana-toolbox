@@ -459,10 +459,10 @@ fn try_read_value_to_bytes(
             return try_read_hex_to_bytes(data, breadcrumbs);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
-            return try_read_base58_to_bytes(data);
+            return Ok(ToolboxEndpoint::sanitize_and_decode_base58(data)?);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "base64") {
-            return try_read_base64_to_bytes(data);
+            return Ok(ToolboxEndpoint::sanitize_and_decode_base64(data)?);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "utf8") {
             return Ok(data.as_bytes().to_vec());
