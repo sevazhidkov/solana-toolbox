@@ -40,7 +40,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         &global_market_state_decoded,
-        "credix",
+        "Credix",
         "GlobalMarketState",
         "seed",
         &json!("credix-marketplace"),
@@ -54,7 +54,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         &program_state_decoded,
-        "credix",
+        "Credix",
         "ProgramState",
         "credix_multisig_key",
         &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),
@@ -71,11 +71,25 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         &market_admins_decoded,
-        "credix",
+        "Credix",
         "MarketAdmins",
         "multisig",
         &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),
     );
+
+    eprintln!(
+        "{}",
+        serde_json::to_string_pretty(
+            &idl_service
+                .resolve_program(&mut endpoint, &program_id)
+                .await
+                .unwrap()
+                .unwrap()
+                .export(&solana_toolbox_idl::ToolboxIdlFormat::Anchor26)
+        )
+        .unwrap()
+    );
+    panic!("LOL");
 }
 
 fn assert_account_decoded_properly(

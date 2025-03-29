@@ -1,3 +1,4 @@
+// TODO (FAR) - support exporting for typescript name convention ?
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlFormat {
     Human,
@@ -30,11 +31,19 @@ impl ToolboxIdlFormat {
         }
     }
 
+    pub fn use_camel_case_primitive_name(&self) -> bool {
+        match self {
+            ToolboxIdlFormat::Human => false,
+            ToolboxIdlFormat::Anchor26 => true,
+            ToolboxIdlFormat::Anchor30 => false,
+        }
+    }
+
     pub fn can_skip_defined_name_object_wrapping(&self) -> bool {
         match self {
             ToolboxIdlFormat::Human => true,
-            ToolboxIdlFormat::Anchor26 => false,
-            ToolboxIdlFormat::Anchor30 => true,
+            ToolboxIdlFormat::Anchor26 => true,
+            ToolboxIdlFormat::Anchor30 => false,
         }
     }
 

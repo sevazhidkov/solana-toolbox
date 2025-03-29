@@ -62,7 +62,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         user_decoded,
-        "system",
+        "System",
         "Account",
         json!(null),
     );
@@ -73,7 +73,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         collateral_mint_decoded,
-        "spl_token",
+        "SplToken",
         "Mint",
         json!({
             "mint_authority": mint_authority.to_string(),
@@ -90,7 +90,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         user_collateral_decoded,
-        "spl_token",
+        "SplToken",
         "Account",
         json!({
             "mint": collateral_mint.to_string(),
@@ -110,7 +110,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         program_id_decoded,
-        "bpf_loader_upgradeable",
+        "BpfLoaderUpgradeable",
         "Program",
         json!({
             "program_data": program_data.to_string()
@@ -123,7 +123,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         program_data_decoded,
-        "bpf_loader_upgradeable",
+        "BpfLoaderUpgradeable",
         "ProgramData",
         json!({
             "slot": 347133692,

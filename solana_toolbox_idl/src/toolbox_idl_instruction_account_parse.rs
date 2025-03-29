@@ -33,7 +33,6 @@ impl ToolboxIdlInstructionAccount {
                 &breadcrumbs.idl(),
             )?,
         );
-        let breadcrumbs = &breadcrumbs.with_idl(&name);
         let docs = idl_instruction_account.get("docs").cloned();
         let writable =
             idl_object_get_key_as_bool(idl_instruction_account, "writable")
@@ -56,6 +55,7 @@ impl ToolboxIdlInstructionAccount {
                     "isOptional",
                 ))
                 .unwrap_or(false);
+        let breadcrumbs = &breadcrumbs.with_idl(&name);
         let address = ToolboxIdlInstructionAccount::try_parse_address(
             idl_instruction_account,
             breadcrumbs,

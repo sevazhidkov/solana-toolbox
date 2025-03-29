@@ -28,7 +28,7 @@ pub async fn run() {
     assert_eq!(campaign_decoded.account.name, "Campaign");
     assert_eq!(
         campaign_decoded.program.metadata.name,
-        Some("psyche_crowd_funding".to_string()),
+        Some("PsycheCrowdFunding".to_string()),
     );
     assert_eq!(
         campaign_decoded.state.get("bump").unwrap(),

@@ -4,6 +4,7 @@ use serde_json::Value;
 use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
+use crate::ToolboxIdlTypePrimitive;
 
 impl ToolboxIdlTypeFlat {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -118,7 +119,12 @@ impl ToolboxIdlTypeFlat {
                 })
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
-                json!(primitive.as_str()) // TODO (FAR) - in anchor 0.26, some names are different
+                if format.use_camel_case_primitive_name() {
+                    if primitive == &ToolboxIdlTypePrimitive::PublicKey {
+                        return json!("publicKey");
+                    }
+                }
+                json!(primitive.as_str())
             },
         }
     }

@@ -38,6 +38,7 @@ pub enum ToolboxIdlTypeFlat {
     },
 }
 
+// TODO (FAR) - support docs keys ?
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlatFields {
     Named(Vec<(String, ToolboxIdlTypeFlat)>),

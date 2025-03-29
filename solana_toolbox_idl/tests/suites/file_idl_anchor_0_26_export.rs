@@ -1,6 +1,7 @@
 use std::fs::read_to_string;
 
-use solana_toolbox_idl::{ToolboxIdlFormat, ToolboxIdlProgram};
+use solana_toolbox_idl::ToolboxIdlFormat;
+use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
