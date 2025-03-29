@@ -43,7 +43,7 @@ impl ToolboxEndpoint {
                 "[{}]",
                 transaction_signatures
                     .iter()
-                    .map(|signature| format!("\"{}\"", signature.to_string()))
+                    .map(|signature| format!("\"{}\"", signature))
                     .collect::<Vec<_>>()
                     .join(","),
             ),
