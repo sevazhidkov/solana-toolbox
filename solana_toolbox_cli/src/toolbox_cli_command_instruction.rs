@@ -4,6 +4,7 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
+use solana_sdk::transaction::Transaction;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
@@ -155,72 +156,93 @@ impl ToolboxCliCommandInstructionArgs {
         let mut json_outcome = Map::new();
         match instruction_encode_result {
             Ok(instruction) => {
+                json_outcome.insert(
+                    "message_base58".to_string(),
+                    json!(ToolboxEndpoint::encode_base58(
+                        &Transaction::new_with_payer(
+                            &[instruction.clone()],
+                            None,
+                        )
+                        .message
+                        .serialize(),
+                    )),
+                );
                 let mut signers = vec![];
                 for key in instruction_keys.values() {
                     if let Some(signer) = key.signer() {
                         signers.push(signer);
                     }
                 }
-                let transaction =
-                    ToolboxEndpoint::compile_versioned_transaction(
-                        &context.get_keypair(),
-                        &[instruction.clone()],
-                        &signers,
-                        &[],
-                        endpoint.get_latest_blockhash().await?,
-                    )?;
-                let transaction_signatures = transaction.signatures.clone();
-                let transaction_message_serialized =
-                    transaction.message.serialize();
-                // TODO (SHORT) - provide link to simulation explorer instead of encoded
-                json_outcome.insert(
-                    "message_base58".to_string(),
-                    json!(ToolboxEndpoint::encode_base58(
-                        &transaction_message_serialized,
-                    )),
-                );
-                if self.execute {
-                    let (signature, _) = endpoint
-                        .process_versioned_transaction(transaction, false)
-                        .await?;
-                    json_outcome.insert(
-                        "signature".to_string(),
-                        json!(signature.to_string()),
-                    );
-                    json_outcome.insert(
-                        "explorer".to_string(),
-                        json!(
-                            context.compute_explorer_signature_link(&signature)
-                        ),
-                    );
-                } else {
-                    // TODO (SHORT) - DONT FAIL IF MISSING SIGNERS !
-                    let simulation = endpoint
-                        .simulate_versioned_transaction(transaction)
-                        .await?;
-                    json_outcome.insert(
-                        "simulation".to_string(),
-                        json!({
-                            "error": simulation.error,
-                            "logs": simulation.logs,
-                            "return_data": simulation.return_data,
-                            "units_consumed": simulation.units_consumed,
-                        }),
-                    );
-                    json_outcome.insert(
-                        "explorer".to_string(),
-                        json!(context.compute_explorer_simulation_link(
-                            &transaction_signatures,
-                            &transaction_message_serialized
-                        )?),
-                    );
+                match ToolboxEndpoint::compile_versioned_transaction(
+                    &context.get_keypair(),
+                    &[instruction.clone()],
+                    &signers,
+                    &[],
+                    endpoint.get_latest_blockhash().await?,
+                ) {
+                    Ok(versioned_transaction) => {
+                        if self.execute {
+                            let (signature, _) = endpoint
+                                .process_versioned_transaction(
+                                    versioned_transaction.clone(),
+                                    true,
+                                )
+                                .await?;
+                            json_outcome.insert(
+                                "signature".to_string(),
+                                json!(signature.to_string()),
+                            );
+                            json_outcome.insert(
+                                "explorer".to_string(),
+                                json!(context.compute_explorer_signature_link(
+                                    &signature
+                                )),
+                            );
+                        } else {
+                            json_outcome.insert(
+                                "explorer".to_string(),
+                                json!(context
+                                    .compute_explorer_simulation_link(
+                                        &versioned_transaction.signatures,
+                                        &versioned_transaction
+                                            .message
+                                            .serialize()
+                                    )?),
+                            );
+                            if let Ok(simulation) = endpoint
+                                .simulate_versioned_transaction(
+                                    versioned_transaction.clone(),
+                                )
+                                .await
+                            {
+                                json_outcome.insert(
+                                        "simulation".to_string(),
+                                        json!({
+                                            "error": simulation.error,
+                                            "logs": simulation.logs,
+                                            "return_data": simulation.return_data,
+                                            "units_consumed": simulation.units_consumed,
+                                        }),
+                                    );
+                            }
+                        }
+                    },
+                    Err(error) => {
+                        json_outcome.insert(
+                            "transaction_compile_error".to_string(),
+                            json!(format!("{:?}", error)),
+                        );
+                    },
                 }
             },
             Err(error) => {
-                json_outcome
-                    .insert("error".to_string(), json!(format!("{:?}", error)));
+                json_outcome.insert(
+                    "instruction_compile_error".to_string(),
+                    json!(format!("{:?}", error)),
+                );
             },
         };
+
         Ok(json!({
             "specs": json_specs,
             "resolved": json_resolved,
