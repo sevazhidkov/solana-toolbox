@@ -14,6 +14,7 @@ mod toolbox_idl_instruction_addresses;
 mod toolbox_idl_instruction_export;
 mod toolbox_idl_instruction_parse;
 mod toolbox_idl_instruction_payload;
+mod toolbox_idl_instruction_specs;
 mod toolbox_idl_program;
 mod toolbox_idl_program_export;
 mod toolbox_idl_program_lookup;

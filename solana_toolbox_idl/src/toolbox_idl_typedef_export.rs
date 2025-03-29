@@ -7,7 +7,7 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 impl ToolboxIdlTypedef {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        if self.generics.is_empty() {
+        if self.generics.is_empty() && self.docs.is_none() {
             if format.can_skip_type_object_wrapping() {
                 return self.type_flat.export(format);
             }
@@ -29,6 +29,9 @@ impl ToolboxIdlTypedef {
         }
         if !format.use_object_for_unordered_named_array() {
             json_object.insert("name".to_string(), json!(self.name));
+        }
+        if let Some(docs) = &self.docs {
+            json_object.insert("docs".to_string(), json!(docs));
         }
         json_object.insert("type".to_string(), self.type_flat.export(format));
         json!(json_object)

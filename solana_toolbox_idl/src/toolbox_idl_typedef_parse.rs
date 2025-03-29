@@ -14,7 +14,8 @@ impl ToolboxIdlTypedef {
         idl_typedef: &Value,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<ToolboxIdlTypedef, ToolboxIdlError> {
-        let mut typedef_generics = vec![];
+        let docs = idl_typedef.get("docs").cloned();
+        let mut generics = vec![];
         if let Some(idl_typedef_generics) =
             idl_value_as_object_get_key_as_array(idl_typedef, "generics")
         {
@@ -26,12 +27,13 @@ impl ToolboxIdlTypedef {
                         idl_typedef_generic,
                         &breadcrumbs.idl(),
                     )?;
-                typedef_generics.push(idl_typedef_generic_name.to_string());
+                generics.push(idl_typedef_generic_name.to_string());
             }
         }
         Ok(ToolboxIdlTypedef {
             name: idl_typedef_name.to_string(),
-            generics: typedef_generics,
+            docs,
+            generics,
             type_flat: ToolboxIdlTypeFlat::try_parse_value(
                 idl_typedef,
                 breadcrumbs,

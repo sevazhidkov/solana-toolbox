@@ -8,7 +8,7 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 impl ToolboxIdlProgram {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         let mut json_program = Map::new();
-        if !format.use_root_metadata_object() {
+        if format.use_root_as_metadata_object() {
             self.export_metadata_to(&mut json_program);
         } else {
             let mut json_program_metadata = Map::new();

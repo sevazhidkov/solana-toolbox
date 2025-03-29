@@ -7,15 +7,8 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 impl ToolboxIdlTypeFull {
     pub fn explain(&self) -> Value {
         match self {
-            ToolboxIdlTypeFull::Option {
-                prefix_bytes,
-                content,
-            } => {
-                if *prefix_bytes == 4 {
-                    json!({ "option32": content.explain() })
-                } else {
-                    json!({ "option": content.explain() })
-                }
+            ToolboxIdlTypeFull::Option { content, .. } => {
+                json!({ "option": content.explain() })
             },
             ToolboxIdlTypeFull::Vec { items } => {
                 json!([items.explain()])
@@ -40,19 +33,9 @@ impl ToolboxIdlTypeFull {
                 }
                 json!({ "variants": json_variants })
             },
-            ToolboxIdlTypeFull::Padded {
-                size_bytes,
-                content,
-            } => {
-                json!({
-                    "padded": {
-                        "size": size_bytes,
-                        "type": content.explain()
-                    }
-                })
-            },
-            ToolboxIdlTypeFull::Const { literal } => {
-                json!(literal)
+            ToolboxIdlTypeFull::Padded { content, .. } => content.explain(),
+            ToolboxIdlTypeFull::Const { .. } => {
+                json!(null)
             },
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 json!(primitive.as_str())

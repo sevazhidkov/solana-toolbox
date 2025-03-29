@@ -19,22 +19,21 @@ pub struct ToolboxCliCommandInstructionArgs {
     program_id: String,
     #[arg(
         value_name = "INSTRUCTION_NAME",
-        default_value = "",
         help = "The instruction's name from the IDL"
     )]
-    name: String,
+    name: Option<String>,
     #[arg(
-        value_name = "JSON",
-        default_value = "{}",
-        help = "The instruction's args object in (human)JSON format"
-    )]
-    payload: String,
-    #[arg(
-        value_delimiter = ',',
+        long,
         value_name = "NAME:KEY",
-        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFile|'KEYPAIR']]"
+        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFilePath]]"
     )]
-    accounts: Vec<String>,
+    account: Vec<String>,
+    #[arg(
+        long,
+        value_name = "JSON",
+        help = "The instruction's args, format: [path:JSON]"
+    )]
+    arg: Vec<String>,
     #[arg(
         long,
         action,
@@ -51,9 +50,11 @@ impl ToolboxCliCommandInstructionArgs {
     ) -> Result<Value, ToolboxCliError> {
         let mut endpoint = context.create_endpoint().await?;
         let mut idl_service = context.create_service().await?;
+
         let instruction_program_id =
             context.parse_key(&self.program_id)?.address();
-        let instruction_name = &self.name;
+        let instruction_name = self.name.clone().unwrap_or_default();
+
         let idl_program = match idl_service
             .resolve_program(&mut endpoint, &instruction_program_id)
             .await?
@@ -66,25 +67,33 @@ impl ToolboxCliCommandInstructionArgs {
         };
         let idl_instruction = match idl_program
             .instructions
-            .get(instruction_name)
+            .get(&instruction_name)
             .cloned()
         {
             Some(idl_instruction) => idl_instruction,
             None => {
                 return Ok(json!({
                     "outcome": {
-                        "error": format!(
-                            "Could not select instruction: {}",
-                            instruction_name
-                        )
+                        "error": "Unknown instruction",
                     },
                     "instructions": idl_program.instructions.keys().collect::<Vec<_>>(),
                 }))
             },
         };
-        let instruction_payload = context.parse_hjson(&self.payload)?;
+
+        let mut instruction_payload = Map::new();
+        for arg in &self.arg {
+            if let Some((path, json)) = arg.split_once(":") {
+                object_set_value_at_path(
+                    &mut instruction_payload,
+                    path,
+                    context.parse_hjson(json)?,
+                );
+            }
+        }
+        let instruction_payload = json!(instruction_payload);
         let mut instruction_keys = HashMap::new();
-        for account in &self.accounts {
+        for account in &self.account {
             let (name, key) = context.parse_account(account)?;
             instruction_keys.insert(name, key);
         }
@@ -92,6 +101,29 @@ impl ToolboxCliCommandInstructionArgs {
         for (name, key) in &instruction_keys {
             instruction_addresses.insert(name.to_string(), key.address());
         }
+
+        let (instruction_specs_payload, instruction_specs_addresses) =
+            idl_instruction.get_dependencies();
+        let json_specs_payload = json!(instruction_specs_payload);
+        let mut json_specs_addresses = Map::new();
+        for (instruction_specs_address_name, instruction_specs_address_value) in
+            &instruction_specs_addresses
+        {
+            if instruction_addresses
+                .contains_key(instruction_specs_address_name)
+            {
+                continue;
+            }
+            json_specs_addresses.insert(
+                instruction_specs_address_name.to_string(),
+                json!(instruction_specs_address_value),
+            );
+        }
+        let json_specs = json!({
+            "payload": json_specs_payload,
+            "addresses": json_specs_addresses,
+        });
+
         let instruction_addresses = idl_service
             .resolve_instruction_addresses(
                 &mut endpoint,
@@ -106,27 +138,20 @@ impl ToolboxCliCommandInstructionArgs {
             &instruction_payload,
             &instruction_addresses,
         );
-        let mut json_addresses = Map::new();
+
+        let json_resolved_payload = instruction_payload;
+        let mut json_resolved_addresses = Map::new();
         for instruction_address in &instruction_addresses {
-            json_addresses.insert(
+            json_resolved_addresses.insert(
                 instruction_address.0.to_string(),
                 json!(instruction_address.1.to_string()),
             );
         }
-        let (payload_dependencies, addresses_dependencies) =
-            idl_instruction.get_dependencies();
-        let mut json_dependencies_addresses = Map::new();
-        for address_dependency in addresses_dependencies {
-            if instruction_addresses.contains_key(&address_dependency.0) {
-                continue;
-            }
-            json_dependencies_addresses
-                .insert(address_dependency.0, json!(address_dependency.1));
-        }
-        let json_dependencies = json!({
-            "payload": payload_dependencies,
-            "addresses": json_dependencies_addresses,
+        let json_resolved = json!({
+            "payload": json_resolved_payload,
+            "addresses": json_resolved_addresses,
         });
+
         let mut json_outcome = Map::new();
         match instruction_encode_result {
             Ok(instruction) => {
@@ -197,12 +222,32 @@ impl ToolboxCliCommandInstructionArgs {
             },
         };
         Ok(json!({
-            "resolved": {
-                "payload": instruction_payload,
-                "addresses": json_addresses,
-            },
-            "dependencies": json_dependencies,
+            "specs": json_specs,
+            "resolved": json_resolved,
             "outcome": json_outcome,
         }))
+    }
+}
+
+fn object_set_value_at_path(
+    object: &mut Map<String, Value>,
+    path: &str,
+    value: Value,
+) {
+    if let Some((key, path_child)) = path.split_once(".") {
+        if let Some(object_value) = object.get_mut(key) {
+            if let Some(object_child) = object_value.as_object_mut() {
+                return object_set_value_at_path(
+                    object_child,
+                    path_child,
+                    value,
+                );
+            }
+        }
+        let mut object_child = Map::new();
+        object_set_value_at_path(&mut object_child, path_child, value);
+        object.insert(key.to_string(), json!(object_child));
+    } else {
+        object.insert(path.to_string(), value);
     }
 }

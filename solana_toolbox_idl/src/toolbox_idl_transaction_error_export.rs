@@ -8,7 +8,7 @@ use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 impl ToolboxIdlTransactionError {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         if self.msg.is_empty() {
-            if format.can_shortcut_error_to_just_code_value() {
+            if format.can_shortcut_error_to_number_if_no_msg() {
                 return json!(self.code);
             }
         }

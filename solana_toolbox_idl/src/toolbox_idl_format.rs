@@ -15,11 +15,11 @@ impl ToolboxIdlFormat {
         }
     }
 
-    pub fn use_root_metadata_object(&self) -> bool {
+    pub fn use_root_as_metadata_object(&self) -> bool {
         match self {
-            ToolboxIdlFormat::Human => true,
-            ToolboxIdlFormat::Anchor26 => false,
-            ToolboxIdlFormat::Anchor30 => true,
+            ToolboxIdlFormat::Human => false,
+            ToolboxIdlFormat::Anchor26 => true,
+            ToolboxIdlFormat::Anchor30 => false,
         }
     }
 
@@ -31,7 +31,7 @@ impl ToolboxIdlFormat {
         }
     }
 
-    pub fn use_camel_case_primitive_name(&self) -> bool {
+    pub fn use_camel_case_primitive_names(&self) -> bool {
         match self {
             ToolboxIdlFormat::Human => false,
             ToolboxIdlFormat::Anchor26 => true,
@@ -87,7 +87,7 @@ impl ToolboxIdlFormat {
         }
     }
 
-    pub fn can_shortcut_error_to_just_code_value(&self) -> bool {
+    pub fn can_shortcut_error_to_number_if_no_msg(&self) -> bool {
         match self {
             ToolboxIdlFormat::Human => {
                 self.use_object_for_unordered_named_array()

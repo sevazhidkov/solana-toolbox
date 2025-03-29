@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use serde_json::json;
-use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
@@ -63,35 +61,5 @@ impl ToolboxIdlInstruction {
             self.decode_payload(&instruction.data)?,
             self.decode_addresses(&instruction.accounts)?,
         ))
-    }
-
-    pub fn get_specs(&self) -> (Value, Map<String, Value>) {
-        let specs_payload = self.args_type_full_fields.explain();
-        let mut specs_addresses = Map::new();
-        for account in &self.accounts {
-            if let Some(account_address) = &account.address {
-                specs_addresses.insert(
-                    account.name.to_string(),
-                    json!(account_address.to_string()),
-                );
-            } else if let Some(account_pda) = &account.pda {
-                let mut specs_blobs = vec![];
-                for account_pda_seed in &account_pda.seeds {
-                    if let Some((kind, path)) = account_pda_seed.info() {
-                        specs_blobs.push(format!("{}.{}", kind, path));
-                    }
-                }
-                if let Some(account_pda_program) = &account_pda.program {
-                    if let Some((kind, path)) = account_pda_program.info() {
-                        specs_blobs.push(format!("{}.{}", kind, path));
-                    }
-                }
-                specs_addresses
-                    .insert(account.name.to_string(), json!(specs_blobs));
-            } else {
-                specs_addresses.insert(account.name.to_string(), json!(null));
-            }
-        }
-        (specs_payload, specs_addresses)
     }
 }

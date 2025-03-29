@@ -65,7 +65,7 @@ impl ToolboxCliContext {
                 );
             } else {
                 return Err(ToolboxCliError::Custom(
-                    "Invalid idl, expected format: [ProgramId:IdlFile]"
+                    "Invalid idl, expected format: [ProgramId:IdlFilePath]"
                         .to_string(),
                 ));
             }
@@ -81,7 +81,7 @@ impl ToolboxCliContext {
             Ok((name.to_string(), self.parse_key(key)?))
         } else {
             Err(ToolboxCliError::Custom(
-                "Invalid account, expected format: [Name:[Pubkey|KeypairFile|'KEYPAIR']]".to_string(),
+                "Invalid account, expected format: [Name:[Pubkey|KeypairFilePath]]".to_string(),
             ))
         }
     }
@@ -90,18 +90,7 @@ impl ToolboxCliContext {
         &self,
         key: &str,
     ) -> Result<ToolboxCliKey, ToolboxCliError> {
-        if key.to_ascii_uppercase() == "KEYPAIR"
-            || key.to_ascii_uppercase() == "WALLET"
-        {
-            return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
-        }
-        Ok(if let Ok(keypair) = read_keypair_file(key) {
-            ToolboxCliKey::Keypair(keypair)
-        } else {
-            ToolboxCliKey::Pubkey(Pubkey::from_str(
-                key.trim_matches(|c| !char::is_alphanumeric(c)),
-            )?)
-        })
+        ToolboxCliKey::try_parse(key)
     }
 
     pub fn parse_signature(

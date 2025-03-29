@@ -42,7 +42,7 @@ pub struct ToolboxCliArgs {
         long,
         alias = "wallet",
         value_name = "KEYPAIR_FILE_PATH",
-        help = "Keypair used as payer and 'KEYPAIR' account key"
+        help = "Keypair used as instruction payer"
     )]
     keypair: Option<String>,
     #[arg(
@@ -50,7 +50,7 @@ pub struct ToolboxCliArgs {
         long,
         value_delimiter = ',',
         value_name = "PROGRAM_ID:IDL_FILE_PATH",
-        help = "Use custom IDLs for programs, format: [ProgramId:IdlFile]"
+        help = "Use custom IDLs for programs, format: [ProgramId:IdlFilePath]"
     )]
     idls: Vec<String>,
     #[arg(long, help = "Output compacted JSON")]

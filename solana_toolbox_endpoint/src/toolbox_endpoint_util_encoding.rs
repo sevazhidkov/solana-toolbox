@@ -30,5 +30,6 @@ impl ToolboxEndpoint {
         urlencoding::encode(data).to_string()
     }
 
+    // TODO - add pubkey/signature decoding functions with sanitize ?
     // TODO - add base64/base58 sanitizing functions ?
 }
