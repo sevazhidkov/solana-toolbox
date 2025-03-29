@@ -1,11 +1,8 @@
-use std::str::FromStr;
-
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use solana_client::rpc_request::RpcRequest;
 use solana_sdk::instruction::CompiledInstruction;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionError;
 use solana_transaction_status::UiTransactionReturnData;
@@ -96,18 +93,26 @@ impl ToolboxEndpointProxyRpcClient {
         let header = response.transaction.message.header;
         let mut static_addresses = vec![];
         for static_address in &response.transaction.message.account_keys {
-            static_addresses.push(Pubkey::from_str(static_address)?);
+            static_addresses.push(ToolboxEndpoint::sanitize_and_decode_pubkey(
+                static_address,
+            )?);
         }
         let mut loaded_writable_addresses = vec![];
         let mut loaded_readonly_addresses = vec![];
         if let Some(loaded_addresses) = &response.meta.loaded_addresses {
             for loaded_writable_key in &loaded_addresses.writable {
-                loaded_writable_addresses
-                    .push(Pubkey::from_str(loaded_writable_key)?);
+                loaded_writable_addresses.push(
+                    ToolboxEndpoint::sanitize_and_decode_pubkey(
+                        loaded_writable_key,
+                    )?,
+                );
             }
             for loaded_readonly_key in &loaded_addresses.readonly {
-                loaded_readonly_addresses
-                    .push(Pubkey::from_str(loaded_readonly_key)?);
+                loaded_readonly_addresses.push(
+                    ToolboxEndpoint::sanitize_and_decode_pubkey(
+                        loaded_readonly_key,
+                    )?,
+                );
             }
         }
         let mut compiled_instructions = vec![];
@@ -115,7 +120,7 @@ impl ToolboxEndpointProxyRpcClient {
             compiled_instructions.push(CompiledInstruction {
                 program_id_index: response_instruction.program_id_index,
                 accounts: response_instruction.accounts,
-                data: ToolboxEndpoint::decode_base58(
+                data: ToolboxEndpoint::sanitize_and_decode_base58(
                     &response_instruction.data,
                 )?,
             });

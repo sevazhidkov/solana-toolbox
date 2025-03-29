@@ -75,9 +75,3 @@ impl From<SignerError> for ToolboxEndpointError {
         ToolboxEndpointError::Signer(source)
     }
 }
-
-impl From<ParsePubkeyError> for ToolboxEndpointError {
-    fn from(source: ParsePubkeyError) -> Self {
-        ToolboxEndpointError::ParsePubkey(source)
-    }
-}

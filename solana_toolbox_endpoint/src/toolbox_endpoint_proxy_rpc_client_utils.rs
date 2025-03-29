@@ -22,7 +22,7 @@ impl ToolboxEndpointProxyRpcClient {
                         "Unknown return data encoding".to_string(),
                     ));
                 }
-                ToolboxEndpoint::decode_base64(&payload)
+                ToolboxEndpoint::sanitize_and_decode_base64(&payload)
             })
             .transpose()
     }

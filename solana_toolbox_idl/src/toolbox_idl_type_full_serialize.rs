@@ -383,6 +383,7 @@ impl ToolboxIdlTypeFull {
                 // TODO (FAR) - support pubkeys as keypair arrays ?
                 let value_str = idl_as_str_or_else(value, context)?;
                 data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(
+                    // TODO (MEDIUM) - use better error handling and use endpoint's util ?
                     &Pubkey::from_str(value_str).map_err(|err| {
                         ToolboxIdlError::InvalidPubkey {
                             parsing: err,
@@ -493,19 +494,4 @@ fn try_read_hex_to_bytes(
         })?);
     }
     Ok(bytes)
-}
-
-fn try_read_base58_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
-    let base58 = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-    Ok(ToolboxEndpoint::decode_base58(&base58)?)
-}
-
-fn try_read_base64_to_bytes(data: &str) -> Result<Vec<u8>, ToolboxIdlError> {
-    let base64 = data.replace(
-        |c| {
-            !char::is_ascii_alphanumeric(&c) && c != '+' && c != '/' && c != '='
-        },
-        "",
-    );
-    Ok(ToolboxEndpoint::decode_base64(&base64)?)
 }

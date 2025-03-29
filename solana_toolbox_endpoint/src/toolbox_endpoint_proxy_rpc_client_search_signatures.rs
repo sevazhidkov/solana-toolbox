@@ -1,11 +1,10 @@
-use std::str::FromStr;
-
 use solana_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
+use crate::ToolboxEndpoint;
 
 // TODO (FAR) - should it return the first signature "start_before" in results ?
 impl ToolboxEndpointProxyRpcClient {
@@ -42,8 +41,10 @@ impl ToolboxEndpointProxyRpcClient {
                 return Ok(ordered_signatures);
             }
             for signature in &signatures {
-                let found_signature = Signature::from_str(&signature.signature)
-                    .map_err(ToolboxEndpointError::ParseSignature)?; // TODO (MEDIUM) - map not need any map_err
+                let found_signature =
+                    ToolboxEndpoint::sanitize_and_decode_signature(
+                        &signature.signature,
+                    )?;
                 ordered_signatures.push(found_signature);
                 if ordered_signatures.len() >= limit {
                     return Ok(ordered_signatures);
