@@ -52,19 +52,8 @@ impl ToolboxCliContext {
     ) -> Result<ToolboxIdlService, ToolboxCliError> {
         let mut idl_service = ToolboxIdlService::new();
         for custom_idl in &self.custom_idls {
+            // TODO - allow "=" delimiter somehow ??
             if let Some((program_id, idl_file)) = custom_idl.split_once(":") {
-                idl_service.preload_program(
-                    &self.parse_key(program_id)?.address(),
-                    Some(
-                        ToolboxIdlProgram::try_parse_from_str(
-                            &read_to_string(idl_file)?,
-                        )?
-                        .into(),
-                    ),
-                );
-            } else if let Some((program_id, idl_file)) =
-                custom_idl.split_once("=")
-            {
                 idl_service.preload_program(
                     &self.parse_key(program_id)?.address(),
                     Some(
@@ -90,8 +79,6 @@ impl ToolboxCliContext {
     ) -> Result<(String, ToolboxCliKey), ToolboxCliError> {
         // TODO - figure out a better way for delimited split ?
         if let Some((name, key)) = account.split_once(":") {
-            Ok((name.to_string(), self.parse_key(key)?))
-        } else if let Some((name, key)) = account.split_once("=") {
             Ok((name.to_string(), self.parse_key(key)?))
         } else {
             // TODO - use custom clap parser instead

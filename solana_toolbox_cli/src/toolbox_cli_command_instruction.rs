@@ -89,12 +89,6 @@ impl ToolboxCliCommandInstructionArgs {
                     path,
                     context.parse_hjson(json)?,
                 );
-            } else if let Some((path, json)) = arg.split_once("=") {
-                object_set_value_at_path(
-                    &mut instruction_payload_object,
-                    path,
-                    context.parse_hjson(json)?,
-                );
             }
         }
         let instruction_payload = json!(instruction_payload_object);
@@ -269,6 +263,7 @@ fn object_set_value_at_path(
     path: &str,
     value: Value,
 ) {
+    // TODO - support unamed (index array)
     if let Some((key, path_child)) = path.split_once(".") {
         if let Some(object_value) = object.get_mut(key) {
             if let Some(object_child) = object_value.as_object_mut() {
