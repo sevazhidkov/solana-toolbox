@@ -79,6 +79,7 @@ impl ToolboxCliContext {
         if let Some((name, key)) = account.split_once(":") {
             Ok((name.to_string(), self.parse_key(key)?))
         } else {
+            // TODO - use custom clap parser instead
             Err(ToolboxCliError::Custom(
                 "Invalid account, expected format: [Name:[Pubkey|KeypairFilePath]]".to_string(),
             ))
@@ -89,6 +90,11 @@ impl ToolboxCliContext {
         &self,
         key: &str,
     ) -> Result<ToolboxCliKey, ToolboxCliError> {
+        if key.to_ascii_lowercase() == "keypair"
+            || key.to_ascii_lowercase() == "wallet"
+        {
+            return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
+        }
         ToolboxCliKey::try_parse(key)
     }
 

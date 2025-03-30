@@ -4,7 +4,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub fn compute_explorer_address_link(
@@ -35,7 +34,7 @@ impl ToolboxEndpoint {
         rpc_url: &str,
         transaction_signatures: &[Signature],
         transaction_message_serialized: &[u8],
-    ) -> Result<String, ToolboxEndpointError> {
+    ) -> String {
         let mut params = HashMap::new();
         params.insert(
             "signatures".to_string(),
@@ -52,12 +51,12 @@ impl ToolboxEndpoint {
             "message".to_string(),
             ToolboxEndpoint::encode_base64(transaction_message_serialized),
         );
-        Ok(ToolboxEndpoint::compute_explorer_link(
+        ToolboxEndpoint::compute_explorer_link(
             rpc_url,
             "tx",
             "inspector",
             &params,
-        ))
+        )
     }
 
     fn compute_explorer_link(

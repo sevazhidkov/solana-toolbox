@@ -24,17 +24,16 @@ pub struct ToolboxCliCommandInstructionArgs {
     )]
     name: Option<String>,
     #[arg(
-        long,
         value_name = "NAME:KEY",
         help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFilePath]]"
     )]
-    account: Vec<String>,
+    accounts: Vec<String>,
     #[arg(
         long,
         value_name = "JSON",
         help = "The instruction's args, format: [path:JSON]"
     )]
-    arg: Vec<String>,
+    args: Vec<String>,
     #[arg(
         long,
         action,
@@ -82,19 +81,20 @@ impl ToolboxCliCommandInstructionArgs {
             },
         };
 
-        let mut instruction_payload = Map::new();
-        for arg in &self.arg {
+        let mut instruction_payload_object = Map::new();
+        for arg in &self.args {
             if let Some((path, json)) = arg.split_once(":") {
                 object_set_value_at_path(
-                    &mut instruction_payload,
+                    &mut instruction_payload_object,
                     path,
                     context.parse_hjson(json)?,
                 );
             }
         }
-        let instruction_payload = json!(instruction_payload);
+        let instruction_payload = json!(instruction_payload_object);
+
         let mut instruction_keys = HashMap::new();
-        for account in &self.account {
+        for account in &self.accounts {
             let (name, key) = context.parse_account(account)?;
             instruction_keys.insert(name, key);
         }
@@ -105,7 +105,7 @@ impl ToolboxCliCommandInstructionArgs {
 
         let (instruction_specs_payload, instruction_specs_addresses) =
             idl_instruction.get_specs();
-        let json_specs_payload = json!(instruction_specs_payload);
+        let json_specs_payload = instruction_specs_payload.clone();
         let mut json_specs_addresses = Map::new();
         for (instruction_specs_address_name, instruction_specs_address_value) in
             &instruction_specs_addresses
@@ -134,13 +134,8 @@ impl ToolboxCliCommandInstructionArgs {
                 &instruction_addresses,
             )
             .await?;
-        let instruction_encode_result = idl_instruction.encode(
-            &instruction_program_id,
-            &instruction_payload,
-            &instruction_addresses,
-        );
 
-        let json_resolved_payload = instruction_payload;
+        let json_resolved_payload = instruction_payload.clone();
         let mut json_resolved_addresses = Map::new();
         for instruction_address in &instruction_addresses {
             json_resolved_addresses.insert(
@@ -154,7 +149,11 @@ impl ToolboxCliCommandInstructionArgs {
         });
 
         let mut json_outcome = Map::new();
-        match instruction_encode_result {
+        match idl_instruction.encode(
+            &instruction_program_id,
+            &instruction_payload,
+            &instruction_addresses,
+        ) {
             Ok(instruction) => {
                 json_outcome.insert(
                     "message_base58".to_string(),
@@ -209,13 +208,14 @@ impl ToolboxCliCommandInstructionArgs {
                                             .serialize()
                                     )?),
                             );
-                            if let Ok(simulation) = endpoint
+                            match endpoint
                                 .simulate_versioned_transaction(
                                     versioned_transaction.clone(),
                                 )
                                 .await
                             {
-                                json_outcome.insert(
+                                Ok(simulation) => {
+                                    json_outcome.insert(
                                         "simulation".to_string(),
                                         json!({
                                             "error": simulation.error,
@@ -224,6 +224,13 @@ impl ToolboxCliCommandInstructionArgs {
                                             "units_consumed": simulation.units_consumed,
                                         }),
                                     );
+                                },
+                                Err(error) => {
+                                    json_outcome.insert(
+                                        "simulation_error".to_string(),
+                                        json!(format!("{:?}", error)),
+                                    );
+                                },
                             }
                         }
                     },
