@@ -62,6 +62,18 @@ impl ToolboxCliContext {
                         .into(),
                     ),
                 );
+            } else if let Some((program_id, idl_file)) =
+                custom_idl.split_once("=")
+            {
+                idl_service.preload_program(
+                    &self.parse_key(program_id)?.address(),
+                    Some(
+                        ToolboxIdlProgram::try_parse_from_str(
+                            &read_to_string(idl_file)?,
+                        )?
+                        .into(),
+                    ),
+                );
             } else {
                 return Err(ToolboxCliError::Custom(
                     "Invalid idl, expected format: [ProgramId:IdlFilePath]"
@@ -76,7 +88,10 @@ impl ToolboxCliContext {
         &self,
         account: &str,
     ) -> Result<(String, ToolboxCliKey), ToolboxCliError> {
+        // TODO - figure out a better way for delimited split ?
         if let Some((name, key)) = account.split_once(":") {
+            Ok((name.to_string(), self.parse_key(key)?))
+        } else if let Some((name, key)) = account.split_once("=") {
             Ok((name.to_string(), self.parse_key(key)?))
         } else {
             // TODO - use custom clap parser instead
@@ -161,11 +176,11 @@ impl ToolboxCliContext {
         &self,
         transaction_signatures: &[Signature],
         transaction_message_serialized: &[u8],
-    ) -> Result<String, ToolboxCliError> {
-        Ok(ToolboxEndpoint::compute_explorer_simulation_link(
+    ) -> String {
+        ToolboxEndpoint::compute_explorer_simulation_link(
             &self.json_rpc_url,
             transaction_signatures,
             transaction_message_serialized,
-        )?)
+        )
     }
 }
