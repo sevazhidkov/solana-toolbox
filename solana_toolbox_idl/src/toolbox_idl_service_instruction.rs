@@ -13,6 +13,7 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_service::ToolboxIdlService;
 
 pub struct ToolboxIdlServiceInstructionDecoded {
+    pub program_id: Pubkey,
     pub program: Arc<ToolboxIdlProgram>,
     pub instruction: Arc<ToolboxIdlInstruction>,
     pub payload: Value,
@@ -35,6 +36,7 @@ impl ToolboxIdlService {
         let (_, instruction_payload, instruction_addresses) =
             idl_instruction.decode(instruction)?;
         Ok(ToolboxIdlServiceInstructionDecoded {
+            program_id: instruction.program_id,
             program: idl_program,
             instruction: idl_instruction,
             payload: instruction_payload,

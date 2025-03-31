@@ -2,9 +2,9 @@ use solana_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 
+use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
-use crate::ToolboxEndpoint;
 
 // TODO (FAR) - should it return the first signature "start_before" in results ?
 impl ToolboxEndpointProxyRpcClient {

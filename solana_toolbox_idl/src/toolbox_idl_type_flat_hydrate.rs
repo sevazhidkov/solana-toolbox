@@ -159,10 +159,10 @@ impl ToolboxIdlTypeFlatFields {
         Ok(match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut fields_full = vec![];
-                for (field_name, field_type_flat) in fields {
+                for (field_name, field) in fields {
                     fields_full.push((
                         field_name.to_string(),
-                        field_type_flat.try_hydrate(
+                        field.type_flat.try_hydrate(
                             generics_by_symbol,
                             typedefs,
                             breadcrumbs,
@@ -173,8 +173,8 @@ impl ToolboxIdlTypeFlatFields {
             },
             ToolboxIdlTypeFlatFields::Unamed(fields) => {
                 let mut fields_type_full = vec![];
-                for field_type_flat in fields {
-                    fields_type_full.push(field_type_flat.try_hydrate(
+                for field in fields {
+                    fields_type_full.push(field.type_flat.try_hydrate(
                         generics_by_symbol,
                         typedefs,
                         breadcrumbs,

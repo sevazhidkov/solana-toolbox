@@ -32,7 +32,7 @@ pub async fn run() {
     let idl_instruction_pledge_deposit =
         idl_program.instructions.get("pledge_deposit").unwrap();
     // Find an account from another instruction so that we can re-use it
-    let campaign_index = 3u64;
+    let campaign_index = 999_999u64;
     let campaign_create_addresses = idl_service
         .resolve_instruction_addresses(
             &mut endpoint,

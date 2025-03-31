@@ -1,6 +1,7 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatField;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 use solana_toolbox_idl::ToolboxIdlTypedef;
@@ -35,6 +36,7 @@ pub async fn run() {
                     { "name": "option32_2_u16", "type": {"option32": "u16"} },
                     { "name": "generic1", "generic": "G" },
                     { "name": "generic2", "type": {"generic": "G"} },
+                    { "name": "docs", "type": "u8", "docs": ["Hello"] },
                 ]
             },
         },
@@ -54,18 +56,21 @@ pub async fn run() {
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U8
                         }
+                        .into()
                     ),
                     (
                         "u64".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U64
                         }
+                        .into()
                     ),
                     (
                         "string".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::String
                         }
+                        .into()
                     ),
                     (
                         "vec1_u8".to_string(),
@@ -74,6 +79,7 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
+                        .into()
                     ),
                     (
                         "vec2_u8".to_string(),
@@ -82,6 +88,7 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
+                        .into()
                     ),
                     (
                         "vec1_vec_u8".to_string(),
@@ -94,6 +101,7 @@ pub async fn run() {
                                 ),
                             }),
                         }
+                        .into()
                     ),
                     (
                         "vec2_vec_u8".to_string(),
@@ -106,6 +114,7 @@ pub async fn run() {
                                 ),
                             }),
                         }
+                        .into()
                     ),
                     (
                         "array1_u32_4".to_string(),
@@ -117,6 +126,7 @@ pub async fn run() {
                                 literal: 4
                             }),
                         }
+                        .into()
                     ),
                     (
                         "array2_u32_4".to_string(),
@@ -128,54 +138,61 @@ pub async fn run() {
                                 literal: 4
                             }),
                         }
+                        .into()
                     ),
                     (
                         "struct1".to_string(),
                         ToolboxIdlTypeFlat::Struct {
                             fields: ToolboxIdlTypeFlatFields::None
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "struct2".to_string(),
                         ToolboxIdlTypeFlat::Struct {
                             fields: ToolboxIdlTypeFlatFields::None
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "enum1".to_string(),
-                        ToolboxIdlTypeFlat::Enum { variants: vec![] },
+                        ToolboxIdlTypeFlat::Enum { variants: vec![] }.into(),
                     ),
                     (
                         "enum2".to_string(),
-                        ToolboxIdlTypeFlat::Enum { variants: vec![] },
+                        ToolboxIdlTypeFlat::Enum { variants: vec![] }.into()
                     ),
                     (
                         "defined1".to_string(),
                         ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "defined2".to_string(),
                         ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "defined3".to_string(),
                         ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "defined4".to_string(),
                         ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "option_1_f32".to_string(),
@@ -185,6 +202,7 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::F32,
                             })
                         }
+                        .into()
                     ),
                     (
                         "option_2_f32".to_string(),
@@ -194,6 +212,7 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::F32,
                             })
                         }
+                        .into()
                     ),
                     (
                         "option32_1_u16".to_string(),
@@ -203,6 +222,7 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::U16,
                             })
                         }
+                        .into()
                     ),
                     (
                         "option32_2_u16".to_string(),
@@ -212,18 +232,30 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::U16,
                             })
                         }
+                        .into()
                     ),
                     (
                         "generic1".to_string(),
                         ToolboxIdlTypeFlat::Generic {
                             symbol: "G".to_string()
-                        },
+                        }
+                        .into(),
                     ),
                     (
                         "generic2".to_string(),
                         ToolboxIdlTypeFlat::Generic {
                             symbol: "G".to_string()
-                        },
+                        }
+                        .into(),
+                    ),
+                    (
+                        "docs".to_string(),
+                        ToolboxIdlTypeFlatField {
+                            docs: Some(json!(["Hello"])),
+                            type_flat: ToolboxIdlTypeFlat::Primitive {
+                                primitive: ToolboxIdlTypePrimitive::U8
+                            }
+                        }
                     )
                 ])
             }

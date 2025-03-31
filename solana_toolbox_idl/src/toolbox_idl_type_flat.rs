@@ -1,3 +1,5 @@
+use serde_json::Value;
+
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -38,10 +40,24 @@ pub enum ToolboxIdlTypeFlat {
     },
 }
 
-// TODO (FAR) - support docs keys ?
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlatFields {
-    Named(Vec<(String, ToolboxIdlTypeFlat)>),
-    Unamed(Vec<ToolboxIdlTypeFlat>),
+    Named(Vec<(String, ToolboxIdlTypeFlatField)>),
+    Unamed(Vec<ToolboxIdlTypeFlatField>),
     None,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFlatField {
+    pub docs: Option<Value>,
+    pub type_flat: ToolboxIdlTypeFlat,
+}
+
+impl Into<ToolboxIdlTypeFlatField> for ToolboxIdlTypeFlat {
+    fn into(self) -> ToolboxIdlTypeFlatField {
+        ToolboxIdlTypeFlatField {
+            docs: None,
+            type_flat: self,
+        }
+    }
 }

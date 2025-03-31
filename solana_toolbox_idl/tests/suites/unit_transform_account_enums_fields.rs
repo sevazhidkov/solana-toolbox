@@ -42,8 +42,8 @@ pub async fn run() {
     let idl_account = idl_program.accounts.get("MyAccount").unwrap();
     let account_state = json!([
         "Empty",
-        ["Named", {"field1": 42}],
-        ["Unamed", [22, 23]],
+        {"Named": {"field1": 42}},
+        {"Unamed": [22, 23]},
         "Shortened",
     ]);
     // Check that we can use the manual IDL to encode/decode our account

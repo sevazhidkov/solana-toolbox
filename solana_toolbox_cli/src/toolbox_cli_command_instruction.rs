@@ -31,9 +31,15 @@ pub struct ToolboxCliCommandInstructionArgs {
     #[arg(
         long,
         value_name = "JSON",
-        help = "The instruction's args, format: [path:JSON]"
+        help = "Add an instruction's arg, format: [Path:Json]"
     )]
-    args: Vec<String>,
+    arg: Vec<String>,
+    #[arg(
+        long,
+        value_name = "KEYPAIR_FILE_PATH",
+        help = "Extra instruction signer"
+    )]
+    signer: Vec<String>,
     #[arg(
         long,
         action,
@@ -65,6 +71,7 @@ impl ToolboxCliCommandInstructionArgs {
                 instruction_program_id.to_string(),
             )))?,
         };
+
         let idl_instruction = match idl_program
             .instructions
             .get(&instruction_name)
@@ -82,7 +89,7 @@ impl ToolboxCliCommandInstructionArgs {
         };
 
         let mut instruction_payload_object = Map::new();
-        for arg in &self.args {
+        for arg in &self.arg {
             if let Some((path, json)) = arg.split_once(":") {
                 object_set_value_at_path(
                     &mut instruction_payload_object,
@@ -101,6 +108,11 @@ impl ToolboxCliCommandInstructionArgs {
         let mut instruction_addresses = HashMap::new();
         for (name, key) in &instruction_keys {
             instruction_addresses.insert(name.to_string(), key.address());
+        }
+
+        let mut instruction_signers = vec![];
+        for signer in &self.signer {
+            instruction_signers.push(context.load_keypair(signer));
         }
 
         let (instruction_specs_payload, instruction_specs_addresses) =
@@ -171,6 +183,9 @@ impl ToolboxCliCommandInstructionArgs {
                     if let Some(signer) = key.signer() {
                         signers.push(signer);
                     }
+                }
+                for instruction_signer in &instruction_signers {
+                    signers.push(instruction_signer);
                 }
                 match ToolboxEndpoint::compile_versioned_transaction(
                     &context.get_keypair(),
@@ -263,21 +278,18 @@ fn object_set_value_at_path(
     path: &str,
     value: Value,
 ) {
-    // TODO - support unamed (index array)
+    // TODO - support unamed append (index array)
     if let Some((key, path_child)) = path.split_once(".") {
         if let Some(object_value) = object.get_mut(key) {
             if let Some(object_child) = object_value.as_object_mut() {
-                return object_set_value_at_path(
-                    object_child,
-                    path_child,
-                    value,
-                );
+                object_set_value_at_path(object_child, path_child, value);
+                return;
             }
         }
         let mut object_child = Map::new();
         object_set_value_at_path(&mut object_child, path_child, value);
         object.insert(key.to_string(), json!(object_child));
-    } else {
-        object.insert(path.to_string(), value);
+        return;
     }
+    object.insert(path.to_string(), value);
 }

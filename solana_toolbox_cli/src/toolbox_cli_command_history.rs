@@ -55,11 +55,13 @@ impl ToolboxCliCommandHistoryArgs {
                 let instruction_decoded = idl_service
                     .decode_instruction(&mut endpoint, &instruction)
                     .await?;
-                json_instructions.push(context.compute_instruction_kind(
-                    &instruction.program_id,
-                    &instruction_decoded.program,
-                    &instruction_decoded.instruction,
-                ));
+                json_instructions.push(json!({
+                    "program_id": instruction.program_id.to_string(),
+                    "name": context.compute_instruction_name(
+                        &instruction_decoded.program,
+                        &instruction_decoded.instruction,
+                    )
+                }));
             }
             json_history.push(json!({
                 "signature": signature.to_string(),

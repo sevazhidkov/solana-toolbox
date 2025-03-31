@@ -2,9 +2,9 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use solana_transaction_status::UiReturnDataEncoding;
 use solana_transaction_status::UiTransactionReturnData;
 
+use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
-use crate::ToolboxEndpoint;
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) fn get_commitment(&self) -> CommitmentConfig {

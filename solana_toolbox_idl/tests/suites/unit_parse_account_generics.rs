@@ -93,7 +93,8 @@ pub async fn run() {
                         generics: vec![ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U8
                         }]
-                    },
+                    }
+                    .into(),
                     ToolboxIdlTypeFlat::Defined {
                         name: "MyDefinedStruct".to_string(),
                         generics: vec![
@@ -104,7 +105,8 @@ pub async fn run() {
                                 primitive: ToolboxIdlTypePrimitive::F64
                             },
                         ]
-                    },
+                    }
+                    .into(),
                     ToolboxIdlTypeFlat::Defined {
                         name: "MyArray".to_string(),
                         generics: vec![
@@ -113,7 +115,8 @@ pub async fn run() {
                             },
                             ToolboxIdlTypeFlat::Const { literal: 4 },
                         ]
-                    },
+                    }
+                    .into(),
                 ])
             },
             content_type_full: ToolboxIdlTypeFull::Struct {

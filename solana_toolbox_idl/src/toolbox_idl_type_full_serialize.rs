@@ -185,6 +185,25 @@ impl ToolboxIdlTypeFull {
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
         let array_length = usize::try_from(*array_length).unwrap();
+        if array_items
+            == (&ToolboxIdlTypeFull::Primitive {
+                primitive: ToolboxIdlTypePrimitive::U8,
+            })
+        {
+            let bytes = try_read_value_to_bytes(value, breadcrumbs)?;
+            if bytes.len() != array_length {
+                return idl_err(
+                    &format!(
+                        "value byte array is not the correct size: expected {} bytes, found {} bytes",
+                        array_length,
+                        bytes.len()
+                    ),
+                    &breadcrumbs.as_idl("value byte array"),
+                );
+            }
+            data.extend_from_slice(&bytes);
+            return Ok(());
+        }
         let values = idl_as_array_or_else(value, &breadcrumbs.as_val("array"))?;
         if values.len() != array_length {
             return idl_err(
@@ -226,37 +245,49 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
-        let (value_enum, value_fields) =
-            if let Some(value_string) = value.as_str() {
-                (value_string, &Value::Null)
-            } else {
-                let values = idl_as_array_or_else(value, &breadcrumbs.val())?;
-                if values.len() != 2 {
-                    return idl_err(
-                        "Expected an array of 2 item [{enum}, {fields}]",
-                        &breadcrumbs.val(),
+        if let Some(value_string) = value.as_str() {
+            for (enum_code, enum_variant, breadcrumbs) in
+                idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
+            {
+                let (enum_variant_name, enum_variant_fields) = enum_variant;
+                if enum_variant_name == value_string {
+                    data.push(u8::try_from(enum_code).unwrap());
+                    return enum_variant_fields.try_serialize(
+                        &Value::Null,
+                        data,
+                        deserializable,
+                        &breadcrumbs.with_val(value_string),
                     );
                 }
-                let value_string =
-                    idl_as_str_or_else(&values[0], &breadcrumbs.val())?;
-                (value_string, &values[1])
-            };
-        for (enum_code, enum_variant, breadcrumbs) in
-            idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
-        {
-            if enum_variant.0 == value_enum {
-                data.push(u8::try_from(enum_code).unwrap());
-                return enum_variant.1.try_serialize(
-                    value_fields,
-                    data,
-                    deserializable,
-                    &breadcrumbs,
-                );
             }
+            return idl_err(
+                "Could not guess enum string",
+                &breadcrumbs.as_val(value_string),
+            );
+        }
+        if let Some(value_object) = value.as_object() {
+            for (enum_code, enum_variant, breadcrumbs) in
+                idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
+            {
+                let (enum_variant_name, enum_variant_fields) = enum_variant;
+                if let Some(enum_value) = value_object.get(enum_variant_name) {
+                    data.push(u8::try_from(enum_code).unwrap());
+                    return enum_variant_fields.try_serialize(
+                        enum_value,
+                        data,
+                        deserializable,
+                        &breadcrumbs.with_val(&enum_variant_name),
+                    );
+                }
+            }
+            return idl_err(
+                "Could not guess enum object key",
+                &breadcrumbs.val(),
+            );
         }
         idl_err(
-            "could not find matching enum",
-            &breadcrumbs.as_val(value_enum),
+            "Expected enum value to be: object or string",
+            &breadcrumbs.val(),
         )
     }
 

@@ -4,6 +4,7 @@ use serde_json::Value;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatField;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
@@ -349,7 +350,15 @@ impl ToolboxIdlTypeFlatFields {
                 idl_field,
                 &breadcrumbs.with_idl(&field_name_or_index),
             )?;
-            fields_info.push((field_name_or_index, field_type_flat));
+            let field_docs =
+                idl_value_as_object_get_key(idl_field, "docs").cloned();
+            fields_info.push((
+                field_name_or_index,
+                ToolboxIdlTypeFlatField {
+                    docs: field_docs,
+                    type_flat: field_type_flat,
+                },
+            ));
         }
         if !fields_named {
             let mut fields = vec![];

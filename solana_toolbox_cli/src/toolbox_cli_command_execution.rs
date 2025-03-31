@@ -40,23 +40,23 @@ impl ToolboxCliCommandExecutionArgs {
                 json_addresses.insert(
                     name,
                     json!({
-                        "kind": context.compute_account_kind(
-                            &instruction_account_decoded.owner,
+                        "address": address.to_string(),
+                        "owner": instruction_account_decoded.owner,
+                        "name": context.compute_account_name(
                             &instruction_account_decoded.program,
                             &instruction_account_decoded.account
                         ),
-                        "address": address.to_string(),
                     }),
                 );
             }
             json_instructions.push(json!({
-                "kind": context.compute_instruction_kind(
-                    &instruction.program_id,
+                "program_id": instruction.program_id.to_string(),
+                "name": context.compute_instruction_name(
                     &instruction_decoded.program,
                     &instruction_decoded.instruction
                 ),
-                "addresses": json_addresses,
                 "payload": instruction_decoded.payload,
+                "addresses": json_addresses,
             }));
         }
         Ok(json!({

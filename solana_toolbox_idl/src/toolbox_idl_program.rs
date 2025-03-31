@@ -9,6 +9,7 @@ use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
+// TODO - should this have its own file ?
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgramMetadata {
     pub name: Option<String>,

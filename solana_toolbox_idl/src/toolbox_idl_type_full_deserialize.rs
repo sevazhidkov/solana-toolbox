@@ -207,16 +207,14 @@ impl ToolboxIdlTypeFull {
         }
         let mut data_size = std::mem::size_of::<u8>();
         let enum_variant = &enum_variants[data_code];
-        let (data_fields_size, data_fields) = enum_variant.1.try_deserialize(
-            data,
-            data_offset + data_size,
-            breadcrumbs,
-        )?;
+        let (enum_variant_name, enum_variant_fields) = enum_variant;
+        let (data_fields_size, data_fields) = enum_variant_fields
+            .try_deserialize(data, data_offset + data_size, breadcrumbs)?;
         data_size += data_fields_size;
         if data_fields.is_null() {
-            Ok((data_size, json!(enum_variant.0)))
+            Ok((data_size, json!(enum_variant_name)))
         } else {
-            Ok((data_size, json!(vec![json!(enum_variant.0), data_fields])))
+            Ok((data_size, json!({ enum_variant_name: data_fields })))
         }
     }
 

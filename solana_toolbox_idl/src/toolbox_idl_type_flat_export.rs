@@ -1,10 +1,11 @@
 use serde_json::json;
+use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
-use crate::ToolboxIdlTypePrimitive;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 impl ToolboxIdlTypeFlat {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -135,22 +136,34 @@ impl ToolboxIdlTypeFlatFields {
         match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut json_fields = vec![];
-                for (field_name, field_type) in fields {
-                    json_fields.push(json!({
-                        "name": field_name,
-                        "type": field_type.export(format),
-                    }));
+                for (field_name, field) in fields {
+                    let mut json_field = Map::new();
+                    json_field.insert("name".to_string(), json!(field_name));
+                    json_field.insert(
+                        "type".to_string(),
+                        field.type_flat.export(format),
+                    );
+                    if let Some(field_docs) = &field.docs {
+                        json_field
+                            .insert("docs".to_string(), json!(field_docs));
+                    }
+                    json_fields.push(json_field);
                 }
                 json!(json_fields)
             },
             ToolboxIdlTypeFlatFields::Unamed(fields) => {
                 let mut json_fields = vec![];
-                for field_type in fields {
-                    if format.can_skip_type_object_wrapping() {
-                        json_fields.push(field_type.export(format));
+                for field in fields {
+                    if let Some(field_docs) = &field.docs {
+                        json_fields.push(json!({
+                            "docs": field_docs,
+                            "type": field.type_flat.export(format)
+                        }));
+                    } else if format.can_skip_type_object_wrapping() {
+                        json_fields.push(field.type_flat.export(format));
                     } else {
                         json_fields.push(json!({
-                            "type": field_type.export(format)
+                            "type": field.type_flat.export(format)
                         }));
                     }
                 }

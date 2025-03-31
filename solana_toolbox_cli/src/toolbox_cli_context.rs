@@ -1,3 +1,4 @@
+use std::fs::exists;
 use std::fs::read_to_string;
 use std::str::FromStr;
 
@@ -79,13 +80,13 @@ impl ToolboxCliContext {
     ) -> Result<(String, ToolboxCliKey), ToolboxCliError> {
         // TODO - figure out a better way for delimited split ?
         if let Some((name, key)) = account.split_once(":") {
-            Ok((name.to_string(), self.parse_key(key)?))
-        } else {
-            // TODO - use custom clap parser instead
-            Err(ToolboxCliError::Custom(
-                "Invalid account, expected format: [Name:[Pubkey|KeypairFilePath]]".to_string(),
-            ))
+            return Ok((name.to_string(), self.parse_key(key)?));
         }
+        // TODO - use custom clap parser instead
+        Err(ToolboxCliError::Custom(
+            "Invalid account, expected format: [Name:[Pubkey|KeypairFilePath]]"
+                .to_string(),
+        ))
     }
 
     pub fn parse_key(
@@ -97,7 +98,12 @@ impl ToolboxCliContext {
         {
             return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }
-        ToolboxCliKey::try_parse(key)
+        if exists(&key).unwrap() {
+            return Ok(ToolboxCliKey::Keypair(self.load_keypair(key)));
+        }
+        Ok(ToolboxCliKey::Pubkey(Pubkey::from_str(
+            key.trim_matches(|c| !char::is_alphanumeric(c)),
+        )?))
     }
 
     pub fn parse_signature(
@@ -112,34 +118,33 @@ impl ToolboxCliContext {
     }
 
     pub fn get_keypair(&self) -> Keypair {
-        read_keypair_file(self.keypair_path.clone()).unwrap_or(Keypair::new())
+        self.load_keypair(&self.keypair_path)
     }
 
-    pub fn compute_account_kind(
+    pub fn load_keypair(&self, path: &str) -> Keypair {
+        read_keypair_file(path).unwrap()
+    }
+
+    pub fn compute_account_name(
         &self,
-        program_id: &Pubkey,
         program: &ToolboxIdlProgram,
         account: &ToolboxIdlAccount,
     ) -> String {
         if let Some(program_name) = &program.metadata.name {
-            return format!("{}.{}.{}", program_id, program_name, account.name);
+            return format!("{}.{}", program_name, account.name);
         }
-        return format!("{}.{}", program_id, account.name);
+        format!("?.{}", account.name)
     }
 
-    pub fn compute_instruction_kind(
+    pub fn compute_instruction_name(
         &self,
-        program_id: &Pubkey,
         program: &ToolboxIdlProgram,
         instruction: &ToolboxIdlInstruction,
     ) -> String {
         if let Some(program_name) = &program.metadata.name {
-            return format!(
-                "{}.{}.{}",
-                program_id, program_name, instruction.name
-            );
+            return format!("{}.{}", program_name, instruction.name);
         }
-        return format!("{}.{}", program_id, instruction.name);
+        format!("?.{}", instruction.name)
     }
 
     pub fn compute_explorer_address_link(&self, address: &Pubkey) -> String {

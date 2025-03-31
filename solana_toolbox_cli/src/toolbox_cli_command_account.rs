@@ -25,10 +25,9 @@ impl ToolboxCliCommandAccountArgs {
             .await?;
         Ok(json!({
             "address": address.to_string(),
-            "owner": account_decoded.owner.to_string(),
             "lamports": account_decoded.lamports,
-            "kind": context.compute_account_kind(
-                &account_decoded.owner,
+            "owner": account_decoded.owner.to_string(),
+            "name": context.compute_account_name(
                 &account_decoded.program,
                 &account_decoded.account,
             ),

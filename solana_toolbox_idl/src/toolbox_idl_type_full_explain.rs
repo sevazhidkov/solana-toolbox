@@ -34,8 +34,8 @@ impl ToolboxIdlTypeFull {
                 json!({ "variants": json_variants })
             },
             ToolboxIdlTypeFull::Padded { content, .. } => content.explain(),
-            ToolboxIdlTypeFull::Const { .. } => {
-                json!(null)
+            ToolboxIdlTypeFull::Const { literal } => {
+                json!(literal)
             },
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 json!(primitive.as_str())

@@ -10,6 +10,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 pub struct ToolboxCliCommandProgramArgs {
     #[arg(value_name = "PROGRAM_ID", help = "The Program ID pubkey in base58")]
     program_id: String,
+    // TODO - support browsing the IDL like listing PDAs
 }
 
 impl ToolboxCliCommandProgramArgs {

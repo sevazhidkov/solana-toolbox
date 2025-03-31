@@ -8,8 +8,8 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::ToolboxIdlTypeFull;
 
 impl ToolboxIdlInstruction {
     pub fn encode_addresses(

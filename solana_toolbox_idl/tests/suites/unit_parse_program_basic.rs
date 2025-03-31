@@ -107,12 +107,14 @@ pub async fn run() {
                 ToolboxIdlTypeFlat::Primitive {
                     primitive: ToolboxIdlTypePrimitive::U32
                 }
+                .into()
             ),
             (
                 "id".to_string(),
                 ToolboxIdlTypeFlat::Primitive {
                     primitive: ToolboxIdlTypePrimitive::I64
                 }
+                .into()
             ),
         ])
     );
@@ -131,12 +133,14 @@ pub async fn run() {
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U64
                         }
+                        .into()
                     ),
                     (
                         "field2".to_string(),
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U32
                         }
+                        .into()
                     )
                 ])
             },

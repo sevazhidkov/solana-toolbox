@@ -9,9 +9,9 @@ use solana_client::rpc_filter::RpcFilterType;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
-use crate::ToolboxEndpoint;
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn search_addresses_using_rpc(
