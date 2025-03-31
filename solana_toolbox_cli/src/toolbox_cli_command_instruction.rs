@@ -15,7 +15,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 pub struct ToolboxCliCommandInstructionArgs {
     #[arg(
         value_name = "PROGRAM_ID",
-        help = "The instruction's ProgramID pubkey"
+        help = "The instruction's Program_ID's pubkey"
     )]
     program_id: String,
     #[arg(
@@ -24,20 +24,20 @@ pub struct ToolboxCliCommandInstructionArgs {
     )]
     name: Option<String>,
     #[arg(
-        value_name = "NAME:KEY",
-        help = "The instruction's accounts, format: [Name:[Pubkey|KeypairFilePath]]"
+        value_name = "ACCOUNT_NAME:PUBKEY",
+        help = "The instruction's input accounts"
     )]
     accounts: Vec<String>,
     #[arg(
         long,
-        value_name = "JSON",
-        help = "Add an instruction's arg, format: [Path:Json]"
+        value_name = "JSON_PATH:JSON_VALUE",
+        help = "Add an instruction's input arg"
     )]
     arg: Vec<String>,
     #[arg(
         long,
         value_name = "KEYPAIR_FILE_PATH",
-        help = "Extra instruction signer"
+        help = "Add an extra instruction signer"
     )]
     signer: Vec<String>,
     #[arg(

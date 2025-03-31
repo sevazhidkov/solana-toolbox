@@ -24,12 +24,6 @@ pub struct ToolboxCliArgs {
     )]
     config: Option<String>,
     #[arg(
-        long,
-        value_name = "COMMITMENT_LEVEL",
-        help = "Commitment level used for RPC endpoint"
-    )]
-    commitment: Option<String>,
-    #[arg(
         short,
         long,
         alias = "rpc",
@@ -38,11 +32,17 @@ pub struct ToolboxCliArgs {
     )]
     url: Option<String>,
     #[arg(
+        long,
+        value_name = "COMMITMENT_LEVEL",
+        help = "Commitment level used for RPC endpoint"
+    )]
+    commitment: Option<String>,
+    #[arg(
         short,
         long,
         alias = "wallet",
         value_name = "KEYPAIR_FILE_PATH",
-        help = "Keypair used as instruction payer"
+        help = "Keypair used as transaction payer"
     )]
     keypair: Option<String>,
     #[arg(
@@ -50,7 +50,7 @@ pub struct ToolboxCliArgs {
         long,
         value_delimiter = ',',
         value_name = "PROGRAM_ID:IDL_FILE_PATH",
-        help = "Use custom IDLs for programs, format: [ProgramId:IdlFilePath]"
+        help = "Use a custom IDLs file for a specific"
     )]
     idls: Vec<String>,
     #[arg(long, help = "Output compacted JSON")]

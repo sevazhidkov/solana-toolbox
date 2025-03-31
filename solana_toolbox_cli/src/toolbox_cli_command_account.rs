@@ -8,7 +8,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Parse the content of an account using its program's IDL")]
 pub struct ToolboxCliCommandAccountArgs {
-    #[arg(value_name = "PUBKEY_BASE58", help = "Any account's address Pubkey")]
+    #[arg(value_name = "PUBKEY", help = "Any account's address Pubkey")]
     address: String,
 }
 

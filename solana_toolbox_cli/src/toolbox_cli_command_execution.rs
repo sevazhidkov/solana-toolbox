@@ -12,7 +12,7 @@ use crate::toolbox_cli_error::ToolboxCliError;
 )]
 pub struct ToolboxCliCommandExecutionArgs {
     #[arg(
-        value_name = "SIGNATURE_BASE58",
+        value_name = "SIGNATURE",
         help = "The transaction's execution signature"
     )]
     signature: String,
