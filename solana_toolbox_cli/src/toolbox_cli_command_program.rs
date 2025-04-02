@@ -1,6 +1,6 @@
 use clap::Args;
 use serde_json::Value;
-use solana_toolbox_idl::ToolboxIdlFormat;
+use solana_toolbox_idl::ToolboxIdlInfoFormat;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
 use crate::toolbox_cli_error::ToolboxCliError;
@@ -26,6 +26,6 @@ impl ToolboxCliCommandProgramArgs {
             .await?
             .unwrap_or_default();
         // TODO - support other export formats
-        Ok(idl_program.export(&ToolboxIdlFormat::Human))
+        Ok(idl_program.export(&ToolboxIdlInfoFormat::Human))
     }
 }

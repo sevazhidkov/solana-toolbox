@@ -18,51 +18,6 @@ impl ToolboxEndpoint {
             .ok_or(CompileError::AccountIndexOverflow)?)
     }
 
-    pub fn decompile_transaction_signer_addresses(
-        header_num_required_signatures: u8,
-        static_addresses: &[Pubkey],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
-        let mut signers = HashSet::new();
-        for index in 0..usize::from(header_num_required_signatures) {
-            signers.insert(
-                *static_addresses
-                    .get(index)
-                    .ok_or(CompileError::AccountIndexOverflow)?,
-            );
-        }
-        Ok(signers)
-    }
-
-    pub fn decompile_transaction_static_readonly_addresses(
-        header_num_required_signatures: u8,
-        header_num_readonly_signed_accounts: u8,
-        header_num_readonly_unsigned_accounts: u8,
-        static_addresses: &[Pubkey],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
-        let mut readonly = HashSet::new();
-        for index in (usize::from(header_num_required_signatures)
-            - usize::from(header_num_readonly_signed_accounts))
-            ..usize::from(header_num_required_signatures)
-        {
-            readonly.insert(
-                *static_addresses
-                    .get(index)
-                    .ok_or(CompileError::AccountIndexOverflow)?,
-            );
-        }
-        for index in (static_addresses.len()
-            - usize::from(header_num_readonly_unsigned_accounts))
-            ..static_addresses.len()
-        {
-            readonly.insert(
-                *static_addresses
-                    .get(index)
-                    .ok_or(CompileError::AccountIndexOverflow)?,
-            );
-        }
-        Ok(readonly)
-    }
-
     pub fn decompile_transaction_instructions(
         header_num_required_signatures: u8,
         header_num_readonly_signed_accounts: u8,
@@ -121,5 +76,50 @@ impl ToolboxEndpoint {
             });
         }
         Ok(instructions)
+    }
+
+    fn decompile_transaction_signer_addresses(
+        header_num_required_signatures: u8,
+        static_addresses: &[Pubkey],
+    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+        let mut signers = HashSet::new();
+        for index in 0..usize::from(header_num_required_signatures) {
+            signers.insert(
+                *static_addresses
+                    .get(index)
+                    .ok_or(CompileError::AccountIndexOverflow)?,
+            );
+        }
+        Ok(signers)
+    }
+
+    fn decompile_transaction_static_readonly_addresses(
+        header_num_required_signatures: u8,
+        header_num_readonly_signed_accounts: u8,
+        header_num_readonly_unsigned_accounts: u8,
+        static_addresses: &[Pubkey],
+    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+        let mut readonly = HashSet::new();
+        for index in (usize::from(header_num_required_signatures)
+            - usize::from(header_num_readonly_signed_accounts))
+            ..usize::from(header_num_required_signatures)
+        {
+            readonly.insert(
+                *static_addresses
+                    .get(index)
+                    .ok_or(CompileError::AccountIndexOverflow)?,
+            );
+        }
+        for index in (static_addresses.len()
+            - usize::from(header_num_readonly_unsigned_accounts))
+            ..static_addresses.len()
+        {
+            readonly.insert(
+                *static_addresses
+                    .get(index)
+                    .ok_or(CompileError::AccountIndexOverflow)?,
+            );
+        }
+        Ok(readonly)
     }
 }

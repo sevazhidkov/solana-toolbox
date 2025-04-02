@@ -40,11 +40,25 @@ pub enum ToolboxIdlTypeFlat {
     },
 }
 
+impl ToolboxIdlTypeFlat {
+    pub fn nothing() -> ToolboxIdlTypeFlat {
+        ToolboxIdlTypeFlat::Struct {
+            fields: ToolboxIdlTypeFlatFields::None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlatFields {
-    Named(Vec<(String, ToolboxIdlTypeFlatField)>),
-    Unamed(Vec<ToolboxIdlTypeFlatField>),
     None,
+    Named(Vec<(String, ToolboxIdlTypeFlat)>),
+    Unamed(Vec<ToolboxIdlTypeFlat>),
+}
+
+impl ToolboxIdlTypeFlatFields {
+    pub fn nothing() -> ToolboxIdlTypeFlatFields {
+        ToolboxIdlTypeFlatFields::None
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

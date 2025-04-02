@@ -48,11 +48,10 @@ pub struct ToolboxCliArgs {
     #[arg(
         short,
         long,
-        value_delimiter = ',',
         value_name = "PROGRAM_ID:IDL_FILE_PATH",
-        help = "Use a custom IDLs file for a specific"
+        help = "Use a custom IDL file for a specific Program ID"
     )]
-    idls: Vec<String>,
+    idl: Vec<String>,
     #[arg(long, help = "Output compacted JSON")]
     compact: bool,
     #[command(subcommand)]
@@ -85,7 +84,7 @@ impl ToolboxCliArgs {
             solana_cli_config.json_rpc_url,
             solana_cli_config.commitment,
             solana_cli_config.keypair_path,
-            self.idls.clone(),
+            self.idl.clone(),
         );
         let json = self.command.process(&context).await?;
         if self.compact {

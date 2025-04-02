@@ -25,25 +25,25 @@ pub struct ToolboxCliCommandInstructionArgs {
     name: Option<String>,
     #[arg(
         value_name = "ACCOUNT_NAME:PUBKEY",
-        help = "The instruction's input accounts"
+        help = "List the instruction's named accounts"
     )]
     accounts: Vec<String>,
     #[arg(
-        long,
+        long = "arg",
         value_name = "JSON_PATH:JSON_VALUE",
-        help = "Add an instruction's input arg"
+        help = "Add a JSON value to the instruction payload (data)"
     )]
-    arg: Vec<String>,
+    args: Vec<String>,
     #[arg(
-        long,
+        long = "signer",
         value_name = "KEYPAIR_FILE_PATH",
-        help = "Add an extra instruction signer"
+        help = "Specify an extra instruction signer keypair file"
     )]
-    signer: Vec<String>,
+    signers: Vec<String>,
     #[arg(
         long,
         action,
-        help = "Execute generated instruction instead of simulate"
+        help = "Execute generated instruction instead of simulating it"
     )]
     execute: bool,
     // TODO (SHORT) - set compute budget / price
@@ -89,7 +89,7 @@ impl ToolboxCliCommandInstructionArgs {
         };
 
         let mut instruction_payload_object = Map::new();
-        for arg in &self.arg {
+        for arg in &self.args {
             if let Some((path, json)) = arg.split_once(":") {
                 object_set_value_at_path(
                     &mut instruction_payload_object,
@@ -111,7 +111,7 @@ impl ToolboxCliCommandInstructionArgs {
         }
 
         let mut instruction_signers = vec![];
-        for signer in &self.signer {
+        for signer in &self.signers {
             instruction_signers.push(context.load_keypair(signer));
         }
 

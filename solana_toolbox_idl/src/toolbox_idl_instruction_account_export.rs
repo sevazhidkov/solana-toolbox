@@ -2,13 +2,13 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::toolbox_idl_format::ToolboxIdlFormat;
+use crate::toolbox_idl_info_format::ToolboxIdlInfoFormat;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 
 impl ToolboxIdlInstructionAccount {
-    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
         let mut json_object = Map::new();
         json_object.insert("name".to_string(), json!(self.name));
         if let Some(docs) = &self.docs {
@@ -47,7 +47,7 @@ impl ToolboxIdlInstructionAccount {
 }
 
 impl ToolboxIdlInstructionAccountPda {
-    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
         let mut json_object = Map::new();
         json_object.insert(
             "seeds".to_string(),
@@ -65,7 +65,7 @@ impl ToolboxIdlInstructionAccountPda {
 }
 
 impl ToolboxIdlInstructionAccountPdaBlob {
-    pub fn export(&self, _: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, _: &ToolboxIdlInfoFormat) -> Value {
         // TODO (FAR) - support backward compatibility for stuff like "account"/"type" fields ?
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => json!({

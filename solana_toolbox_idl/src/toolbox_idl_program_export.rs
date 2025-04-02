@@ -2,11 +2,11 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::toolbox_idl_format::ToolboxIdlFormat;
+use crate::toolbox_idl_info_format::ToolboxIdlInfoFormat;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
-    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
         let mut json_program = Map::new();
         if format.use_root_as_metadata_object() {
             self.export_metadata_to(&mut json_program);
@@ -16,6 +16,7 @@ impl ToolboxIdlProgram {
             json_program
                 .insert("metadata".to_string(), json!(json_program_metadata));
         }
+        json_program.insert("types".to_string(), self.export_typedefs(format));
         json_program.insert(
             "instructions".to_string(),
             self.export_instructions(format),
@@ -23,7 +24,6 @@ impl ToolboxIdlProgram {
         json_program
             .insert("accounts".to_string(), self.export_accounts(format));
         json_program.insert("errors".to_string(), self.export_errors(format));
-        json_program.insert("types".to_string(), self.export_typedefs(format));
         json!(json_program)
     }
 
@@ -42,7 +42,25 @@ impl ToolboxIdlProgram {
         }
     }
 
-    fn export_instructions(&self, format: &ToolboxIdlFormat) -> Value {
+    fn export_typedefs(&self, format: &ToolboxIdlInfoFormat) -> Value {
+        if format.use_object_for_unordered_named_array() {
+            let mut json_typedefs = Map::new();
+            for program_typedef in self.typedefs.values() {
+                json_typedefs.insert(
+                    program_typedef.name.to_string(),
+                    program_typedef.export(format),
+                );
+            }
+            return json!(json_typedefs);
+        }
+        let mut json_typedefs = vec![];
+        for program_typedef in self.typedefs.values() {
+            json_typedefs.push(program_typedef.export(format));
+        }
+        json!(json_typedefs)
+    }
+
+    fn export_instructions(&self, format: &ToolboxIdlInfoFormat) -> Value {
         if format.use_object_for_unordered_named_array() {
             let mut json_instructions = Map::new();
             for program_instruction in self.instructions.values() {
@@ -60,7 +78,7 @@ impl ToolboxIdlProgram {
         json!(json_instructions)
     }
 
-    fn export_accounts(&self, format: &ToolboxIdlFormat) -> Value {
+    fn export_accounts(&self, format: &ToolboxIdlInfoFormat) -> Value {
         if format.use_object_for_unordered_named_array() {
             let mut json_accounts = Map::new();
             for program_account in self.accounts.values() {
@@ -78,7 +96,7 @@ impl ToolboxIdlProgram {
         json!(json_accounts)
     }
 
-    fn export_errors(&self, format: &ToolboxIdlFormat) -> Value {
+    fn export_errors(&self, format: &ToolboxIdlInfoFormat) -> Value {
         if format.use_object_for_unordered_named_array() {
             let mut json_errors = Map::new();
             for program_error in self.errors.values() {
@@ -94,23 +112,5 @@ impl ToolboxIdlProgram {
             json_errors.push(program_error.export(format));
         }
         json!(json_errors)
-    }
-
-    fn export_typedefs(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.use_object_for_unordered_named_array() {
-            let mut json_typedefs = Map::new();
-            for program_typedef in self.typedefs.values() {
-                json_typedefs.insert(
-                    program_typedef.name.to_string(),
-                    program_typedef.export(format),
-                );
-            }
-            return json!(json_typedefs);
-        }
-        let mut json_typedefs = vec![];
-        for program_typedef in self.typedefs.values() {
-            json_typedefs.push(program_typedef.export(format));
-        }
-        json!(json_typedefs)
     }
 }

@@ -2,13 +2,13 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::toolbox_idl_format::ToolboxIdlFormat;
+use crate::toolbox_idl_info_format::ToolboxIdlInfoFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 impl ToolboxIdlTypeFlat {
-    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
         match self {
             ToolboxIdlTypeFlat::Defined { name, generics } => {
                 if !generics.is_empty() {
@@ -132,7 +132,7 @@ impl ToolboxIdlTypeFlat {
 }
 
 impl ToolboxIdlTypeFlatFields {
-    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
         match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut json_fields = vec![];

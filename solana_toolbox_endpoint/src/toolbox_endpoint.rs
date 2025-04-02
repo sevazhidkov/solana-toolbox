@@ -18,8 +18,8 @@ pub struct ToolboxEndpoint {
 }
 
 impl From<Box<dyn ToolboxEndpointProxy>> for ToolboxEndpoint {
-    fn from(proxy: Box<dyn ToolboxEndpointProxy>) -> Self {
-        Self {
+    fn from(proxy: Box<dyn ToolboxEndpointProxy>) -> ToolboxEndpoint {
+        ToolboxEndpoint {
             proxy,
             loggers: vec![],
         }

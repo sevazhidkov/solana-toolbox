@@ -1,16 +1,16 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlFormat;
+use solana_toolbox_idl::ToolboxIdlInfoFormat;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
-    // Create an IDL on the fly
-    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
+    // Create IDLs on the fly
+    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "types": {
-            "MyStruct1": {
-                "docs": ["My Struct 1"],
+            "MyStruct": {
+                "docs": ["My Struct"],
                 "fields": [
-                    { "name": "id", "type": "u16", "docs": ["My Struct 1 Field Id"] },
+                    { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
                     { "name": "data", "vec": "u8" },
                     { "name": "addr", "type": "publicKey" },
                 ]
@@ -18,73 +18,126 @@ pub async fn run() {
         },
     }))
     .unwrap();
+    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+        "types": {
+            "MyStruct": { "fields": [] },
+        },
+    }))
+    .unwrap();
     // Check the JSON human compact version
     assert_eq!(
-        idl_program.export(&ToolboxIdlFormat::Human),
+        idl_program1.export(&ToolboxIdlInfoFormat::Human),
         json!({
             "metadata": {},
             "instructions": {},
             "accounts": {},
-            "errors": {},
             "types": {
-                "MyStruct1": {
-                    "docs": ["My Struct 1"],
+                "MyStruct": {
+                    "docs": ["My Struct"],
                     "type": {
                         "fields": [
-                            { "name": "id", "type": "u16", "docs": ["My Struct 1 Field Id"] },
+                            { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
                             { "name": "data", "type": ["u8"] },
                             { "name": "addr", "type": "pubkey" },
                         ]
                     }
                 },
             },
+            "errors": {},
+        })
+    );
+    assert_eq!(
+        idl_program2.export(&ToolboxIdlInfoFormat::Human),
+        json!({
+            "metadata": {},
+            "instructions": {},
+            "accounts": {},
+            "types": {
+                "MyStruct": { "fields": [] },
+            },
+            "errors": {},
         })
     );
     // Check the JSON backward compatibility version for anchor 26
     assert_eq!(
-        idl_program.export(&ToolboxIdlFormat::Anchor26),
+        idl_program1.export(&ToolboxIdlInfoFormat::Anchor26),
         json!({
-            "accounts": [],
-            "errors": [],
             "instructions": [],
+            "accounts": [],
             "types": [
                 {
-                    "name": "MyStruct1",
-                    "docs": ["My Struct 1"],
+                    "name": "MyStruct",
+                    "docs": ["My Struct"],
                     "type": {
                         "kind": "struct",
                         "fields": [
-                            { "name": "id", "type": "u16", "docs": ["My Struct 1 Field Id"] },
+                            { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
                             { "name": "data", "type": {"vec": "u8"} },
                             { "name": "addr", "type": "publicKey" },
                         ]
                     }
                 },
-            ]
+            ],
+            "errors": [],
+        })
+    );
+    assert_eq!(
+        idl_program2.export(&ToolboxIdlInfoFormat::Anchor26),
+        json!({
+            "instructions": [],
+            "accounts": [],
+            "types": [
+                {
+                    "name": "MyStruct",
+                    "type": {
+                        "kind": "struct",
+                        "fields": []
+                    }
+                },
+            ],
+            "errors": [],
         })
     );
     // Check the JSON backward compatibility version for anchor 30
     assert_eq!(
-        idl_program.export(&ToolboxIdlFormat::Anchor30),
+        idl_program1.export(&ToolboxIdlInfoFormat::Anchor30),
         json!({
             "metadata": {},
-            "accounts": [],
-            "errors": [],
             "instructions": [],
+            "accounts": [],
             "types": [
                 {
-                    "name": "MyStruct1",
-                    "docs": ["My Struct 1"],
+                    "name": "MyStruct",
+                    "docs": ["My Struct"],
                     "type": {
                         "kind": "struct",
                         "fields": [
-                            { "name": "id", "type": "u16", "docs": ["My Struct 1 Field Id"] },
+                            { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
                             { "name": "data", "type": {"vec": "u8"} },
                             { "name": "addr", "type": "pubkey" },
                         ]
                     }
                 },
-            ]
+            ],
+            "errors": [],
+        })
+    );
+    assert_eq!(
+        idl_program2.export(&ToolboxIdlInfoFormat::Anchor30),
+        json!({
+            "metadata": {},
+            "instructions": [],
+            "accounts": [],
+            "types": [
+                {
+                    "name": "MyStruct",
+                    "type": {
+                        "kind": "struct",
+                        "fields": []
+                    }
+                },
+            ],
+            "errors": [],
         })
     );
 }

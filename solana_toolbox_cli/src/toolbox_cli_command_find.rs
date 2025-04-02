@@ -11,27 +11,40 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
 pub struct ToolboxCliCommandFindArgs {
-    #[arg(help = "The ProgramID pubkey that owns the searched accounts")]
+    #[arg(
+        value_name = "PROGRAM_ID",
+        help = "The ProgramID pubkey that owns the searched accounts"
+    )]
     program_id: String,
     #[arg(
         long,
+        value_name = "COUNT",
         help = "The max amount of accounts being searched (to avoid rate limiting)"
     )]
     limit: Option<usize>,
     #[arg(
         long,
-        help = "Expected exact data byte size of the searched accounts"
+        value_name = "LENGTH",
+        help = "Expect exact data byte size of the searched accounts"
     )]
     space: Option<usize>,
     #[arg(
-        long,
-        value_delimiter = ',',
-        help = "Expected data slices of the searched accounts, format: [offset:encoding:data]"
+        long = "chunk",
+        value_name = "OFFSET:JSON_BYTES",
+        help = "Expect data slices of the searched accounts"
     )]
     chunks: Vec<String>,
-    #[arg(long, help = "Expected parsed IDL account name")]
+    #[arg(
+        long,
+        value_name = "ACCOUNT_NAME",
+        help = "Expect parsed IDL account name"
+    )]
     name: Option<String>,
-    #[arg(long, help = "Expected parsed IDL account (partial) state")]
+    #[arg(
+        long = "state",
+        value_name = "JSON_VALUE",
+        help = "Expect account state to match this value"
+    )]
     states: Vec<String>,
 }
 

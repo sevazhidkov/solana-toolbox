@@ -7,7 +7,9 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
 
@@ -19,6 +21,8 @@ pub struct ToolboxIdlInstruction {
     pub accounts: Vec<ToolboxIdlInstructionAccount>,
     pub args_type_flat_fields: ToolboxIdlTypeFlatFields,
     pub args_type_full_fields: Arc<ToolboxIdlTypeFullFields>,
+    pub return_type_flat: ToolboxIdlTypeFlat,
+    pub return_type_full: Arc<ToolboxIdlTypeFull>,
 }
 
 impl Default for ToolboxIdlInstruction {
@@ -28,8 +32,10 @@ impl Default for ToolboxIdlInstruction {
             docs: None,
             discriminator: vec![],
             accounts: vec![],
-            args_type_flat_fields: ToolboxIdlTypeFlatFields::None,
-            args_type_full_fields: ToolboxIdlTypeFullFields::None.into(),
+            args_type_flat_fields: ToolboxIdlTypeFlatFields::nothing(),
+            args_type_full_fields: ToolboxIdlTypeFullFields::nothing().into(),
+            return_type_flat: ToolboxIdlTypeFlat::nothing(),
+            return_type_full: ToolboxIdlTypeFull::nothing().into(),
         }
     }
 }

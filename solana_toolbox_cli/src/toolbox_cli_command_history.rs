@@ -10,14 +10,18 @@ use crate::toolbox_cli_error::ToolboxCliError;
 pub struct ToolboxCliCommandHistoryArgs {
     #[arg(
         default_value = "KEYPAIR",
+        value_name = "PUBKEY",
         help = "The account pubkey that is involved in transactions"
     )]
     address: String,
-    #[arg(help = "How much signature we'll search for before stopping")]
+    #[arg(
+        value_name = "COUNT",
+        help = "How much signature we'll search for before stopping"
+    )]
     limit: Option<usize>,
-    #[arg()]
+    #[arg(value_name = "SIGNATURE")]
     start_before_signature: Option<String>,
-    #[arg()]
+    #[arg(value_name = "SIGNATURE")]
     rewind_until_signature: Option<String>,
 }
 
@@ -60,7 +64,7 @@ impl ToolboxCliCommandHistoryArgs {
                     "name": context.compute_instruction_name(
                         &instruction_decoded.program,
                         &instruction_decoded.instruction,
-                    )
+                    ),
                 }));
             }
             json_history.push(json!({

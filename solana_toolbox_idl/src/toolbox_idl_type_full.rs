@@ -32,6 +32,14 @@ pub enum ToolboxIdlTypeFull {
 }
 
 impl ToolboxIdlTypeFull {
+    pub fn nothing() -> ToolboxIdlTypeFull {
+        ToolboxIdlTypeFull::Struct {
+            fields: ToolboxIdlTypeFullFields::None,
+        }
+    }
+}
+
+impl ToolboxIdlTypeFull {
     pub fn as_const_literal(&self) -> Option<&u64> {
         match self {
             ToolboxIdlTypeFull::Const { literal } => Some(literal),
@@ -49,9 +57,15 @@ impl ToolboxIdlTypeFull {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFullFields {
+    None,
     Named(Vec<(String, ToolboxIdlTypeFull)>),
     Unamed(Vec<ToolboxIdlTypeFull>),
-    None,
+}
+
+impl ToolboxIdlTypeFullFields {
+    pub fn nothing() -> ToolboxIdlTypeFullFields {
+        ToolboxIdlTypeFullFields::None
+    }
 }
 
 impl ToolboxIdlTypeFullFields {

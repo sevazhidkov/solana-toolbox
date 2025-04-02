@@ -53,7 +53,6 @@ impl ToolboxCliContext {
     ) -> Result<ToolboxIdlService, ToolboxCliError> {
         let mut idl_service = ToolboxIdlService::new();
         for custom_idl in &self.custom_idls {
-            // TODO - allow "=" delimiter somehow ??
             if let Some((program_id, idl_file)) = custom_idl.split_once(":") {
                 idl_service.preload_program(
                     &self.parse_key(program_id)?.address(),
@@ -78,7 +77,6 @@ impl ToolboxCliContext {
         &self,
         account: &str,
     ) -> Result<(String, ToolboxCliKey), ToolboxCliError> {
-        // TODO - figure out a better way for delimited split ?
         if let Some((name, key)) = account.split_once(":") {
             return Ok((name.to_string(), self.parse_key(key)?));
         }
@@ -98,6 +96,7 @@ impl ToolboxCliContext {
         {
             return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }
+        // TODO - support from_base58_string
         if exists(&key).unwrap() {
             return Ok(ToolboxCliKey::Keypair(self.load_keypair(key)));
         }

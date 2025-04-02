@@ -100,7 +100,7 @@ impl ToolboxEndpoint {
 }
 
 impl From<ProgramTestContext> for ToolboxEndpoint {
-    fn from(program_test_context: ProgramTestContext) -> Self {
+    fn from(program_test_context: ProgramTestContext) -> ToolboxEndpoint {
         let proxy: Box<dyn ToolboxEndpointProxy> = Box::new(
             ToolboxEndpointProxyProgramTestContext::new(program_test_context),
         );

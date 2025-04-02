@@ -5,9 +5,7 @@ use serde_json::Value;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
-use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
-use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -28,13 +26,8 @@ impl Default for ToolboxIdlAccount {
             docs: None,
             space: None,
             discriminator: vec![],
-            content_type_flat: ToolboxIdlTypeFlat::Struct {
-                fields: ToolboxIdlTypeFlatFields::None,
-            },
-            content_type_full: ToolboxIdlTypeFull::Struct {
-                fields: ToolboxIdlTypeFullFields::None,
-            }
-            .into(),
+            content_type_flat: ToolboxIdlTypeFlat::nothing(),
+            content_type_full: ToolboxIdlTypeFull::nothing().into(),
         }
     }
 }

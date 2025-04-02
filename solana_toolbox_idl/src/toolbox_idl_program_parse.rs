@@ -107,10 +107,10 @@ impl ToolboxIdlProgram {
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
         Ok(ToolboxIdlProgram {
             metadata,
+            typedefs,
             instructions,
             accounts,
             errors,
-            typedefs,
         })
     }
 
@@ -186,7 +186,6 @@ impl ToolboxIdlProgram {
                 breadcrumbs,
             )?
         {
-            // TODO (FAR) - support instructions with no name (use index ?)
             let idl_instruction_name =
                 ToolboxIdlInstruction::sanitize_name(idl_instruction_name);
             instructions.insert(

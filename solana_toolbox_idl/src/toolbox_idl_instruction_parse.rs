@@ -8,6 +8,7 @@ use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
@@ -46,6 +47,16 @@ impl ToolboxIdlInstruction {
             typedefs,
             breadcrumbs,
         )?;
+        let return_type_flat =
+            ToolboxIdlInstruction::try_parse_return_type_flat(
+                idl_instruction,
+                breadcrumbs,
+            )?;
+        let return_type_full = return_type_flat.try_hydrate(
+            &HashMap::new(),
+            typedefs,
+            breadcrumbs,
+        )?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
             docs,
@@ -53,6 +64,8 @@ impl ToolboxIdlInstruction {
             accounts,
             args_type_flat_fields,
             args_type_full_fields: args_type_full_fields.into(),
+            return_type_flat,
+            return_type_full: return_type_full.into(),
         })
     }
 
@@ -113,5 +126,18 @@ impl ToolboxIdlInstruction {
             );
         }
         Ok(ToolboxIdlTypeFlatFields::None)
+    }
+
+    fn try_parse_return_type_flat(
+        idl_instruction: &Map<String, Value>,
+        breadcrumbs: &ToolboxIdlBreadcrumbs,
+    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+        if let Some(idl_instruction_returns) = idl_instruction.get("returns") {
+            return ToolboxIdlTypeFlat::try_parse_value(
+                idl_instruction_returns,
+                breadcrumbs,
+            );
+        }
+        Ok(ToolboxIdlTypeFlat::nothing())
     }
 }

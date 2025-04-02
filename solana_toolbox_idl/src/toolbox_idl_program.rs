@@ -10,6 +10,7 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
 // TODO - should this have its own file ?
+// TODO - support "address" field ??
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgramMetadata {
     pub name: Option<String>,
@@ -21,10 +22,10 @@ pub struct ToolboxIdlProgramMetadata {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgram {
     pub metadata: ToolboxIdlProgramMetadata,
+    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
-    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
 }
 
 impl ToolboxIdlProgram {

@@ -28,6 +28,7 @@ pub async fn run() {
                 "args": [
                     { "name": "arg", "type": {"vec": "u8"} },
                 ],
+                "returns": "i8",
             },
         ],
     }))
@@ -45,6 +46,7 @@ pub async fn run() {
                 "args": [
                     { "name": "arg", "type": {"vec": "u8"} },
                 ],
+                "returns": "i8",
             },
         ],
     }))
@@ -62,6 +64,7 @@ pub async fn run() {
                 "args": [
                     { "name": "arg", "vec": "u8" },
                 ],
+                "returns": "i8",
             },
         },
     }))
@@ -78,6 +81,7 @@ pub async fn run() {
                 "args": [
                     { "name": "arg", "vec": "u8" },
                 ],
+                "returns": "i8",
             },
         },
     }))
@@ -149,6 +153,13 @@ pub async fn run() {
                 },
             )])
             .into(),
+            return_type_flat: ToolboxIdlTypeFlat::Primitive {
+                primitive: ToolboxIdlTypePrimitive::I8
+            },
+            return_type_full: ToolboxIdlTypeFull::Primitive {
+                primitive: ToolboxIdlTypePrimitive::I8
+            }
+            .into()
         }
         .into()
     )
