@@ -9,6 +9,7 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
     pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
+        // TODO - support spl_name_service
         let mut known_programs = HashMap::new();
         known_programs.insert(
             ToolboxEndpoint::SYSTEM_PROGRAM_ID,

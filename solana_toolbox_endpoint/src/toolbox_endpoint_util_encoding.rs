@@ -4,7 +4,9 @@ use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use solana_sdk::bs58;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::{read_keypair, Keypair, Signature};
+use solana_sdk::signature::read_keypair;
+use solana_sdk::signature::Keypair;
+use solana_sdk::signature::Signature;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_error::ToolboxEndpointError;
@@ -20,6 +22,16 @@ impl ToolboxEndpoint {
 
     pub fn encode_url(data: &str) -> String {
         urlencoding::encode(data).to_string()
+    }
+
+    pub fn encode_keypair_base58(keypair: &Keypair) -> String {
+        let bytes = &keypair.to_bytes();
+        ToolboxEndpoint::encode_base58(bytes)
+    }
+
+    pub fn encode_keypair_json_array(keypair: &Keypair) -> String {
+        let bytes = keypair.to_bytes().to_vec();
+        serde_json::to_string(&bytes).unwrap()
     }
 
     pub fn sanitize_and_decode_base58(
@@ -63,7 +75,7 @@ impl ToolboxEndpoint {
         Pubkey::from_str(&sanitized).map_err(ToolboxEndpointError::ParsePubkey)
     }
 
-    pub fn sanitize_and_decode_keypair(
+    pub fn sanitize_and_decode_keypair_json_array(
         raw: &str,
     ) -> Result<Keypair, ToolboxEndpointError> {
         let sanitized = raw.replace(
@@ -75,20 +87,19 @@ impl ToolboxEndpoint {
             },
             "",
         );
-        if sanitized.starts_with("[") {
-            return read_keypair(&mut sanitized.as_bytes()).map_err(|err| {
-                ToolboxEndpointError::Custom(format!(
-                    "Could not read keypair as JSON byte array: {:?}",
-                    err
-                ))
-            });
-        }
-        Keypair::from_bytes(
-            &bs58::decode(sanitized)
-                .into_vec()
-                .map_err(ToolboxEndpointError::Bs58Decode)?,
-        )
-        .map_err(|err| {
+        read_keypair(&mut sanitized.as_bytes()).map_err(|err| {
+            ToolboxEndpointError::Custom(format!(
+                "Could not read keypair as JSON byte array: {:?}",
+                err
+            ))
+        })
+    }
+
+    pub fn sanitize_and_decode_keypair_base58(
+        raw: &str,
+    ) -> Result<Keypair, ToolboxEndpointError> {
+        let decoded = ToolboxEndpoint::sanitize_and_decode_base58(raw)?;
+        Keypair::from_bytes(&decoded).map_err(|err| {
             ToolboxEndpointError::Custom(format!(
                 "Could not read keypair as base58: {:?}",
                 err

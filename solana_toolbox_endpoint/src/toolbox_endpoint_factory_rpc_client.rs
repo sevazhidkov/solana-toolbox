@@ -6,19 +6,23 @@ use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
 impl ToolboxEndpoint {
+    pub const PUBLIC_RPC_URL_DEVNET: &str = "https://api.devnet.solana.com";
     pub const PUBLIC_RPC_URL_MAINNET_BETA: &str =
         "https://api.mainnet-beta.solana.com";
     pub const PUBLIC_RPC_URL_TESTNET: &str = "https://api.testnet.solana.com";
-    pub const PUBLIC_RPC_URL_DEVNET: &str = "https://api.devnet.solana.com";
 
     pub fn get_url_from_url_or_moniker(url_or_moniker: &str) -> &str {
         match url_or_moniker {
-            "m" | "mainnet-beta" => {
+            "m" | "M" | "mainnet-beta" | "MAINNET-BETA" | "MAINNET_BETA" => {
                 ToolboxEndpoint::PUBLIC_RPC_URL_MAINNET_BETA
             },
-            "t" | "testnet" => ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET,
-            "d" | "devnet" => ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET,
-            "l" | "localhost" => "http://localhost:8899",
+            "t" | "T" | "testnet" | "TESTNET" => {
+                ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET
+            },
+            "d" | "D" | "devnet" | "DEVNET" => {
+                ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET
+            },
+            "l" | "L" | "localhost" | "LOCALHOST" => "http://localhost:8899",
             url => url,
         }
     }
@@ -28,16 +32,23 @@ impl ToolboxEndpoint {
     ) -> Option<&str> {
         match url_or_moniker {
             "m"
+            | "M"
             | "mainnet-beta"
+            | "MAINNET-BETA"
+            | "MAINNET_BETA"
             | ToolboxEndpoint::PUBLIC_RPC_URL_MAINNET_BETA => {
                 Some("mainnet-beta")
             },
-            "t" | "testnet" | ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET => {
-                Some("testnet")
-            },
-            "d" | "devnet" | ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET => {
-                Some("devnet")
-            },
+            "t"
+            | "T"
+            | "testnet"
+            | "TESTNET"
+            | ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET => Some("testnet"),
+            "d"
+            | "D"
+            | "devnet"
+            | "DEVNET"
+            | ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET => Some("devnet"),
             _ => None,
         }
     }
