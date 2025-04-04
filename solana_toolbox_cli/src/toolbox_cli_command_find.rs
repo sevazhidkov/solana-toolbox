@@ -17,31 +17,33 @@ pub struct ToolboxCliCommandFindArgs {
     )]
     program_id: String,
     #[arg(
-        long,
+        long = "limit",
         value_name = "COUNT",
         help = "The max amount of accounts being searched (to avoid rate limiting)"
     )]
     limit: Option<usize>,
     #[arg(
-        long,
+        long = "space",
         value_name = "LENGTH",
         help = "Expect exact data byte size of the searched accounts"
     )]
     space: Option<usize>,
     #[arg(
         long = "chunk",
+        alias = "chunks",
         value_name = "OFFSET:JSON_BYTES",
         help = "Expect data slices of the searched accounts"
     )]
     chunks: Vec<String>,
     #[arg(
-        long,
+        long = "name",
         value_name = "ACCOUNT_NAME",
         help = "Expect parsed IDL account name"
     )]
     name: Option<String>,
     #[arg(
         long = "state",
+        alias = "states",
         value_name = "JSON_VALUE",
         help = "Expect account state to match this value"
     )]

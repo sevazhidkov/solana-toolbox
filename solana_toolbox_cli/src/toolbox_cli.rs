@@ -18,28 +18,28 @@ use crate::toolbox_cli_error::ToolboxCliError;
 #[command(version, about = "Tooling to interact with a solana endpoint")]
 pub struct ToolboxCliArgs {
     #[arg(
-        long,
+        long = "config",
         value_name = "CONFIG_FILE_PATH",
         help = "To use a different path for the solana's config YAML file"
     )]
     config: Option<String>,
     #[arg(
         short,
-        long,
+        long = "url",
         alias = "rpc",
         value_name = "URL_OR_MONIKER",
         help = "The solana RPC endpoint's URL used"
     )]
     url: Option<String>,
     #[arg(
-        long,
+        long = "commitment",
         value_name = "COMMITMENT_LEVEL",
         help = "Commitment level used for RPC endpoint"
     )]
     commitment: Option<String>,
     #[arg(
         short,
-        long,
+        long = "keypair",
         alias = "wallet",
         value_name = "KEYPAIR_FILE_PATH",
         help = "Keypair used as transaction payer"
@@ -47,12 +47,13 @@ pub struct ToolboxCliArgs {
     keypair: Option<String>,
     #[arg(
         short,
-        long,
+        long = "idl",
+        alias = "idls",
         value_name = "PROGRAM_ID:IDL_FILE_PATH",
         help = "Use a custom IDL file for a specific Program ID"
     )]
-    idl: Vec<String>,
-    #[arg(long, help = "Output compacted JSON")]
+    idls: Vec<String>,
+    #[arg(long = "compact", help = "Output compacted JSON")]
     compact: bool,
     #[command(subcommand)]
     command: ToolboxCliCommand,
@@ -84,7 +85,7 @@ impl ToolboxCliArgs {
             solana_cli_config.json_rpc_url,
             solana_cli_config.commitment,
             solana_cli_config.keypair_path,
-            self.idl.clone(),
+            self.idls.clone(),
         );
         let json = self.command.process(&context).await?;
         if self.compact {

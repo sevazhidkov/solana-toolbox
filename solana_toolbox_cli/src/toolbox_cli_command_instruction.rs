@@ -30,18 +30,20 @@ pub struct ToolboxCliCommandInstructionArgs {
     accounts: Vec<String>,
     #[arg(
         long = "arg",
+        alias = "args",
         value_name = "JSON_PATH:JSON_VALUE",
         help = "Add a JSON value to the instruction payload (data)"
     )]
     args: Vec<String>,
     #[arg(
         long = "signer",
+        alias = "signers",
         value_name = "KEYPAIR_FILE_PATH",
         help = "Specify an extra instruction signer keypair file"
     )]
     signers: Vec<String>,
     #[arg(
-        long,
+        long = "execute",
         action,
         help = "Execute generated instruction instead of simulating it"
     )]

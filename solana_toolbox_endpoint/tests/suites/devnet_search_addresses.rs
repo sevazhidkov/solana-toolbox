@@ -32,19 +32,29 @@ pub async fn run() {
         .await
         .unwrap();
     assert!(search_by_discriminator.len() < search_unfiltered.len());
-    assert_eq!(search_by_discriminator.len(), 5);
+    assert_eq!(search_by_discriminator.len(), 6);
     // Searching accounts by matching the exact account size
     let search_by_data_len = endpoint
         .search_addresses(&program_id, Some(680), &[])
         .await
         .unwrap();
     assert_eq!(search_by_discriminator, search_by_data_len);
+    // Some account are known to be the exception
+    let mut search_by_discriminator_without_other_keys =
+        search_by_discriminator.clone();
+    search_by_discriminator_without_other_keys.remove(
+        &Pubkey::from_str("GAHCWMw8Uc1wpXJS23bL1Hxtb2XFGNDmBvEN12gUiArq")
+            .unwrap(),
+    );
     // Searching accounts by matching a public key from the data content
     let search_by_data_blob1 = endpoint
         .search_addresses(&program_id, None, &[(17, &blob_from_address1)])
         .await
         .unwrap();
-    assert_eq!(search_by_discriminator, search_by_data_blob1);
+    assert_eq!(
+        search_by_discriminator_without_other_keys,
+        search_by_data_blob1
+    );
     // Searching accounts by matching a public key from the data content
     let search_by_data_blob2 = endpoint
         .search_addresses(&program_id, None, &[(49, &blob_from_address2)])
@@ -64,7 +74,10 @@ pub async fn run() {
         )
         .await
         .unwrap();
-    assert_eq!(search_by_discriminator, search_by_everything);
+    assert_eq!(
+        search_by_discriminator_without_other_keys,
+        search_by_everything
+    );
     // Searching accounts by applying one correct and one wrong filter
     let search_by_failure = endpoint
         .search_addresses(
