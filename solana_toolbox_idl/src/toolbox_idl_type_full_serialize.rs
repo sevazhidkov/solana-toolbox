@@ -276,7 +276,7 @@ impl ToolboxIdlTypeFull {
                         enum_value,
                         data,
                         deserializable,
-                        &breadcrumbs.with_val(&enum_variant_name),
+                        &breadcrumbs.with_val(enum_variant_name),
                     );
                 }
             }

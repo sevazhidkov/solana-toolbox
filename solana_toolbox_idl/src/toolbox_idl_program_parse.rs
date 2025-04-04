@@ -93,8 +93,7 @@ impl ToolboxIdlProgram {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
         let address = idl_object_get_key_as_str(idl_root, "address")
-            .map(|address| Pubkey::from_str(address).ok())
-            .flatten();
+            .and_then(|address| Pubkey::from_str(address).ok());
         let docs = idl_root.get("docs").cloned();
         let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root);
         let typedefs =

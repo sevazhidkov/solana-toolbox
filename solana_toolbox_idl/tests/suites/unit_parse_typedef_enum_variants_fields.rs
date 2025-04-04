@@ -82,7 +82,6 @@ pub async fn run() {
                                     name: "Other".to_string(),
                                     generics: vec![]
                                 }
-                                .into(),
                             ),
                             (
                                 "f2".to_string(),
@@ -95,7 +94,6 @@ pub async fn run() {
                                         }
                                     )
                                 }
-                                .into(),
                             ),
                             (
                                 "f3".to_string(),
@@ -103,7 +101,6 @@ pub async fn run() {
                                 ToolboxIdlTypeFlat::Generic {
                                     symbol: "G".to_string()
                                 }
-                                .into(),
                             ),
                         ])
                     ),

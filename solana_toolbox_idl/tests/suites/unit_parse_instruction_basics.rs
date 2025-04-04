@@ -143,7 +143,6 @@ pub async fn run() {
                         primitive: ToolboxIdlTypePrimitive::U8
                     }),
                 }
-                .into(),
             )]),
             args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![(
                 "arg".to_string(),
