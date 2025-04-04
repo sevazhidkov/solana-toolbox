@@ -1,7 +1,7 @@
 use solana_sdk::bpf_loader_upgradeable;
 use solana_sdk::compute_budget;
 use solana_sdk::system_program;
-use solana_toolbox_idl::ToolboxIdlInfoFormat;
+use solana_toolbox_idl::ToolboxIdlFormat;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
@@ -13,21 +13,21 @@ pub async fn run() {
     assert_eq!(
         idl_program_native_system,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_system.export(&ToolboxIdlInfoFormat::Human)
+            &idl_program_native_system.export(&ToolboxIdlFormat::Human)
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_system,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_system.export(&ToolboxIdlInfoFormat::Anchor26)
+            &idl_program_native_system.export(&ToolboxIdlFormat::Anchor26)
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_system,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_system.export(&ToolboxIdlInfoFormat::Anchor30)
+            &idl_program_native_system.export(&ToolboxIdlFormat::Anchor30)
         )
         .unwrap()
     );
@@ -38,8 +38,7 @@ pub async fn run() {
     assert_eq!(
         idl_program_native_compute_budget,
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program_native_compute_budget
-                .export(&ToolboxIdlInfoFormat::Human)
+            &idl_program_native_compute_budget.export(&ToolboxIdlFormat::Human)
         )
         .unwrap()
     );
@@ -47,7 +46,7 @@ pub async fn run() {
         idl_program_native_compute_budget,
         ToolboxIdlProgram::try_parse_from_value(
             &idl_program_native_compute_budget
-                .export(&ToolboxIdlInfoFormat::Anchor26)
+                .export(&ToolboxIdlFormat::Anchor26)
         )
         .unwrap()
     );
@@ -55,7 +54,7 @@ pub async fn run() {
         idl_program_native_compute_budget,
         ToolboxIdlProgram::try_parse_from_value(
             &idl_program_native_compute_budget
-                .export(&ToolboxIdlInfoFormat::Anchor30)
+                .export(&ToolboxIdlFormat::Anchor30)
         )
         .unwrap()
     );
@@ -67,7 +66,7 @@ pub async fn run() {
         idl_program_native_loader_upgradeable,
         ToolboxIdlProgram::try_parse_from_value(
             &idl_program_native_loader_upgradeable
-                .export(&ToolboxIdlInfoFormat::Human)
+                .export(&ToolboxIdlFormat::Human)
         )
         .unwrap()
     );
@@ -75,7 +74,7 @@ pub async fn run() {
         idl_program_native_loader_upgradeable,
         ToolboxIdlProgram::try_parse_from_value(
             &idl_program_native_loader_upgradeable
-                .export(&ToolboxIdlInfoFormat::Anchor26)
+                .export(&ToolboxIdlFormat::Anchor26)
         )
         .unwrap()
     );
@@ -83,7 +82,7 @@ pub async fn run() {
         idl_program_native_loader_upgradeable,
         ToolboxIdlProgram::try_parse_from_value(
             &idl_program_native_loader_upgradeable
-                .export(&ToolboxIdlInfoFormat::Anchor30)
+                .export(&ToolboxIdlFormat::Anchor30)
         )
         .unwrap()
     );

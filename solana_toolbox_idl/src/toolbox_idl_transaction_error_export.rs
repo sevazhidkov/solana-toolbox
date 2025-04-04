@@ -2,13 +2,13 @@ use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::toolbox_idl_info_format::ToolboxIdlInfoFormat;
+use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 
 impl ToolboxIdlTransactionError {
-    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
-        if self.msg.is_empty()
-            && format.can_shortcut_error_to_number_if_no_msg()
+    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.can_shortcut_error_to_number_if_no_msg()
+            && self.msg.is_empty()
         {
             return json!(self.code);
         }

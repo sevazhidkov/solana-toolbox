@@ -59,7 +59,7 @@ impl ToolboxIdlTypeFull {
 pub enum ToolboxIdlTypeFullFields {
     None,
     Named(Vec<(String, ToolboxIdlTypeFull)>),
-    Unamed(Vec<ToolboxIdlTypeFull>),
+    Unnamed(Vec<ToolboxIdlTypeFull>),
 }
 
 impl ToolboxIdlTypeFullFields {

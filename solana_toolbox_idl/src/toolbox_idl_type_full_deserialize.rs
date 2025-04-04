@@ -348,7 +348,7 @@ impl ToolboxIdlTypeFullFields {
                 }
                 (data_size, json!(data_fields))
             },
-            ToolboxIdlTypeFullFields::Unamed(fields) => {
+            ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut data_size = 0;
                 let mut data_fields = vec![];
                 for (_, field, breadcrumbs) in

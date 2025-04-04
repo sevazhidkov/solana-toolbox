@@ -26,7 +26,7 @@ pub enum ToolboxIdlTypeFlat {
         fields: ToolboxIdlTypeFlatFields,
     },
     Enum {
-        variants: Vec<(String, ToolboxIdlTypeFlatFields)>,
+        variants: Vec<(String, Option<Value>, ToolboxIdlTypeFlatFields)>,
     },
     Padded {
         size_bytes: u64,
@@ -51,27 +51,12 @@ impl ToolboxIdlTypeFlat {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlatFields {
     None,
-    Named(Vec<(String, ToolboxIdlTypeFlat)>),
-    Unamed(Vec<ToolboxIdlTypeFlat>),
+    Named(Vec<(String, Option<Value>, ToolboxIdlTypeFlat)>),
+    Unnamed(Vec<(Option<Value>, ToolboxIdlTypeFlat)>),
 }
 
 impl ToolboxIdlTypeFlatFields {
     pub fn nothing() -> ToolboxIdlTypeFlatFields {
         ToolboxIdlTypeFlatFields::None
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxIdlTypeFlatField {
-    pub docs: Option<Value>,
-    pub type_flat: ToolboxIdlTypeFlat,
-}
-
-impl Into<ToolboxIdlTypeFlatField> for ToolboxIdlTypeFlat {
-    fn into(self) -> ToolboxIdlTypeFlatField {
-        ToolboxIdlTypeFlatField {
-            docs: None,
-            type_flat: self,
-        }
     }
 }

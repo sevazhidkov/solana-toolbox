@@ -21,7 +21,7 @@ pub async fn run() {
                         ]
                     },
                     {
-                        "name": "Unamed",
+                        "name": "Unnamed",
                         "fields": [
                             { "type": "u64" },
                             { "type": ["u8"] },
@@ -47,7 +47,7 @@ pub async fn run() {
                         ]
                     },
                     {
-                        "name": "Unamed",
+                        "name": "Unnamed",
                         "fields": [
                             "u64",
                             ["u8"],
@@ -73,9 +73,11 @@ pub async fn run() {
                 variants: vec![
                     (
                         "Named".to_string(),
+                        None,
                         ToolboxIdlTypeFlatFields::Named(vec![
                             (
                                 "f1".to_string(),
+                                None,
                                 ToolboxIdlTypeFlat::Defined {
                                     name: "Other".to_string(),
                                     generics: vec![]
@@ -84,6 +86,7 @@ pub async fn run() {
                             ),
                             (
                                 "f2".to_string(),
+                                None,
                                 ToolboxIdlTypeFlat::Vec {
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
@@ -96,6 +99,7 @@ pub async fn run() {
                             ),
                             (
                                 "f3".to_string(),
+                                None,
                                 ToolboxIdlTypeFlat::Generic {
                                     symbol: "G".to_string()
                                 }
@@ -104,31 +108,40 @@ pub async fn run() {
                         ])
                     ),
                     (
-                        "Unamed".to_string(),
-                        ToolboxIdlTypeFlatFields::Unamed(vec![
-                            ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U64,
-                            }
-                            .into(),
-                            ToolboxIdlTypeFlat::Vec {
-                                items: Box::new(
-                                    ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlTypePrimitive::U8,
-                                    }
-                                )
-                            }
-                            .into(),
-                            ToolboxIdlTypeFlat::Vec {
-                                items: Box::new(
-                                    ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlTypePrimitive::U8,
-                                    }
-                                )
-                            }
-                            .into(),
+                        "Unnamed".to_string(),
+                        None,
+                        ToolboxIdlTypeFlatFields::Unnamed(vec![
+                            (
+                                None,
+                                ToolboxIdlTypeFlat::Primitive {
+                                    primitive: ToolboxIdlTypePrimitive::U64,
+                                }
+                            ),
+                            (
+                                None,
+                                ToolboxIdlTypeFlat::Vec {
+                                    items: Box::new(
+                                        ToolboxIdlTypeFlat::Primitive {
+                                            primitive:
+                                                ToolboxIdlTypePrimitive::U8,
+                                        }
+                                    )
+                                }
+                            ),
+                            (
+                                None,
+                                ToolboxIdlTypeFlat::Vec {
+                                    items: Box::new(
+                                        ToolboxIdlTypeFlat::Primitive {
+                                            primitive:
+                                                ToolboxIdlTypePrimitive::U8,
+                                        }
+                                    )
+                                }
+                            ),
                         ]),
                     ),
-                    ("Empty".to_string(), ToolboxIdlTypeFlatFields::None),
+                    ("Empty".to_string(), None, ToolboxIdlTypeFlatFields::None),
                 ]
             }
         }

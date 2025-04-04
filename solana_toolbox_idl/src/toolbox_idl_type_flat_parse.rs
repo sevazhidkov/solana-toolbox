@@ -4,7 +4,6 @@ use serde_json::Value;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
-use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatField;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
@@ -289,6 +288,8 @@ impl ToolboxIdlTypeFlat {
                     &breadcrumbs.idl(),
                 )?,
             );
+            let enum_variant_docs =
+                idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
             let enum_variant_fields = if let Some(idl_enum_variant_fields) =
                 idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
             {
@@ -299,7 +300,11 @@ impl ToolboxIdlTypeFlat {
             } else {
                 ToolboxIdlTypeFlatFields::None
             };
-            enum_variants.push((enum_variant_name, enum_variant_fields));
+            enum_variants.push((
+                enum_variant_name,
+                enum_variant_docs,
+                enum_variant_fields,
+            ));
         }
         Ok(ToolboxIdlTypeFlat::Enum {
             variants: enum_variants,
@@ -346,26 +351,24 @@ impl ToolboxIdlTypeFlatFields {
             }
             let field_name_or_index =
                 field_name.unwrap_or(format!("{}", idl_field_index));
+            let field_docs =
+                idl_value_as_object_get_key(idl_field, "docs").cloned();
             let field_type_flat = ToolboxIdlTypeFlat::try_parse_value(
                 idl_field,
                 &breadcrumbs.with_idl(&field_name_or_index),
             )?;
-            let field_docs =
-                idl_value_as_object_get_key(idl_field, "docs").cloned();
             fields_info.push((
                 field_name_or_index,
-                ToolboxIdlTypeFlatField {
-                    docs: field_docs,
-                    type_flat: field_type_flat,
-                },
+                field_docs,
+                field_type_flat,
             ));
         }
         if !fields_named {
             let mut fields = vec![];
-            for (_, field_type) in fields_info {
-                fields.push(field_type);
+            for (_, field_docs, field_type_flat) in fields_info {
+                fields.push((field_docs, field_type_flat));
             }
-            Ok(ToolboxIdlTypeFlatFields::Unamed(fields))
+            Ok(ToolboxIdlTypeFlatFields::Unnamed(fields))
         } else {
             Ok(ToolboxIdlTypeFlatFields::Named(fields_info))
         }

@@ -29,7 +29,7 @@ impl ToolboxIdlTypeFull {
         &self,
         value: &Value,
         data: &mut Vec<u8>,
-        // Config object for pubkey hashmap
+        // TODO - Config object for pubkey hashmap and prefixes
         deserializable: bool,
         breadcrumbs: &ToolboxIdlBreadcrumbs,
     ) -> Result<(), ToolboxIdlError> {
@@ -452,7 +452,7 @@ impl ToolboxIdlTypeFullFields {
                     )?;
                 }
             },
-            ToolboxIdlTypeFullFields::Unamed(fields) => {
+            ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let values = idl_as_array_or_else(value, &breadcrumbs.val())?;
                 if values.len() != fields.len() {
                     return idl_err(

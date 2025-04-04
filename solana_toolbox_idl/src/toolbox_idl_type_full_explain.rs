@@ -57,7 +57,7 @@ impl ToolboxIdlTypeFullFields {
                 }
                 json!(json_fields)
             },
-            ToolboxIdlTypeFullFields::Unamed(fields) => {
+            ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut json_fields = vec![];
                 for field_type in fields {
                     json_fields.push(field_type.explain());

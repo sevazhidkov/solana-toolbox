@@ -3,10 +3,10 @@ use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
-use crate::toolbox_idl_info_format::ToolboxIdlInfoFormat;
+use crate::toolbox_idl_format::ToolboxIdlFormat;
 
 impl ToolboxIdlAccount {
-    pub fn export(&self, format: &ToolboxIdlInfoFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         let mut json_object = Map::new();
         if !format.use_object_for_unordered_named_array() {
             json_object.insert("name".to_string(), json!(self.name));

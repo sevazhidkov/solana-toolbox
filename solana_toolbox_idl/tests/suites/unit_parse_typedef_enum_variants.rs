@@ -55,9 +55,9 @@ pub async fn run() {
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum {
                 variants: vec![
-                    ("Case1".to_string(), ToolboxIdlTypeFlatFields::None),
-                    ("Case2".to_string(), ToolboxIdlTypeFlatFields::None),
-                    ("Case3".to_string(), ToolboxIdlTypeFlatFields::None),
+                    ("Case1".to_string(), None, ToolboxIdlTypeFlatFields::None),
+                    ("Case2".to_string(), None, ToolboxIdlTypeFlatFields::None),
+                    ("Case3".to_string(), None, ToolboxIdlTypeFlatFields::None),
                 ]
             }
         }

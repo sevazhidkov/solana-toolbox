@@ -137,6 +137,7 @@ pub async fn run() {
             ],
             args_type_flat_fields: ToolboxIdlTypeFlatFields::Named(vec![(
                 "arg".to_string(),
+                None,
                 ToolboxIdlTypeFlat::Vec {
                     items: Box::new(ToolboxIdlTypeFlat::Primitive {
                         primitive: ToolboxIdlTypePrimitive::U8

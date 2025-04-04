@@ -26,7 +26,7 @@ pub async fn run() {
                         ]
                     },
                     {
-                        "name": "Unamed",
+                        "name": "Unnamed",
                         "fields": ["u8", "u8"],
                     },
                     {
@@ -43,7 +43,7 @@ pub async fn run() {
     let account_state = json!([
         "Empty",
         {"Named": {"field1": 42}},
-        {"Unamed": [22, 23]},
+        {"Unnamed": [22, 23]},
         "Shortened",
     ]);
     // Check that we can use the manual IDL to encode/decode our account

@@ -1,5 +1,5 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlInfoFormat;
+use solana_toolbox_idl::ToolboxIdlFormat;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
@@ -28,7 +28,7 @@ pub async fn run() {
     .unwrap();
     // Check the JSON human compact version
     assert_eq!(
-        idl_program.export(&ToolboxIdlInfoFormat::Human),
+        idl_program.export(&ToolboxIdlFormat::Human),
         json!({
             "metadata": {},
             "instructions": {
@@ -56,7 +56,7 @@ pub async fn run() {
     );
     // Check the JSON backward compatibility version for anchor 26
     assert_eq!(
-        idl_program.export(&ToolboxIdlInfoFormat::Anchor26),
+        idl_program.export(&ToolboxIdlFormat::Anchor26),
         json!({
             "instructions": [
                 {
@@ -84,7 +84,7 @@ pub async fn run() {
     );
     // Check the JSON backward compatibility version for anchor 30
     assert_eq!(
-        idl_program.export(&ToolboxIdlInfoFormat::Anchor30),
+        idl_program.export(&ToolboxIdlFormat::Anchor30),
         json!({
             "metadata": {},
             "instructions": [

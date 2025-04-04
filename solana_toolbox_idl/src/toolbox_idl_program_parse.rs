@@ -1,10 +1,12 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use inflate::inflate_bytes_zlib;
 use serde_json::from_str;
 use serde_json::Map;
 use serde_json::Value;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
@@ -90,6 +92,10 @@ impl ToolboxIdlProgram {
     ) -> Result<ToolboxIdlProgram, ToolboxIdlError> {
         let breadcrumbs = &ToolboxIdlBreadcrumbs::default();
         let idl_root = idl_as_object_or_else(value, &breadcrumbs.as_idl("$"))?;
+        let address = idl_object_get_key_as_str(idl_root, "address")
+            .map(|address| Pubkey::from_str(address).ok())
+            .flatten();
+        let docs = idl_root.get("docs").cloned();
         let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root);
         let typedefs =
             ToolboxIdlProgram::try_parse_typedefs(idl_root, breadcrumbs)?;
@@ -106,6 +112,8 @@ impl ToolboxIdlProgram {
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root, breadcrumbs)?;
         Ok(ToolboxIdlProgram {
+            address,
+            docs,
             metadata,
             typedefs,
             instructions,
@@ -125,10 +133,10 @@ impl ToolboxIdlProgram {
             let metadata_inner =
                 ToolboxIdlProgram::try_parse_metadata_object(idl_metadata);
             metadata.name = metadata_inner.name.or(metadata.name);
-            metadata.version = metadata_inner.version.or(metadata.version);
             metadata.description =
                 metadata_inner.description.or(metadata.description);
-            metadata.docs = metadata_inner.docs.or(metadata.docs);
+            metadata.version = metadata_inner.version.or(metadata.version);
+            metadata.spec = metadata_inner.spec.or(metadata.spec);
         }
         metadata
     }
@@ -139,11 +147,12 @@ impl ToolboxIdlProgram {
         ToolboxIdlProgramMetadata {
             name: idl_object_get_key_as_str(idl_object, "name")
                 .map(ToolboxIdlProgram::sanitize_name),
-            version: idl_object_get_key_as_str(idl_object, "version")
-                .map(String::from),
             description: idl_object_get_key_as_str(idl_object, "description")
                 .map(String::from),
-            docs: idl_object.get("docs").cloned(),
+            version: idl_object_get_key_as_str(idl_object, "version")
+                .map(String::from),
+            spec: idl_object_get_key_as_str(idl_object, "spec")
+                .map(String::from),
         }
     }
 

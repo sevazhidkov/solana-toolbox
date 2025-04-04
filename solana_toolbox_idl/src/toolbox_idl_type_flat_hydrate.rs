@@ -112,7 +112,9 @@ impl ToolboxIdlTypeFlat {
                 variants: variants_flat,
             } => {
                 let mut variants_full = vec![];
-                for (variant_name, variant_flat_fields) in variants_flat {
+                for (variant_name, _variant_docs, variant_flat_fields) in
+                    variants_flat
+                {
                     variants_full.push((
                         variant_name.to_string(),
                         variant_flat_fields.try_hydrate(
@@ -159,10 +161,10 @@ impl ToolboxIdlTypeFlatFields {
         Ok(match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut fields_full = vec![];
-                for (field_name, field) in fields {
+                for (field_name, _field_docs, field_type_flat) in fields {
                     fields_full.push((
                         field_name.to_string(),
-                        field.type_flat.try_hydrate(
+                        field_type_flat.try_hydrate(
                             generics_by_symbol,
                             typedefs,
                             breadcrumbs,
@@ -171,16 +173,16 @@ impl ToolboxIdlTypeFlatFields {
                 }
                 ToolboxIdlTypeFullFields::Named(fields_full)
             },
-            ToolboxIdlTypeFlatFields::Unamed(fields) => {
+            ToolboxIdlTypeFlatFields::Unnamed(fields) => {
                 let mut fields_type_full = vec![];
-                for field in fields {
-                    fields_type_full.push(field.type_flat.try_hydrate(
+                for (_field_docs, field_type_flat) in fields {
+                    fields_type_full.push(field_type_flat.try_hydrate(
                         generics_by_symbol,
                         typedefs,
                         breadcrumbs,
                     )?);
                 }
-                ToolboxIdlTypeFullFields::Unamed(fields_type_full)
+                ToolboxIdlTypeFullFields::Unnamed(fields_type_full)
             },
             ToolboxIdlTypeFlatFields::None => ToolboxIdlTypeFullFields::None,
         })

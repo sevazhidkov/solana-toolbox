@@ -104,17 +104,17 @@ pub async fn run() {
         ToolboxIdlTypeFlatFields::Named(vec![
             (
                 "index".to_string(),
+                None,
                 ToolboxIdlTypeFlat::Primitive {
                     primitive: ToolboxIdlTypePrimitive::U32
                 }
-                .into()
             ),
             (
                 "id".to_string(),
+                None,
                 ToolboxIdlTypeFlat::Primitive {
                     primitive: ToolboxIdlTypePrimitive::I64
                 }
-                .into()
             ),
         ])
     );
@@ -130,17 +130,17 @@ pub async fn run() {
                 fields: ToolboxIdlTypeFlatFields::Named(vec![
                     (
                         "field1".to_string(),
+                        None,
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U64
                         }
-                        .into()
                     ),
                     (
                         "field2".to_string(),
+                        None,
                         ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U32
                         }
-                        .into()
                     )
                 ])
             },

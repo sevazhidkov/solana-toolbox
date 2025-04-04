@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use serde_json::Value;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
@@ -9,18 +10,18 @@ use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
-// TODO - should this have its own file ?
-// TODO - support "address" field ??
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgramMetadata {
     pub name: Option<String>,
     pub description: Option<String>,
     pub version: Option<String>,
-    pub docs: Option<Value>,
+    pub spec: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgram {
+    pub address: Option<Pubkey>,
+    pub docs: Option<Value>,
     pub metadata: ToolboxIdlProgramMetadata,
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
