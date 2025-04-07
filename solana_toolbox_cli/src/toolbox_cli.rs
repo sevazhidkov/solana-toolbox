@@ -1,9 +1,12 @@
+use anyhow::anyhow;
 use clap::Parser;
 use clap::Subcommand;
 use serde_json::Value;
 use solana_cli_config::Config;
 use solana_cli_config::CONFIG_FILE;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+
+use anyhow::Result;
 
 use crate::toolbox_cli_command_account::ToolboxCliCommandAccountArgs;
 use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
@@ -12,7 +15,6 @@ use crate::toolbox_cli_command_history::ToolboxCliCommandHistoryArgs;
 use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
 use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
 use crate::toolbox_cli_context::ToolboxCliContext;
-use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Parser)]
 #[command(version, about = "Tooling to interact with a solana endpoint")]
@@ -60,16 +62,12 @@ pub struct ToolboxCliArgs {
 }
 
 impl ToolboxCliArgs {
-    pub async fn process(&self) -> Result<(), ToolboxCliError> {
+    pub async fn process(&self) -> Result<()> {
         let mut solana_cli_config = Config::load(
             self.config
                 .as_ref()
                 .or(CONFIG_FILE.as_ref())
-                .ok_or_else(|| {
-                    ToolboxCliError::Custom(
-                        "Could not find solana config file".to_string(),
-                    )
-                })?,
+                .ok_or_else(|| anyhow!("Could not find solana config file"))?,
         )?;
         if let Some(commitment) = &self.commitment {
             solana_cli_config.commitment = commitment.to_string();
@@ -110,10 +108,7 @@ pub enum ToolboxCliCommand {
 // TODO (MEDIUM) - some type of lookup system for addresses by name or smthg
 
 impl ToolboxCliCommand {
-    pub async fn process(
-        &self,
-        context: &ToolboxCliContext,
-    ) -> Result<Value, ToolboxCliError> {
+    pub async fn process(&self, context: &ToolboxCliContext) -> Result<Value> {
         match self {
             ToolboxCliCommand::Account(args) => args.process(context).await,
             ToolboxCliCommand::Execution(args) => args.process(context).await,

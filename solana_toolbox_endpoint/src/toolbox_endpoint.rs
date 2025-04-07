@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::Result;
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
@@ -7,7 +8,6 @@ use solana_sdk::signature::Signature;
 use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::VersionedTransaction;
 
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
@@ -31,37 +31,32 @@ impl ToolboxEndpoint {
         self.loggers.push(logger);
     }
 
-    pub async fn get_latest_blockhash(
-        &mut self,
-    ) -> Result<Hash, ToolboxEndpointError> {
+    pub async fn get_latest_blockhash(&mut self) -> Result<Hash> {
         self.proxy.get_latest_blockhash().await
     }
 
-    pub async fn get_balance(
-        &mut self,
-        address: &Pubkey,
-    ) -> Result<u64, ToolboxEndpointError> {
+    pub async fn get_balance(&mut self, address: &Pubkey) -> Result<u64> {
         self.proxy.get_balance(address).await
     }
 
     pub async fn get_account(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<Account>, ToolboxEndpointError> {
+    ) -> Result<Option<Account>> {
         self.proxy.get_account(address).await
     }
 
     pub async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
-    ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
+    ) -> Result<Vec<Option<Account>>> {
         self.proxy.get_accounts(addresses).await
     }
 
     pub async fn simulate_transaction(
         &mut self,
         transaction: Transaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.simulate_versioned_transaction(transaction.into())
             .await
     }
@@ -70,7 +65,7 @@ impl ToolboxEndpoint {
     pub async fn simulate_versioned_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.proxy.simulate_transaction(versioned_transaction).await
     }
 
@@ -78,8 +73,7 @@ impl ToolboxEndpoint {
         &mut self,
         transaction: Transaction,
         skip_preflight: bool,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         self.process_versioned_transaction(transaction.into(), skip_preflight)
             .await
     }
@@ -88,8 +82,7 @@ impl ToolboxEndpoint {
         &mut self,
         versioned_transaction: VersionedTransaction,
         skip_preflight: bool,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let processed = self
             .proxy
             .process_transaction(versioned_transaction, skip_preflight)
@@ -104,8 +97,7 @@ impl ToolboxEndpoint {
         &mut self,
         to: &Pubkey,
         lamports: u64,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let processed = self.proxy.request_airdrop(to, lamports).await?;
         for logger in &self.loggers {
             logger.on_processed(&processed).await;
@@ -116,7 +108,7 @@ impl ToolboxEndpoint {
     pub async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.proxy.get_execution(signature).await
     }
 
@@ -125,7 +117,7 @@ impl ToolboxEndpoint {
         program_id: &Pubkey,
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<HashSet<Pubkey>> {
         self.proxy
             .search_addresses(program_id, data_len, data_chunks)
             .await
@@ -137,7 +129,7 @@ impl ToolboxEndpoint {
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
         limit: usize,
-    ) -> Result<Vec<Signature>, ToolboxEndpointError> {
+    ) -> Result<Vec<Signature>> {
         self.proxy
             .search_signatures(address, start_before, rewind_until, limit)
             .await
@@ -146,23 +138,20 @@ impl ToolboxEndpoint {
     pub async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         self.proxy
             .forward_clock_unix_timestamp(unix_timestamp_delta)
             .await
     }
 
-    pub async fn forward_clock_slot(
-        &mut self,
-        slot_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    pub async fn forward_clock_slot(&mut self, slot_delta: u64) -> Result<()> {
         self.proxy.forward_clock_slot(slot_delta).await
     }
 
     pub async fn forward_clock_epoch(
         &mut self,
         epoch_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         self.proxy.forward_clock_epoch(epoch_delta).await
     }
 }

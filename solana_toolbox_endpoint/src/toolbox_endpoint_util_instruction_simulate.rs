@@ -1,9 +1,9 @@
+use anyhow::Result;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 
 impl ToolboxEndpoint {
@@ -11,7 +11,7 @@ impl ToolboxEndpoint {
         &mut self,
         payer: &Keypair,
         instruction: Instruction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.simulate_instructions_with_options(payer, &[instruction], &[], &[])
             .await
     }
@@ -21,7 +21,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instruction: Instruction,
         signers: &[&Keypair],
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.simulate_instructions_with_options(
             payer,
             &[instruction],
@@ -36,7 +36,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instructions: &[Instruction],
         signers: &[&Keypair],
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.simulate_instructions_with_options(
             payer,
             instructions,
@@ -52,7 +52,7 @@ impl ToolboxEndpoint {
         instructions: &[Instruction],
         signers: &[&Keypair],
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         let versioned_transaction =
             ToolboxEndpoint::compile_versioned_transaction(
                 payer,

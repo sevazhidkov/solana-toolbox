@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
@@ -50,7 +50,7 @@ impl ToolboxIdlInstruction {
         instruction_program_id: &Pubkey,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<Instruction, ToolboxIdlError> {
+    ) -> Result<Instruction> {
         Ok(Instruction {
             program_id: *instruction_program_id,
             data: self.encode_payload(instruction_payload)?,
@@ -61,7 +61,7 @@ impl ToolboxIdlInstruction {
     pub fn decode(
         &self,
         instruction: &Instruction,
-    ) -> Result<(Pubkey, Value, HashMap<String, Pubkey>), ToolboxIdlError> {
+    ) -> Result<(Pubkey, Value, HashMap<String, Pubkey>)> {
         Ok((
             instruction.program_id,
             self.decode_payload(&instruction.data)?,

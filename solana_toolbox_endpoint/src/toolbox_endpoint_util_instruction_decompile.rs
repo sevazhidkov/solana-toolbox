@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::Result;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::instruction::Instruction;
@@ -7,12 +8,11 @@ use solana_sdk::message::CompileError;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub fn decompile_transaction_payer(
         static_addresses: &[Pubkey],
-    ) -> Result<Pubkey, ToolboxEndpointError> {
+    ) -> Result<Pubkey> {
         Ok(*static_addresses
             .first()
             .ok_or(CompileError::AccountIndexOverflow)?)
@@ -26,7 +26,7 @@ impl ToolboxEndpoint {
         loaded_writable_addresses: &[Pubkey],
         loaded_readonly_addresses: &[Pubkey],
         compiled_instructions: &[CompiledInstruction],
-    ) -> Result<Vec<Instruction>, ToolboxEndpointError> {
+    ) -> Result<Vec<Instruction>> {
         let signer_addresses =
             ToolboxEndpoint::decompile_transaction_signer_addresses(
                 header_num_required_signatures,
@@ -81,7 +81,7 @@ impl ToolboxEndpoint {
     fn decompile_transaction_signer_addresses(
         header_num_required_signatures: u8,
         static_addresses: &[Pubkey],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<HashSet<Pubkey>> {
         let mut signers = HashSet::new();
         for index in 0..usize::from(header_num_required_signatures) {
             signers.insert(
@@ -98,7 +98,7 @@ impl ToolboxEndpoint {
         header_num_readonly_signed_accounts: u8,
         header_num_readonly_unsigned_accounts: u8,
         static_addresses: &[Pubkey],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<HashSet<Pubkey>> {
         let mut readonly = HashSet::new();
         for index in (usize::from(header_num_required_signatures)
             - usize::from(header_num_readonly_signed_accounts))

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
@@ -8,7 +9,6 @@ use solana_sdk::transaction::TransactionError;
 use solana_transaction_status::UiTransactionReturnData;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
@@ -71,7 +71,7 @@ impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn get_execution_using_rpc(
         &mut self,
         signature: &Signature,
-    ) -> Result<Option<ToolboxEndpointExecution>, ToolboxEndpointError> {
+    ) -> Result<Option<ToolboxEndpointExecution>> {
         let response = match self
             .inner
             .send::<Option<GetTransactionResponse>>(

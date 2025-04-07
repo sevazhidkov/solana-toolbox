@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::Result;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
@@ -8,7 +9,6 @@ use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub async fn compile_transaction(
@@ -16,7 +16,7 @@ impl ToolboxEndpoint {
         instructions: &[Instruction],
         signers: &[&Keypair],
         recent_blockhash: Hash,
-    ) -> Result<Transaction, ToolboxEndpointError> {
+    ) -> Result<Transaction> {
         let mut transaction =
             Transaction::new_with_payer(instructions, Some(&payer.pubkey()));
         let mut needed_signers_pubkeys = HashSet::new();
@@ -47,7 +47,7 @@ impl ToolboxEndpoint {
 
     pub fn decompile_transaction(
         transaction: &Transaction,
-    ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
+    ) -> Result<(Pubkey, Vec<Instruction>)> {
         let header = &transaction.message.header;
         let addresses = &transaction.message.account_keys;
         let payer = ToolboxEndpoint::decompile_transaction_payer(addresses)?;

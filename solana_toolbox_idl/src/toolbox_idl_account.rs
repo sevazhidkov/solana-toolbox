@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
+use anyhow::anyhow;
+use anyhow::Result;
 use serde_json::Value;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
@@ -37,44 +37,37 @@ impl ToolboxIdlAccount {
         idl_convert_to_type_name(name)
     }
 
-    pub fn encode(
-        &self,
-        account_state: &Value,
-    ) -> Result<Vec<u8>, ToolboxIdlError> {
+    pub fn encode(&self, account_state: &Value) -> Result<Vec<u8>> {
         let mut account_data = vec![];
         account_data.extend_from_slice(&self.discriminator);
         self.content_type_full.try_serialize(
             account_state,
             &mut account_data,
             true,
-            &ToolboxIdlBreadcrumbs::default(),
         )?;
         Ok(account_data)
     }
 
-    pub fn decode(
-        &self,
-        account_data: &[u8],
-    ) -> Result<Value, ToolboxIdlError> {
+    pub fn decode(&self, account_data: &[u8]) -> Result<Value> {
         if !account_data.starts_with(&self.discriminator) {
-            return Err(ToolboxIdlError::InvalidDiscriminator {
-                expected: self.discriminator.to_vec(),
-                found: account_data.to_vec(),
-            });
+            return Err(anyhow!(
+                "Invalid account discriminator, expected: {:?}, found: {:?}",
+                self.discriminator,
+                account_data,
+            ));
         }
         if let Some(space) = self.space {
             if account_data.len() != space {
-                return Err(ToolboxIdlError::InvalidSpace {
-                    expected: space,
-                    found: account_data.len(),
-                });
+                return Err(anyhow!(
+                    "Invalid account size, expected: {}, found: {}",
+                    space,
+                    account_data.len(),
+                ));
             }
         }
-        let (_, account_value) = self.content_type_full.try_deserialize(
-            account_data,
-            self.discriminator.len(),
-            &ToolboxIdlBreadcrumbs::default(),
-        )?;
+        let (_, account_value) = self
+            .content_type_full
+            .try_deserialize(account_data, self.discriminator.len())?;
         Ok(account_value)
     }
 }

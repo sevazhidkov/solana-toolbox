@@ -1,63 +1,16 @@
-use std::num::ParseIntError;
-use std::num::TryFromIntError;
-use std::string::FromUtf8Error;
-
-use solana_sdk::pubkey::ParsePubkeyError;
-use solana_sdk::pubkey::PubkeyError;
-use solana_toolbox_endpoint::ToolboxEndpointError;
-
-use crate::toolbox_idl_context::ToolboxIdlContext;
-
-// TODO (MEDIUM) - there has to be a better way to handle errors
-#[derive(Debug)]
-pub enum ToolboxIdlError {
-    ToolboxEndpoint(ToolboxEndpointError),
-    Pubkey(PubkeyError),
-    Inflate(String),
-    SerdeJson(serde_json::Error),
-    InvalidDiscriminator {
-        expected: Vec<u8>,
-        found: Vec<u8>,
-    },
-    InvalidSpace {
-        expected: usize,
-        found: usize,
-    },
-    InvalidSliceReadAt {
-        offset: usize,
-        length: usize,
-        bytes: usize,
-        context: ToolboxIdlContext,
-    },
-    InvalidSliceLength {
-        offset: usize,
-        length: usize,
-        context: ToolboxIdlContext,
-    },
-    InvalidPubkey {
-        parsing: ParsePubkeyError,
-        context: ToolboxIdlContext,
-    },
-    InvalidString {
-        parsing: FromUtf8Error,
-        context: ToolboxIdlContext,
-    },
-    InvalidInteger {
-        conversion: TryFromIntError,
-        context: ToolboxIdlContext,
-    },
-    InvalidNumber {
-        parsing: ParseIntError,
-        context: ToolboxIdlContext,
-    },
-    Custom {
-        failure: String,
-        context: ToolboxIdlContext,
-    },
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlError {
+    pub name: String,
+    pub code: u64,
+    pub msg: String,
 }
 
-impl From<ToolboxEndpointError> for ToolboxIdlError {
-    fn from(source: ToolboxEndpointError) -> Self {
-        ToolboxIdlError::ToolboxEndpoint(source)
+impl Default for ToolboxIdlError {
+    fn default() -> ToolboxIdlError {
+        ToolboxIdlError {
+            name: "UnknownError".to_string(),
+            code: 0xFFFFFFFF,
+            msg: "Unknown error has happened and couldnt be parsed".to_string(),
+        }
     }
 }

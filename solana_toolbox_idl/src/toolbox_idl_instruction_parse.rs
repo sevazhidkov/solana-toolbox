@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::Context;
+use anyhow::Result;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
@@ -23,40 +23,25 @@ impl ToolboxIdlInstruction {
         idl_instruction_name: &str,
         idl_instruction: &Value,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlInstruction, ToolboxIdlError> {
-        let idl_instruction =
-            idl_as_object_or_else(idl_instruction, &breadcrumbs.idl())?;
+    ) -> Result<ToolboxIdlInstruction> {
+        let idl_instruction = idl_as_object_or_else(idl_instruction)?;
         let discriminator = ToolboxIdlInstruction::try_parse_discriminator(
             idl_instruction_name,
             idl_instruction,
-            breadcrumbs,
         )?;
         let docs = idl_instruction.get("docs").cloned();
-        let accounts = ToolboxIdlInstruction::try_parse_accounts(
-            idl_instruction,
-            breadcrumbs,
-        )?;
+        let accounts =
+            ToolboxIdlInstruction::try_parse_accounts(idl_instruction)?;
         let args_type_flat_fields =
             ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,
-                breadcrumbs,
             )?;
-        let args_type_full_fields = args_type_flat_fields.try_hydrate(
-            &HashMap::new(),
-            typedefs,
-            breadcrumbs,
-        )?;
+        let args_type_full_fields =
+            args_type_flat_fields.try_hydrate(&HashMap::new(), typedefs)?;
         let return_type_flat =
-            ToolboxIdlInstruction::try_parse_return_type_flat(
-                idl_instruction,
-                breadcrumbs,
-            )?;
-        let return_type_full = return_type_flat.try_hydrate(
-            &HashMap::new(),
-            typedefs,
-            breadcrumbs,
-        )?;
+            ToolboxIdlInstruction::try_parse_return_type_flat(idl_instruction)?;
+        let return_type_full =
+            return_type_flat.try_hydrate(&HashMap::new(), typedefs)?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
             docs,
@@ -72,15 +57,11 @@ impl ToolboxIdlInstruction {
     fn try_parse_discriminator(
         idl_instruction_name: &str,
         idl_instruction: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<u8>, ToolboxIdlError> {
+    ) -> Result<Vec<u8>> {
         if let Some(idl_instruction_discriminator) =
             idl_object_get_key_as_array(idl_instruction, "discriminator")
         {
-            return idl_as_bytes_or_else(
-                idl_instruction_discriminator,
-                &breadcrumbs.as_val("discriminator"),
-            );
+            return idl_as_bytes_or_else(idl_instruction_discriminator);
         }
         Ok(idl_hash_discriminator_from_string(&format!(
             "global:{}",
@@ -90,52 +71,40 @@ impl ToolboxIdlInstruction {
 
     fn try_parse_accounts(
         idl_instruction: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<ToolboxIdlInstructionAccount>, ToolboxIdlError> {
+    ) -> Result<Vec<ToolboxIdlInstructionAccount>> {
         let idl_instruction_accounts_array =
-            idl_object_get_key_as_array_or_else(
-                idl_instruction,
-                "accounts",
-                &breadcrumbs.idl(),
-            )?;
+            idl_object_get_key_as_array_or_else(idl_instruction, "accounts")?;
         let mut accounts = vec![];
-        for (_, idl_instruction_account, breadcrumbs) in
-            idl_iter_get_scoped_values(
-                idl_instruction_accounts_array,
-                breadcrumbs,
-            )?
+        for (_, idl_instruction_account, context) in
+            idl_iter_get_scoped_values(idl_instruction_accounts_array)
         {
-            accounts.push(ToolboxIdlInstructionAccount::try_parse(
-                idl_instruction_account,
-                &breadcrumbs,
-            )?);
+            accounts.push(
+                ToolboxIdlInstructionAccount::try_parse(
+                    idl_instruction_account,
+                )
+                .context(context)?,
+            );
         }
         Ok(accounts)
     }
 
     fn try_parse_args_type_flat_fields(
         idl_instruction: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlatFields, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlatFields> {
         if let Some(idl_instruction_args) =
             idl_object_get_key_as_array(idl_instruction, "args")
         {
-            return ToolboxIdlTypeFlatFields::try_parse(
-                idl_instruction_args,
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlatFields::try_parse(idl_instruction_args);
         }
         Ok(ToolboxIdlTypeFlatFields::None)
     }
 
     fn try_parse_return_type_flat(
         idl_instruction: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         if let Some(idl_instruction_returns) = idl_instruction.get("returns") {
             return ToolboxIdlTypeFlat::try_parse_value(
                 idl_instruction_returns,
-                breadcrumbs,
             );
         }
         Ok(ToolboxIdlTypeFlat::nothing())

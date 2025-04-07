@@ -1,5 +1,4 @@
 mod toolbox_endpoint;
-mod toolbox_endpoint_error;
 mod toolbox_endpoint_execution;
 mod toolbox_endpoint_factory_common;
 mod toolbox_endpoint_factory_program_test;
@@ -37,7 +36,6 @@ mod toolbox_endpoint_util_versioned_transaction;
 pub use solana_program_test::processor as solana_program_test_processor;
 // TODO (MEDIUM) - should the naming just start with _endpoint ??
 pub use toolbox_endpoint::ToolboxEndpoint;
-pub use toolbox_endpoint_error::ToolboxEndpointError;
 pub use toolbox_endpoint_execution::ToolboxEndpointExecution;
 pub use toolbox_endpoint_factory_program_test::ToolboxEndpointProgramTestBuiltinProgram;
 pub use toolbox_endpoint_factory_program_test::ToolboxEndpointProgramTestPreloadedProgram;

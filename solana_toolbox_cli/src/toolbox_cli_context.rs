@@ -2,6 +2,7 @@ use std::fs::exists;
 use std::fs::read_to_string;
 use std::str::FromStr;
 
+use anyhow::anyhow;
 use serde_json::Value;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
@@ -14,7 +15,8 @@ use solana_toolbox_idl::ToolboxIdlInstruction;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlService;
 
-use crate::toolbox_cli_error::ToolboxCliError;
+use anyhow::Result;
+
 use crate::toolbox_cli_key::ToolboxCliKey;
 
 pub struct ToolboxCliContext {
@@ -39,18 +41,14 @@ impl ToolboxCliContext {
         }
     }
 
-    pub async fn create_endpoint(
-        &self,
-    ) -> Result<ToolboxEndpoint, ToolboxCliError> {
+    pub async fn create_endpoint(&self) -> Result<ToolboxEndpoint> {
         Ok(ToolboxEndpoint::new_rpc_with_url_or_moniker_and_commitment(
             &self.json_rpc_url,
             CommitmentConfig::from_str(&self.commitment)?,
         ))
     }
 
-    pub async fn create_service(
-        &self,
-    ) -> Result<ToolboxIdlService, ToolboxCliError> {
+    pub async fn create_service(&self) -> Result<ToolboxIdlService> {
         let mut idl_service = ToolboxIdlService::new();
         for custom_idl in &self.custom_idls {
             if let Some((program_id, idl_file)) = custom_idl.split_once(":") {
@@ -64,9 +62,8 @@ impl ToolboxCliContext {
                     ),
                 );
             } else {
-                return Err(ToolboxCliError::Custom(
+                return Err(anyhow!(
                     "Invalid idl, expected format: [ProgramId:IdlFilePath]"
-                        .to_string(),
                 ));
             }
         }
@@ -76,21 +73,17 @@ impl ToolboxCliContext {
     pub fn parse_account(
         &self,
         account: &str,
-    ) -> Result<(String, ToolboxCliKey), ToolboxCliError> {
+    ) -> Result<(String, ToolboxCliKey)> {
         if let Some((name, key)) = account.split_once(":") {
             return Ok((name.to_string(), self.parse_key(key)?));
         }
         // TODO - use custom clap parser instead
-        Err(ToolboxCliError::Custom(
+        Err(anyhow!(
             "Invalid account, expected format: [Name:[Pubkey|KeypairFilePath]]"
-                .to_string(),
         ))
     }
 
-    pub fn parse_key(
-        &self,
-        key: &str,
-    ) -> Result<ToolboxCliKey, ToolboxCliError> {
+    pub fn parse_key(&self, key: &str) -> Result<ToolboxCliKey> {
         if key.to_ascii_lowercase() == "keypair"
             || key.to_ascii_lowercase() == "wallet"
         {
@@ -105,14 +98,11 @@ impl ToolboxCliContext {
         )?))
     }
 
-    pub fn parse_signature(
-        &self,
-        value: &str,
-    ) -> Result<Signature, ToolboxCliError> {
+    pub fn parse_signature(&self, value: &str) -> Result<Signature> {
         Ok(Signature::from_str(value)?)
     }
 
-    pub fn parse_hjson(&self, value: &str) -> Result<Value, ToolboxCliError> {
+    pub fn parse_hjson(&self, value: &str) -> Result<Value> {
         Ok(serde_hjson::from_str::<Value>(value)?)
     }
 

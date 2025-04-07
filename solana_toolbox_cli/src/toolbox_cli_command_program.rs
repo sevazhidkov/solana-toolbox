@@ -1,9 +1,9 @@
+use anyhow::Result;
 use clap::Args;
 use serde_json::Value;
 use solana_toolbox_idl::ToolboxIdlFormat;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
-use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Resolve a program's IDL")]
@@ -14,10 +14,7 @@ pub struct ToolboxCliCommandProgramArgs {
 }
 
 impl ToolboxCliCommandProgramArgs {
-    pub async fn process(
-        &self,
-        context: &ToolboxCliContext,
-    ) -> Result<Value, ToolboxCliError> {
+    pub async fn process(&self, context: &ToolboxCliContext) -> Result<Value> {
         let mut endpoint = context.create_endpoint().await?;
         let mut idl_service = context.create_service().await?;
         let program_id = context.parse_key(&self.program_id)?.address();

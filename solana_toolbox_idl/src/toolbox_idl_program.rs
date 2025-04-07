@@ -5,8 +5,8 @@ use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
+use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
-use crate::toolbox_idl_transaction_error::ToolboxIdlTransactionError;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
@@ -26,7 +26,7 @@ pub struct ToolboxIdlProgram {
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
-    pub errors: HashMap<String, Arc<ToolboxIdlTransactionError>>,
+    pub errors: HashMap<String, Arc<ToolboxIdlError>>,
 }
 
 impl ToolboxIdlProgram {
@@ -65,10 +65,7 @@ impl ToolboxIdlProgram {
         None
     }
 
-    pub fn guess_error(
-        &self,
-        error_code: u64,
-    ) -> Option<Arc<ToolboxIdlTransactionError>> {
+    pub fn guess_error(&self, error_code: u64) -> Option<Arc<ToolboxIdlError>> {
         for error in self.errors.values() {
             if error_code != error.code {
                 continue;

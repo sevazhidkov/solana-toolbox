@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_service::ToolboxIdlService;
@@ -25,7 +24,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         instruction: &Instruction,
-    ) -> Result<ToolboxIdlServiceInstructionDecoded, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlServiceInstructionDecoded> {
         let idl_program = self
             .resolve_program(endpoint, &instruction.program_id)
             .await?
@@ -51,7 +50,7 @@ impl ToolboxIdlService {
         instruction_program_id: &Pubkey,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<Instruction, ToolboxIdlError> {
+    ) -> Result<Instruction> {
         idl_instruction.encode(
             instruction_program_id,
             instruction_payload,
@@ -74,7 +73,7 @@ impl ToolboxIdlService {
         instruction_program_id: &Pubkey,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+    ) -> Result<HashMap<String, Pubkey>> {
         let mut instruction_addresses = instruction_addresses.clone();
         let mut instruction_content_types_and_states = HashMap::new();
         for (instruction_account_name, instruction_address) in
@@ -92,7 +91,6 @@ impl ToolboxIdlService {
             );
         }
         loop {
-            let breadcrumbs = ToolboxIdlBreadcrumbs::default();
             let mut made_progress = false;
             for idl_instruction_account in &idl_instruction.accounts {
                 if instruction_addresses
@@ -107,7 +105,6 @@ impl ToolboxIdlService {
                         instruction_payload,
                         &instruction_addresses,
                         &instruction_content_types_and_states,
-                        &breadcrumbs.with_idl(&idl_instruction.name),
                     )
                 {
                     made_progress = true;

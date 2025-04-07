@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
+use anyhow::Result;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
@@ -52,15 +52,13 @@ impl ToolboxIdlProgram {
         })
     }
 
-    pub fn find_anchor(program_id: &Pubkey) -> Result<Pubkey, ToolboxIdlError> {
+    pub fn find_anchor(program_id: &Pubkey) -> Result<Pubkey> {
         let base = Pubkey::find_program_address(&[], program_id).0;
-        Pubkey::create_with_seed(&base, "anchor:idl", program_id)
-            .map_err(ToolboxIdlError::Pubkey)
+        Ok(Pubkey::create_with_seed(&base, "anchor:idl", program_id)?)
     }
 
-    pub fn find_shank(program_id: &Pubkey) -> Result<Pubkey, ToolboxIdlError> {
+    pub fn find_shank(program_id: &Pubkey) -> Result<Pubkey> {
         let base = Pubkey::find_program_address(&[], program_id).0;
-        Pubkey::create_with_seed(&base, "shank:idl", program_id)
-            .map_err(ToolboxIdlError::Pubkey)
+        Ok(Pubkey::create_with_seed(&base, "shank:idl", program_id)?)
     }
 }

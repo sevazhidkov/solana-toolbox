@@ -1,14 +1,14 @@
+use anyhow::anyhow;
+use anyhow::Context;
+use anyhow::Result;
 use serde_json::Map;
 use serde_json::Value;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
-use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
@@ -20,80 +20,59 @@ use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
 
 impl ToolboxIdlTypeFlat {
-    pub fn try_parse_value(
-        idl_value: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    pub fn try_parse_value(idl_value: &Value) -> Result<ToolboxIdlTypeFlat> {
         if let Some(idl_object) = idl_value.as_object() {
-            return ToolboxIdlTypeFlat::try_parse_object(
-                idl_object,
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlat::try_parse_object(idl_object);
         }
         if let Some(idl_array) = idl_value.as_array() {
-            return ToolboxIdlTypeFlat::try_parse_array(idl_array, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_array(idl_array);
         }
         if let Some(idl_str) = idl_value.as_str() {
-            return ToolboxIdlTypeFlat::try_parse_str(idl_str, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_str(idl_str);
         }
         if let Some(idl_u64) = idl_value.as_u64() {
-            return ToolboxIdlTypeFlat::try_parse_u64(idl_u64, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_u64(idl_u64);
         }
-        idl_err(
-            "Expected type value: object, array, string or number",
-            &breadcrumbs.as_idl("def"),
-        )
+        Err(anyhow!(
+            "Could not parse type value, expected: object, array, string or number",
+        ))
     }
 
     pub fn try_parse_object(
         idl_object: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         if let Some(idl_type) = idl_object.get("type") {
-            return ToolboxIdlTypeFlat::try_parse_value(idl_type, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_value(idl_type);
         }
         if let Some(idl_defined) = idl_object.get("defined") {
-            return ToolboxIdlTypeFlat::try_parse_defined(
-                idl_defined,
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlat::try_parse_defined(idl_defined);
         }
         if let Some(idl_generic_symbol) =
             idl_object_get_key_as_str(idl_object, "generic")
         {
             return ToolboxIdlTypeFlat::try_parse_generic_symbol(
                 idl_generic_symbol,
-                breadcrumbs,
             );
         }
         if let Some(idl_option) = idl_object.get("option") {
-            return ToolboxIdlTypeFlat::try_parse_option(
-                idl_option,
-                1,
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlat::try_parse_option(idl_option, 1);
         }
         if let Some(idl_option) = idl_object.get("option32") {
-            return ToolboxIdlTypeFlat::try_parse_option(
-                idl_option,
-                4,
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlat::try_parse_option(idl_option, 4);
         }
         if let Some(idl_vec) = idl_object.get("vec") {
-            return ToolboxIdlTypeFlat::try_parse_vec(idl_vec, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_vec(idl_vec);
         }
         if let Some(idl_array) =
             idl_object_get_key_as_array(idl_object, "array")
         {
-            return ToolboxIdlTypeFlat::try_parse_array(idl_array, breadcrumbs);
+            return ToolboxIdlTypeFlat::try_parse_array(idl_array);
         }
         if let Some(idl_struct_fields) =
             idl_object_get_key_as_array(idl_object, "fields")
         {
             return ToolboxIdlTypeFlat::try_parse_struct_fields(
                 idl_struct_fields,
-                breadcrumbs,
             );
         }
         if let Some(idl_enum_variants) =
@@ -101,63 +80,49 @@ impl ToolboxIdlTypeFlat {
         {
             return ToolboxIdlTypeFlat::try_parse_enum_variants(
                 idl_enum_variants,
-                breadcrumbs,
             );
         }
         if let Some(idl_padded) =
             idl_object_get_key_as_object(idl_object, "padded")
         {
-            return ToolboxIdlTypeFlat::try_parse_padded(
-                idl_padded,
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlat::try_parse_padded(idl_padded);
         }
         if let Some(idl_value_literal) =
             idl_object_get_key_as_str(idl_object, "value")
         {
             return ToolboxIdlTypeFlat::try_parse_value_literal(
                 idl_value_literal,
-                breadcrumbs,
             );
         }
-        idl_err(
-            "Missing type object key: defined/generic/option/array/vec/fields/variants/padded/value",
-            &breadcrumbs.as_idl("def(object)"),
-        )
+        Err(anyhow!(
+            "Could not parse type object: Missing type object key: {:?}",
+            vec![
+                "defined", "generic", "option", "array", "vec", "fields",
+                "variants", "padded", "value"
+            ]
+        ))
     }
 
-    fn try_parse_array(
-        idl_array: &[Value],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    fn try_parse_array(idl_array: &[Value]) -> Result<ToolboxIdlTypeFlat> {
         if idl_array.len() == 1 {
-            return ToolboxIdlTypeFlat::try_parse_vec(
-                &idl_array[0],
-                breadcrumbs,
-            );
+            return ToolboxIdlTypeFlat::try_parse_vec(&idl_array[0]);
         }
         if idl_array.len() == 2 {
             return Ok(ToolboxIdlTypeFlat::Array {
                 items: Box::new(ToolboxIdlTypeFlat::try_parse_value(
                     &idl_array[0],
-                    &breadcrumbs.with_idl("items"),
                 )?),
                 length: Box::new(ToolboxIdlTypeFlat::try_parse_value(
                     &idl_array[1],
-                    &breadcrumbs.with_idl("length"),
                 )?),
             });
         }
-        idl_err(
-            "Array must be of either [{type}] or [{type}, {length}] format",
-            &breadcrumbs.as_idl("def(array)"),
-        )
+        Err(anyhow!(
+            "Could not parse array type, expected either [type] or [type, length] format",
+        ))
     }
 
-    fn try_parse_str(
-        idl_str: &str,
-        _breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    fn try_parse_str(idl_str: &str) -> Result<ToolboxIdlTypeFlat> {
         if idl_str == "bytes" {
             return Ok(ToolboxIdlTypeFlat::Vec {
                 items: Box::new(ToolboxIdlTypeFlat::Primitive {
@@ -179,34 +144,25 @@ impl ToolboxIdlTypeFlat {
         })
     }
 
-    fn try_parse_u64(
-        idl_u64: u64,
-        _breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    fn try_parse_u64(idl_u64: u64) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Const { literal: idl_u64 })
     }
 
-    fn try_parse_defined(
-        idl_defined: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    fn try_parse_defined(idl_defined: &Value) -> Result<ToolboxIdlTypeFlat> {
         let defined_name = idl_convert_to_type_name(
-            idl_value_as_str_or_object_with_name_as_str_or_else(
-                idl_defined,
-                &breadcrumbs.as_idl("defined"),
-            )?,
+            idl_value_as_str_or_object_with_name_as_str_or_else(idl_defined)?,
         );
         let mut defined_generics = vec![];
         if let Some(idl_defined_generics) =
             idl_value_as_object_get_key_as_array(idl_defined, "generics")
         {
-            for (_, idl_defined_generic, breadcrumbs) in
-                idl_iter_get_scoped_values(idl_defined_generics, breadcrumbs)?
+            for (_, idl_defined_generic, context) in
+                idl_iter_get_scoped_values(idl_defined_generics)
             {
-                defined_generics.push(ToolboxIdlTypeFlat::try_parse_value(
-                    idl_defined_generic,
-                    &breadcrumbs,
-                )?);
+                defined_generics.push(
+                    ToolboxIdlTypeFlat::try_parse_value(idl_defined_generic)
+                        .context(context)?,
+                );
             }
         }
         Ok(ToolboxIdlTypeFlat::Defined {
@@ -217,8 +173,7 @@ impl ToolboxIdlTypeFlat {
 
     fn try_parse_generic_symbol(
         idl_generic_symbol: &str,
-        _breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Generic {
             symbol: idl_generic_symbol.to_string(),
         })
@@ -226,77 +181,55 @@ impl ToolboxIdlTypeFlat {
 
     fn try_parse_value_literal(
         idl_value_literal: &str,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Const {
-            literal: idl_str_to_u64_or_else(
-                idl_value_literal,
-                &breadcrumbs.idl(),
-            )?,
+            literal: idl_str_to_u64_or_else(idl_value_literal)?,
         })
     }
 
     fn try_parse_option(
         idl_option: &Value,
         idl_option_prefix_bytes: u8,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Option {
             prefix_bytes: idl_option_prefix_bytes,
-            content: Box::new(ToolboxIdlTypeFlat::try_parse_value(
-                idl_option,
-                &breadcrumbs.with_idl("option"),
-            )?),
+            content: Box::new(ToolboxIdlTypeFlat::try_parse_value(idl_option)?),
         })
     }
 
-    fn try_parse_vec(
-        idl_vec: &Value,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    fn try_parse_vec(idl_vec: &Value) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Vec {
-            items: Box::new(ToolboxIdlTypeFlat::try_parse_value(
-                idl_vec,
-                &breadcrumbs.with_idl("vec"),
-            )?),
+            items: Box::new(ToolboxIdlTypeFlat::try_parse_value(idl_vec)?),
         })
     }
 
     fn try_parse_struct_fields(
         idl_struct_fields: &[Value],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlatFields::try_parse(
-                idl_struct_fields,
-                breadcrumbs,
-            )?,
+            fields: ToolboxIdlTypeFlatFields::try_parse(idl_struct_fields)?,
         })
     }
 
     fn try_parse_enum_variants(
         idl_enum_variants: &[Value],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFlat> {
         let mut enum_variants = vec![];
-        for (_, idl_enum_variant, breadcrumbs) in
-            idl_iter_get_scoped_values(idl_enum_variants, breadcrumbs)?
+        for (_, idl_enum_variant, context) in
+            idl_iter_get_scoped_values(idl_enum_variants)
         {
             let enum_variant_name = idl_convert_to_type_name(
                 idl_value_as_str_or_object_with_name_as_str_or_else(
                     idl_enum_variant,
-                    &breadcrumbs.idl(),
-                )?,
+                )
+                .context(context)?,
             );
             let enum_variant_docs =
                 idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
             let enum_variant_fields = if let Some(idl_enum_variant_fields) =
                 idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
             {
-                ToolboxIdlTypeFlatFields::try_parse(
-                    idl_enum_variant_fields,
-                    &breadcrumbs.with_idl("fields"),
-                )?
+                ToolboxIdlTypeFlatFields::try_parse(idl_enum_variant_fields)?
             } else {
                 ToolboxIdlTypeFlatFields::None
             };
@@ -313,35 +246,27 @@ impl ToolboxIdlTypeFlat {
 
     fn try_parse_padded(
         idl_padded: &Map<String, Value>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlat, ToolboxIdlError> {
-        let idl_padded_size = idl_object_get_key_as_u64_or_else(
-            idl_padded,
-            "size",
-            &breadcrumbs.as_idl("size"),
-        )?;
+    ) -> Result<ToolboxIdlTypeFlat> {
+        let idl_padded_size =
+            idl_object_get_key_as_u64_or_else(idl_padded, "size")?;
         Ok(ToolboxIdlTypeFlat::Padded {
             size_bytes: idl_padded_size,
             content: Box::new(ToolboxIdlTypeFlat::try_parse_object(
                 idl_padded,
-                &breadcrumbs.with_idl("padded"),
             )?),
         })
     }
 }
 
 impl ToolboxIdlTypeFlatFields {
-    pub fn try_parse(
-        idl_fields: &[Value],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFlatFields, ToolboxIdlError> {
+    pub fn try_parse(idl_fields: &[Value]) -> Result<ToolboxIdlTypeFlatFields> {
         if idl_fields.is_empty() {
             return Ok(ToolboxIdlTypeFlatFields::None);
         }
         let mut fields_named = false;
         let mut fields_info = vec![];
-        for (idl_field_index, idl_field, breadcrumbs) in
-            idl_iter_get_scoped_values(idl_fields, breadcrumbs)?
+        for (idl_field_index, idl_field, context) in
+            idl_iter_get_scoped_values(idl_fields)
         {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .and_then(|name| name.as_str())
@@ -353,10 +278,9 @@ impl ToolboxIdlTypeFlatFields {
                 field_name.unwrap_or(format!("{}", idl_field_index));
             let field_docs =
                 idl_value_as_object_get_key(idl_field, "docs").cloned();
-            let field_type_flat = ToolboxIdlTypeFlat::try_parse_value(
-                idl_field,
-                &breadcrumbs.with_idl(&field_name_or_index),
-            )?;
+            let field_type_flat =
+                ToolboxIdlTypeFlat::try_parse_value(idl_field)
+                    .context(context)?;
             fields_info.push((
                 field_name_or_index,
                 field_docs,

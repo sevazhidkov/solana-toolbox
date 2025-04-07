@@ -3,6 +3,8 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::time::Instant;
 
+use anyhow::anyhow;
+use anyhow::Result;
 use solana_account_decoder::UiAccountEncoding;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcAccountInfoConfig;
@@ -17,7 +19,6 @@ use solana_sdk::transaction::VersionedTransaction;
 use solana_transaction_status::UiTransactionEncoding;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
@@ -36,9 +37,7 @@ impl ToolboxEndpointProxyRpcClient {
 
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
-    async fn get_latest_blockhash(
-        &mut self,
-    ) -> Result<Hash, ToolboxEndpointError> {
+    async fn get_latest_blockhash(&mut self) -> Result<Hash> {
         Ok(self
             .inner
             .get_latest_blockhash_with_commitment(self.get_commitment())
@@ -46,10 +45,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
             .0)
     }
 
-    async fn get_balance(
-        &mut self,
-        address: &Pubkey,
-    ) -> Result<u64, ToolboxEndpointError> {
+    async fn get_balance(&mut self, address: &Pubkey) -> Result<u64> {
         Ok(self
             .inner
             .get_balance_with_commitment(address, self.get_commitment())
@@ -60,7 +56,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_account(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<Account>, ToolboxEndpointError> {
+    ) -> Result<Option<Account>> {
         Ok(self
             .inner
             .get_account_with_config(
@@ -79,7 +75,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
-    ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
+    ) -> Result<Vec<Option<Account>>> {
         Ok(self
             .inner
             .get_multiple_accounts_with_config(
@@ -98,7 +94,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn simulate_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.simulate_transaction_using_rpc(versioned_transaction)
             .await
     }
@@ -107,8 +103,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         &mut self,
         versioned_transaction: VersionedTransaction,
         skip_preflight: bool,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let signature = self
             .inner
             .send_transaction_with_config(
@@ -131,8 +126,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         &mut self,
         to: &Pubkey,
         lamports: u64,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let signature = self
             .inner
             .request_airdrop_with_config(
@@ -150,10 +144,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.get_execution_using_rpc(signature)
             .await?
-            .ok_or_else(|| ToolboxEndpointError::UnknownSignature(*signature))
+            .ok_or_else(|| {
+                anyhow!("Unknown execution signature: {}", signature)
+            })
     }
 
     async fn search_addresses(
@@ -161,7 +157,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         program_id: &Pubkey,
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<HashSet<Pubkey>> {
         self.search_addresses_using_rpc(program_id, data_len, data_chunks)
             .await
     }
@@ -172,7 +168,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
         limit: usize,
-    ) -> Result<Vec<Signature>, ToolboxEndpointError> {
+    ) -> Result<Vec<Signature>> {
         self.search_signatures_using_rpc(
             address,
             start_before,
@@ -185,7 +181,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let until_unix_timestamp =
             self.get_sysvar_clock().await?.unix_timestamp
                 + (unix_timestamp_delta as i64);
@@ -193,18 +189,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
             .await
     }
 
-    async fn forward_clock_slot(
-        &mut self,
-        slot_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    async fn forward_clock_slot(&mut self, slot_delta: u64) -> Result<()> {
         let until_slot = self.get_sysvar_clock().await?.slot + slot_delta;
         self.wait_until_clock(None, Some(until_slot), None).await
     }
 
-    async fn forward_clock_epoch(
-        &mut self,
-        epoch_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    async fn forward_clock_epoch(&mut self, epoch_delta: u64) -> Result<()> {
         let until_epoch = self.get_sysvar_clock().await?.epoch + epoch_delta;
         self.wait_until_clock(None, None, Some(until_epoch)).await
     }
@@ -214,8 +204,7 @@ impl ToolboxEndpointProxyRpcClient {
     async fn wait_until_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let timer = Instant::now();
         loop {
             if let Some(execution) =
@@ -224,9 +213,7 @@ impl ToolboxEndpointProxyRpcClient {
                 return Ok((*signature, execution));
             }
             if timer.elapsed() > WAIT_TIMEOUT_DURATION {
-                return Err(ToolboxEndpointError::Timeout(
-                    "Waiting confirmation",
-                ));
+                return Err(anyhow!("Waiting confirmation"));
             }
             sleep(WAIT_SLEEP_DURATION)
         }
@@ -237,7 +224,7 @@ impl ToolboxEndpointProxyRpcClient {
         until_unix_timestamp: Option<i64>,
         until_slot: Option<u64>,
         until_epoch: Option<u64>,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let timer = Instant::now();
         loop {
             let clock = self.get_sysvar_clock().await?;
@@ -257,27 +244,24 @@ impl ToolboxEndpointProxyRpcClient {
                 }
             }
             if timer.elapsed() > WAIT_TIMEOUT_DURATION {
-                return Err(ToolboxEndpointError::Timeout("Clock forwarding"));
+                return Err(anyhow!("Clock forwarding"));
             }
             sleep(WAIT_SLEEP_DURATION)
         }
     }
 
-    async fn get_sysvar_clock(
-        &mut self,
-    ) -> Result<Clock, ToolboxEndpointError> {
-        bincode::deserialize::<Clock>(
+    async fn get_sysvar_clock(&mut self) -> Result<Clock> {
+        Ok(bincode::deserialize::<Clock>(
             &self
                 .get_account(&ToolboxEndpoint::SYSVAR_CLOCK_ID)
                 .await?
                 .ok_or_else(|| {
-                    ToolboxEndpointError::AccountDoesNotExist(
+                    anyhow!(
+                        "Account does not exists: {} (system clock)",
                         ToolboxEndpoint::SYSVAR_CLOCK_ID,
-                        "Sysvar Clock".to_string(),
                     )
                 })?
                 .data,
-        )
-        .map_err(ToolboxEndpointError::Bincode)
+        )?)
     }
 }

@@ -6,15 +6,14 @@ mod toolbox_cli_command_history;
 mod toolbox_cli_command_instruction;
 mod toolbox_cli_command_program;
 mod toolbox_cli_context;
-mod toolbox_cli_error;
 mod toolbox_cli_key;
 
+use anyhow::Result;
 use clap::Parser;
 
 use crate::toolbox_cli::ToolboxCliArgs;
-use crate::toolbox_cli_error::ToolboxCliError;
 
 #[tokio::main]
-async fn main() -> Result<(), ToolboxCliError> {
+async fn main() -> Result<()> {
     ToolboxCliArgs::parse().process().await
 }

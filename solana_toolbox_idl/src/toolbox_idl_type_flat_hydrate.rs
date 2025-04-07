@@ -1,24 +1,23 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
+use anyhow::anyhow;
+use anyhow::Context;
+use anyhow::Result;
+
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdlTypeFlat {
     pub fn try_hydrate(
         &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFull, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFull> {
         Ok(match self {
             ToolboxIdlTypeFlat::Defined {
                 name,
@@ -26,22 +25,18 @@ impl ToolboxIdlTypeFlat {
             } => {
                 let mut generics_full = vec![];
                 for generic_flat in generics_flat {
-                    generics_full.push(generic_flat.try_hydrate(
-                        generics_by_symbol,
-                        typedefs,
-                        breadcrumbs,
-                    )?);
-                }
-                let typedef = idl_map_get_key_or_else(
-                    typedefs,
-                    name,
-                    &breadcrumbs.idl(),
-                )?;
-                if generics_full.len() != typedef.generics.len() {
-                    return idl_err(
-                        "Wrong number of generic parameter",
-                        &breadcrumbs.val(),
+                    generics_full.push(
+                        generic_flat
+                            .try_hydrate(generics_by_symbol, typedefs)?,
                     );
+                }
+                let typedef = idl_map_get_key_or_else(typedefs, name)?;
+                if generics_full.len() != typedef.generics.len() {
+                    return Err(anyhow!(
+                        "Wrong number of generic parameter: expected: {}, found: {}",
+                        typedef.generics.len(),
+                        generics_full.len()
+                    ));
                 }
                 let mut generics_by_symbol = HashMap::new();
                 for (generic_name, generic_full) in
@@ -50,63 +45,46 @@ impl ToolboxIdlTypeFlat {
                     generics_by_symbol
                         .insert(generic_name.to_string(), generic_full);
                 }
-                typedef.type_flat.try_hydrate(
-                    &generics_by_symbol,
-                    typedefs,
-                    breadcrumbs,
-                )?
+                typedef
+                    .type_flat
+                    .try_hydrate(&generics_by_symbol, typedefs)?
             },
-            ToolboxIdlTypeFlat::Generic { symbol } => idl_map_get_key_or_else(
-                generics_by_symbol,
-                symbol,
-                &breadcrumbs.idl(),
-            )?
-            .clone(),
+            ToolboxIdlTypeFlat::Generic { symbol } => {
+                idl_map_get_key_or_else(generics_by_symbol, symbol)?.clone()
+            },
             ToolboxIdlTypeFlat::Option {
                 prefix_bytes,
                 content: content_flat,
             } => ToolboxIdlTypeFull::Option {
                 prefix_bytes: *prefix_bytes,
-                content: Box::new(content_flat.try_hydrate(
-                    generics_by_symbol,
-                    typedefs,
-                    breadcrumbs,
-                )?),
+                content: Box::new(
+                    content_flat.try_hydrate(generics_by_symbol, typedefs)?,
+                ),
             },
             ToolboxIdlTypeFlat::Vec { items: items_flat } => {
                 ToolboxIdlTypeFull::Vec {
-                    items: Box::new(items_flat.try_hydrate(
-                        generics_by_symbol,
-                        typedefs,
-                        breadcrumbs,
-                    )?),
+                    items: Box::new(
+                        items_flat.try_hydrate(generics_by_symbol, typedefs)?,
+                    ),
                 }
             },
             ToolboxIdlTypeFlat::Array {
                 items: items_flat,
                 length: length_flat,
             } => ToolboxIdlTypeFull::Array {
-                items: Box::new(items_flat.try_hydrate(
-                    generics_by_symbol,
-                    typedefs,
-                    breadcrumbs,
-                )?),
-                length: *idl_ok_or_else(
-                    length_flat
-                        .try_hydrate(generics_by_symbol, typedefs, breadcrumbs)?
-                        .as_const_literal(),
-                    "expected a const literal",
-                    &breadcrumbs.idl(),
-                )?,
+                items: Box::new(
+                    items_flat.try_hydrate(generics_by_symbol, typedefs)?,
+                ),
+                length: *length_flat
+                    .try_hydrate(generics_by_symbol, typedefs)?
+                    .as_const_literal()
+                    .context("Expected a const literal")?,
             },
             ToolboxIdlTypeFlat::Struct {
                 fields: fields_flat,
             } => ToolboxIdlTypeFull::Struct {
-                fields: fields_flat.try_hydrate(
-                    generics_by_symbol,
-                    typedefs,
-                    breadcrumbs,
-                )?,
+                fields: fields_flat
+                    .try_hydrate(generics_by_symbol, typedefs)?,
             },
             ToolboxIdlTypeFlat::Enum {
                 variants: variants_flat,
@@ -117,11 +95,8 @@ impl ToolboxIdlTypeFlat {
                 {
                     variants_full.push((
                         variant_name.to_string(),
-                        variant_flat_fields.try_hydrate(
-                            generics_by_symbol,
-                            typedefs,
-                            breadcrumbs,
-                        )?,
+                        variant_flat_fields
+                            .try_hydrate(generics_by_symbol, typedefs)?,
                     ));
                 }
                 ToolboxIdlTypeFull::Enum {
@@ -133,11 +108,9 @@ impl ToolboxIdlTypeFlat {
                 content: content_flat,
             } => ToolboxIdlTypeFull::Padded {
                 size_bytes: *size_bytes,
-                content: Box::new(content_flat.try_hydrate(
-                    generics_by_symbol,
-                    typedefs,
-                    breadcrumbs,
-                )?),
+                content: Box::new(
+                    content_flat.try_hydrate(generics_by_symbol, typedefs)?,
+                ),
             },
             ToolboxIdlTypeFlat::Const { literal } => {
                 ToolboxIdlTypeFull::Const { literal: *literal }
@@ -156,19 +129,15 @@ impl ToolboxIdlTypeFlatFields {
         &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<ToolboxIdlTypeFullFields, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlTypeFullFields> {
         Ok(match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut fields_full = vec![];
                 for (field_name, _field_docs, field_type_flat) in fields {
                     fields_full.push((
                         field_name.to_string(),
-                        field_type_flat.try_hydrate(
-                            generics_by_symbol,
-                            typedefs,
-                            breadcrumbs,
-                        )?,
+                        field_type_flat
+                            .try_hydrate(generics_by_symbol, typedefs)?,
                     ));
                 }
                 ToolboxIdlTypeFullFields::Named(fields_full)
@@ -176,11 +145,10 @@ impl ToolboxIdlTypeFlatFields {
             ToolboxIdlTypeFlatFields::Unnamed(fields) => {
                 let mut fields_type_full = vec![];
                 for (_field_docs, field_type_flat) in fields {
-                    fields_type_full.push(field_type_flat.try_hydrate(
-                        generics_by_symbol,
-                        typedefs,
-                        breadcrumbs,
-                    )?);
+                    fields_type_full.push(
+                        field_type_flat
+                            .try_hydrate(generics_by_symbol, typedefs)?,
+                    );
                 }
                 ToolboxIdlTypeFullFields::Unnamed(fields_type_full)
             },

@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use anyhow::anyhow;
+use anyhow::Result;
+
 use clap::Args;
 use serde_json::json;
 use serde_json::Map;
@@ -8,7 +11,6 @@ use solana_sdk::transaction::Transaction;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
-use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Prepare an instruction using its program's IDL")]
@@ -52,10 +54,7 @@ pub struct ToolboxCliCommandInstructionArgs {
 }
 
 impl ToolboxCliCommandInstructionArgs {
-    pub async fn process(
-        &self,
-        context: &ToolboxCliContext,
-    ) -> Result<Value, ToolboxCliError> {
+    pub async fn process(&self, context: &ToolboxCliContext) -> Result<Value> {
         let mut endpoint = context.create_endpoint().await?;
         let mut idl_service = context.create_service().await?;
 
@@ -68,10 +67,10 @@ impl ToolboxCliCommandInstructionArgs {
             .await?
         {
             Some(idl_program) => idl_program,
-            None => Err(ToolboxCliError::Custom(format!(
+            None => Err(anyhow!(
                 "Could not resolve program with program_id: {}",
                 instruction_program_id.to_string(),
-            )))?,
+            ))?,
         };
 
         let idl_instruction = match idl_program

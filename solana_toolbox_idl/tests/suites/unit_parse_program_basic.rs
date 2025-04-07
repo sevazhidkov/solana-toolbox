@@ -1,7 +1,7 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlAccount;
+use solana_toolbox_idl::ToolboxIdlError;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionError;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
@@ -167,7 +167,7 @@ pub async fn run() {
     // Assert error was parsed correctly
     assert_eq!(
         *idl_program1.errors.get("MyError").unwrap(),
-        ToolboxIdlTransactionError {
+        ToolboxIdlError {
             name: "MyError".to_string(),
             code: 4242,
             msg: "My error message".to_string()

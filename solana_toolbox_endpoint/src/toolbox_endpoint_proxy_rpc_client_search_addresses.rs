@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::Result;
 use solana_account_decoder::UiDataSliceConfig;
 use solana_client::rpc_config::RpcAccountInfoConfig;
 use solana_client::rpc_config::RpcProgramAccountsConfig;
@@ -10,7 +11,6 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
 impl ToolboxEndpointProxyRpcClient {
@@ -19,7 +19,7 @@ impl ToolboxEndpointProxyRpcClient {
         program_id: &Pubkey,
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<HashSet<Pubkey>> {
         let mut program_accounts_filters = vec![];
         if let Some(data_len) = data_len {
             program_accounts_filters.push(RpcFilterType::DataSize(

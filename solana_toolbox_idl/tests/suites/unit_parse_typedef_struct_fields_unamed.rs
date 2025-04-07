@@ -131,7 +131,7 @@ pub async fn run() {
                             fields: ToolboxIdlTypeFlatFields::None
                         }
                     ),
-                    (None, ToolboxIdlTypeFlat::Enum { variants: vec![] },),
+                    (None, ToolboxIdlTypeFlat::Enum { variants: vec![] }),
                     (
                         None,
                         ToolboxIdlTypeFlat::Defined {

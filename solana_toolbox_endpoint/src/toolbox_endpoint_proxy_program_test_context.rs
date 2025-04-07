@@ -2,6 +2,8 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use anyhow::anyhow;
+use anyhow::Result;
 use solana_program_test::ProgramTestBanksClientExt;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
@@ -18,7 +20,6 @@ use solana_sdk::transaction::Transaction;
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
@@ -48,30 +49,25 @@ impl ToolboxEndpointProxyProgramTestContext {
 
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
-    async fn get_latest_blockhash(
-        &mut self,
-    ) -> Result<Hash, ToolboxEndpointError> {
+    async fn get_latest_blockhash(&mut self) -> Result<Hash> {
         Ok(self.inner.last_blockhash)
     }
 
-    async fn get_balance(
-        &mut self,
-        address: &Pubkey,
-    ) -> Result<u64, ToolboxEndpointError> {
+    async fn get_balance(&mut self, address: &Pubkey) -> Result<u64> {
         Ok(self.inner.banks_client.get_balance(*address).await?)
     }
 
     async fn get_account(
         &mut self,
         address: &Pubkey,
-    ) -> Result<Option<Account>, ToolboxEndpointError> {
+    ) -> Result<Option<Account>> {
         Ok(self.inner.banks_client.get_account(*address).await?)
     }
 
     async fn get_accounts(
         &mut self,
         addresses: &[Pubkey],
-    ) -> Result<Vec<Option<Account>>, ToolboxEndpointError> {
+    ) -> Result<Vec<Option<Account>>> {
         let mut accounts = vec![];
         for address in addresses {
             accounts.push(self.inner.banks_client.get_account(*address).await?)
@@ -82,7 +78,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn simulate_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         let current_slot =
             self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
         let outcome = self
@@ -121,17 +117,16 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         &mut self,
         versioned_transaction: VersionedTransaction,
         skip_preflight: bool,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let transaction_message_serialized =
             versioned_transaction.message.serialize();
         if transaction_message_serialized.len()
             > ToolboxEndpoint::TRANSACTION_DATA_SIZE_LIMIT
         {
-            return Err(ToolboxEndpointError::Custom(format!(
+            return Err(anyhow!(
                 "Serialized transaction size is too large: {} bytes",
                 transaction_message_serialized.len()
-            )));
+            ));
         }
         if !skip_preflight {
             if let Some(Err(error)) = self
@@ -201,8 +196,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         &mut self,
         to: &Pubkey,
         lamports: u64,
-    ) -> Result<(Signature, ToolboxEndpointExecution), ToolboxEndpointError>
-    {
+    ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let instruction = transfer(&self.inner.payer.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
         let mut transaction = Transaction::new_with_payer(
@@ -216,10 +210,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn get_execution(
         &mut self,
         signature: &Signature,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         self.execution_by_signature
             .get(signature)
-            .ok_or_else(|| ToolboxEndpointError::UnknownSignature(*signature))
+            .ok_or_else(|| {
+                anyhow!("Could not find execution signature: {}", signature)
+            })
             .cloned()
     }
 
@@ -228,7 +224,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         program_id: &Pubkey,
         data_len: Option<usize>,
         data_chunks: &[(usize, &[u8])],
-    ) -> Result<HashSet<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<HashSet<Pubkey>> {
         let mut found_addresses = HashSet::new();
         if let Some(addresses) = self.addresses_by_program_id.get(program_id) {
             for address in addresses {
@@ -271,7 +267,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
         limit: usize,
-    ) -> Result<Vec<Signature>, ToolboxEndpointError> {
+    ) -> Result<Vec<Signature>> {
         let mut found_signatures = vec![];
         if let Some(signatures) = self.signatures_by_address.get(address) {
             let mut started = start_before.is_none();
@@ -300,7 +296,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn forward_clock_unix_timestamp(
         &mut self,
         unix_timestamp_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         if unix_timestamp_delta == 0 {
             return Ok(());
         }
@@ -314,10 +310,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         self.update_slot(&forwarded_clock).await
     }
 
-    async fn forward_clock_slot(
-        &mut self,
-        slot_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    async fn forward_clock_slot(&mut self, slot_delta: u64) -> Result<()> {
         if slot_delta == 0 {
             return Ok(());
         }
@@ -331,10 +324,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         self.update_slot(&forwarded_clock).await
     }
 
-    async fn forward_clock_epoch(
-        &mut self,
-        epoch_delta: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    async fn forward_clock_epoch(&mut self, epoch_delta: u64) -> Result<()> {
         if epoch_delta == 0 {
             return Ok(());
         }
@@ -350,18 +340,14 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
 }
 
 impl ToolboxEndpointProxyProgramTestContext {
-    async fn update_slot(
-        &mut self,
-        new_clock: &Clock,
-    ) -> Result<(), ToolboxEndpointError> {
+    async fn update_slot(&mut self, new_clock: &Clock) -> Result<()> {
         let old_hash = self.inner.last_blockhash;
         let old_clock = self.inner.banks_client.get_sysvar::<Clock>().await?;
         let new_hash = self
             .inner
             .banks_client
             .get_new_latest_blockhash(&old_hash)
-            .await
-            .map_err(ToolboxEndpointError::Io)?;
+            .await?;
         let mut slot_hashes =
             self.inner.banks_client.get_sysvar::<SlotHashes>().await?;
         slot_hashes.add(old_clock.slot, old_hash);
@@ -406,7 +392,7 @@ impl ToolboxEndpointProxyProgramTestContext {
     pub async fn get_address_lookup_table_addresses(
         &mut self,
         address_lookup_table: &Pubkey,
-    ) -> Result<Option<Vec<Pubkey>>, ToolboxEndpointError> {
+    ) -> Result<Option<Vec<Pubkey>>> {
         match self.get_account(address_lookup_table).await? {
             Some(account) => Ok(Some(
                 AddressLookupTable::deserialize(&account.data)?
@@ -420,7 +406,7 @@ impl ToolboxEndpointProxyProgramTestContext {
     pub async fn resolve_versioned_transaction(
         &mut self,
         versioned_transaction: &VersionedTransaction,
-    ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
+    ) -> Result<(Pubkey, Vec<Instruction>)> {
         let mut resolved_address_lookup_tables = vec![];
         if let Some(message_address_table_lookups) =
             versioned_transaction.message.address_table_lookups()

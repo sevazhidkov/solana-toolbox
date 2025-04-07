@@ -1,5 +1,7 @@
+use anyhow::anyhow;
+use anyhow::Context;
+use anyhow::Result;
 use std::collections::HashMap;
-use std::num::TryFromIntError;
 
 use convert_case::Boundary;
 use convert_case::Case;
@@ -9,10 +11,6 @@ use serde_json::Value;
 use sha2::Digest;
 use sha2::Sha256;
 use solana_sdk::pubkey::Pubkey;
-
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_context::ToolboxIdlContext;
-use crate::toolbox_idl_error::ToolboxIdlError;
 
 pub(crate) fn idl_object_get_key_as_array<'a>(
     object: &'a Map<String, Value>,
@@ -52,60 +50,44 @@ pub(crate) fn idl_object_get_key_as_bool(
 pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<&'a Vec<Value>, ToolboxIdlError> {
-    idl_ok_or_else(
-        idl_object_get_key_as_array(object, key),
-        &format!("expected an array at key: {}", key),
-        context,
-    )
+) -> Result<&'a Vec<Value>> {
+    idl_object_get_key_as_array(object, key)
+        .ok_or_else(|| anyhow!("Expected an array at key: {}", key))
 }
 
 pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<&'a str, ToolboxIdlError> {
-    idl_ok_or_else(
-        idl_object_get_key_as_str(object, key),
-        &format!("expected a string at key: {}", key),
-        context,
-    )
+) -> Result<&'a str> {
+    idl_object_get_key_as_str(object, key)
+        .ok_or_else(|| anyhow!("Expected a string at key: {}", key))
 }
 
 pub(crate) fn idl_object_get_key_as_u64_or_else(
     object: &Map<String, Value>,
     key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<u64, ToolboxIdlError> {
-    Ok(*idl_ok_or_else(
-        idl_object_get_key_as_u64(object, key).as_ref(),
-        &format!("expected a string at key: {}", key),
-        context,
-    )?)
+) -> Result<u64> {
+    idl_object_get_key_as_u64(object, key)
+        .ok_or_else(|| anyhow!("Expected a string at key: {}", key))
 }
 
 pub(crate) fn idl_object_get_key_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<&'a Value, ToolboxIdlError> {
-    idl_ok_or_else(
-        object.get(key),
-        &format!("missing value at key: {}", key),
-        context,
-    )
+) -> Result<&'a Value> {
+    object
+        .get(key)
+        .ok_or_else(|| anyhow!("missing value at key: {}", key))
 }
 
 pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else<'a>(
     value: &'a Value,
-    context: &ToolboxIdlContext,
-) -> Result<&'a str, ToolboxIdlError> {
+) -> Result<&'a str> {
     match value.as_str() {
         Some(name) => Ok(name),
         None => {
-            let object = idl_as_object_or_else(value, context)?;
-            Ok(idl_object_get_key_as_str_or_else(object, "name", context)?)
+            let object = idl_as_object_or_else(value)?;
+            Ok(idl_object_get_key_as_str_or_else(object, "name")?)
         },
     }
 }
@@ -129,254 +111,180 @@ pub(crate) fn idl_value_as_object_get_key<'a>(
 
 pub(crate) fn idl_as_array_or_else<'a>(
     value: &'a Value,
-    context: &ToolboxIdlContext,
-) -> Result<&'a Vec<Value>, ToolboxIdlError> {
-    idl_ok_or_else(value.as_array(), "expected an array", context)
+) -> Result<&'a Vec<Value>> {
+    value.as_array().context("Expected an array")
 }
 
 pub(crate) fn idl_as_object_or_else<'a>(
     value: &'a Value,
-    context: &ToolboxIdlContext,
-) -> Result<&'a Map<String, Value>, ToolboxIdlError> {
-    idl_ok_or_else(value.as_object(), "expected an object", context)
+) -> Result<&'a Map<String, Value>> {
+    value.as_object().context("Expected an object")
 }
 
-pub(crate) fn idl_as_str_or_else<'a>(
-    value: &'a Value,
-    context: &ToolboxIdlContext,
-) -> Result<&'a str, ToolboxIdlError> {
-    idl_ok_or_else(value.as_str(), "expected a string", context)
+pub(crate) fn idl_as_str_or_else<'a>(value: &'a Value) -> Result<&'a str> {
+    value.as_str().context("Expected an string")
 }
 
-pub(crate) fn idl_as_u128_or_else(
-    value: &Value,
-    context: &ToolboxIdlContext,
-) -> Result<u128, ToolboxIdlError> {
-    Ok(u128::from(*idl_ok_or_else(
-        value.as_u64().as_ref(),
-        "expected an unsigned number",
-        context,
-    )?))
+pub(crate) fn idl_as_u128_or_else(value: &Value) -> Result<u128> {
+    Ok(u128::from(
+        value.as_u64().context("Expected an unsigned number")?,
+    ))
 }
 
-pub(crate) fn idl_as_i128_or_else(
-    value: &Value,
-    context: &ToolboxIdlContext,
-) -> Result<i128, ToolboxIdlError> {
-    Ok(i128::from(*idl_ok_or_else(
-        value.as_i64().as_ref(),
-        "expected a signed number",
-        context,
-    )?))
+pub(crate) fn idl_as_i128_or_else(value: &Value) -> Result<i128> {
+    Ok(i128::from(
+        value.as_i64().context("Expected a signed number")?,
+    ))
 }
 
-pub(crate) fn idl_as_f64_or_else(
-    value: &Value,
-    context: &ToolboxIdlContext,
-) -> Result<f64, ToolboxIdlError> {
-    Ok(*idl_ok_or_else(
-        value.as_f64().as_ref(),
-        "expected a floating number",
-        context,
-    )?)
+pub(crate) fn idl_as_f64_or_else(value: &Value) -> Result<f64> {
+    Ok(value.as_f64().context("Expected a floating number")?)
 }
 
-pub(crate) fn idl_as_bool_or_else(
-    value: &Value,
-    context: &ToolboxIdlContext,
-) -> Result<bool, ToolboxIdlError> {
-    Ok(*idl_ok_or_else(
-        value.as_bool().as_ref(),
-        "expected a boolean",
-        context,
-    )?)
+pub(crate) fn idl_as_bool_or_else(value: &Value) -> Result<bool> {
+    Ok(value.as_bool().context("Expected a boolean")?)
 }
 
-pub(crate) fn idl_as_bytes_or_else(
-    array: &[Value],
-    context: &ToolboxIdlContext,
-) -> Result<Vec<u8>, ToolboxIdlError> {
+pub(crate) fn idl_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
     let mut bytes = vec![];
     for item in array {
-        let integer = idl_as_u128_or_else(item, context)?;
-        let byte = idl_map_err_invalid_integer(u8::try_from(integer), context)?;
-        bytes.push(byte);
+        let integer = idl_as_u128_or_else(item)?;
+        bytes.push(u8::try_from(integer)?);
     }
     Ok(bytes)
-}
-
-pub(crate) fn idl_ok_or_else<'a, T: ?Sized>(
-    option: Option<&'a T>,
-    failure: &str,
-    context: &ToolboxIdlContext,
-) -> Result<&'a T, ToolboxIdlError> {
-    option.ok_or_else(|| ToolboxIdlError::Custom {
-        failure: failure.to_string(),
-        context: context.clone(),
-    })
-}
-
-pub(crate) fn idl_err<T>(
-    failure: &str,
-    context: &ToolboxIdlContext,
-) -> Result<T, ToolboxIdlError> {
-    Err(ToolboxIdlError::Custom {
-        failure: failure.to_string(),
-        context: context.clone(),
-    })
 }
 
 pub(crate) fn idl_slice_from_bytes<'a>(
     bytes: &'a [u8],
     offset: usize,
     length: usize,
-    context: &ToolboxIdlContext,
-) -> Result<&'a [u8], ToolboxIdlError> {
+) -> Result<&'a [u8]> {
     let end = offset.checked_add(length).ok_or_else(|| {
-        ToolboxIdlError::InvalidSliceLength {
+        anyhow!(
+            "Invalid slice length: offset: {}, length: {}",
             offset,
             length,
-            context: context.clone(),
-        }
+        )
     })?;
     if bytes.len() < end {
-        return Err(ToolboxIdlError::InvalidSliceReadAt {
+        return Err(anyhow!(
+            "Invalid slice read: offset: {}, length: {}, from bytes: {}",
             offset,
             length,
-            bytes: bytes.len(),
-            context: context.clone(),
-        });
+            bytes.len(),
+        ));
     }
     Ok(&bytes[offset..end])
 }
 
-pub(crate) fn idl_u8_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<u8, ToolboxIdlError> {
+pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
     let size = std::mem::size_of::<u8>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u8::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_u16_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<u16, ToolboxIdlError> {
+) -> Result<u16> {
     let size = std::mem::size_of::<u16>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u16::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_u32_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<u32, ToolboxIdlError> {
+) -> Result<u32> {
     let size = std::mem::size_of::<u32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u32::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_u64_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<u64, ToolboxIdlError> {
+) -> Result<u64> {
     let size = std::mem::size_of::<u64>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u64::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_u128_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<u128, ToolboxIdlError> {
+) -> Result<u128> {
     let size = std::mem::size_of::<u128>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u128::from_le_bytes(slice.try_into().unwrap()))
 }
 
-pub(crate) fn idl_i8_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<i8, ToolboxIdlError> {
+pub(crate) fn idl_i8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<i8> {
     let size = std::mem::size_of::<i8>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(i8::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_i16_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<i16, ToolboxIdlError> {
+) -> Result<i16> {
     let size = std::mem::size_of::<i16>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(i16::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_i32_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<i32, ToolboxIdlError> {
+) -> Result<i32> {
     let size = std::mem::size_of::<i32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(i32::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_i64_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<i64, ToolboxIdlError> {
+) -> Result<i64> {
     let size = std::mem::size_of::<i64>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(i64::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_i128_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<i128, ToolboxIdlError> {
+) -> Result<i128> {
     let size = std::mem::size_of::<i128>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(i128::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_f32_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<f32, ToolboxIdlError> {
+) -> Result<f32> {
     let size = std::mem::size_of::<f32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(f32::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_f64_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<f64, ToolboxIdlError> {
+) -> Result<f64> {
     let size = std::mem::size_of::<f32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(f64::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_pubkey_from_bytes_at(
     bytes: &[u8],
     offset: usize,
-    context: &ToolboxIdlContext,
-) -> Result<Pubkey, ToolboxIdlError> {
+) -> Result<Pubkey> {
     let size = std::mem::size_of::<Pubkey>();
-    let slice = idl_slice_from_bytes(bytes, offset, size, context)?;
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
 }
 
@@ -384,44 +292,25 @@ pub(crate) fn idl_pubkey_from_bytes_at(
 pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
     map: &'a HashMap<String, V>,
     key: &str,
-    context: &ToolboxIdlContext,
-) -> Result<&'a V, ToolboxIdlError> {
-    idl_ok_or_else(map.get(key), &format!("missing key: {}", key), context)
+) -> Result<&'a V> {
+    map.get(key).ok_or_else(|| anyhow!("Missing key: {}", key))
 }
 
-pub(crate) fn idl_map_err_invalid_integer<V>(
-    result: Result<V, TryFromIntError>,
-    context: &ToolboxIdlContext,
-) -> Result<V, ToolboxIdlError> {
-    result.map_err(|err| ToolboxIdlError::InvalidInteger {
-        conversion: err,
-        context: context.clone(),
-    })
+pub(crate) fn idl_str_to_u64_or_else(value: &str) -> Result<u64> {
+    value
+        .parse()
+        .map_err(|error| anyhow!("Parse int error: {}", error))
 }
 
-pub(crate) fn idl_str_to_u64_or_else(
-    value: &str,
-    context: &ToolboxIdlContext,
-) -> Result<u64, ToolboxIdlError> {
-    value.parse().map_err(|err| ToolboxIdlError::InvalidNumber {
-        parsing: err,
-        context: context.clone(),
-    })
-}
-
+// TODO - this could be handling context a lot better
 pub(crate) fn idl_iter_get_scoped_values<'a, T>(
     iter: impl IntoIterator<Item = &'a T>,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<(usize, &'a T, ToolboxIdlBreadcrumbs)>, ToolboxIdlError> {
+) -> Vec<(usize, &'a T, String)> {
     let mut scoped_values = vec![];
     for (item_index, item) in iter.into_iter().enumerate() {
-        scoped_values.push((
-            item_index,
-            item,
-            breadcrumbs.with_idl(&format!("[{}]", item_index)),
-        ));
+        scoped_values.push((item_index, item, format!("[{}]", item_index)));
     }
-    Ok(scoped_values)
+    scoped_values
 }
 
 pub(crate) fn idl_convert_to_value_name(name: &str) -> String {

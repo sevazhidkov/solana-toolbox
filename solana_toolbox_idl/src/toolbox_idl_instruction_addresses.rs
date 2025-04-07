@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::Result;
+
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
@@ -15,7 +15,7 @@ impl ToolboxIdlInstruction {
     pub fn encode_addresses(
         &self,
         instruction_addresses: &HashMap<String, Pubkey>,
-    ) -> Result<Vec<AccountMeta>, ToolboxIdlError> {
+    ) -> Result<Vec<AccountMeta>> {
         let mut instruction_metas = vec![];
         for instruction_account in &self.accounts {
             if instruction_account.optional
@@ -27,8 +27,6 @@ impl ToolboxIdlInstruction {
             let instruction_address = *idl_map_get_key_or_else(
                 instruction_addresses,
                 &instruction_account.name,
-                &ToolboxIdlBreadcrumbs::default()
-                    .as_val("instruction_addresses"),
             )?;
             if instruction_account.writable {
                 instruction_metas.push(AccountMeta::new(
@@ -48,7 +46,7 @@ impl ToolboxIdlInstruction {
     pub fn decode_addresses(
         &self,
         instruction_metas: &[AccountMeta],
-    ) -> Result<HashMap<String, Pubkey>, ToolboxIdlError> {
+    ) -> Result<HashMap<String, Pubkey>> {
         let mut instruction_optionals_possible = 0usize;
         for account in &self.accounts {
             if account.optional {
@@ -107,7 +105,6 @@ impl ToolboxIdlInstruction {
     ) -> HashMap<String, Pubkey> {
         let mut instruction_addresses = instruction_addresses.clone();
         loop {
-            let breadcrumbs = ToolboxIdlBreadcrumbs::default();
             let mut made_progress = false;
             for instruction_account in &self.accounts {
                 if instruction_addresses.contains_key(&instruction_account.name)
@@ -120,7 +117,6 @@ impl ToolboxIdlInstruction {
                     instruction_payload,
                     &instruction_addresses,
                     accounts_content_types_and_states,
-                    &breadcrumbs.with_idl(&instruction_account.name),
                 ) {
                     made_progress = true;
                     instruction_addresses.insert(

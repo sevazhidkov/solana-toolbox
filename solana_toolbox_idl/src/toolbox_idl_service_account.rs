@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
+use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::account::Account;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_service::ToolboxIdlService;
 
@@ -23,7 +23,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         address: &Pubkey,
-    ) -> Result<ToolboxIdlServiceAccountDecoded, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlServiceAccountDecoded> {
         let account = endpoint.get_account(address).await?.unwrap_or_default();
         self.decode_account(endpoint, &account).await
     }
@@ -32,7 +32,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         account: &Account,
-    ) -> Result<ToolboxIdlServiceAccountDecoded, ToolboxIdlError> {
+    ) -> Result<ToolboxIdlServiceAccountDecoded> {
         let idl_program = self
             .resolve_program(endpoint, &account.owner)
             .await?

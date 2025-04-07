@@ -1,3 +1,5 @@
+use anyhow::anyhow;
+use anyhow::Result;
 use solana_sdk::address_lookup_table::instruction::close_lookup_table;
 use solana_sdk::address_lookup_table::instruction::create_lookup_table;
 use solana_sdk::address_lookup_table::instruction::deactivate_lookup_table;
@@ -10,7 +12,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub const ADDRESS_LOOKUP_TABLE_PROGRAM_ID: Pubkey = program::ID;
@@ -18,7 +19,7 @@ impl ToolboxEndpoint {
     pub async fn resolve_address_lookup_tables(
         &mut self,
         address_lookup_table: &[Pubkey],
-    ) -> Result<Vec<(Pubkey, Vec<Pubkey>)>, ToolboxEndpointError> {
+    ) -> Result<Vec<(Pubkey, Vec<Pubkey>)>> {
         let mut resolved_address_lookup_tables = vec![];
         for address_lookup_table in address_lookup_table {
             resolved_address_lookup_tables.push((
@@ -26,9 +27,9 @@ impl ToolboxEndpoint {
                 self.get_address_lookup_table_addresses(address_lookup_table)
                     .await?
                     .ok_or_else(|| {
-                        ToolboxEndpointError::AccountDoesNotExist(
-                            *address_lookup_table,
-                            "Address Lookup Table".to_string(),
+                        anyhow!(
+                            "Could not get account: {} (address lookup table)",
+                            address_lookup_table.to_string(),
                         )
                     })?,
             ))
@@ -39,7 +40,7 @@ impl ToolboxEndpoint {
     pub async fn get_address_lookup_table_addresses(
         &mut self,
         address_lookup_table: &Pubkey,
-    ) -> Result<Option<Vec<Pubkey>>, ToolboxEndpointError> {
+    ) -> Result<Option<Vec<Pubkey>>> {
         self.get_account_data(address_lookup_table)
             .await?
             .map(|data| {
@@ -50,7 +51,7 @@ impl ToolboxEndpoint {
 
     pub fn parse_address_lookup_table_addresses(
         address_lookup_table_data: &[u8],
-    ) -> Result<Vec<Pubkey>, ToolboxEndpointError> {
+    ) -> Result<Vec<Pubkey>> {
         Ok(AddressLookupTable::deserialize(address_lookup_table_data)?
             .addresses
             .to_vec())
@@ -61,7 +62,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         lookup_addresses: &[Pubkey],
-    ) -> Result<Pubkey, ToolboxEndpointError> {
+    ) -> Result<Pubkey> {
         let slot_hashes = self.get_sysvar_slot_hashes().await?;
         let most_recent_slot = slot_hashes.first().unwrap().0;
         let (instruction, address_lookup_table) = create_lookup_table(
@@ -86,7 +87,7 @@ impl ToolboxEndpoint {
         authority: &Keypair,
         address_lookup_table: &Pubkey,
         lookup_addresses: &[Pubkey],
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         for lookup_addresses_chunk in lookup_addresses.chunks(27) {
             let instruction = extend_lookup_table(
                 *address_lookup_table,
@@ -109,7 +110,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         address_lookup_table: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction =
             freeze_lookup_table(*address_lookup_table, authority.pubkey());
         self.process_instruction_with_signers(payer, instruction, &[authority])
@@ -122,7 +123,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         address_lookup_table: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction =
             deactivate_lookup_table(*address_lookup_table, authority.pubkey());
         self.process_instruction_with_signers(payer, instruction, &[authority])
@@ -136,7 +137,7 @@ impl ToolboxEndpoint {
         authority: &Keypair,
         address_lookup_table: &Pubkey,
         spill: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = close_lookup_table(
             *address_lookup_table,
             authority.pubkey(),
@@ -152,7 +153,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         authority: &Keypair,
         address_lookup_table: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         self.forward_clock_slot(1).await?;
         self.process_address_lookup_table_extend(
             payer,

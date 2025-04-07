@@ -1,3 +1,5 @@
+use anyhow::anyhow;
+use anyhow::Result;
 use solana_sdk::account::Account;
 use solana_sdk::bpf_loader;
 use solana_sdk::bpf_loader_upgradeable;
@@ -14,7 +16,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub const BPF_LOADER_2_PROGRAM_ID: Pubkey = bpf_loader::ID;
@@ -24,22 +25,18 @@ impl ToolboxEndpoint {
     pub async fn get_program_meta(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<(u64, Option<Pubkey>)>, ToolboxEndpointError> {
+    ) -> Result<Option<(u64, Option<Pubkey>)>> {
         self.get_program_data_account(program_id)
             .await?
             .map(|program_data| {
                 match bincode::deserialize::<UpgradeableLoaderState>(
                     &program_data.data,
-                )
-                .map_err(ToolboxEndpointError::Bincode)?
-                {
+                )? {
                     UpgradeableLoaderState::ProgramData {
                         slot,
                         upgrade_authority_address,
                     } => Ok((slot, upgrade_authority_address)),
-                    _ => Err(ToolboxEndpointError::Custom(
-                        "Program data is malformed".to_string(),
-                    )),
+                    _ => Err(anyhow!("Program data is malformed")),
                 }
             })
             .transpose()
@@ -48,16 +45,14 @@ impl ToolboxEndpoint {
     pub async fn get_program_bytecode(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<Vec<u8>>, ToolboxEndpointError> {
+    ) -> Result<Option<Vec<u8>>> {
         self.get_program_data_account(program_id)
             .await?
             .map(|program_data| {
                 let program_data_bytecode_offset =
                     UpgradeableLoaderState::size_of_programdata_metadata();
                 if program_data.data.len() < program_data_bytecode_offset {
-                    return Err(ToolboxEndpointError::Custom(
-                        "Program data is too small".to_string(),
-                    ));
+                    return Err(anyhow!("Program data is too small"));
                 }
                 Ok(program_data.data[program_data_bytecode_offset..].to_vec())
             })
@@ -67,7 +62,7 @@ impl ToolboxEndpoint {
     async fn get_program_data_account(
         &mut self,
         program_id: &Pubkey,
-    ) -> Result<Option<Account>, ToolboxEndpointError> {
+    ) -> Result<Option<Account>> {
         let program_id_account = match self.get_account(program_id).await? {
             Some(account) => account,
             None => {
@@ -75,14 +70,10 @@ impl ToolboxEndpoint {
             },
         };
         if !program_id_account.executable {
-            return Err(ToolboxEndpointError::Custom(
-                "Program Id is not executable".to_string(),
-            ));
+            return Err(anyhow!("Program Id is not executable"));
         }
         if program_id_account.owner != bpf_loader_upgradeable::ID {
-            return Err(ToolboxEndpointError::Custom(
-                "Unsupported program owner".to_string(),
-            ));
+            return Err(anyhow!("Unsupported program owner"));
         }
         self.get_account(&ToolboxEndpoint::find_program_data_from_program_id(
             program_id,
@@ -103,7 +94,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         program_bytecode: &[u8],
         program_authority: &Pubkey,
-    ) -> Result<Pubkey, ToolboxEndpointError> {
+    ) -> Result<Pubkey> {
         let program_buffer = Keypair::new();
         let program_buffer_authority = Keypair::new();
         let program_bytecode_len = program_bytecode.len();
@@ -134,8 +125,7 @@ impl ToolboxEndpoint {
             let instruction_write = write(
                 &program_buffer.pubkey(),
                 &program_buffer_authority.pubkey(),
-                u32::try_from(write_before)
-                    .map_err(ToolboxEndpointError::TryFromInt)?,
+                u32::try_from(write_before)?,
                 program_bytecode[write_before..write_after].to_vec(),
             );
             self.process_instruction_with_signers(
@@ -166,7 +156,7 @@ impl ToolboxEndpoint {
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         program_bytecode_len: usize,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let rent_space = UpgradeableLoaderState::size_of_program();
         let rent_minimum_lamports =
             self.get_sysvar_rent().await?.minimum_balance(rent_space);
@@ -195,7 +185,7 @@ impl ToolboxEndpoint {
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction_upgrade = upgrade(
             program_id,
             program_buffer,
@@ -217,7 +207,7 @@ impl ToolboxEndpoint {
         program_buffer: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let program_authority_address = &program_authority.pubkey();
         let instruction_close = close_any(
             program_buffer,
@@ -240,10 +230,10 @@ impl ToolboxEndpoint {
         program_id: &Keypair,
         program_authority: &Keypair,
         program_bytecode: &[u8],
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         if self.get_account_exists(&program_id.pubkey()).await? {
-            return Err(ToolboxEndpointError::Custom(
-                "Cannot deploy on a program that already exist (need to upgrade)".to_string(),
+            return Err(anyhow!(
+                "Cannot deploy on a program that already exist (need to upgrade)",
             ));
         }
         let program_buffer = self
@@ -269,12 +259,11 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         program_id: &Pubkey,
         program_bytecode_len_added: usize,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction_extend = extend_program(
             program_id,
             Some(&payer.pubkey()),
-            u32::try_from(program_bytecode_len_added)
-                .map_err(ToolboxEndpointError::TryFromInt)?,
+            u32::try_from(program_bytecode_len_added)?,
         );
         self.process_instruction(payer, instruction_extend).await?;
         Ok(())
@@ -287,16 +276,11 @@ impl ToolboxEndpoint {
         program_authority: &Keypair,
         program_bytecode: &[u8],
         spill: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let program_bytecode_len_before =
             match self.get_program_bytecode(program_id).await? {
                 Some(program_bytecode) => program_bytecode.len(),
-                None => {
-                    return Err(ToolboxEndpointError::AccountDoesNotExist(
-                        *program_id,
-                        "Program Id".to_string(),
-                    ))
-                },
+                None => return Err(anyhow!("Could not get program bytecode")),
             };
         let program_bytecode_len_after = program_bytecode.len();
         if program_bytecode_len_after > program_bytecode_len_before {
@@ -331,7 +315,7 @@ impl ToolboxEndpoint {
         program_id: &Pubkey,
         program_authority: &Keypair,
         spill: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let program_data =
             &ToolboxEndpoint::find_program_data_from_program_id(program_id);
         let program_authority_address = &program_authority.pubkey();

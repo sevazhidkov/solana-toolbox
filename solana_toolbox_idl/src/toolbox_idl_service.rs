@@ -1,10 +1,10 @@
+use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 pub struct ToolboxIdlService {
@@ -36,7 +36,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
-    ) -> Result<Option<Arc<ToolboxIdlProgram>>, ToolboxIdlError> {
+    ) -> Result<Option<Arc<ToolboxIdlProgram>>> {
         if let Some(idl_program) = self.cached_programs.get(program_id) {
             return Ok(idl_program.clone());
         }

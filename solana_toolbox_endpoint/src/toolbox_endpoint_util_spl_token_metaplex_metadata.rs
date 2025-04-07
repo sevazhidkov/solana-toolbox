@@ -1,3 +1,4 @@
+use anyhow::Result;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use solana_sdk::instruction::AccountMeta;
@@ -8,7 +9,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 struct TokenMetaplexMetadataAccountSimplified {
@@ -65,8 +65,7 @@ impl ToolboxEndpoint {
     pub async fn get_spl_token_metaplex_metadata(
         &mut self,
         mint: &Pubkey,
-    ) -> Result<Option<(Pubkey, String, String, String)>, ToolboxEndpointError>
-    {
+    ) -> Result<Option<(Pubkey, String, String, String)>> {
         self.get_account_data(
             &ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
         )
@@ -75,8 +74,7 @@ impl ToolboxEndpoint {
             let content =
                 TokenMetaplexMetadataAccountSimplified::deserialize_reader(
                     &mut &data[1..],
-                )
-                .map_err(ToolboxEndpointError::Io)?;
+                )?;
             Ok((
                 content.update_authority,
                 content.symbol.trim_end_matches("\0").to_string(),
@@ -93,7 +91,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         mint_authority: &Keypair,
         metadata: (Pubkey, String, String, String),
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let accounts = vec![
             AccountMeta::new(
                 ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
@@ -124,8 +122,7 @@ impl ToolboxEndpoint {
             is_mutable: true,
             collection_details: None,
         }
-        .serialize(&mut data)
-        .map_err(ToolboxEndpointError::Io)?;
+        .serialize(&mut data)?;
         let instruction = Instruction {
             program_id: ToolboxEndpoint::SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID,
             accounts,
@@ -146,7 +143,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         metadata_authority: &Keypair,
         metadata: (Pubkey, String, String, String),
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let accounts = vec![
             AccountMeta::new(
                 ToolboxEndpoint::find_spl_token_metaplex_metadata(mint),
@@ -170,8 +167,7 @@ impl ToolboxEndpoint {
             primary_sale_happened: None,
             is_mutable: None,
         }
-        .serialize(&mut data)
-        .map_err(ToolboxEndpointError::Io)?;
+        .serialize(&mut data)?;
         let instruction = Instruction {
             program_id: ToolboxEndpoint::SPL_TOKEN_METAPLEX_METADATA_PROGRAM_ID,
             accounts,

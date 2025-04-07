@@ -1,6 +1,6 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlProgram;
-use solana_toolbox_idl::ToolboxIdlTransactionError;
+use solana_toolbox_idl::ToolboxIdlError;
 
 #[tokio::test]
 pub async fn run() {
@@ -46,7 +46,7 @@ pub async fn run() {
     // Assert that the content is correct
     assert_eq!(
         *idl_program1.errors.get("MyError").unwrap(),
-        ToolboxIdlTransactionError {
+        ToolboxIdlError {
             name: "MyError".to_string(),
             code: 42,
             msg: "".to_string(),

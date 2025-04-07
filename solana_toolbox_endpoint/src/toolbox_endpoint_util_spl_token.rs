@@ -1,3 +1,4 @@
+use anyhow::Result;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -17,7 +18,6 @@ use spl_token::state::Account;
 use spl_token::state::Mint;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub const SPL_TOKEN_NATIVE_MINT: Pubkey = native_mint::ID;
@@ -29,7 +29,7 @@ impl ToolboxEndpoint {
         mint_authority: &Pubkey,
         mint_freeze_authority: Option<&Pubkey>,
         mint_decimals: u8,
-    ) -> Result<Pubkey, ToolboxEndpointError> {
+    ) -> Result<Pubkey> {
         let mint = Keypair::new();
         self.process_spl_token_mint_init(
             payer,
@@ -49,7 +49,7 @@ impl ToolboxEndpoint {
         mint_authority: &Pubkey,
         mint_freeze_authority: Option<&Pubkey>,
         mint_decimals: u8,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let rent_space = Mint::LEN;
         let rent_minimum_lamports =
             self.get_sysvar_rent().await?.minimum_balance(rent_space);
@@ -57,8 +57,7 @@ impl ToolboxEndpoint {
             &payer.pubkey(),
             &mint.pubkey(),
             rent_minimum_lamports,
-            u64::try_from(rent_space)
-                .map_err(ToolboxEndpointError::TryFromInt)?,
+            u64::try_from(rent_space)?,
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
         );
         let instruction_init = initialize_mint(
@@ -83,7 +82,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         source_mint_authority: &Keypair,
         destination_mint_authority: Option<&Pubkey>,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = set_authority(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             mint,
@@ -108,7 +107,7 @@ impl ToolboxEndpoint {
         mint_authority: &Keypair,
         destination_token_account: &Pubkey,
         amount: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = mint_to(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             mint,
@@ -132,7 +131,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         source_mint_freeze_authority: &Keypair,
         destination_mint_freeze_authority: Option<&Pubkey>,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = set_authority(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             mint,
@@ -156,7 +155,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         mint_freeze_authority: &Keypair,
         token_account: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = freeze_account(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             token_account,
@@ -179,7 +178,7 @@ impl ToolboxEndpoint {
         mint: &Pubkey,
         mint_freeze_authority: &Keypair,
         token_account: &Pubkey,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = thaw_account(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             token_account,
@@ -203,7 +202,7 @@ impl ToolboxEndpoint {
         source_token_account: &Pubkey,
         destination_token_account: &Pubkey,
         amount: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = transfer(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             source_token_account,
@@ -224,7 +223,7 @@ impl ToolboxEndpoint {
         source_token_account: &Pubkey,
         mint: &Pubkey,
         amount: u64,
-    ) -> Result<(), ToolboxEndpointError> {
+    ) -> Result<()> {
         let instruction = burn(
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
             source_token_account,
@@ -243,7 +242,7 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         owner: &Pubkey,
         mint: &Pubkey,
-    ) -> Result<Pubkey, ToolboxEndpointError> {
+    ) -> Result<Pubkey> {
         let rent_space = Account::LEN;
         let rent_minimum_lamports =
             self.get_sysvar_rent().await?.minimum_balance(rent_space);
@@ -252,8 +251,7 @@ impl ToolboxEndpoint {
             &payer.pubkey(),
             &account.pubkey(),
             rent_minimum_lamports,
-            u64::try_from(rent_space)
-                .map_err(ToolboxEndpointError::TryFromInt)?,
+            u64::try_from(rent_space)?,
             &ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
         );
         let instruction_init = initialize_account(
@@ -274,14 +272,14 @@ impl ToolboxEndpoint {
     pub async fn get_spl_token_mint(
         &mut self,
         mint: &Pubkey,
-    ) -> Result<Option<Mint>, ToolboxEndpointError> {
+    ) -> Result<Option<Mint>> {
         self.get_account_data_unpacked::<Mint>(mint).await
     }
 
     pub async fn get_spl_token_account(
         &mut self,
         token_account: &Pubkey,
-    ) -> Result<Option<Account>, ToolboxEndpointError> {
+    ) -> Result<Option<Account>> {
         self.get_account_data_unpacked::<Account>(token_account)
             .await
     }

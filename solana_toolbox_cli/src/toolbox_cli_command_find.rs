@@ -1,12 +1,12 @@
+use anyhow::anyhow;
+use anyhow::Result;
 use clap::Args;
 use serde_json::json;
 use serde_json::Value;
-use solana_toolbox_idl::ToolboxIdlBreadcrumbs;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
-use crate::toolbox_cli_error::ToolboxCliError;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
@@ -51,10 +51,7 @@ pub struct ToolboxCliCommandFindArgs {
 }
 
 impl ToolboxCliCommandFindArgs {
-    pub async fn process(
-        &self,
-        context: &ToolboxCliContext,
-    ) -> Result<Value, ToolboxCliError> {
+    pub async fn process(&self, context: &ToolboxCliContext) -> Result<Value> {
         let mut endpoint = context.create_endpoint().await?;
         let mut idl_service = context.create_service().await?;
         let program_id = context.parse_key(&self.program_id)?.address();
@@ -71,13 +68,12 @@ impl ToolboxCliCommandFindArgs {
                     &serde_hjson::from_str(encoded).unwrap(),
                     &mut bytes,
                     false,
-                    &ToolboxIdlBreadcrumbs::default(),
                 )
                 .unwrap();
                 chunks.push((offset.parse::<usize>().unwrap(), bytes));
             } else {
-                return Err(ToolboxCliError::Custom(
-                    "Invalid data chunk, expected: offset:bytes".to_string(),
+                return Err(anyhow!(
+                    "Invalid data chunk, expected: offset:bytes",
                 ));
             }
         }

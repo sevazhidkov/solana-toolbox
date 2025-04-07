@@ -1,22 +1,21 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::anyhow;
+use anyhow::Context;
+use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::toolbox_idl_utils::idl_ok_or_else;
 
 impl ToolboxIdlInstructionAccount {
     pub fn try_find(
@@ -29,8 +28,7 @@ impl ToolboxIdlInstructionAccount {
             String,
             (Arc<ToolboxIdlTypeFull>, Value),
         >,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Pubkey, ToolboxIdlError> {
+    ) -> Result<Pubkey> {
         if let Some(address) = instruction_addresses.get(&self.name) {
             return Ok(*address);
         }
@@ -44,10 +42,9 @@ impl ToolboxIdlInstructionAccount {
                 instruction_payload,
                 instruction_addresses,
                 instruction_content_types_and_states,
-                &breadcrumbs.with_idl("pda"),
             );
         }
-        idl_err("Unresolvable account", &breadcrumbs.as_idl("@"))
+        Err(anyhow!("Could not find account (unresolvable)"))
     }
 }
 
@@ -62,20 +59,22 @@ impl ToolboxIdlInstructionAccountPda {
             String,
             (Arc<ToolboxIdlTypeFull>, Value),
         >,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Pubkey, ToolboxIdlError> {
+    ) -> Result<Pubkey> {
         let mut pda_seeds_bytes = vec![];
-        for (_, pda_seed_blob, breadcrumbs) in idl_iter_get_scoped_values(
-            &self.seeds,
-            &breadcrumbs.with_idl("seeds"),
-        )? {
-            pda_seeds_bytes.push(pda_seed_blob.try_compute(
-                instruction_args_type_fields,
-                instruction_payload,
-                instruction_addresses,
-                instruction_content_types_and_states,
-                &breadcrumbs,
-            )?);
+        for (_, pda_seed_blob, context) in
+            idl_iter_get_scoped_values(&self.seeds)
+        {
+            pda_seeds_bytes.push(
+                pda_seed_blob
+                    .try_compute(
+                        instruction_args_type_fields,
+                        instruction_payload,
+                        instruction_addresses,
+                        instruction_content_types_and_states,
+                    )
+                    .context("Seeds")
+                    .context(context)?,
+            );
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
             let pda_program_id_bytes = pda_program_blob.try_compute(
@@ -83,15 +82,9 @@ impl ToolboxIdlInstructionAccountPda {
                 instruction_payload,
                 instruction_addresses,
                 instruction_content_types_and_states,
-                &breadcrumbs.with_idl("program"),
             )?;
             Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
-                |err| {
-                    ToolboxIdlError::Custom {
-                        failure: format!("value:{:?}", err), // TODO (MEDIUM) - better error handling and breadcrumbs
-                        context: breadcrumbs.as_idl("program_id"),
-                    }
-                },
+                |error| anyhow!("Invalid pubkey bytes: {:?}", error),
             )?)
         } else {
             *instruction_program_id
@@ -114,8 +107,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
             String,
             (Arc<ToolboxIdlTypeFull>, Value),
         >,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<u8>, ToolboxIdlError> {
+    ) -> Result<Vec<u8>> {
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => {
                 Ok(bytes.clone())
@@ -126,7 +118,6 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     instruction_args_type_fields,
                     instruction_payload,
                     &idl_blob_parts,
-                    &breadcrumbs.with_idl("args"),
                 )
             },
             ToolboxIdlInstructionAccountPdaBlob::Account { path } => {
@@ -135,7 +126,6 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     return idl_map_get_key_or_else(
                         instruction_addresses,
                         idl_blob_parts[0],
-                        &breadcrumbs.val(),
                     )
                     .map(|address| address.to_bytes().to_vec());
                 }
@@ -143,19 +133,14 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     idl_map_get_key_or_else(
                         instruction_content_types_and_states,
                         idl_blob_parts[0],
-                        &breadcrumbs
-                            .as_val("instruction_content_types_and_states"),
                     )?;
-                let account_content_type_fields = idl_ok_or_else(
-                    account_content_type.as_struct_fields(),
-                    "expected a struct fields",
-                    &breadcrumbs.idl(),
-                )?;
+                let account_content_type_fields = account_content_type
+                    .as_struct_fields()
+                    .context("Expected struct fields")?;
                 ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
                     account_content_type_fields,
                     account_state,
                     &idl_blob_parts[1..],
-                    &breadcrumbs.with_val(idl_blob_parts[0]),
                 )
             },
         }
@@ -165,47 +150,36 @@ impl ToolboxIdlInstructionAccountPdaBlob {
         type_full_fields: &ToolboxIdlTypeFullFields,
         value: &Value,
         parts: &[&str],
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<Vec<u8>, ToolboxIdlError> {
+    ) -> Result<Vec<u8>> {
         let lookup_name = parts[0];
         // TODO (FAR) - support unamed structs as arg ?
-        let type_full_fields_named = idl_ok_or_else(
-            type_full_fields.as_named(),
-            "expected named fields",
-            &breadcrumbs.idl(),
-        )?;
-        let value_object = idl_as_object_or_else(value, &breadcrumbs.val())?;
+        let type_full_fields_named = type_full_fields
+            .as_named()
+            .context("Expected named fields")?;
+        let value_object = idl_as_object_or_else(value)?;
         for (field_name, field_type_full) in type_full_fields_named {
-            let breadcrumbs = &breadcrumbs.with_idl(field_name);
             if field_name == lookup_name {
-                let value_field = idl_object_get_key_or_else(
-                    value_object,
-                    field_name,
-                    &breadcrumbs.val(),
-                )?;
+                let value_field =
+                    idl_object_get_key_or_else(value_object, field_name)?;
                 if parts.len() == 1 {
                     let mut bytes = vec![];
                     field_type_full.try_serialize(
                         value_field,
                         &mut bytes,
                         false,
-                        &breadcrumbs.with_val(field_name),
                     )?;
                     return Ok(bytes);
                 }
-                let type_full_fields = idl_ok_or_else(
-                    field_type_full.as_struct_fields(),
-                    "expected a struct fields",
-                    &breadcrumbs.idl(),
-                )?;
+                let type_full_fields = field_type_full
+                    .as_struct_fields()
+                    .context("Expected struct fields")?;
                 return ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
                     type_full_fields,
                     value_field,
                     &parts[1..],
-                    &breadcrumbs.with_idl("*"),
                 );
             }
         }
-        idl_err("Unknown value field", &breadcrumbs.as_val(lookup_name))
+        Err(anyhow!("Could not lookup value at: {}", lookup_name))
     }
 }

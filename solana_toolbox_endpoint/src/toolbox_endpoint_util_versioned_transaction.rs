@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use anyhow::Result;
 use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::Instruction;
@@ -13,7 +14,6 @@ use solana_sdk::signer::Signer;
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 
 impl ToolboxEndpoint {
     pub fn compile_versioned_transaction(
@@ -22,7 +22,7 @@ impl ToolboxEndpoint {
         signers: &[&Keypair],
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
         recent_blockhash: Hash,
-    ) -> Result<VersionedTransaction, ToolboxEndpointError> {
+    ) -> Result<VersionedTransaction> {
         let mut address_lookup_table_accounts = vec![];
         for resolved_address_lookup_table in resolved_address_lookup_tables {
             address_lookup_table_accounts.push(AddressLookupTableAccount {
@@ -67,7 +67,7 @@ impl ToolboxEndpoint {
     pub fn decompile_versioned_transaction(
         versioned_transaction: &VersionedTransaction,
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
-    ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
+    ) -> Result<(Pubkey, Vec<Instruction>)> {
         let mut resolved_address_lookup_tables_addresses = HashMap::new();
         for resolved_address_lookup_table in resolved_address_lookup_tables {
             resolved_address_lookup_tables_addresses.insert(
@@ -124,7 +124,7 @@ impl ToolboxEndpoint {
         versioned_transaction: &VersionedTransaction,
         loaded_writable_addresses: &[Pubkey],
         loaded_readonly_addresses: &[Pubkey],
-    ) -> Result<(Pubkey, Vec<Instruction>), ToolboxEndpointError> {
+    ) -> Result<(Pubkey, Vec<Instruction>)> {
         let header = versioned_transaction.message.header();
         let static_addresses =
             versioned_transaction.message.static_account_keys();

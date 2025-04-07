@@ -1,11 +1,12 @@
 use std::str::FromStr;
 
+use anyhow::anyhow;
+use anyhow::Context;
+use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
-use crate::toolbox_idl_breadcrumbs::ToolboxIdlBreadcrumbs;
-use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
@@ -17,9 +18,7 @@ use crate::toolbox_idl_utils::idl_as_i128_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_str_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
-use crate::toolbox_idl_utils::idl_err;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
-use crate::toolbox_idl_utils::idl_map_err_invalid_integer;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -31,8 +30,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         // TODO - Config object for pubkey hashmap and prefixes
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         match self {
             ToolboxIdlTypeFull::Option {
                 prefix_bytes,
@@ -43,7 +41,6 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-                &breadcrumbs.with_idl("option"),
             ),
             ToolboxIdlTypeFull::Vec { items } => {
                 ToolboxIdlTypeFull::try_serialize_vec(
@@ -51,7 +48,6 @@ impl ToolboxIdlTypeFull {
                     value,
                     data,
                     deserializable,
-                    &breadcrumbs.with_idl("vec"),
                 )
             },
             ToolboxIdlTypeFull::Array { items, length } => {
@@ -61,7 +57,6 @@ impl ToolboxIdlTypeFull {
                     value,
                     data,
                     deserializable,
-                    &breadcrumbs.with_idl("array"),
                 )
             },
             ToolboxIdlTypeFull::Struct { fields } => {
@@ -70,7 +65,6 @@ impl ToolboxIdlTypeFull {
                     value,
                     data,
                     deserializable,
-                    &breadcrumbs.with_idl("struct"),
                 )
             },
             ToolboxIdlTypeFull::Enum { variants } => {
@@ -79,7 +73,6 @@ impl ToolboxIdlTypeFull {
                     value,
                     data,
                     deserializable,
-                    &breadcrumbs.with_idl("enum"),
                 )
             },
             ToolboxIdlTypeFull::Padded {
@@ -91,19 +84,16 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-                &breadcrumbs.with_idl("padded"),
             ),
-            ToolboxIdlTypeFull::Const { literal } => idl_err(
-                &format!("Can't use a const literal directly: {:?}", literal),
-                &breadcrumbs.idl(),
-            ),
+            ToolboxIdlTypeFull::Const { literal } => {
+                Err(anyhow!("Can't use a const literal directly: {}", literal))
+            },
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 ToolboxIdlTypeFull::try_serialize_primitive(
                     primitive,
                     value,
                     data,
                     deserializable,
-                    breadcrumbs,
                 )
             },
         }
@@ -115,8 +105,7 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         if value.is_null() {
             for _ in 0..*option_prefix_bytes {
                 data.push(0);
@@ -127,12 +116,7 @@ impl ToolboxIdlTypeFull {
             for _ in 1..*option_prefix_bytes {
                 data.push(0);
             }
-            option_content.try_serialize(
-                value,
-                data,
-                deserializable,
-                breadcrumbs,
-            )
+            option_content.try_serialize(value, data, deserializable)
         }
     }
 
@@ -141,14 +125,13 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         if vec_items
             == (&ToolboxIdlTypeFull::Primitive {
                 primitive: ToolboxIdlTypePrimitive::U8,
             })
         {
-            let bytes = try_read_value_to_bytes(value, breadcrumbs)?;
+            let bytes = try_read_value_to_bytes(value)?;
             if deserializable {
                 data.extend_from_slice(bytemuck::bytes_of::<u32>(
                     &u32::try_from(bytes.len()).unwrap(),
@@ -157,21 +140,16 @@ impl ToolboxIdlTypeFull {
             data.extend_from_slice(&bytes);
             return Ok(());
         }
-        let values = idl_as_array_or_else(value, &breadcrumbs.as_val("vec"))?;
+        let values = idl_as_array_or_else(value)?;
         if deserializable {
             data.extend_from_slice(bytemuck::bytes_of::<u32>(
                 &u32::try_from(values.len()).unwrap(),
             ));
         }
-        for (_, value_item, breadcrumbs) in
-            idl_iter_get_scoped_values(values, breadcrumbs)?
-        {
-            vec_items.try_serialize(
-                value_item,
-                data,
-                deserializable,
-                &breadcrumbs,
-            )?;
+        for (_, value_item, context) in idl_iter_get_scoped_values(values) {
+            vec_items
+                .try_serialize(value_item, data, deserializable)
+                .context(context)?;
         }
         Ok(())
     }
@@ -182,48 +160,36 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         let array_length = usize::try_from(*array_length).unwrap();
         if array_items
             == (&ToolboxIdlTypeFull::Primitive {
                 primitive: ToolboxIdlTypePrimitive::U8,
             })
         {
-            let bytes = try_read_value_to_bytes(value, breadcrumbs)?;
+            let bytes = try_read_value_to_bytes(value)?;
             if bytes.len() != array_length {
-                return idl_err(
-                    &format!(
-                        "value byte array is not the correct size: expected {} bytes, found {} bytes",
-                        array_length,
-                        bytes.len()
-                    ),
-                    &breadcrumbs.as_idl("value byte array"),
-                );
+                return Err(anyhow!(
+                    "value byte array is not the correct size: expected {} bytes, found {} bytes",
+                    array_length,
+                    bytes.len()
+                ));
             }
             data.extend_from_slice(&bytes);
             return Ok(());
         }
-        let values = idl_as_array_or_else(value, &breadcrumbs.as_val("array"))?;
+        let values = idl_as_array_or_else(value)?;
         if values.len() != array_length {
-            return idl_err(
-                &format!(
-                    "value array is not the correct size: expected {} items, found {} items",
-                    array_length,
-                    values.len()
-                ),
-                &breadcrumbs.as_idl("value array"),
-            );
+            return Err(anyhow!(
+                "value array is not the correct size: expected {} items, found {} items",
+                array_length,
+                values.len()
+            ));
         }
-        for (_, value_item, breadcrumbs) in
-            idl_iter_get_scoped_values(values, breadcrumbs)?
-        {
-            array_items.try_serialize(
-                value_item,
-                data,
-                deserializable,
-                &breadcrumbs,
-            )?;
+        for (_, value_item, context) in idl_iter_get_scoped_values(values) {
+            array_items
+                .try_serialize(value_item, data, deserializable)
+                .context(context)?;
         }
         Ok(())
     }
@@ -233,9 +199,8 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
-        struct_fields.try_serialize(value, data, deserializable, breadcrumbs)
+    ) -> Result<()> {
+        struct_fields.try_serialize(value, data, deserializable)
     }
 
     fn try_serialize_enum(
@@ -243,52 +208,41 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         if let Some(value_string) = value.as_str() {
-            for (enum_code, enum_variant, breadcrumbs) in
-                idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
+            for (enum_code, enum_variant, context) in
+                idl_iter_get_scoped_values(enum_variants)
             {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
                 if enum_variant_name == value_string {
                     data.push(u8::try_from(enum_code).unwrap());
-                    return enum_variant_fields.try_serialize(
-                        &Value::Null,
-                        data,
-                        deserializable,
-                        &breadcrumbs.with_val(value_string),
-                    );
+                    return enum_variant_fields
+                        .try_serialize(&Value::Null, data, deserializable)
+                        .context(value_string.to_string())
+                        .context(context);
                 }
             }
-            return idl_err(
-                "Could not guess enum string",
-                &breadcrumbs.as_val(value_string),
-            );
+            return Err(anyhow!(
+                "Could not guess enum string: {}",
+                value_string
+            ));
         }
         if let Some(value_object) = value.as_object() {
-            for (enum_code, enum_variant, breadcrumbs) in
-                idl_iter_get_scoped_values(enum_variants, breadcrumbs)?
+            for (enum_code, enum_variant, context) in
+                idl_iter_get_scoped_values(enum_variants)
             {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
                 if let Some(enum_value) = value_object.get(enum_variant_name) {
                     data.push(u8::try_from(enum_code).unwrap());
-                    return enum_variant_fields.try_serialize(
-                        enum_value,
-                        data,
-                        deserializable,
-                        &breadcrumbs.with_val(enum_variant_name),
-                    );
+                    return enum_variant_fields
+                        .try_serialize(enum_value, data, deserializable)
+                        .context(enum_variant_name.to_string())
+                        .context(context);
                 }
             }
-            return idl_err(
-                "Could not guess enum object key",
-                &breadcrumbs.val(),
-            );
+            return Err(anyhow!("Could not guess enum object key"));
         }
-        idl_err(
-            "Expected enum value to be: object or string",
-            &breadcrumbs.val(),
-        )
+        Err(anyhow!("Expected enum value to be: object or string"))
     }
 
     fn try_serialize_padded(
@@ -297,16 +251,10 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         let padded_size_bytes = usize::try_from(*padded_size_bytes).unwrap();
         let data_len_enforced = data.len() + padded_size_bytes;
-        padded_content.try_serialize(
-            value,
-            data,
-            deserializable,
-            breadcrumbs,
-        )?;
+        padded_content.try_serialize(value, data, deserializable)?;
         while data.len() < data_len_enforced {
             data.push(0);
         }
@@ -318,16 +266,11 @@ impl ToolboxIdlTypeFull {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
-        let context = &breadcrumbs.val();
+    ) -> Result<()> {
         macro_rules! write_data_using_u_number {
             ($type:ident) => {
-                let value_integer = idl_as_u128_or_else(value, context)?;
-                let value_typed = idl_map_err_invalid_integer(
-                    $type::try_from(value_integer),
-                    context,
-                )?;
+                let value_integer = idl_as_u128_or_else(value)?;
+                let value_typed = $type::try_from(value_integer)?;
                 data.extend_from_slice(bytemuck::bytes_of::<$type>(
                     &value_typed,
                 ));
@@ -335,11 +278,8 @@ impl ToolboxIdlTypeFull {
         }
         macro_rules! write_data_using_i_number {
             ($type:ident) => {
-                let value_integer = idl_as_i128_or_else(value, context)?;
-                let value_typed = idl_map_err_invalid_integer(
-                    $type::try_from(value_integer),
-                    context,
-                )?;
+                let value_integer = idl_as_i128_or_else(value)?;
+                let value_typed = $type::try_from(value_integer)?;
                 data.extend_from_slice(bytemuck::bytes_of::<$type>(
                     &value_typed,
                 ));
@@ -359,7 +299,7 @@ impl ToolboxIdlTypeFull {
                 write_data_using_u_number!(u64);
             },
             ToolboxIdlTypePrimitive::U128 => {
-                let value_integer = idl_as_u128_or_else(value, context)?;
+                let value_integer = idl_as_u128_or_else(value)?;
                 data.extend_from_slice(bytemuck::bytes_of::<u128>(
                     &value_integer,
                 ));
@@ -377,32 +317,28 @@ impl ToolboxIdlTypeFull {
                 write_data_using_i_number!(i64);
             },
             ToolboxIdlTypePrimitive::I128 => {
-                let value_integer = idl_as_i128_or_else(value, context)?;
+                let value_integer = idl_as_i128_or_else(value)?;
                 data.extend_from_slice(bytemuck::bytes_of::<i128>(
                     &value_integer,
                 ));
             },
             ToolboxIdlTypePrimitive::F32 => {
-                let value_floating = idl_as_f64_or_else(value, context)? as f32;
+                let value_floating = idl_as_f64_or_else(value)? as f32;
                 data.extend_from_slice(bytemuck::bytes_of::<f32>(
                     &value_floating,
                 ));
             },
             ToolboxIdlTypePrimitive::F64 => {
-                let value_floating = idl_as_f64_or_else(value, context)?;
+                let value_floating = idl_as_f64_or_else(value)?;
                 data.extend_from_slice(bytemuck::bytes_of::<f64>(
                     &value_floating,
                 ));
             },
             ToolboxIdlTypePrimitive::Boolean => {
-                data.push(if idl_as_bool_or_else(value, context)? {
-                    1
-                } else {
-                    0
-                });
+                data.push(if idl_as_bool_or_else(value)? { 1 } else { 0 });
             },
             ToolboxIdlTypePrimitive::String => {
-                let value_str = idl_as_str_or_else(value, context)?;
+                let value_str = idl_as_str_or_else(value)?;
                 if deserializable {
                     data.extend_from_slice(bytemuck::bytes_of::<u32>(
                         &u32::try_from(value_str.len()).unwrap(),
@@ -411,15 +347,9 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(value_str.as_bytes());
             },
             ToolboxIdlTypePrimitive::PublicKey => {
-                let value_str = idl_as_str_or_else(value, context)?;
+                let value_str = idl_as_str_or_else(value)?;
                 data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(
-                    // TODO (MEDIUM) - use better error handling and use endpoint's util ?
-                    &Pubkey::from_str(value_str).map_err(|err| {
-                        ToolboxIdlError::InvalidPubkey {
-                            parsing: err,
-                            context: context.clone(),
-                        }
-                    })?,
+                    &Pubkey::from_str(value_str)?,
                 ));
             },
         };
@@ -433,42 +363,33 @@ impl ToolboxIdlTypeFullFields {
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
-        breadcrumbs: &ToolboxIdlBreadcrumbs,
-    ) -> Result<(), ToolboxIdlError> {
+    ) -> Result<()> {
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
-                let value = idl_as_object_or_else(value, &breadcrumbs.val())?;
-                for (name, field) in fields {
-                    let value_field = idl_object_get_key_or_else(
-                        value,
-                        name,
-                        &breadcrumbs.val(),
-                    )?;
-                    field.try_serialize(
-                        value_field,
-                        data,
-                        deserializable,
-                        &breadcrumbs.with_val(name),
-                    )?;
+                let value = idl_as_object_or_else(value)?;
+                for (field_name, field_type) in fields {
+                    let value_field =
+                        idl_object_get_key_or_else(value, field_name)?;
+                    field_type
+                        .try_serialize(value_field, data, deserializable)
+                        .context(field_name.to_string())?;
                 }
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
-                let values = idl_as_array_or_else(value, &breadcrumbs.val())?;
+                let values = idl_as_array_or_else(value)?;
                 if values.len() != fields.len() {
-                    return idl_err(
-                        "Wrong number of unamed fields",
-                        &breadcrumbs.val(),
-                    );
+                    return Err(anyhow!("Wrong number of unamed fields, expected: {}, found: {}", fields.len(), values.len()));
                 }
-                for (field_index, field, breadcrumbs) in
-                    idl_iter_get_scoped_values(fields, breadcrumbs)?
+                for (field_index, field, context) in
+                    idl_iter_get_scoped_values(fields)
                 {
-                    field.try_serialize(
-                        &values[field_index],
-                        data,
-                        deserializable,
-                        &breadcrumbs,
-                    )?;
+                    field
+                        .try_serialize(
+                            &values[field_index],
+                            data,
+                            deserializable,
+                        )
+                        .context(context)?;
                 }
             },
             ToolboxIdlTypeFullFields::None => {},
@@ -477,16 +398,13 @@ impl ToolboxIdlTypeFullFields {
     }
 }
 
-fn try_read_value_to_bytes(
-    value: &Value,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<u8>, ToolboxIdlError> {
+fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
     if let Some(value_array) = value.as_array() {
-        return idl_as_bytes_or_else(value_array, &breadcrumbs.val());
+        return idl_as_bytes_or_else(value_array);
     }
     if let Some(value_object) = value.as_object() {
         if let Some(data) = idl_object_get_key_as_str(value_object, "hex") {
-            return try_read_hex_to_bytes(data, breadcrumbs);
+            return try_read_hex_to_bytes(data);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
             return Ok(ToolboxEndpoint::sanitize_and_decode_base58(data)?);
@@ -501,27 +419,16 @@ fn try_read_value_to_bytes(
             return Ok(vec![0; usize::try_from(data).unwrap()]);
         }
     }
-    idl_err(
-        "Could not read bytes, expected an array/object",
-        &breadcrumbs.val(),
-    )
+    Err(anyhow!("Could not read bytes, expected an array/object"))
 }
 
-fn try_read_hex_to_bytes(
-    data: &str,
-    breadcrumbs: &ToolboxIdlBreadcrumbs,
-) -> Result<Vec<u8>, ToolboxIdlError> {
+fn try_read_hex_to_bytes(data: &str) -> Result<Vec<u8>> {
     let hex = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
     let mut bytes = vec![];
     for byte in 0..(hex.len() / 2) {
         let byte_idx = byte * 2;
         let byte_hex = &hex[byte_idx..byte_idx + 2];
-        bytes.push(u8::from_str_radix(byte_hex, 16).map_err(|err| {
-            ToolboxIdlError::InvalidNumber {
-                parsing: err,
-                context: breadcrumbs.as_val(&format!("[{}]", byte_idx)),
-            }
-        })?);
+        bytes.push(u8::from_str_radix(byte_hex, 16)?);
     }
     Ok(bytes)
 }

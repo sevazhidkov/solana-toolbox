@@ -1,9 +1,10 @@
+use anyhow::anyhow;
+use anyhow::Result;
 use solana_client::rpc_config::RpcSimulateTransactionConfig;
 use solana_sdk::transaction::VersionedTransaction;
 use solana_transaction_status::UiTransactionEncoding;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
-use crate::toolbox_endpoint_error::ToolboxEndpointError;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
@@ -12,7 +13,7 @@ impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn simulate_transaction_using_rpc(
         &mut self,
         versioned_transaction: VersionedTransaction,
-    ) -> Result<ToolboxEndpointExecution, ToolboxEndpointError> {
+    ) -> Result<ToolboxEndpointExecution> {
         let mut resolved_address_lookup_tables = vec![];
         if let Some(address_table_lookups) =
             versioned_transaction.message.address_table_lookups()
@@ -25,9 +26,9 @@ impl ToolboxEndpointProxyRpcClient {
                             .get_account(&address_lookup_table_key)
                             .await?
                             .ok_or_else(|| {
-                                ToolboxEndpointError::AccountDoesNotExist(
+                                anyhow!(
+                                    "Could not get account: {} (address lookup table)",
                                     address_lookup_table_key,
-                                    "Address Lookup Table".to_string(),
                                 )
                             })?
                             .data,
