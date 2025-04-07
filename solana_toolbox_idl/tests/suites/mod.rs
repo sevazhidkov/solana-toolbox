@@ -22,6 +22,7 @@ pub mod unit_export_program_account;
 pub mod unit_export_program_enum;
 pub mod unit_export_program_instruction;
 pub mod unit_export_program_metadata;
+pub mod unit_export_program_pda;
 pub mod unit_export_program_struct;
 pub mod unit_find_instruction_addresses_address;
 pub mod unit_find_instruction_addresses_pda_account;

@@ -62,20 +62,26 @@ impl ToolboxIdlInstructionAccountPda {
                         instruction_addresses,
                         instruction_accounts_states,
                     )
-                    .context("Seeds")
                     .context(context)?,
             );
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
-            let pda_program_id_bytes = pda_program_blob.try_compute(
-                instruction_args_type_fields,
-                instruction_payload,
-                instruction_addresses,
-                instruction_accounts_states,
-            )?;
-            Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
-                |error| anyhow!("Invalid Pubkey bytes: {:?}", error),
-            )?)
+            let pda_program_id_bytes = pda_program_blob
+                .try_compute(
+                    instruction_args_type_fields,
+                    instruction_payload,
+                    instruction_addresses,
+                    instruction_accounts_states,
+                )
+                .context("Program blob compute")?;
+            Pubkey::new_from_array(
+                pda_program_id_bytes
+                    .try_into()
+                    .map_err(|error| {
+                        anyhow!("Invalid Pubkey bytes: {:?}", error)
+                    })
+                    .context("Program")?,
+            )
         } else {
             *instruction_program_id
         };
@@ -100,12 +106,16 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 Ok(bytes.clone())
             },
             ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
-                let type_full = path.try_extract_type_full_fields(
-                    instruction_args_type_fields,
-                )?;
-                let value = path.try_extract_json_value(instruction_payload)?;
+                let type_full = path
+                    .try_extract_type_full_fields(instruction_args_type_fields)
+                    .context("Arg extract type")?;
+                let value = path
+                    .try_extract_json_value(instruction_payload)
+                    .context("Arg extract value")?;
                 let mut bytes = vec![];
-                type_full.try_serialize(&value, &mut bytes, false)?;
+                type_full
+                    .try_serialize(&value, &mut bytes, false)
+                    .context("Arg serialize")?;
                 Ok(bytes)
             },
             ToolboxIdlInstructionAccountPdaBlob::Account { path, account } => {
@@ -116,22 +126,29 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                         instruction_addresses,
                         &instruction_account_name,
                     )
+                    .context("Instruction addresses")
                     .map(|address| address.to_bytes().to_vec());
                 }
                 let instruction_account_state = idl_map_get_key_or_else(
                     instruction_accounts_states,
                     &instruction_account_name,
-                )?;
-                let type_full = content_path.try_extract_type_full(
-                    &account
-                        .clone()
-                        .context("Account is unknown")?
-                        .content_type_full,
-                )?;
+                )
+                .context("Instruction accounts states")?;
+                let type_full = content_path
+                    .try_extract_type_full(
+                        &account
+                            .clone()
+                            .context("Account is unknown")?
+                            .content_type_full,
+                    )
+                    .context("Account extract type")?;
                 let value = content_path
-                    .try_extract_json_value(instruction_account_state)?;
+                    .try_extract_json_value(instruction_account_state)
+                    .context("Account extract value")?;
                 let mut bytes = vec![];
-                type_full.try_serialize(&value, &mut bytes, false)?;
+                type_full
+                    .try_serialize(&value, &mut bytes, false)
+                    .context("Account serialize")?;
                 Ok(bytes)
             },
         }

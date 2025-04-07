@@ -6,43 +6,21 @@
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
-  "docs": [
-    "IDL test program documentation."
-  ],
+  "docs": ["IDL test program documentation."],
   "instructions": [
     {
       "name": "cause_error",
-      "discriminator": [
-        67,
-        104,
-        37,
-        17,
-        2,
-        155,
-        68,
-        17
-      ],
+      "discriminator": [67, 104, 37, 17, 2, 155, 68, 17],
       "accounts": [],
       "args": []
     },
     {
       "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
       "accounts": [
         {
           "name": "state",
-          "docs": [
-            "State account"
-          ],
+          "docs": ["State account"],
           "writable": true,
           "signer": true
         },
@@ -51,9 +29,7 @@
           "accounts": [
             {
               "name": "clock",
-              "docs": [
-                "Sysvar clock"
-              ],
+              "docs": ["Sysvar clock"],
               "address": "SysvarC1ock11111111111111111111111111111111"
             },
             {
@@ -91,25 +67,12 @@
     },
     {
       "name": "initialize_with_values",
-      "docs": [
-        "Initializes an account with specified values"
-      ],
-      "discriminator": [
-        220,
-        73,
-        8,
-        213,
-        178,
-        69,
-        181,
-        141
-      ],
+      "docs": ["Initializes an account with specified values"],
+      "discriminator": [220, 73, 8, 213, 178, 69, 181, 141],
       "accounts": [
         {
           "name": "state",
-          "docs": [
-            "State account"
-          ],
+          "docs": ["State account"],
           "writable": true,
           "signer": true
         },
@@ -118,9 +81,7 @@
           "accounts": [
             {
               "name": "clock",
-              "docs": [
-                "Sysvar clock"
-              ],
+              "docs": ["Sysvar clock"],
               "address": "SysvarC1ock11111111111111111111111111111111"
             },
             {
@@ -262,10 +223,7 @@
         {
           "name": "array_field",
           "type": {
-            "array": [
-              "bool",
-              3
-            ]
+            "array": ["bool", 3]
           }
         },
         {
@@ -303,21 +261,12 @@
       ]
     },
     {
-      "name": "initialize_with_values2",
+      "name": "initialize_with_values_2",
       "docs": [
         "a separate instruction due to initialize_with_values having too many arguments",
         "https://github.com/solana-labs/solana/issues/23978"
       ],
-      "discriminator": [
-        248,
-        190,
-        21,
-        97,
-        239,
-        148,
-        39,
-        181
-      ],
+      "discriminator": [248, 190, 21, 97, 239, 148, 39, 181],
       "accounts": [
         {
           "name": "state",
@@ -358,57 +307,21 @@
   "accounts": [
     {
       "name": "SomeZcAccount",
-      "discriminator": [
-        56,
-        72,
-        82,
-        194,
-        210,
-        35,
-        17,
-        191
-      ]
+      "discriminator": [56, 72, 82, 194, 210, 35, 17, 191]
     },
     {
       "name": "State",
-      "discriminator": [
-        216,
-        146,
-        107,
-        94,
-        104,
-        75,
-        182,
-        177
-      ]
+      "discriminator": [216, 146, 107, 94, 104, 75, 182, 177]
     },
     {
       "name": "State2",
-      "discriminator": [
-        106,
-        97,
-        255,
-        161,
-        250,
-        205,
-        185,
-        192
-      ]
+      "discriminator": [106, 97, 255, 161, 250, 205, 185, 192]
     }
   ],
   "events": [
     {
       "name": "SomeEvent",
-      "discriminator": [
-        39,
-        221,
-        150,
-        148,
-        91,
-        206,
-        29,
-        93
-      ]
+      "discriminator": [39, 221, 150, 148, 91, 206, 29, 93]
     }
   ],
   "errors": [
@@ -430,17 +343,13 @@
   "types": [
     {
       "name": "BarStruct",
-      "docs": [
-        "Bar struct type"
-      ],
+      "docs": ["Bar struct type"],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "some_field",
-            "docs": [
-              "Some field"
-            ],
+            "docs": ["Some field"],
             "type": "bool"
           },
           {
@@ -452,9 +361,7 @@
     },
     {
       "name": "FooEnum",
-      "docs": [
-        "Enum type"
-      ],
+      "docs": ["Enum type"],
       "type": {
         "kind": "enum",
         "variants": [
@@ -485,9 +392,7 @@
             "fields": [
               {
                 "name": "bool_field",
-                "docs": [
-                  "A bool field inside a struct tuple kind"
-                ],
+                "docs": ["A bool field inside a struct tuple kind"],
                 "type": "bool"
               },
               {
@@ -658,17 +563,13 @@
     },
     {
       "name": "State",
-      "docs": [
-        "An account containing various fields"
-      ],
+      "docs": ["An account containing various fields"],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "bool_field",
-            "docs": [
-              "A boolean field"
-            ],
+            "docs": ["A boolean field"],
             "type": "bool"
           },
           {
@@ -774,10 +675,7 @@
           {
             "name": "array_field",
             "type": {
-              "array": [
-                "bool",
-                3
-              ]
+              "array": ["bool", 3]
             }
           },
           {

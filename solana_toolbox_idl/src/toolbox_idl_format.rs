@@ -1,10 +1,10 @@
-// TODO (FAR) - support exporting for typescript name convention ?
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlFormat {
     pub use_object_for_unordered_named_array: bool,
     pub use_root_as_metadata_object: bool,
     pub use_camel_case_instruction_account_flags: bool,
     pub use_camel_case_type_primitive_names: bool,
+    pub use_camel_case_type_fields_names: bool,
     pub can_skip_defined_name_object_wrap: bool,
     pub can_skip_unamed_field_type_object_wrap: bool,
     pub can_skip_typedef_type_object_wrap: bool,

@@ -6,6 +6,7 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
+use crate::toolbox_idl_utils::idl_convert_to_camel_name;
 
 impl ToolboxIdlTypeFlat {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -145,7 +146,15 @@ impl ToolboxIdlTypeFlatFields {
                 let mut json_fields = vec![];
                 for (field_name, field_docs, field_type_flat) in fields {
                     let mut json_field = Map::new();
-                    json_field.insert("name".to_string(), json!(field_name));
+                    if format.use_camel_case_type_fields_names {
+                        json_field.insert(
+                            "name".to_string(),
+                            json!(idl_convert_to_camel_name(field_name)),
+                        );
+                    } else {
+                        json_field
+                            .insert("name".to_string(), json!(field_name));
+                    }
                     json_field.insert(
                         "type".to_string(),
                         field_type_flat.export(format),

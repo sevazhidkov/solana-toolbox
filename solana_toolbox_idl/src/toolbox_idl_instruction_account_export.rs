@@ -66,7 +66,6 @@ impl ToolboxIdlInstructionAccountPda {
 
 impl ToolboxIdlInstructionAccountPdaBlob {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        // TODO (FAR) - support backward compatibility for stuff like "account"/"type" fields ?
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => {
                 let mut json_const = Map::new();
@@ -76,20 +75,41 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 if !format.can_skip_instruction_account_pda_type_key {
                     json_const.insert("type".to_string(), json!("bytes"));
                 }
+                if json_const.is_empty() {
+                    return json!(bytes);
+                }
                 json_const.insert("value".to_string(), json!(bytes));
                 json!(json_const)
             },
-            ToolboxIdlInstructionAccountPdaBlob::Arg { path } => json!({
-                "kind": "arg",
-                "path": path.export(),
-            }),
+            ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
+                let mut json_arg = Map::new();
+                json_arg.insert("arg".to_string(), json!("arg"));
+                if !format.can_skip_instruction_account_pda_type_key {
+                    // TODO - support type export here
+                }
+                json_arg.insert("path".to_string(), json!(path.export()));
+                json!(json_arg)
+            },
             ToolboxIdlInstructionAccountPdaBlob::Account { path, account } => {
                 let mut json_account = Map::new();
                 if !format.can_skip_instruction_account_pda_kind_key {
                     json_account.insert("kind".to_string(), json!("account"));
                 }
                 if !format.can_skip_instruction_account_pda_type_key {
-                    //json_account.insert("type".to_string(), account);
+                    if let Some(account) = account {
+                        if let Some((_, content_path)) = path.split_first() {
+                            if let Ok(type_full) = content_path
+                                .try_extract_type_full(
+                                    &account.content_type_full,
+                                )
+                            {
+                                json_account.insert(
+                                    "type".to_string(),
+                                    type_full.flattened().export(format),
+                                );
+                            }
+                        }
+                    }
                 }
                 if let Some(account) = account {
                     json_account

@@ -7,6 +7,7 @@ impl ToolboxIdlFormat {
             use_root_as_metadata_object: false,
             use_camel_case_instruction_account_flags: false,
             use_camel_case_type_primitive_names: false,
+            use_camel_case_type_fields_names: false,
             can_skip_defined_name_object_wrap: false,
             can_skip_unamed_field_type_object_wrap: false,
             can_skip_typedef_type_object_wrap: false,

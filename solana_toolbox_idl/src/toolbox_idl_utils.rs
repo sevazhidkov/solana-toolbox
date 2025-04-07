@@ -183,16 +183,6 @@ pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
     Ok(u8::from_le_bytes(slice.try_into().unwrap()))
 }
 
-// TODO - those could probably be inlined
-pub(crate) fn idl_u16_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<u16> {
-    let size = std::mem::size_of::<u16>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(u16::from_le_bytes(slice.try_into().unwrap()))
-}
-
 pub(crate) fn idl_u32_from_bytes_at(
     bytes: &[u8],
     offset: usize,
@@ -200,84 +190,6 @@ pub(crate) fn idl_u32_from_bytes_at(
     let size = std::mem::size_of::<u32>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u32::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_u64_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<u64> {
-    let size = std::mem::size_of::<u64>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(u64::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_u128_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<u128> {
-    let size = std::mem::size_of::<u128>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(u128::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_i8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<i8> {
-    let size = std::mem::size_of::<i8>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(i8::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_i16_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<i16> {
-    let size = std::mem::size_of::<i16>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(i16::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_i32_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<i32> {
-    let size = std::mem::size_of::<i32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(i32::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_i64_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<i64> {
-    let size = std::mem::size_of::<i64>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(i64::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_i128_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<i128> {
-    let size = std::mem::size_of::<i128>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(i128::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_f32_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<f32> {
-    let size = std::mem::size_of::<f32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(f32::from_le_bytes(slice.try_into().unwrap()))
-}
-
-pub(crate) fn idl_f64_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<f64> {
-    let size = std::mem::size_of::<f32>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(f64::from_le_bytes(slice.try_into().unwrap()))
 }
 
 pub(crate) fn idl_pubkey_from_bytes_at(
@@ -322,6 +234,11 @@ pub(crate) fn idl_convert_to_value_name(name: &str) -> String {
 pub(crate) fn idl_convert_to_type_name(name: &str) -> String {
     name.without_boundaries(&[Boundary::LOWER_DIGIT])
         .to_case(Case::Pascal)
+}
+
+pub(crate) fn idl_convert_to_camel_name(name: &str) -> String {
+    name.without_boundaries(&[Boundary::LOWER_DIGIT])
+        .to_case(Case::Camel)
 }
 
 pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {

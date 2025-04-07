@@ -35,6 +35,7 @@ mod toolbox_idl_type_flat_parse;
 mod toolbox_idl_type_full;
 mod toolbox_idl_type_full_deserialize;
 mod toolbox_idl_type_full_explain;
+mod toolbox_idl_type_full_flattened;
 mod toolbox_idl_type_full_serialize;
 mod toolbox_idl_type_full_synthesize;
 mod toolbox_idl_type_primitive;

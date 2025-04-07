@@ -41,7 +41,8 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-            ),
+            )
+            .context("Option"),
             ToolboxIdlTypeFull::Vec { items } => {
                 ToolboxIdlTypeFull::try_serialize_vec(
                     items,
@@ -49,7 +50,8 @@ impl ToolboxIdlTypeFull {
                     data,
                     deserializable,
                 )
-            },
+            }
+            .context("Vec"),
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_serialize_array(
                     items,
@@ -58,7 +60,8 @@ impl ToolboxIdlTypeFull {
                     data,
                     deserializable,
                 )
-            },
+            }
+            .context("Array"),
             ToolboxIdlTypeFull::Struct { fields } => {
                 ToolboxIdlTypeFull::try_serialize_struct(
                     fields,
@@ -66,7 +69,8 @@ impl ToolboxIdlTypeFull {
                     data,
                     deserializable,
                 )
-            },
+            }
+            .context("Struct"),
             ToolboxIdlTypeFull::Enum { variants } => {
                 ToolboxIdlTypeFull::try_serialize_enum(
                     variants,
@@ -74,7 +78,8 @@ impl ToolboxIdlTypeFull {
                     data,
                     deserializable,
                 )
-            },
+            }
+            .context("Enum"),
             ToolboxIdlTypeFull::Padded {
                 size_bytes,
                 content,
@@ -84,7 +89,8 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-            ),
+            )
+            .context("Padded"),
             ToolboxIdlTypeFull::Const { literal } => {
                 Err(anyhow!("Can't use a const literal directly: {}", literal))
             },
