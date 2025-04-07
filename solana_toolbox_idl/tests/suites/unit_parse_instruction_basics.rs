@@ -12,7 +12,6 @@ use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
 pub async fn run() {
-    // TODO (MEDIUM) - test is_optional parsing and encode/decode and docs parsing
     // Create IDLs using different shortened formats
     let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
         "instructions": [

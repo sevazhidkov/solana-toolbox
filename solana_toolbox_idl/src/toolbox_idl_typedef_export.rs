@@ -7,9 +7,9 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
 impl ToolboxIdlTypedef {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        if self.generics.is_empty()
+        if format.can_skip_typedef_type_object_wrap
+            && self.generics.is_empty()
             && self.docs.is_none()
-            && format.can_skip_type_object_wrapping()
         {
             return self.type_flat.export(format);
         }
@@ -17,7 +17,7 @@ impl ToolboxIdlTypedef {
         if !self.generics.is_empty() {
             let mut json_generics = vec![];
             for generic in &self.generics {
-                if format.can_skip_kind_key() {
+                if format.can_skip_generic_kind_key {
                     json_generics.push(json!(generic));
                 } else {
                     json_generics.push(json!({
@@ -28,7 +28,7 @@ impl ToolboxIdlTypedef {
             }
             json_object.insert("generics".to_string(), json!(json_generics));
         }
-        if !format.use_object_for_unordered_named_array() {
+        if !format.use_object_for_unordered_named_array {
             json_object.insert("name".to_string(), json!(self.name));
         }
         if let Some(docs) = &self.docs {

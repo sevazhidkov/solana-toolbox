@@ -15,7 +15,7 @@ impl ToolboxIdlProgram {
         if let Some(docs) = &self.docs {
             json_program.insert("docs".to_string(), json!(docs));
         }
-        if format.use_root_as_metadata_object() {
+        if format.use_root_as_metadata_object {
             self.export_metadata_to(&mut json_program);
         } else {
             let mut json_program_metadata = Map::new();
@@ -50,7 +50,7 @@ impl ToolboxIdlProgram {
     }
 
     fn export_typedefs(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.use_object_for_unordered_named_array() {
+        if format.use_object_for_unordered_named_array {
             let mut json_typedefs = Map::new();
             for program_typedef in self.typedefs.values() {
                 json_typedefs.insert(
@@ -68,7 +68,7 @@ impl ToolboxIdlProgram {
     }
 
     fn export_instructions(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.use_object_for_unordered_named_array() {
+        if format.use_object_for_unordered_named_array {
             let mut json_instructions = Map::new();
             for program_instruction in self.instructions.values() {
                 json_instructions.insert(
@@ -86,7 +86,7 @@ impl ToolboxIdlProgram {
     }
 
     fn export_accounts(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.use_object_for_unordered_named_array() {
+        if format.use_object_for_unordered_named_array {
             let mut json_accounts = Map::new();
             for program_account in self.accounts.values() {
                 json_accounts.insert(
@@ -104,7 +104,7 @@ impl ToolboxIdlProgram {
     }
 
     fn export_errors(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.use_object_for_unordered_named_array() {
+        if format.use_object_for_unordered_named_array {
             let mut json_errors = Map::new();
             for program_error in self.errors.values() {
                 json_errors.insert(

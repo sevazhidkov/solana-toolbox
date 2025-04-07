@@ -1,6 +1,6 @@
 use serde_json::json;
-use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlError;
+use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {

@@ -14,7 +14,7 @@ impl ToolboxIdlInstructionAccount {
         if let Some(docs) = &self.docs {
             json_object.insert("docs".to_string(), json!(docs));
         }
-        if format.use_camel_case_account_flags() {
+        if format.use_camel_case_instruction_account_flags {
             if self.signer {
                 json_object.insert("isSigner".to_string(), json!(true));
             }
@@ -65,21 +65,39 @@ impl ToolboxIdlInstructionAccountPda {
 }
 
 impl ToolboxIdlInstructionAccountPdaBlob {
-    pub fn export(&self, _: &ToolboxIdlFormat) -> Value {
+    pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         // TODO (FAR) - support backward compatibility for stuff like "account"/"type" fields ?
         match self {
-            ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => json!({
-                "kind": "const",
-                "value": bytes,
-            }),
+            ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => {
+                let mut json_const = Map::new();
+                if !format.can_skip_instruction_account_pda_kind_key {
+                    json_const.insert("kind".to_string(), json!("const"));
+                }
+                if !format.can_skip_instruction_account_pda_type_key {
+                    json_const.insert("type".to_string(), json!("bytes"));
+                }
+                json_const.insert("value".to_string(), json!(bytes));
+                json!(json_const)
+            },
             ToolboxIdlInstructionAccountPdaBlob::Arg { path } => json!({
                 "kind": "arg",
-                "path": path,
+                "path": path.export(),
             }),
-            ToolboxIdlInstructionAccountPdaBlob::Account { path } => json!({
-                "kind": "account",
-                "path": path,
-            }),
+            ToolboxIdlInstructionAccountPdaBlob::Account { path, account } => {
+                let mut json_account = Map::new();
+                if !format.can_skip_instruction_account_pda_kind_key {
+                    json_account.insert("kind".to_string(), json!("account"));
+                }
+                if !format.can_skip_instruction_account_pda_type_key {
+                    //json_account.insert("type".to_string(), account);
+                }
+                if let Some(account) = account {
+                    json_account
+                        .insert("account".to_string(), json!(account.name));
+                }
+                json_account.insert("path".to_string(), json!(path.export()));
+                json!(json_account)
+            },
         }
     }
 }

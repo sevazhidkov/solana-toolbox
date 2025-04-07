@@ -12,7 +12,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_program = ToolboxIdlProgram::try_parse_from_str(
-        &read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap(),
+        &read_to_string("./tests/fixtures/idl_anchor_30.json").unwrap(),
     )
     .unwrap();
     // Important account addresses

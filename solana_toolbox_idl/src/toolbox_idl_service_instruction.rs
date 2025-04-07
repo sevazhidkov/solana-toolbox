@@ -75,19 +75,16 @@ impl ToolboxIdlService {
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<HashMap<String, Pubkey>> {
         let mut instruction_addresses = instruction_addresses.clone();
-        let mut instruction_content_types_and_states = HashMap::new();
+        let mut instruction_accounts_states = HashMap::new();
         for (instruction_account_name, instruction_address) in
             &instruction_addresses
         {
             let account_decoded = self
                 .get_and_decode_account(endpoint, instruction_address)
                 .await?;
-            instruction_content_types_and_states.insert(
+            instruction_accounts_states.insert(
                 instruction_account_name.to_string(),
-                (
-                    account_decoded.account.content_type_full.clone(),
-                    account_decoded.state,
-                ),
+                account_decoded.state,
             );
         }
         loop {
@@ -104,7 +101,7 @@ impl ToolboxIdlService {
                         &idl_instruction.args_type_full_fields,
                         instruction_payload,
                         &instruction_addresses,
-                        &instruction_content_types_and_states,
+                        &instruction_accounts_states,
                     )
                 {
                     made_progress = true;
@@ -115,12 +112,9 @@ impl ToolboxIdlService {
                     let account_decoded = self
                         .get_and_decode_account(endpoint, &instruction_address)
                         .await?;
-                    instruction_content_types_and_states.insert(
+                    instruction_accounts_states.insert(
                         idl_instruction_account.name.to_string(),
-                        (
-                            account_decoded.account.content_type_full.clone(),
-                            account_decoded.state,
-                        ),
+                        account_decoded.state,
                     );
                 }
             }

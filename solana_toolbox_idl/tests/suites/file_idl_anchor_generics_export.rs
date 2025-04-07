@@ -13,21 +13,21 @@ pub async fn run() {
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program.export(&ToolboxIdlFormat::Human)
+            &idl_program.export(&ToolboxIdlFormat::human())
         )
         .unwrap(),
         idl_program,
     );
     assert_eq!(
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program.export(&ToolboxIdlFormat::Anchor26)
+            &idl_program.export(&ToolboxIdlFormat::anchor_26())
         )
         .unwrap(),
         idl_program,
     );
     assert_eq!(
         ToolboxIdlProgram::try_parse_from_value(
-            &idl_program.export(&ToolboxIdlFormat::Anchor30)
+            &idl_program.export(&ToolboxIdlFormat::anchor_30())
         )
         .unwrap(),
         idl_program,

@@ -23,9 +23,9 @@ pub struct ToolboxIdlProgram {
     pub address: Option<Pubkey>,
     pub docs: Option<Value>,
     pub metadata: ToolboxIdlProgramMetadata,
-    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
+    pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub errors: HashMap<String, Arc<ToolboxIdlError>>,
 }
 

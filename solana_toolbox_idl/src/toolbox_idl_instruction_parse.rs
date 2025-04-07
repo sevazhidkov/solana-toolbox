@@ -17,31 +17,41 @@ use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
+use crate::ToolboxIdlAccount;
 
 impl ToolboxIdlInstruction {
     pub fn try_parse(
         idl_instruction_name: &str,
         idl_instruction: &Value,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+        accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<ToolboxIdlInstruction> {
         let idl_instruction = idl_as_object_or_else(idl_instruction)?;
         let discriminator = ToolboxIdlInstruction::try_parse_discriminator(
             idl_instruction_name,
             idl_instruction,
-        )?;
+        )
+        .context("Discriminator")?;
         let docs = idl_instruction.get("docs").cloned();
-        let accounts =
-            ToolboxIdlInstruction::try_parse_accounts(idl_instruction)?;
+        let accounts = ToolboxIdlInstruction::try_parse_accounts(
+            idl_instruction,
+            accounts,
+        )
+        .context("Accounts")?;
         let args_type_flat_fields =
             ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,
-            )?;
-        let args_type_full_fields =
-            args_type_flat_fields.try_hydrate(&HashMap::new(), typedefs)?;
+            )
+            .context("Args parsing")?;
+        let args_type_full_fields = args_type_flat_fields
+            .try_hydrate(&HashMap::new(), typedefs)
+            .context("Args hydration")?;
         let return_type_flat =
-            ToolboxIdlInstruction::try_parse_return_type_flat(idl_instruction)?;
-        let return_type_full =
-            return_type_flat.try_hydrate(&HashMap::new(), typedefs)?;
+            ToolboxIdlInstruction::try_parse_return_type_flat(idl_instruction)
+                .context("Returns parsing")?;
+        let return_type_full = return_type_flat
+            .try_hydrate(&HashMap::new(), typedefs)
+            .context("Returns hydration")?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
             docs,
@@ -71,21 +81,23 @@ impl ToolboxIdlInstruction {
 
     fn try_parse_accounts(
         idl_instruction: &Map<String, Value>,
+        accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<Vec<ToolboxIdlInstructionAccount>> {
         let idl_instruction_accounts_array =
             idl_object_get_key_as_array_or_else(idl_instruction, "accounts")?;
-        let mut accounts = vec![];
+        let mut instruction_accounts = vec![];
         for (_, idl_instruction_account, context) in
             idl_iter_get_scoped_values(idl_instruction_accounts_array)
         {
-            accounts.push(
+            instruction_accounts.push(
                 ToolboxIdlInstructionAccount::try_parse(
                     idl_instruction_account,
+                    accounts,
                 )
                 .context(context)?,
             );
         }
-        Ok(accounts)
+        Ok(instruction_accounts)
     }
 
     fn try_parse_args_type_flat_fields(

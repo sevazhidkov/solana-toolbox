@@ -9,7 +9,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_program = ToolboxIdlProgram::try_parse_from_str(
-        &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
+        &read_to_string("./tests/fixtures/idl_anchor_26.json").unwrap(),
     )
     .unwrap();
     // IDL instruction
@@ -36,23 +36,15 @@ pub async fn run() {
     ]);
     // Find missing instruction accounts
     let instruction_addresses = idl_instruction
-        .find_addresses_with_accounts_content_types_and_states(
+        .find_addresses_with_accounts_states(
             &program_id,
             &instruction_payload,
             &instruction_addresses,
             &HashMap::from_iter([(
                 "borrower_info".to_string(),
-                (
-                    idl_program
-                        .accounts
-                        .get("BorrowerInfo")
-                        .unwrap()
-                        .content_type_full
-                        .clone(),
-                    json!({
-                        "num_of_deals": 42,
-                    }),
-                ),
+                json!({
+                    "num_of_deals": 42,
+                }),
             )]),
         );
     // Check that we can encode it and then decode it

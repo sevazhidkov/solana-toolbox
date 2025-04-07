@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use anyhow::anyhow;
 use anyhow::Context;
@@ -10,12 +9,9 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
-use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
-use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 
 impl ToolboxIdlInstructionAccount {
     pub fn try_find(
@@ -24,10 +20,7 @@ impl ToolboxIdlInstructionAccount {
         instruction_args_type_fields: &ToolboxIdlTypeFullFields,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-        instruction_content_types_and_states: &HashMap<
-            String,
-            (Arc<ToolboxIdlTypeFull>, Value),
-        >,
+        instruction_accounts_states: &HashMap<String, Value>,
     ) -> Result<Pubkey> {
         if let Some(address) = instruction_addresses.get(&self.name) {
             return Ok(*address);
@@ -41,7 +34,7 @@ impl ToolboxIdlInstructionAccount {
                 instruction_args_type_fields,
                 instruction_payload,
                 instruction_addresses,
-                instruction_content_types_and_states,
+                instruction_accounts_states,
             );
         }
         Err(anyhow!("Could not find account (unresolvable)"))
@@ -55,10 +48,7 @@ impl ToolboxIdlInstructionAccountPda {
         instruction_args_type_fields: &ToolboxIdlTypeFullFields,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-        instruction_content_types_and_states: &HashMap<
-            String,
-            (Arc<ToolboxIdlTypeFull>, Value),
-        >,
+        instruction_accounts_states: &HashMap<String, Value>,
     ) -> Result<Pubkey> {
         let mut pda_seeds_bytes = vec![];
         for (_, pda_seed_blob, context) in
@@ -70,7 +60,7 @@ impl ToolboxIdlInstructionAccountPda {
                         instruction_args_type_fields,
                         instruction_payload,
                         instruction_addresses,
-                        instruction_content_types_and_states,
+                        instruction_accounts_states,
                     )
                     .context("Seeds")
                     .context(context)?,
@@ -81,10 +71,10 @@ impl ToolboxIdlInstructionAccountPda {
                 instruction_args_type_fields,
                 instruction_payload,
                 instruction_addresses,
-                instruction_content_types_and_states,
+                instruction_accounts_states,
             )?;
             Pubkey::new_from_array(pda_program_id_bytes.try_into().map_err(
-                |error| anyhow!("Invalid pubkey bytes: {:?}", error),
+                |error| anyhow!("Invalid Pubkey bytes: {:?}", error),
             )?)
         } else {
             *instruction_program_id
@@ -103,83 +93,47 @@ impl ToolboxIdlInstructionAccountPdaBlob {
         instruction_args_type_fields: &ToolboxIdlTypeFullFields,
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
-        instruction_content_types_and_states: &HashMap<
-            String,
-            (Arc<ToolboxIdlTypeFull>, Value),
-        >,
+        instruction_accounts_states: &HashMap<String, Value>,
     ) -> Result<Vec<u8>> {
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => {
                 Ok(bytes.clone())
             },
             ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
-                let idl_blob_parts = path.split(".").collect::<Vec<_>>();
-                ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
+                let type_full = path.try_extract_type_full_fields(
                     instruction_args_type_fields,
-                    instruction_payload,
-                    &idl_blob_parts,
-                )
+                )?;
+                let value = path.try_extract_json_value(instruction_payload)?;
+                let mut bytes = vec![];
+                type_full.try_serialize(&value, &mut bytes, false)?;
+                Ok(bytes)
             },
-            ToolboxIdlInstructionAccountPdaBlob::Account { path } => {
-                let idl_blob_parts = path.split(".").collect::<Vec<_>>();
-                if idl_blob_parts.len() == 1 {
+            ToolboxIdlInstructionAccountPdaBlob::Account { path, account } => {
+                let (instruction_account_name, content_path) =
+                    path.split_first().context("Empty path")?;
+                if content_path.is_empty() {
                     return idl_map_get_key_or_else(
                         instruction_addresses,
-                        idl_blob_parts[0],
+                        &instruction_account_name,
                     )
                     .map(|address| address.to_bytes().to_vec());
                 }
-                let (account_content_type, account_state) =
-                    idl_map_get_key_or_else(
-                        instruction_content_types_and_states,
-                        idl_blob_parts[0],
-                    )?;
-                let account_content_type_fields = account_content_type
-                    .as_struct_fields()
-                    .context("Expected struct fields")?;
-                ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
-                    account_content_type_fields,
-                    account_state,
-                    &idl_blob_parts[1..],
-                )
+                let instruction_account_state = idl_map_get_key_or_else(
+                    instruction_accounts_states,
+                    &instruction_account_name,
+                )?;
+                let type_full = content_path.try_extract_type_full(
+                    &account
+                        .clone()
+                        .context("Account is unknown")?
+                        .content_type_full,
+                )?;
+                let value = content_path
+                    .try_extract_json_value(instruction_account_state)?;
+                let mut bytes = vec![];
+                type_full.try_serialize(&value, &mut bytes, false)?;
+                Ok(bytes)
             },
         }
-    }
-
-    fn try_compute_path_data(
-        type_full_fields: &ToolboxIdlTypeFullFields,
-        value: &Value,
-        parts: &[&str],
-    ) -> Result<Vec<u8>> {
-        let lookup_name = parts[0];
-        // TODO (FAR) - support unamed structs as arg ?
-        let type_full_fields_named = type_full_fields
-            .as_named()
-            .context("Expected named fields")?;
-        let value_object = idl_as_object_or_else(value)?;
-        for (field_name, field_type_full) in type_full_fields_named {
-            if field_name == lookup_name {
-                let value_field =
-                    idl_object_get_key_or_else(value_object, field_name)?;
-                if parts.len() == 1 {
-                    let mut bytes = vec![];
-                    field_type_full.try_serialize(
-                        value_field,
-                        &mut bytes,
-                        false,
-                    )?;
-                    return Ok(bytes);
-                }
-                let type_full_fields = field_type_full
-                    .as_struct_fields()
-                    .context("Expected struct fields")?;
-                return ToolboxIdlInstructionAccountPdaBlob::try_compute_path_data(
-                    type_full_fields,
-                    value_field,
-                    &parts[1..],
-                );
-            }
-        }
-        Err(anyhow!("Could not lookup value at: {}", lookup_name))
     }
 }

@@ -1,8 +1,8 @@
+use std::collections::HashMap;
+
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use std::collections::HashMap;
-
 use convert_case::Boundary;
 use convert_case::Case;
 use convert_case::Casing;
@@ -183,6 +183,7 @@ pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
     Ok(u8::from_le_bytes(slice.try_into().unwrap()))
 }
 
+// TODO - those could probably be inlined
 pub(crate) fn idl_u16_from_bytes_at(
     bytes: &[u8],
     offset: usize,

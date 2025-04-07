@@ -21,7 +21,7 @@ pub async fn run() {
     .unwrap();
     // Check the JSON human compact version
     assert_eq!(
-        idl_program.export(&ToolboxIdlFormat::Human),
+        idl_program.export(&ToolboxIdlFormat::human()),
         json!({
             "metadata": {},
             "instructions": {},
@@ -42,7 +42,7 @@ pub async fn run() {
     );
     // Check the JSON backward compatibility version for anchor 26
     assert_eq!(
-        idl_program.export(&ToolboxIdlFormat::Anchor26),
+        idl_program.export(&ToolboxIdlFormat::anchor_26()),
         json!({
             "instructions": [],
             "accounts": [
@@ -67,7 +67,7 @@ pub async fn run() {
     );
     // Check the JSON backward compatibility version for anchor 30
     assert_eq!(
-        idl_program.export(&ToolboxIdlFormat::Anchor30),
+        idl_program.export(&ToolboxIdlFormat::anchor_30()),
         json!({
             "metadata": {},
             "instructions": [],

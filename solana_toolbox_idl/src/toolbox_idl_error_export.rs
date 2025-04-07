@@ -7,13 +7,12 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 
 impl ToolboxIdlError {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.can_shortcut_error_to_number_if_no_msg()
-            && self.msg.is_empty()
+        if format.can_shortcut_error_to_number_if_no_msg && self.msg.is_empty()
         {
             return json!(self.code);
         }
         let mut json_object = Map::new();
-        if !format.use_object_for_unordered_named_array() {
+        if !format.use_object_for_unordered_named_array {
             json_object.insert("name".to_string(), json!(self.name));
         }
         json_object.insert("code".to_string(), json!(self.code));

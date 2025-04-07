@@ -14,7 +14,7 @@ impl ToolboxIdlTypeFlat {
                 if !generics.is_empty() {
                     let mut json_generics = vec![];
                     for generic in generics {
-                        if format.can_skip_kind_key() {
+                        if format.can_skip_type_kind_key {
                             json_generics.push(generic.export(format));
                         } else {
                             json_generics.push(json!({
@@ -25,10 +25,10 @@ impl ToolboxIdlTypeFlat {
                     }
                     return json!({ "defined": { "name": name, "generics": json_generics }});
                 }
-                if format.can_shortcut_defined_name_to_string_if_no_generic() {
+                if format.can_shortcut_defined_name_to_string_if_no_generic {
                     return json!(name);
                 }
-                if format.can_skip_defined_name_object_wrapping() {
+                if format.can_skip_defined_name_object_wrap {
                     return json!({ "defined": name });
                 }
                 json!({ "defined": { "name": name }})
@@ -47,13 +47,13 @@ impl ToolboxIdlTypeFlat {
                 }
             },
             ToolboxIdlTypeFlat::Vec { items } => {
-                if format.can_shortcut_vec_and_array_notation() {
+                if format.can_shortcut_vec_notation {
                     return json!([items.export(format)]);
                 }
                 json!({ "vec": items.export(format) })
             },
             ToolboxIdlTypeFlat::Array { items, length } => {
-                if format.can_shortcut_vec_and_array_notation() {
+                if format.can_shortcut_array_notation {
                     return json!([
                         items.export(format),
                         length.export(format)
@@ -65,7 +65,7 @@ impl ToolboxIdlTypeFlat {
                 ]})
             },
             ToolboxIdlTypeFlat::Struct { fields } => {
-                if format.can_skip_kind_key() {
+                if format.can_skip_type_kind_key {
                     return json!({ "fields": fields.export(format) });
                 }
                 json!({
@@ -76,7 +76,7 @@ impl ToolboxIdlTypeFlat {
             ToolboxIdlTypeFlat::Enum { variants } => {
                 let mut json_variants = vec![];
                 for (variant_name, variant_docs, variant_fields) in variants {
-                    if format.can_shortcut_enum_variant_to_string_if_no_field()
+                    if format.can_shortcut_enum_variant_to_string_if_no_fields
                         && variant_fields == &ToolboxIdlTypeFlatFields::None
                         && variant_docs.is_none()
                     {
@@ -98,7 +98,7 @@ impl ToolboxIdlTypeFlat {
                     }
                     json_variants.push(json!(json_variant));
                 }
-                if format.can_skip_kind_key() {
+                if format.can_skip_type_kind_key {
                     return json!({ "variants": json_variants });
                 }
                 json!({
@@ -118,7 +118,7 @@ impl ToolboxIdlTypeFlat {
                 })
             },
             ToolboxIdlTypeFlat::Const { literal } => {
-                if format.can_skip_kind_key() {
+                if format.can_skip_type_kind_key {
                     return json!(literal);
                 }
                 json!({
@@ -127,7 +127,7 @@ impl ToolboxIdlTypeFlat {
                 })
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
-                if format.use_camel_case_primitive_names()
+                if format.use_camel_case_type_primitive_names
                     && primitive == &ToolboxIdlTypePrimitive::PublicKey
                 {
                     return json!("publicKey");
@@ -166,7 +166,7 @@ impl ToolboxIdlTypeFlatFields {
                             "docs": field_docs,
                             "type": field_type_flat.export(format)
                         }));
-                    } else if format.can_skip_type_object_wrapping() {
+                    } else if format.can_skip_unamed_field_type_object_wrap {
                         json_fields.push(field_type_flat.export(format));
                     } else {
                         json_fields.push(json!({

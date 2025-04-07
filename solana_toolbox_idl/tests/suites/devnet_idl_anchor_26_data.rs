@@ -24,8 +24,7 @@ pub async fn run() {
         &program_id,
         Some(
             ToolboxIdlProgram::try_parse_from_str(
-                &read_to_string("./tests/fixtures/idl_anchor_0_26.json")
-                    .unwrap(),
+                &read_to_string("./tests/fixtures/idl_anchor_26.json").unwrap(),
             )
             .unwrap()
             .into(),

@@ -9,7 +9,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_program = ToolboxIdlProgram::try_parse_from_str(
-        &read_to_string("./tests/fixtures/idl_anchor_0_26.json").unwrap(),
+        &read_to_string("./tests/fixtures/idl_anchor_26.json").unwrap(),
     )
     .unwrap();
     // Important account addresses
@@ -126,7 +126,7 @@ pub async fn run() {
         .instructions
         .get("open_deal")
         .unwrap()
-        .find_addresses_with_accounts_content_types_and_states(
+        .find_addresses_with_accounts_states(
             &program_id,
             &json!({ "global_market_seed": global_market_seed.to_string() }),
             &HashMap::from([
@@ -135,18 +135,10 @@ pub async fn run() {
             ]),
             &HashMap::from_iter([(
                 "deal".to_string(),
-                (
-                    idl_program
-                        .accounts
-                        .get("Deal")
-                        .unwrap()
-                        .content_type_full
-                        .clone(),
-                    json!({
-                        "deal_number": deal_number,
-                        "borrower": borrower.to_string()
-                    }),
-                ),
+                json!({
+                    "deal_number": deal_number,
+                    "borrower": borrower.to_string()
+                }),
             )]),
         );
     // Check the outcomes

@@ -1,7 +1,12 @@
+use std::sync::Arc;
+
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
+use crate::{
+    toolbox_idl_path::ToolboxIdlPath,
+    toolbox_idl_utils::idl_convert_to_value_name, ToolboxIdlAccount,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
@@ -22,9 +27,16 @@ pub struct ToolboxIdlInstructionAccountPda {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlInstructionAccountPdaBlob {
-    Const { bytes: Vec<u8> },
-    Arg { path: String },
-    Account { path: String },
+    Const {
+        bytes: Vec<u8>,
+    },
+    Arg {
+        path: ToolboxIdlPath,
+    },
+    Account {
+        path: ToolboxIdlPath,
+        account: Option<Arc<ToolboxIdlAccount>>,
+    },
 }
 
 impl ToolboxIdlInstructionAccountPdaBlob {
@@ -36,14 +48,14 @@ impl ToolboxIdlInstructionAccountPdaBlob {
         }
     }
 
-    pub fn info(&self) -> Option<(&str, &str)> {
+    pub fn need(&self) -> Option<(&str, String)> {
         match self {
             ToolboxIdlInstructionAccountPdaBlob::Const { .. } => None,
             ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
-                Some(("arg", path))
+                Some(("arg", path.export()))
             },
-            ToolboxIdlInstructionAccountPdaBlob::Account { path } => {
-                Some(("account", path))
+            ToolboxIdlInstructionAccountPdaBlob::Account { path, .. } => {
+                Some(("account", path.export()))
             },
         }
     }

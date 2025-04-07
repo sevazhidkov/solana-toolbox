@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use anyhow::anyhow;
 use anyhow::Result;
-
 use clap::Args;
 use serde_json::json;
 use serde_json::Map;
@@ -117,7 +116,7 @@ impl ToolboxCliCommandInstructionArgs {
         }
 
         let (instruction_specs_payload, instruction_specs_addresses) =
-            idl_instruction.get_specs();
+            idl_instruction.get_needs();
         let json_specs_payload = instruction_specs_payload.clone();
         let mut json_specs_addresses = Map::new();
         for (instruction_specs_address_name, instruction_specs_address_value) in

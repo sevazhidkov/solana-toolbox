@@ -17,15 +17,15 @@ pub async fn run() {
                         "name": "pda",
                         "pda": {
                             "seeds": [
-                                { "kind": "account", "path": "first.u8" },
-                                { "kind": "account", "path": "first.u16" },
-                                { "kind": "account", "path": "first.u32" },
-                                { "kind": "account", "path": "first.u64" },
-                                { "kind": "account", "path": "first.array_u8_2" },
-                                { "kind": "account", "path": "first.vec_u8_3" },
-                                { "kind": "account", "path": "first.string" },
-                                { "kind": "account", "path": "first.inner.u8" },
-                                { "kind": "account", "path": "first.inner.u16" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.u8" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.u16" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.u32" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.u64" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.array_u8_2" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.vec_u8_3" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.string" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.inner.u8" },
+                                { "kind": "account", "account": "MyAccount", "path": "first.inner.u16" },
                             ]
                         }
                     },
@@ -74,33 +74,25 @@ pub async fn run() {
         .instructions
         .get("my_ix")
         .unwrap()
-        .find_addresses_with_accounts_content_types_and_states(
+        .find_addresses_with_accounts_states(
             &dummy_program_id,
             &json!({}),
             &HashMap::new(),
             &HashMap::from_iter([(
                 "first".to_string(),
-                (
-                    idl_program
-                        .accounts
-                        .get("MyAccount")
-                        .unwrap()
-                        .content_type_full
-                        .clone(),
-                    json!({
-                        "u8": 77,
-                        "u16": 78,
-                        "u32": 79,
-                        "u64": 80,
-                        "array_u8_2": [11, 12],
-                        "vec_u8_3": [21, 22, 23],
-                        "string": "hello",
-                        "inner": {
-                            "u8": 111,
-                            "u16": 222,
-                        },
-                    }),
-                ),
+                json!({
+                    "u8": 77,
+                    "u16": 78,
+                    "u32": 79,
+                    "u64": 80,
+                    "array_u8_2": [11, 12],
+                    "vec_u8_3": [21, 22, 23],
+                    "string": "hello",
+                    "inner": {
+                        "u8": 111,
+                        "u16": 222,
+                    },
+                }),
             )]),
         );
     assert_eq!(*instruction_addresses.get("pda").unwrap(), dummy_address);

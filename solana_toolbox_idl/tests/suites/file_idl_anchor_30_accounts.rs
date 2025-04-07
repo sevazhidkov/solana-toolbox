@@ -10,7 +10,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 pub async fn run() {
     // Parse IDL from file JSON directly
     let idl_program = ToolboxIdlProgram::try_parse_from_str(
-        &read_to_string("./tests/fixtures/idl_anchor_0_30.json").unwrap(),
+        &read_to_string("./tests/fixtures/idl_anchor_30.json").unwrap(),
     )
     .unwrap();
     // Important account addresses
@@ -77,7 +77,7 @@ pub async fn run() {
         .instructions
         .get("campaign_extract")
         .unwrap()
-        .find_addresses_with_accounts_content_types_and_states(
+        .find_addresses_with_accounts_states(
             &program_id,
             &json!({ "params": { "index": campaign_index } }),
             &HashMap::from([
@@ -88,17 +88,9 @@ pub async fn run() {
             ]),
             &HashMap::from_iter([(
                 "campaign".to_string(),
-                (
-                    idl_program
-                        .accounts
-                        .get("Campaign")
-                        .unwrap()
-                        .content_type_full
-                        .clone(),
-                    json!({
-                        "collateral_mint": collateral_mint.to_string()
-                    }),
-                ),
+                json!({
+                    "collateral_mint": collateral_mint.to_string()
+                }),
             )]),
         );
     // Check outcome
@@ -129,7 +121,7 @@ pub async fn run() {
         .instructions
         .get("pledge_deposit")
         .unwrap()
-        .find_addresses_with_accounts_content_types_and_states(
+        .find_addresses_with_accounts_states(
             &program_id,
             &json!({}),
             &HashMap::from([
@@ -140,17 +132,9 @@ pub async fn run() {
             ]),
             &HashMap::from_iter([(
                 "campaign".to_string(),
-                (
-                    idl_program
-                        .accounts
-                        .get("Campaign")
-                        .unwrap()
-                        .content_type_full
-                        .clone(),
-                    json!({
-                        "collateral_mint": collateral_mint.to_string()
-                    }),
-                ),
+                json!({
+                    "collateral_mint": collateral_mint.to_string()
+                }),
             )]),
         );
     // Check outcome

@@ -23,6 +23,6 @@ impl ToolboxCliCommandProgramArgs {
             .await?
             .unwrap_or_default();
         // TODO - support other export formats
-        Ok(idl_program.export(&ToolboxIdlFormat::Human))
+        Ok(idl_program.export(&ToolboxIdlFormat::human()))
     }
 }

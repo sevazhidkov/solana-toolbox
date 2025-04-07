@@ -70,17 +70,22 @@ impl ToolboxIdlProgram {
     }
 
     pub fn try_parse_from_value(value: &Value) -> Result<ToolboxIdlProgram> {
-        let idl_root = idl_as_object_or_else(value)?;
+        let idl_root = idl_as_object_or_else(value).context("Root")?;
         let address = idl_object_get_key_as_str(idl_root, "address")
             .and_then(|address| Pubkey::from_str(address).ok());
         let docs = idl_root.get("docs").cloned();
         let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root);
-        let typedefs = ToolboxIdlProgram::try_parse_typedefs(idl_root)?;
-        let instructions =
-            ToolboxIdlProgram::try_parse_instructions(&typedefs, idl_root)?;
+        let typedefs =
+            ToolboxIdlProgram::try_parse_typedefs(idl_root).context("Types")?;
         let accounts =
-            ToolboxIdlProgram::try_parse_accounts(&typedefs, idl_root)?;
-        let errors = ToolboxIdlProgram::try_parse_errors(idl_root)?;
+            ToolboxIdlProgram::try_parse_accounts(idl_root, &typedefs)
+                .context("Accounts")?;
+        let instructions = ToolboxIdlProgram::try_parse_instructions(
+            idl_root, &typedefs, &accounts,
+        )
+        .context("Instructions")?;
+        let errors =
+            ToolboxIdlProgram::try_parse_errors(idl_root).context("Errors")?;
         Ok(ToolboxIdlProgram {
             address,
             docs,
@@ -145,8 +150,9 @@ impl ToolboxIdlProgram {
     }
 
     fn try_parse_instructions(
-        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         idl_root: &Map<String, Value>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+        accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<HashMap<String, Arc<ToolboxIdlInstruction>>> {
         let mut instructions = HashMap::new();
         for (idl_instruction_name, idl_instruction) in
@@ -163,7 +169,9 @@ impl ToolboxIdlProgram {
                     &idl_instruction_name,
                     idl_instruction,
                     typedefs,
-                )?
+                    accounts,
+                )
+                .context(idl_instruction_name)?
                 .into(),
             );
         }
@@ -171,8 +179,8 @@ impl ToolboxIdlProgram {
     }
 
     fn try_parse_accounts(
-        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         idl_root: &Map<String, Value>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<HashMap<String, Arc<ToolboxIdlAccount>>> {
         let mut accounts = HashMap::new();
         for (idl_account_name, idl_account) in

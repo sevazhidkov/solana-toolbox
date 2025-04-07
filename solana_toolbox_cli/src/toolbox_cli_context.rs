@@ -3,6 +3,7 @@ use std::fs::read_to_string;
 use std::str::FromStr;
 
 use anyhow::anyhow;
+use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
@@ -14,8 +15,6 @@ use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlInstruction;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlService;
-
-use anyhow::Result;
 
 use crate::toolbox_cli_key::ToolboxCliKey;
 

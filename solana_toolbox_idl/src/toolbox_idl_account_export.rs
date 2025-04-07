@@ -8,7 +8,7 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 impl ToolboxIdlAccount {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         let mut json_object = Map::new();
-        if !format.use_object_for_unordered_named_array() {
+        if !format.use_object_for_unordered_named_array {
             json_object.insert("name".to_string(), json!(self.name));
         }
         if let Some(docs) = &self.docs {

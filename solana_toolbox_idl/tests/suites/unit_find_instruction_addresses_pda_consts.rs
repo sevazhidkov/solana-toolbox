@@ -20,7 +20,7 @@ pub async fn run() {
                         "name": "const_bytes_without_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "value": [41, 00, 00, 00] },
+                                { "kind": "const", "type": ["i8"], "value": [41, 00, 00, 00] },
                                 { "kind": "const", "value": [42, 00, 00, 00] },
                             ]
                         }
@@ -29,7 +29,7 @@ pub async fn run() {
                         "name": "const_bytes_with_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "value": [41, 00, 00, 00] },
+                                { "kind": "const", "type": ["u8"], "value": [41, 00, 00, 00] },
                                 { "kind": "const", "value": [42, 00, 00, 00] },
                             ],
                             "program": {
@@ -42,8 +42,8 @@ pub async fn run() {
                         "name": "const_string_without_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "value": "hello" },
-                                { "kind": "const", "value": "world" },
+                                { "kind": "const", "type": "string", "value": "hello" },
+                                { "kind": "const", "type": "string", "value": "world" },
                             ]
                         }
                     },
@@ -51,8 +51,8 @@ pub async fn run() {
                         "name": "const_string_with_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "value": "hello"},
-                                { "kind": "const", "value": "world" },
+                                { "kind": "const", "type": "string", "value": "hello"},
+                                { "kind": "const", "type": "string", "value": "world" },
                             ],
                             "program": {
                                 "kind": "const",
