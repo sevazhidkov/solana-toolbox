@@ -20,7 +20,7 @@ pub async fn run() {
                         "name": "const_bytes_without_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "type": ["i8"], "value": [41, 00, 00, 00] },
+                                { "kind": "const", "type": ["u8"], "value": [41, 00, 00, 00] },
                                 { "kind": "const", "value": [42, 00, 00, 00] },
                             ]
                         }

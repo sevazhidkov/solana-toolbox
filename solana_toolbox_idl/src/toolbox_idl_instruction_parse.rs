@@ -18,6 +18,7 @@ use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::ToolboxIdlAccount;
+use crate::ToolboxIdlTypeFullFields;
 
 impl ToolboxIdlInstruction {
     pub fn try_parse(
@@ -33,11 +34,6 @@ impl ToolboxIdlInstruction {
         )
         .context("Discriminator")?;
         let docs = idl_instruction.get("docs").cloned();
-        let accounts = ToolboxIdlInstruction::try_parse_accounts(
-            idl_instruction,
-            accounts,
-        )
-        .context("Accounts")?;
         let args_type_flat_fields =
             ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,
@@ -52,15 +48,21 @@ impl ToolboxIdlInstruction {
         let return_type_full = return_type_flat
             .try_hydrate(&HashMap::new(), typedefs)
             .context("Returns hydration")?;
+        let accounts = ToolboxIdlInstruction::try_parse_accounts(
+            idl_instruction,
+            &args_type_full_fields,
+            accounts,
+        )
+        .context("Accounts")?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
             docs,
             discriminator,
             accounts,
             args_type_flat_fields,
-            args_type_full_fields: args_type_full_fields.into(),
+            args_type_full_fields,
             return_type_flat,
-            return_type_full: return_type_full.into(),
+            return_type_full,
         })
     }
 
@@ -81,6 +83,7 @@ impl ToolboxIdlInstruction {
 
     fn try_parse_accounts(
         idl_instruction: &Map<String, Value>,
+        args: &ToolboxIdlTypeFullFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<Vec<ToolboxIdlInstructionAccount>> {
         let idl_instruction_accounts_array =
@@ -92,6 +95,7 @@ impl ToolboxIdlInstruction {
             instruction_accounts.push(
                 ToolboxIdlInstructionAccount::try_parse(
                     idl_instruction_account,
+                    args,
                     accounts,
                 )
                 .context(context)?,

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::anyhow;
 use anyhow::Result;
 use serde_json::Value;
@@ -16,7 +14,7 @@ pub struct ToolboxIdlAccount {
     // TODO (FAR) - support discrimination by data chunks (for token account 2022 for example)
     pub discriminator: Vec<u8>,
     pub content_type_flat: ToolboxIdlTypeFlat,
-    pub content_type_full: Arc<ToolboxIdlTypeFull>,
+    pub content_type_full: ToolboxIdlTypeFull,
 }
 
 impl Default for ToolboxIdlAccount {
@@ -27,7 +25,7 @@ impl Default for ToolboxIdlAccount {
             space: None,
             discriminator: vec![],
             content_type_flat: ToolboxIdlTypeFlat::nothing(),
-            content_type_full: ToolboxIdlTypeFull::nothing().into(),
+            content_type_full: ToolboxIdlTypeFull::nothing(),
         }
     }
 }

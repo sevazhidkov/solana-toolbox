@@ -187,7 +187,6 @@ pub async fn run() {
                     }
                 ])
             }
-            .into()
         }
         .into()
     )

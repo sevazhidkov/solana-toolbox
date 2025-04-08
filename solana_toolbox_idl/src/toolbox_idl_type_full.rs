@@ -37,6 +37,22 @@ impl ToolboxIdlTypeFull {
             fields: ToolboxIdlTypeFullFields::None,
         }
     }
+
+    pub fn is_vec_u8(&self) -> bool {
+        match self {
+            ToolboxIdlTypeFull::Vec { items } => {
+                items.is_primitive(&ToolboxIdlTypePrimitive::U8)
+            },
+            _ => false,
+        }
+    }
+
+    pub fn is_primitive(&self, value: &ToolboxIdlTypePrimitive) -> bool {
+        match self {
+            ToolboxIdlTypeFull::Primitive { primitive } => primitive == value,
+            _ => false,
+        }
+    }
 }
 
 impl ToolboxIdlTypeFull {

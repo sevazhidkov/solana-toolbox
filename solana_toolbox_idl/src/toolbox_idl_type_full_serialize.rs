@@ -132,11 +132,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        if vec_items
-            == (&ToolboxIdlTypeFull::Primitive {
-                primitive: ToolboxIdlTypePrimitive::U8,
-            })
-        {
+        if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if deserializable {
                 data.extend_from_slice(bytemuck::bytes_of::<u32>(
@@ -168,11 +164,7 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         let array_length = usize::try_from(*array_length).unwrap();
-        if array_items
-            == (&ToolboxIdlTypeFull::Primitive {
-                primitive: ToolboxIdlTypePrimitive::U8,
-            })
-        {
+        if array_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if bytes.len() != array_length {
                 return Err(anyhow!(
@@ -413,10 +405,10 @@ fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
             return try_read_hex_to_bytes(data);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
-            return Ok(ToolboxEndpoint::sanitize_and_decode_base58(data)?);
+            return ToolboxEndpoint::sanitize_and_decode_base58(data);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "base64") {
-            return Ok(ToolboxEndpoint::sanitize_and_decode_base64(data)?);
+            return ToolboxEndpoint::sanitize_and_decode_base64(data);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "utf8") {
             return Ok(data.as_bytes().to_vec());

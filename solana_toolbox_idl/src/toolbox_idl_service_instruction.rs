@@ -98,7 +98,6 @@ impl ToolboxIdlService {
                 if let Ok(instruction_address) = idl_instruction_account
                     .try_find(
                         instruction_program_id,
-                        &idl_instruction.args_type_full_fields,
                         instruction_payload,
                         &instruction_addresses,
                         &instruction_accounts_states,

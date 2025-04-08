@@ -3,6 +3,7 @@ use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
+use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 
 impl ToolboxIdlInstruction {
     pub fn get_needs(&self) -> (Value, Map<String, Value>) {
@@ -17,13 +18,13 @@ impl ToolboxIdlInstruction {
             } else if let Some(account_pda) = &account.pda {
                 let mut needs_blobs = vec![];
                 for account_pda_seed in &account_pda.seeds {
-                    if let Some((kind, path)) = account_pda_seed.need() {
-                        needs_blobs.push(json!({ kind: path }));
+                    if let Some((key, value)) = get_need(account_pda_seed) {
+                        needs_blobs.push(json!({ key: value }));
                     }
                 }
                 if let Some(account_pda_program) = &account_pda.program {
-                    if let Some((kind, path)) = account_pda_program.need() {
-                        needs_blobs.push(json!({ kind: path }));
+                    if let Some((key, value)) = get_need(account_pda_program) {
+                        needs_blobs.push(json!({ key: value }));
                     }
                 }
                 instruction_needs_addresses
@@ -34,5 +35,19 @@ impl ToolboxIdlInstruction {
             }
         }
         (instruction_needs_payload, instruction_needs_addresses)
+    }
+}
+
+fn get_need(
+    blob: &ToolboxIdlInstructionAccountPdaBlob,
+) -> Option<(&str, String)> {
+    match blob {
+        ToolboxIdlInstructionAccountPdaBlob::Const { .. } => None,
+        ToolboxIdlInstructionAccountPdaBlob::Arg { path, .. } => {
+            Some(("arg", path.export()))
+        },
+        ToolboxIdlInstructionAccountPdaBlob::Account { path, .. } => {
+            Some(("account", path.export()))
+        },
     }
 }

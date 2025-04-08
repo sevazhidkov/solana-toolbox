@@ -149,10 +149,9 @@ pub async fn run() {
                         primitive: ToolboxIdlTypePrimitive::I64
                     }
                 ),
-            ])
-            .into(),
+            ]),
             return_type_flat: ToolboxIdlTypeFlat::nothing(),
-            return_type_full: ToolboxIdlTypeFull::nothing().into()
+            return_type_full: ToolboxIdlTypeFull::nothing()
         }
         .into()
     );
@@ -198,7 +197,6 @@ pub async fn run() {
                     )
                 ])
             }
-            .into()
         }
         .into()
     );

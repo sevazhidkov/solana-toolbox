@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use anyhow::Result;
 use serde_json::Value;
@@ -20,9 +19,9 @@ pub struct ToolboxIdlInstruction {
     pub discriminator: Vec<u8>,
     pub accounts: Vec<ToolboxIdlInstructionAccount>,
     pub args_type_flat_fields: ToolboxIdlTypeFlatFields,
-    pub args_type_full_fields: Arc<ToolboxIdlTypeFullFields>,
+    pub args_type_full_fields: ToolboxIdlTypeFullFields,
     pub return_type_flat: ToolboxIdlTypeFlat,
-    pub return_type_full: Arc<ToolboxIdlTypeFull>,
+    pub return_type_full: ToolboxIdlTypeFull,
 }
 
 impl Default for ToolboxIdlInstruction {
@@ -33,9 +32,9 @@ impl Default for ToolboxIdlInstruction {
             discriminator: vec![],
             accounts: vec![],
             args_type_flat_fields: ToolboxIdlTypeFlatFields::nothing(),
-            args_type_full_fields: ToolboxIdlTypeFullFields::nothing().into(),
+            args_type_full_fields: ToolboxIdlTypeFullFields::nothing(),
             return_type_flat: ToolboxIdlTypeFlat::nothing(),
-            return_type_full: ToolboxIdlTypeFull::nothing().into(),
+            return_type_full: ToolboxIdlTypeFull::nothing(),
         }
     }
 }

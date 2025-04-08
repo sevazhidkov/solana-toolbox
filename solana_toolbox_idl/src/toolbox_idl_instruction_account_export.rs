@@ -6,6 +6,7 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 impl ToolboxIdlInstructionAccount {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -67,53 +68,62 @@ impl ToolboxIdlInstructionAccountPda {
 impl ToolboxIdlInstructionAccountPdaBlob {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         match self {
-            ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => {
+            ToolboxIdlInstructionAccountPdaBlob::Const {
+                value,
+                type_flat,
+                type_full,
+                ..
+            } => {
                 let mut json_const = Map::new();
                 if !format.can_skip_instruction_account_pda_kind_key {
                     json_const.insert("kind".to_string(), json!("const"));
                 }
-                if !format.can_skip_instruction_account_pda_type_key {
-                    json_const.insert("type".to_string(), json!("bytes"));
+                if !format.can_skip_instruction_account_pda_type_key
+                    || !(type_full.is_vec_u8()
+                        || type_full
+                            .is_primitive(&ToolboxIdlTypePrimitive::String))
+                {
+                    json_const
+                        .insert("type".to_string(), type_flat.export(format));
                 }
                 if json_const.is_empty() {
-                    return json!(bytes);
+                    return json!(value);
                 }
-                json_const.insert("value".to_string(), json!(bytes));
+                json_const.insert("value".to_string(), json!(value));
                 json!(json_const)
             },
-            ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
+            ToolboxIdlInstructionAccountPdaBlob::Arg {
+                path,
+                type_flat,
+                ..
+            } => {
                 let mut json_arg = Map::new();
-                json_arg.insert("arg".to_string(), json!("arg"));
+                json_arg.insert("kind".to_string(), json!("arg"));
                 if !format.can_skip_instruction_account_pda_type_key {
-                    // TODO - support type export here
+                    json_arg.insert(
+                        "type".to_string(),
+                        json!(type_flat.export(format)),
+                    );
                 }
                 json_arg.insert("path".to_string(), json!(path.export()));
                 json!(json_arg)
             },
-            ToolboxIdlInstructionAccountPdaBlob::Account { path, account } => {
+            ToolboxIdlInstructionAccountPdaBlob::Account {
+                path,
+                account,
+                type_flat,
+                ..
+            } => {
                 let mut json_account = Map::new();
                 if !format.can_skip_instruction_account_pda_kind_key {
                     json_account.insert("kind".to_string(), json!("account"));
                 }
                 if !format.can_skip_instruction_account_pda_type_key {
-                    if let Some(account) = account {
-                        if let Some((_, content_path)) = path.split_first() {
-                            if let Ok(type_full) = content_path
-                                .try_extract_type_full(
-                                    &account.content_type_full,
-                                )
-                            {
-                                json_account.insert(
-                                    "type".to_string(),
-                                    type_full.flattened().export(format),
-                                );
-                            }
-                        }
-                    }
+                    json_account
+                        .insert("type".to_string(), type_flat.export(format));
                 }
                 if let Some(account) = account {
-                    json_account
-                        .insert("account".to_string(), json!(account.name));
+                    json_account.insert("account".to_string(), json!(account));
                 }
                 json_account.insert("path".to_string(), json!(path.export()));
                 json!(json_account)

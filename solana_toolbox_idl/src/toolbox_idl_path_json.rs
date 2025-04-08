@@ -5,9 +5,12 @@ use serde_json::Value;
 use crate::toolbox_idl_path::ToolboxIdlPath;
 
 impl ToolboxIdlPath {
-    pub fn try_extract_json_value(&self, value: &Value) -> Result<Value> {
+    pub fn try_extract_json_value<'a>(
+        &self,
+        value: &'a Value,
+    ) -> Result<&'a Value> {
         let Some((current, next)) = self.split_first() else {
-            return Ok(value.clone());
+            return Ok(value);
         };
         match value {
             Value::Null => {

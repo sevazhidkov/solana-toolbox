@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::{
-    toolbox_idl_path::ToolboxIdlPath,
-    toolbox_idl_utils::idl_convert_to_value_name, ToolboxIdlAccount,
-};
+use crate::toolbox_idl_path::ToolboxIdlPath;
+use crate::toolbox_idl_utils::idl_convert_to_value_name;
+use crate::ToolboxIdlTypeFlat;
+use crate::ToolboxIdlTypeFull;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
@@ -28,37 +26,23 @@ pub struct ToolboxIdlInstructionAccountPda {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlInstructionAccountPdaBlob {
     Const {
-        bytes: Vec<u8>,
+        value: Value,
+        type_flat: ToolboxIdlTypeFlat,
+        type_full: ToolboxIdlTypeFull,
     },
     Arg {
         path: ToolboxIdlPath,
+        type_flat: ToolboxIdlTypeFlat,
+        type_full: ToolboxIdlTypeFull,
     },
     Account {
         path: ToolboxIdlPath,
-        account: Option<Arc<ToolboxIdlAccount>>,
+        instruction_account_name: String,
+        account_content_path: ToolboxIdlPath,
+        account: Option<String>,
+        type_flat: ToolboxIdlTypeFlat,
+        type_full: ToolboxIdlTypeFull,
     },
-}
-
-impl ToolboxIdlInstructionAccountPdaBlob {
-    pub fn bytes(&self) -> Option<&[u8]> {
-        match self {
-            ToolboxIdlInstructionAccountPdaBlob::Const { bytes } => Some(bytes),
-            ToolboxIdlInstructionAccountPdaBlob::Arg { .. } => None,
-            ToolboxIdlInstructionAccountPdaBlob::Account { .. } => None,
-        }
-    }
-
-    pub fn need(&self) -> Option<(&str, String)> {
-        match self {
-            ToolboxIdlInstructionAccountPdaBlob::Const { .. } => None,
-            ToolboxIdlInstructionAccountPdaBlob::Arg { path } => {
-                Some(("arg", path.export()))
-            },
-            ToolboxIdlInstructionAccountPdaBlob::Account { path, .. } => {
-                Some(("account", path.export()))
-            },
-        }
-    }
 }
 
 impl ToolboxIdlInstructionAccount {

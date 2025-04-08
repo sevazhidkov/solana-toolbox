@@ -26,7 +26,6 @@ pub async fn run() {
                 ),
             )]),
         }
-        .into()
     );
     // Check that the instruction was parsed correctly
     let idl_instruction = idl_program.instructions.get("generic").unwrap();
@@ -40,7 +39,6 @@ pub async fn run() {
                 make_type_full_const(10)
             )
         )])
-        .into()
     );
 }
 

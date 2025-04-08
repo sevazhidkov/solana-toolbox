@@ -100,8 +100,7 @@ pub async fn run() {
             },
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::None
-            }
-            .into(),
+            },
         }
         .into()
     )

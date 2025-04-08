@@ -107,7 +107,6 @@ impl ToolboxIdlInstruction {
                 }
                 if let Ok(instruction_address) = instruction_account.try_find(
                     instruction_program_id,
-                    &self.args_type_full_fields,
                     instruction_payload,
                     &instruction_addresses,
                     instruction_accounts_states,

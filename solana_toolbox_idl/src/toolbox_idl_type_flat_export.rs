@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
@@ -50,6 +52,11 @@ impl ToolboxIdlTypeFlat {
             ToolboxIdlTypeFlat::Vec { items } => {
                 if format.can_shortcut_vec_notation {
                     return json!([items.export(format)]);
+                }
+                if items.deref().eq(&ToolboxIdlTypeFlat::Primitive {
+                    primitive: ToolboxIdlTypePrimitive::U8,
+                }) {
+                    return json!("bytes");
                 }
                 json!({ "vec": items.export(format) })
             },

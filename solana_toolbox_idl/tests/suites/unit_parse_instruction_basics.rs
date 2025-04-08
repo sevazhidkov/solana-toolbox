@@ -150,15 +150,13 @@ pub async fn run() {
                         primitive: ToolboxIdlTypePrimitive::U8
                     }),
                 },
-            )])
-            .into(),
+            )]),
             return_type_flat: ToolboxIdlTypeFlat::Primitive {
                 primitive: ToolboxIdlTypePrimitive::I8
             },
             return_type_full: ToolboxIdlTypeFull::Primitive {
                 primitive: ToolboxIdlTypePrimitive::I8
             }
-            .into()
         }
         .into()
     )

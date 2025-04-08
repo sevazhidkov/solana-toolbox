@@ -41,7 +41,7 @@ impl ToolboxIdlAccount {
             space,
             discriminator,
             content_type_flat,
-            content_type_full: content_type_full.into(),
+            content_type_full,
         })
     }
 

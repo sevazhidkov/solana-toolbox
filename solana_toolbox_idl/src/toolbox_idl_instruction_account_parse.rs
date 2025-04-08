@@ -16,7 +16,7 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_path::ToolboxIdlPath;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
-use crate::toolbox_idl_utils::idl_as_bytes_or_else;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -24,10 +24,13 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
+use crate::ToolboxIdlTypeFull;
+use crate::ToolboxIdlTypePrimitive;
 
 impl ToolboxIdlInstructionAccount {
     pub fn try_parse(
         idl_instruction_account: &Value,
+        args: &ToolboxIdlTypeFullFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<ToolboxIdlInstructionAccount> {
         let idl_instruction_account =
@@ -63,6 +66,7 @@ impl ToolboxIdlInstructionAccount {
         .context("Address")?;
         let pda = ToolboxIdlInstructionAccount::try_parse_pda(
             idl_instruction_account,
+            args,
             accounts,
         )
         .context("Pda")?;
@@ -88,6 +92,7 @@ impl ToolboxIdlInstructionAccount {
 
     fn try_parse_pda(
         idl_instruction_account: &Map<String, Value>,
+        args: &ToolboxIdlTypeFullFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<Option<ToolboxIdlInstructionAccountPda>> {
         let idl_instruction_account_pda = match idl_object_get_key_as_object(
@@ -107,6 +112,7 @@ impl ToolboxIdlInstructionAccount {
                 seeds.push(
                     ToolboxIdlInstructionAccount::try_parse_pda_blob(
                         idl_instruction_account_pda_seed,
+                        args,
                         accounts,
                     )
                     .context(context)?,
@@ -120,6 +126,7 @@ impl ToolboxIdlInstructionAccount {
             program = Some(
                 ToolboxIdlInstructionAccount::try_parse_pda_blob(
                     idl_instruction_account_pda_program,
+                    args,
                     accounts,
                 )
                 .context("Program")?,
@@ -128,8 +135,9 @@ impl ToolboxIdlInstructionAccount {
         Ok(Some(ToolboxIdlInstructionAccountPda { seeds, program }))
     }
 
-    pub fn try_parse_pda_blob(
+    fn try_parse_pda_blob(
         idl_instruction_account_pda_blob: &Value,
+        args: &ToolboxIdlTypeFullFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
         if let Some(idl_instruction_account_pda_blob) =
@@ -138,72 +146,134 @@ impl ToolboxIdlInstructionAccount {
             if let Some(idl_instruction_account_pda_blob_value) =
                 idl_instruction_account_pda_blob.get("value")
             {
-                let mut bytes = vec![];
-                ToolboxIdlTypeFlat::try_parse_value(
-                    &idl_instruction_account_pda_blob
+                let idl_instruction_account_pda_blob_type =
+                    idl_instruction_account_pda_blob
                         .get("type")
                         .cloned()
-                        .unwrap_or_else(|| json!("bytes")),
-                )
-                .context("Const type parse")?
-                .try_hydrate(&HashMap::new(), &HashMap::new())
-                .context("Const type hydrate")?
-                .try_serialize(
-                    idl_instruction_account_pda_blob_value,
-                    &mut bytes,
-                    false,
-                )
-                .context("Const type serialize")?;
-                return Ok(ToolboxIdlInstructionAccountPdaBlob::Const {
-                    bytes,
-                });
+                        .unwrap_or_else(|| json!("bytes"));
+                return ToolboxIdlInstructionAccount::try_parse_pda_blob_type_value(
+                    &idl_instruction_account_pda_blob_type,
+                    idl_instruction_account_pda_blob_value.clone()
+                ).context("Blob object value");
             }
-            let idl_instruction_account_pda_blob_kind =
-                idl_object_get_key_as_str(
-                    idl_instruction_account_pda_blob,
-                    "kind",
-                );
             let idl_instruction_account_pda_blob_path =
                 idl_object_get_key_as_str_or_else(
                     idl_instruction_account_pda_blob,
                     "path",
                 )?;
-            if idl_instruction_account_pda_blob_kind == Some("arg") {
-                return Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
-                    path: ToolboxIdlPath::try_parse(
+            if idl_object_get_key_as_str(
+                idl_instruction_account_pda_blob,
+                "kind",
+            ) == Some("arg")
+            {
+                return ToolboxIdlInstructionAccount::try_parse_pda_blob_arg_path(
                         idl_instruction_account_pda_blob_path,
-                    ),
-                });
+                        args,
+                    ).context("Blob arg");
             }
-            return Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
-                path: ToolboxIdlPath::try_parse(
-                    idl_instruction_account_pda_blob_path,
-                ),
-                account: idl_object_get_key_as_str(
+            let idl_instruction_account_pda_blob_account =
+                idl_object_get_key_as_str(
                     idl_instruction_account_pda_blob,
                     "account",
-                )
-                .map(|account_name| accounts.get(account_name))
-                .flatten()
-                .cloned(),
-            });
+                );
+            return ToolboxIdlInstructionAccount::try_parse_pda_blob_account_path(
+                idl_instruction_account_pda_blob_path,
+                &idl_instruction_account_pda_blob_account,
+                accounts
+            ).context("Blob account");
         }
         if let Some(idl_instruction_account_pda_blob) =
             idl_instruction_account_pda_blob.as_array()
         {
-            return Ok(ToolboxIdlInstructionAccountPdaBlob::Const {
-                bytes: idl_as_bytes_or_else(idl_instruction_account_pda_blob)?,
-            });
+            return ToolboxIdlInstructionAccount::try_parse_pda_blob_type_value(
+                &json!("bytes"),
+                json!(idl_instruction_account_pda_blob),
+            ).context("Blob array");
         }
         if let Some(idl_instruction_account_pda_blob) =
             idl_instruction_account_pda_blob.as_str()
         {
-            return Ok(ToolboxIdlInstructionAccountPdaBlob::Const {
-                bytes: idl_instruction_account_pda_blob.as_bytes().to_vec(),
-            });
+            return ToolboxIdlInstructionAccount::try_parse_pda_blob_type_value(
+                &json!("string"),
+                json!(idl_instruction_account_pda_blob),
+            ).context("Blob string");
         }
         Err(anyhow!(
             "Could not parse blob bytes (expected an object/array/string)"
         ))
+    }
+
+    fn try_parse_pda_blob_type_value(
+        idl_instruction_account_pda_blob_type: &Value,
+        idl_instruction_account_pda_blob_value: Value,
+    ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
+        let type_flat = ToolboxIdlTypeFlat::try_parse_value(
+            idl_instruction_account_pda_blob_type,
+        )
+        .context("Const type parse")?;
+        let type_full = type_flat
+            .try_hydrate(&HashMap::new(), &HashMap::new())
+            .context("Const type hydrate")?;
+        Ok(ToolboxIdlInstructionAccountPdaBlob::Const {
+            type_flat,
+            type_full,
+            value: idl_instruction_account_pda_blob_value,
+        })
+    }
+
+    fn try_parse_pda_blob_arg_path(
+        idl_instruction_account_pda_blob_path: &str,
+        args: &ToolboxIdlTypeFullFields,
+    ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
+        let path =
+            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path);
+        let type_full = path
+            .try_extract_type_full_fields(args)
+            .context("Extract arg type")?;
+        let type_flat = type_full.flattened();
+        Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
+            path,
+            type_flat,
+            type_full,
+        })
+    }
+
+    fn try_parse_pda_blob_account_path(
+        idl_instruction_account_pda_blob_path: &str,
+        idl_instruction_account_pda_blob_account: &Option<&str>,
+        accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
+    ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
+        let path =
+            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path);
+        let (instruction_account_name, account_content_path) =
+            path.split_first().context("Empty path")?;
+        let account = idl_instruction_account_pda_blob_account
+            .map(|account| account.to_string());
+        let type_full = idl_instruction_account_pda_blob_account
+            .and_then(|account| accounts.get(account))
+            .and_then(|account| {
+                if account_content_path.is_empty() {
+                    None
+                } else {
+                    Some(
+                        account_content_path
+                            .try_extract_type_full(&account.content_type_full)
+                            .context("Extract account content type"),
+                    )
+                }
+            })
+            .transpose()?
+            .unwrap_or(ToolboxIdlTypeFull::Primitive {
+                primitive: ToolboxIdlTypePrimitive::PublicKey,
+            });
+        let type_flat = type_full.flattened();
+        Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
+            path,
+            instruction_account_name,
+            account_content_path,
+            account,
+            type_flat,
+            type_full,
+        })
     }
 }

@@ -22,23 +22,27 @@ pub async fn run() {
                                 },
                                 {
                                     "path": "info.struct.field",
+                                    "account": "MyAccount",
                                 },
                             ]
                         }
                     }
                 ],
                 "args": [
-                    {"name": "param", "type": "Struct"},
+                    {"name": "param", "type": "MyStruct"},
                 ]
             }
         },
         "accounts": {
-            "Accounts": {
-                "fields": ["Struct"]
+            "MyAccount": {
+                "discriminator": [],
+                "fields": [
+                    { "name": "struct", "type": "MyStruct" }
+                ],
             },
         },
         "types": {
-            "Struct": {
+            "MyStruct": {
                 "fields": [
                     { "name": "field", "type": "u8" },
                 ],
@@ -55,21 +59,47 @@ pub async fn run() {
                 "my_ix": {
                     "discriminator": [],
                     "accounts": [
+                        { "name": "info" },
                         {
                             "name": "addr",
                             "pda": {
                                 "seeds": [
-                                    { "path": "my.path" }
+                                    [1, 2, 3],
+                                    {
+                                        "kind": "arg",
+                                        "path": "param.field",
+                                    },
+                                    {
+                                        "path": "info.struct.field",
+                                        "account": "MyAccount",
+                                    },
                                 ]
                             }
                         }
                     ],
-                    "args": []
+                    "args": [
+                        {"name": "param", "type": "MyStruct"},
+                    ]
                 }
             },
-            "accounts": {},
+            "accounts": {
+                "MyAccount": {
+                    "discriminator": [],
+                    "type": {
+                        "fields": [
+                            { "name": "struct", "type": "MyStruct" }
+                        ],
+                    },
+                },
+            },
+            "types": {
+                "MyStruct": {
+                    "fields": [
+                        { "name": "field", "type": "u8" },
+                    ],
+                },
+            },
             "errors": {},
-            "types": {},
         })
     );
     // Check the JSON backward compatibility version for anchor 26
@@ -81,15 +111,65 @@ pub async fn run() {
                     "name": "my_ix",
                     "discriminator": [],
                     "accounts": [
+                        { "name": "info" },
                         {
                             "name": "addr",
+                            "pda": {
+                                "seeds": [
+                                    {
+                                        "kind": "const",
+                                        "type": "bytes",
+                                        "value": [1, 2, 3],
+                                    },
+                                    {
+                                        "kind": "arg",
+                                        "type": "u8",
+                                        "path": "param.field",
+                                    },
+                                    {
+                                        "kind": "account",
+                                        "type": "u8",
+                                        "path": "info.struct.field",
+                                        "account": "MyAccount",
+                                    },
+                                ]
+                            }
                         }
                     ],
-                    "args": [],
+                    "args": [
+                        {
+                            "name": "param",
+                            "type": { "defined": "MyStruct" },
+                        },
+                    ]
                 }
             ],
-            "accounts": [],
-            "types": [],
+            "accounts": [
+                {
+                    "name": "MyAccount",
+                    "discriminator": [],
+                    "type": {
+                        "kind": "struct",
+                        "fields": [
+                            {
+                                "name": "struct",
+                                "type": { "defined": "MyStruct" },
+                            }
+                        ],
+                    }
+                }
+            ],
+            "types": [
+                {
+                    "name": "MyStruct",
+                    "type": {
+                        "kind": "struct",
+                        "fields": [
+                            { "name": "field", "type": "u8" },
+                        ],
+                    }
+                }
+            ],
             "errors": [],
         })
     );
@@ -103,15 +183,65 @@ pub async fn run() {
                     "name": "my_ix",
                     "discriminator": [],
                     "accounts": [
+                        { "name": "info" },
                         {
                             "name": "addr",
+                            "pda": {
+                                "seeds": [
+                                    {
+                                        "kind": "const",
+                                        "type": "bytes",
+                                        "value": [1, 2, 3],
+                                    },
+                                    {
+                                        "kind": "arg",
+                                        "type": "u8",
+                                        "path": "param.field",
+                                    },
+                                    {
+                                        "kind": "account",
+                                        "type": "u8",
+                                        "path": "info.struct.field",
+                                        "account": "MyAccount",
+                                    },
+                                ]
+                            }
                         }
                     ],
-                    "args": [],
+                    "args": [
+                        {
+                            "name": "param",
+                            "type": {"defined": {"name": "MyStruct"}}
+                        },
+                    ]
                 }
             ],
-            "accounts": [],
-            "types": [],
+            "accounts": [
+                {
+                    "name": "MyAccount",
+                    "discriminator": [],
+                    "type": {
+                        "kind": "struct",
+                        "fields": [
+                            {
+                                "name": "struct",
+                                "type": {"defined": {"name": "MyStruct"}}
+                            }
+                        ],
+                    }
+                }
+            ],
+            "types": [
+                {
+                    "name": "MyStruct",
+                    "type": {
+                        "kind": "struct",
+                        "fields": [
+                            { "name": "field", "type": "u8" },
+                        ],
+                    }
+                }
+            ],
             "errors": [],
         })
     );

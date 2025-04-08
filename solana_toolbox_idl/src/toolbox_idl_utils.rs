@@ -80,9 +80,9 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
         .ok_or_else(|| anyhow!("missing value at key: {}", key))
 }
 
-pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else<'a>(
-    value: &'a Value,
-) -> Result<&'a str> {
+pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else(
+    value: &Value,
+) -> Result<&str> {
     match value.as_str() {
         Some(name) => Ok(name),
         None => {
@@ -109,19 +109,17 @@ pub(crate) fn idl_value_as_object_get_key<'a>(
     value.as_object().and_then(|object| object.get(key))
 }
 
-pub(crate) fn idl_as_array_or_else<'a>(
-    value: &'a Value,
-) -> Result<&'a Vec<Value>> {
+pub(crate) fn idl_as_array_or_else(value: &Value) -> Result<&Vec<Value>> {
     value.as_array().context("Expected an array")
 }
 
-pub(crate) fn idl_as_object_or_else<'a>(
-    value: &'a Value,
-) -> Result<&'a Map<String, Value>> {
+pub(crate) fn idl_as_object_or_else(
+    value: &Value,
+) -> Result<&Map<String, Value>> {
     value.as_object().context("Expected an object")
 }
 
-pub(crate) fn idl_as_str_or_else<'a>(value: &'a Value) -> Result<&'a str> {
+pub(crate) fn idl_as_str_or_else(value: &Value) -> Result<&str> {
     value.as_str().context("Expected an string")
 }
 
@@ -138,11 +136,11 @@ pub(crate) fn idl_as_i128_or_else(value: &Value) -> Result<i128> {
 }
 
 pub(crate) fn idl_as_f64_or_else(value: &Value) -> Result<f64> {
-    Ok(value.as_f64().context("Expected a floating number")?)
+    value.as_f64().context("Expected a floating number")
 }
 
 pub(crate) fn idl_as_bool_or_else(value: &Value) -> Result<bool> {
-    Ok(value.as_bool().context("Expected a boolean")?)
+    value.as_bool().context("Expected a boolean")
 }
 
 pub(crate) fn idl_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
@@ -154,11 +152,11 @@ pub(crate) fn idl_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
-pub(crate) fn idl_slice_from_bytes<'a>(
-    bytes: &'a [u8],
+pub(crate) fn idl_slice_from_bytes(
+    bytes: &[u8],
     offset: usize,
     length: usize,
-) -> Result<&'a [u8]> {
+) -> Result<&[u8]> {
     let end = offset.checked_add(length).ok_or_else(|| {
         anyhow!(
             "Invalid slice length: offset: {}, length: {}",
