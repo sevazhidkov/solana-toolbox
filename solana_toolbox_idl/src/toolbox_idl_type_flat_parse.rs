@@ -14,7 +14,6 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
-use crate::toolbox_idl_utils::idl_str_to_u64_or_else;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
@@ -183,7 +182,9 @@ impl ToolboxIdlTypeFlat {
         idl_value_literal: &str,
     ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Const {
-            literal: idl_str_to_u64_or_else(idl_value_literal)?,
+            literal: idl_value_literal
+                .parse()
+                .map_err(|error| anyhow!("Parse int error: {}", error))?,
         })
     }
 

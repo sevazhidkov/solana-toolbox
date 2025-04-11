@@ -17,15 +17,15 @@ pub async fn run() {
                         "name": "pda",
                         "pda": {
                             "seeds": [
-                                { "kind": "account", "account": "MyAccount", "path": "first.u8" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.u16" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.u32" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.u64" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.array_u8_2" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.vec_u8_3" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.string" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.inner.u8" },
-                                { "kind": "account", "account": "MyAccount", "path": "first.inner.u16" },
+                                { "account": "MyAccount", "path": "first.u8" },
+                                { "account": "MyAccount", "path": "first.u16" },
+                                { "account": "MyAccount", "path": "first.u32" },
+                                { "account": "MyAccount", "path": "first.u64" },
+                                { "account": "MyAccount", "path": "first.array_u8_2" },
+                                { "account": "MyAccount", "path": "first.vec_u8_3" },
+                                { "account": "MyAccount", "path": "first.string" },
+                                { "account": "MyAccount", "path": "first.inner.u8" },
+                                { "account": "MyAccount", "path": "first.inner.u16" },
                             ]
                         }
                     },

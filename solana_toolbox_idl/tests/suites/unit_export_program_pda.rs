@@ -10,18 +10,19 @@ pub async fn run() {
             "my_ix": {
                 "discriminator": [],
                 "accounts": [
-                    { "name": "info" },
+                    { "name": "my_info" },
                     {
                         "name": "addr",
                         "pda": {
                             "seeds": [
                                 [1, 2, 3],
+                                "hello",
                                 {
                                     "kind": "arg",
-                                    "path": "param.field",
+                                    "path": "my_param.field",
                                 },
                                 {
-                                    "path": "info.struct.field",
+                                    "path": "my_info.struct.field",
                                     "account": "MyAccount",
                                 },
                             ]
@@ -29,7 +30,7 @@ pub async fn run() {
                     }
                 ],
                 "args": [
-                    {"name": "param", "type": "MyStruct"},
+                    {"name": "my_param", "type": "MyStruct"},
                 ]
             }
         },
@@ -59,18 +60,19 @@ pub async fn run() {
                 "my_ix": {
                     "discriminator": [],
                     "accounts": [
-                        { "name": "info" },
+                        { "name": "my_info" },
                         {
                             "name": "addr",
                             "pda": {
                                 "seeds": [
                                     [1, 2, 3],
+                                    "hello",
                                     {
                                         "kind": "arg",
-                                        "path": "param.field",
+                                        "path": "my_param.field",
                                     },
                                     {
-                                        "path": "info.struct.field",
+                                        "path": "my_info.struct.field",
                                         "account": "MyAccount",
                                     },
                                 ]
@@ -78,7 +80,7 @@ pub async fn run() {
                         }
                     ],
                     "args": [
-                        {"name": "param", "type": "MyStruct"},
+                        {"name": "my_param", "type": "MyStruct"},
                     ]
                 }
             },
@@ -108,10 +110,10 @@ pub async fn run() {
         json!({
             "instructions": [
                 {
-                    "name": "my_ix",
+                    "name": "myIx",
                     "discriminator": [],
                     "accounts": [
-                        { "name": "info" },
+                        { "name": "myInfo" },
                         {
                             "name": "addr",
                             "pda": {
@@ -122,14 +124,19 @@ pub async fn run() {
                                         "value": [1, 2, 3],
                                     },
                                     {
+                                        "kind": "const",
+                                        "type": "string",
+                                        "value": "hello",
+                                    },
+                                    {
                                         "kind": "arg",
                                         "type": "u8",
-                                        "path": "param.field",
+                                        "path": "my_param.field",
                                     },
                                     {
                                         "kind": "account",
                                         "type": "u8",
-                                        "path": "info.struct.field",
+                                        "path": "my_info.struct.field",
                                         "account": "MyAccount",
                                     },
                                 ]
@@ -138,7 +145,7 @@ pub async fn run() {
                     ],
                     "args": [
                         {
-                            "name": "param",
+                            "name": "myParam",
                             "type": { "defined": "MyStruct" },
                         },
                     ]
@@ -183,7 +190,7 @@ pub async fn run() {
                     "name": "my_ix",
                     "discriminator": [],
                     "accounts": [
-                        { "name": "info" },
+                        { "name": "my_info" },
                         {
                             "name": "addr",
                             "pda": {
@@ -194,14 +201,19 @@ pub async fn run() {
                                         "value": [1, 2, 3],
                                     },
                                     {
+                                        "kind": "const",
+                                        "type": "string",
+                                        "value": "hello",
+                                    },
+                                    {
                                         "kind": "arg",
                                         "type": "u8",
-                                        "path": "param.field",
+                                        "path": "my_param.field",
                                     },
                                     {
                                         "kind": "account",
                                         "type": "u8",
-                                        "path": "info.struct.field",
+                                        "path": "my_info.struct.field",
                                         "account": "MyAccount",
                                     },
                                 ]
@@ -210,7 +222,7 @@ pub async fn run() {
                     ],
                     "args": [
                         {
-                            "name": "param",
+                            "name": "my_param",
                             "type": {"defined": {"name": "MyStruct"}}
                         },
                     ]

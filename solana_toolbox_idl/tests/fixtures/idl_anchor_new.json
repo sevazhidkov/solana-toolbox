@@ -227,7 +227,7 @@
           }
         },
         {
-          "name": "enum_field_1",
+          "name": "enum_field1",
           "type": {
             "defined": {
               "name": "FooEnum"
@@ -235,7 +235,7 @@
           }
         },
         {
-          "name": "enum_field_2",
+          "name": "enum_field2",
           "type": {
             "defined": {
               "name": "FooEnum"
@@ -243,7 +243,7 @@
           }
         },
         {
-          "name": "enum_field_3",
+          "name": "enum_field3",
           "type": {
             "defined": {
               "name": "FooEnum"
@@ -251,7 +251,7 @@
           }
         },
         {
-          "name": "enum_field_4",
+          "name": "enum_field4",
           "type": {
             "defined": {
               "name": "FooEnum"
@@ -261,7 +261,7 @@
       ]
     },
     {
-      "name": "initialize_with_values_2",
+      "name": "initialize_with_values2",
       "docs": [
         "a separate instruction due to initialize_with_values having too many arguments",
         "https://github.com/solana-labs/solana/issues/23978"
@@ -679,7 +679,7 @@
             }
           },
           {
-            "name": "enum_field_1",
+            "name": "enum_field1",
             "type": {
               "defined": {
                 "name": "FooEnum"
@@ -687,7 +687,7 @@
             }
           },
           {
-            "name": "enum_field_2",
+            "name": "enum_field2",
             "type": {
               "defined": {
                 "name": "FooEnum"
@@ -695,7 +695,7 @@
             }
           },
           {
-            "name": "enum_field_3",
+            "name": "enum_field3",
             "type": {
               "defined": {
                 "name": "FooEnum"
@@ -703,7 +703,7 @@
             }
           },
           {
-            "name": "enum_field_4",
+            "name": "enum_field4",
             "type": {
               "defined": {
                 "name": "FooEnum"

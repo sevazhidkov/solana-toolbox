@@ -2,9 +2,9 @@ use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_path::ToolboxIdlPath;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
-use crate::ToolboxIdlTypeFlat;
-use crate::ToolboxIdlTypeFull;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {

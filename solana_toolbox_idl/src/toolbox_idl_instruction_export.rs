@@ -4,13 +4,14 @@ use serde_json::Value;
 
 use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
-use crate::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_utils::idl_convert_to_camel_name;
 
 impl ToolboxIdlInstruction {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         let mut json_object = Map::new();
         if !format.use_object_for_unordered_named_array {
-            json_object.insert("name".to_string(), json!(self.name));
+            json_object.insert("name".to_string(), self.export_name(format));
         }
         if let Some(docs) = &self.docs {
             json_object.insert("docs".to_string(), json!(docs));
@@ -33,5 +34,13 @@ impl ToolboxIdlInstruction {
             );
         }
         json!(json_object)
+    }
+
+    fn export_name(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.use_camel_case_instruction_names {
+            json!(idl_convert_to_camel_name(&self.name))
+        } else {
+            json!(self.name)
+        }
     }
 }

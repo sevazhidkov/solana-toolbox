@@ -106,7 +106,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 ..
             } => {
                 let value = path
-                    .try_extract_json_value(instruction_payload)
+                    .try_get_json_value(instruction_payload)
                     .context("Arg extract value")?;
                 (type_full, value)
             },
@@ -130,7 +130,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 )
                 .context("Instruction accounts states")?;
                 let value = account_content_path
-                    .try_extract_json_value(instruction_account_state)
+                    .try_get_json_value(instruction_account_state)
                     .context("Account extract value")?;
                 (type_full, value)
             },

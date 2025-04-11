@@ -16,7 +16,9 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_path::ToolboxIdlPath;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
@@ -24,8 +26,6 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
-use crate::ToolboxIdlTypeFull;
-use crate::ToolboxIdlTypePrimitive;
 
 impl ToolboxIdlInstructionAccount {
     pub fn try_parse(
@@ -226,9 +226,9 @@ impl ToolboxIdlInstructionAccount {
         args: &ToolboxIdlTypeFullFields,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
         let path =
-            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path);
+            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path)?;
         let type_full = path
-            .try_extract_type_full_fields(args)
+            .try_get_type_full_fields(args)
             .context("Extract arg type")?;
         let type_flat = type_full.flattened();
         Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
@@ -244,9 +244,13 @@ impl ToolboxIdlInstructionAccount {
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
         let path =
-            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path);
-        let (instruction_account_name, account_content_path) =
+            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path)?;
+        let (instruction_account_part, account_content_path) =
             path.split_first().context("Empty path")?;
+        let instruction_account_name = instruction_account_part
+            .key()
+            .context("Path account name")?
+            .to_string();
         let account = idl_instruction_account_pda_blob_account
             .map(|account| account.to_string());
         let type_full = idl_instruction_account_pda_blob_account
@@ -257,7 +261,7 @@ impl ToolboxIdlInstructionAccount {
                 } else {
                     Some(
                         account_content_path
-                            .try_extract_type_full(&account.content_type_full)
+                            .try_get_type_full(&account.content_type_full)
                             .context("Extract account content type"),
                     )
                 }

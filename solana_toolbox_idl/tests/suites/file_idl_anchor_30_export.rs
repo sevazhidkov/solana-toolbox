@@ -10,7 +10,6 @@ pub async fn run() {
         &read_to_string("./tests/fixtures/idl_anchor_30.json").unwrap(),
     )
     .unwrap();
-
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
         idl_program,

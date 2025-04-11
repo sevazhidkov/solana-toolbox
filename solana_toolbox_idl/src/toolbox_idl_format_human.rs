@@ -5,6 +5,8 @@ impl ToolboxIdlFormat {
         ToolboxIdlFormat {
             use_object_for_unordered_named_array: true,
             use_root_as_metadata_object: false,
+            use_camel_case_instruction_names: false,
+            use_camel_case_instruction_account_names: false,
             use_camel_case_instruction_account_flags: false,
             use_camel_case_type_primitive_names: false,
             use_camel_case_type_fields_names: false,

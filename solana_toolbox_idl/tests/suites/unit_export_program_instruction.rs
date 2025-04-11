@@ -12,7 +12,7 @@ pub async fn run() {
                 "discriminator": [77, 78],
                 "accounts": [
                     {
-                        "name": "addr",
+                        "name": "myAddr",
                         "signer": true,
                         "writable": true,
                         "optional": true,
@@ -37,7 +37,7 @@ pub async fn run() {
                     "discriminator": [77, 78],
                     "accounts": [
                         {
-                            "name": "addr",
+                            "name": "my_addr",
                             "signer": true,
                             "writable": true,
                             "optional": true,
@@ -60,12 +60,12 @@ pub async fn run() {
         json!({
             "instructions": [
                 {
-                    "name": "my_ix",
+                    "name": "myIx",
                     "docs": ["My Ix"],
                     "discriminator": [77, 78],
                     "accounts": [
                         {
-                            "name": "addr",
+                            "name": "myAddr",
                             "isSigner": true,
                             "isMut": true,
                             "isOptional": true,
@@ -94,7 +94,7 @@ pub async fn run() {
                     "discriminator": [77, 78],
                     "accounts": [
                         {
-                            "name": "addr",
+                            "name": "my_addr",
                             "signer": true,
                             "writable": true,
                             "optional": true,

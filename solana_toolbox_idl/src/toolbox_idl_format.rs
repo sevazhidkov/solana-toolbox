@@ -2,6 +2,8 @@
 pub struct ToolboxIdlFormat {
     pub use_object_for_unordered_named_array: bool,
     pub use_root_as_metadata_object: bool,
+    pub use_camel_case_instruction_names: bool,
+    pub use_camel_case_instruction_account_names: bool,
     pub use_camel_case_instruction_account_flags: bool,
     pub use_camel_case_type_primitive_names: bool,
     pub use_camel_case_type_fields_names: bool,

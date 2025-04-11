@@ -207,12 +207,6 @@ pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
     map.get(key).ok_or_else(|| anyhow!("Missing key: {}", key))
 }
 
-pub(crate) fn idl_str_to_u64_or_else(value: &str) -> Result<u64> {
-    value
-        .parse()
-        .map_err(|error| anyhow!("Parse int error: {}", error))
-}
-
 // TODO - this could be handling context a lot better
 pub(crate) fn idl_iter_get_scoped_values<'a, T>(
     iter: impl IntoIterator<Item = &'a T>,
@@ -225,18 +219,38 @@ pub(crate) fn idl_iter_get_scoped_values<'a, T>(
 }
 
 pub(crate) fn idl_convert_to_value_name(name: &str) -> String {
-    name.without_boundaries(&[Boundary::LOWER_DIGIT])
-        .to_case(Case::Snake)
+    if name.contains(|c: char| {
+        !(c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+    }) {
+        name.without_boundaries(&[Boundary::UPPER_DIGIT])
+            .without_boundaries(&[Boundary::LOWER_DIGIT])
+            .to_case(Case::Snake)
+    } else {
+        name.to_string()
+    }
 }
 
 pub(crate) fn idl_convert_to_type_name(name: &str) -> String {
-    name.without_boundaries(&[Boundary::LOWER_DIGIT])
-        .to_case(Case::Pascal)
+    if name.len() <= 0
+        || !name.chars().nth(0).unwrap().is_ascii_uppercase()
+        || name.contains(|c: char| !c.is_ascii_alphanumeric())
+    {
+        name.without_boundaries(&[Boundary::UPPER_DIGIT])
+            .without_boundaries(&[Boundary::LOWER_DIGIT])
+            .to_case(Case::Pascal)
+    } else {
+        name.to_string()
+    }
 }
 
 pub(crate) fn idl_convert_to_camel_name(name: &str) -> String {
-    name.without_boundaries(&[Boundary::LOWER_DIGIT])
-        .to_case(Case::Camel)
+    if name.contains(|c: char| !c.is_ascii_alphanumeric()) {
+        name.without_boundaries(&[Boundary::UPPER_DIGIT])
+            .without_boundaries(&[Boundary::LOWER_DIGIT])
+            .to_case(Case::Camel)
+    } else {
+        name.to_string()
+    }
 }
 
 pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {

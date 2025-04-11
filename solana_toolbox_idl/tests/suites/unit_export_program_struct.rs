@@ -11,7 +11,7 @@ pub async fn run() {
                 "docs": ["My Struct"],
                 "fields": [
                     { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
-                    { "name": "data", "vec": "u8" },
+                    { "name": "my_data", "vec": "u8" },
                     { "name": "addr", "type": "publicKey" },
                 ]
             },
@@ -37,7 +37,7 @@ pub async fn run() {
                     "type": {
                         "fields": [
                             { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
-                            { "name": "data", "type": ["u8"] },
+                            { "name": "my_data", "type": ["u8"] },
                             { "name": "addr", "type": "pubkey" },
                         ]
                     }
@@ -72,7 +72,7 @@ pub async fn run() {
                         "kind": "struct",
                         "fields": [
                             { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
-                            { "name": "data", "type": "bytes" },
+                            { "name": "myData", "type": "bytes" },
                             { "name": "addr", "type": "publicKey" },
                         ]
                     }
@@ -113,7 +113,7 @@ pub async fn run() {
                         "kind": "struct",
                         "fields": [
                             { "name": "id", "type": "u16", "docs": ["My Struct Field Id"] },
-                            { "name": "data", "type": "bytes" },
+                            { "name": "my_data", "type": "bytes" },
                             { "name": "addr", "type": "pubkey" },
                         ]
                     }
