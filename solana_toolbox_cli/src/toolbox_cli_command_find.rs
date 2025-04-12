@@ -7,6 +7,7 @@ use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
+use crate::toolbox_cli_json::cli_json_value_fit;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Search addresses of accounts of given program")]
@@ -98,14 +99,15 @@ impl ToolboxCliCommandFindArgs {
                 }
             }
             for state in &self.states {
-                let expected_state = context.parse_hjson(&state)?;
-                if !json_match(&account_decoded.state, &expected_state) {
+                if !cli_json_value_fit(
+                    &account_decoded.state,
+                    &context.parse_hjson(&state)?,
+                ) {
                     continue;
                 }
             }
             json_accounts.push(json!({
                 "address": address.to_string(),
-                "owner": &account_decoded.owner,
                 "name": context.compute_account_name(
                     &account_decoded.program,
                     &account_decoded.account,
@@ -115,64 +117,5 @@ impl ToolboxCliCommandFindArgs {
             }));
         }
         Ok(json!(json_accounts))
-    }
-}
-
-// TODO (MEDIUM) - where should this go ?
-fn json_match(found: &Value, expected: &Value) -> bool {
-    match expected {
-        Value::Null => {
-            if let Some(()) = found.as_null() {
-                return true;
-            }
-            false
-        },
-        Value::Bool(expected) => {
-            if let Some(found) = found.as_bool() {
-                return found == *expected;
-            }
-            false
-        },
-        Value::Number(expected) => {
-            if let Some(found) = found.as_number() {
-                return found == expected;
-            }
-            false
-        },
-        Value::String(expected) => {
-            if let Some(found) = found.as_str() {
-                return found == expected;
-            }
-            false
-        },
-        Value::Array(expected) => {
-            if let Some(found) = found.as_array() {
-                if found.len() < expected.len() {
-                    return false;
-                }
-                for (idx, expected) in expected.iter().enumerate() {
-                    if !json_match(&found[idx], expected) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            false
-        },
-        Value::Object(expected) => {
-            if let Some(found) = found.as_object() {
-                for (key, expected) in expected {
-                    if let Some(found) = found.get(key) {
-                        if !json_match(found, expected) {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            false
-        },
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde_json::Value;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
@@ -24,7 +24,8 @@ impl ToolboxIdlInstruction {
             let instruction_address = *idl_map_get_key_or_else(
                 instruction_addresses,
                 &instruction_account.name,
-            )?;
+            )
+            .context("Instruction Address")?;
             if instruction_account.writable {
                 instruction_metas.push(AccountMeta::new(
                     instruction_address,

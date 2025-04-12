@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -9,7 +9,6 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 
 impl ToolboxIdlProgram {
     pub fn from_lib(program_id: &Pubkey) -> Option<ToolboxIdlProgram> {
-        // TODO - support spl_name_service
         let mut known_programs = HashMap::new();
         known_programs.insert(
             ToolboxEndpoint::SYSTEM_PROGRAM_ID,
@@ -44,11 +43,17 @@ impl ToolboxIdlProgram {
             include_str!("lib/spl_associated_token.json"),
         );
         known_programs.insert(
+            pubkey!("namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX"),
+            include_str!("lib/spl_name_service.json"),
+        );
+        known_programs.insert(
             pubkey!("L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95"),
             include_str!("lib/misc_lighthouse.json"),
         );
         known_programs.get(program_id).map(|content| {
-            ToolboxIdlProgram::try_parse_from_str(content).unwrap()
+            ToolboxIdlProgram::try_parse_from_str(content)
+                .context(program_id.to_string())
+                .unwrap()
         })
     }
 

@@ -19,7 +19,6 @@ use crate::toolbox_idl_program::ToolboxIdlProgramMetadata;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
@@ -240,14 +239,14 @@ impl ToolboxIdlProgram {
         if let Some(idl_collection) =
             idl_object_get_key_as_array(idl_root, collection_key)
         {
-            for (_, idl_collection_item, context) in
-                idl_iter_get_scoped_values(idl_collection)
+            for (index, idl_collection_item) in
+                idl_collection.iter().enumerate()
             {
                 let idl_collection_item_name =
                     idl_value_as_str_or_object_with_name_as_str_or_else(
                         idl_collection_item,
                     )
-                    .context(context)?;
+                    .context(index)?;
                 collection_scoped_named_objects
                     .push((idl_collection_item_name, idl_collection_item));
             }

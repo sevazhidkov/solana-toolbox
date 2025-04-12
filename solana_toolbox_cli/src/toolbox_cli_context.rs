@@ -85,6 +85,7 @@ impl ToolboxCliContext {
     pub fn parse_key(&self, key: &str) -> Result<ToolboxCliKey> {
         if key.to_ascii_lowercase() == "keypair"
             || key.to_ascii_lowercase() == "wallet"
+            || key.to_ascii_lowercase() == "config"
         {
             return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }

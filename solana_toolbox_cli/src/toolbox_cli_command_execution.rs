@@ -38,7 +38,7 @@ impl ToolboxCliCommandExecutionArgs {
                     name,
                     json!({
                         "address": address.to_string(),
-                        "owner": instruction_account_decoded.owner,
+                        "owner": instruction_account_decoded.owner.to_string(),
                         "name": context.compute_account_name(
                             &instruction_account_decoded.program,
                             &instruction_account_decoded.account

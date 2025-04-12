@@ -30,7 +30,8 @@ impl ToolboxIdlTypeFlat {
                             .try_hydrate(generics_by_symbol, typedefs)?,
                     );
                 }
-                let typedef = idl_map_get_key_or_else(typedefs, name)?;
+                let typedef = idl_map_get_key_or_else(typedefs, name)
+                    .context("Defined type")?;
                 if generics_full.len() != typedef.generics.len() {
                     return Err(anyhow!(
                         "Wrong number of generic parameter: expected: {}, found: {}",
@@ -50,7 +51,9 @@ impl ToolboxIdlTypeFlat {
                     .try_hydrate(&generics_by_symbol, typedefs)?
             },
             ToolboxIdlTypeFlat::Generic { symbol } => {
-                idl_map_get_key_or_else(generics_by_symbol, symbol)?.clone()
+                idl_map_get_key_or_else(generics_by_symbol, symbol)
+                    .context("Generic type")?
+                    .clone()
             },
             ToolboxIdlTypeFlat::Option {
                 prefix_bytes,

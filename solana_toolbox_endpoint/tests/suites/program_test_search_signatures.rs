@@ -37,13 +37,13 @@ pub async fn run() {
             .unwrap();
     }
     // Generate a dummy history of transfers and save the history
-    for (idx, user) in users.iter().enumerate() {
+    for (index, user) in users.iter().enumerate() {
         endpoint
             .process_system_transfer(
                 user,
                 user,
                 &receiver,
-                u64::try_from(idx).unwrap() + 100_000_000,
+                u64::try_from(index).unwrap() + 100_000_000,
             )
             .await
             .unwrap();

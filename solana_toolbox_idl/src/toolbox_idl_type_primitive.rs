@@ -15,7 +15,6 @@ pub enum ToolboxIdlTypePrimitive {
     Boolean,
     String,
     PublicKey,
-    // TODO (MEDIUM) - should support like a "Rest" type which returns byte[]
 }
 
 impl ToolboxIdlTypePrimitive {

@@ -6,6 +6,7 @@ mod toolbox_cli_command_history;
 mod toolbox_cli_command_instruction;
 mod toolbox_cli_command_program;
 mod toolbox_cli_context;
+mod toolbox_cli_json;
 mod toolbox_cli_key;
 
 use anyhow::Result;

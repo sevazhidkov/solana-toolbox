@@ -9,7 +9,6 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_convert_to_type_name;
 use crate::toolbox_idl_utils::idl_convert_to_value_name;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
@@ -44,54 +43,63 @@ impl ToolboxIdlTypeFlat {
             return ToolboxIdlTypeFlat::try_parse_value(idl_type);
         }
         if let Some(idl_defined) = idl_object.get("defined") {
-            return ToolboxIdlTypeFlat::try_parse_defined(idl_defined);
+            return ToolboxIdlTypeFlat::try_parse_defined(idl_defined)
+                .context("Defined");
         }
         if let Some(idl_generic_symbol) =
             idl_object_get_key_as_str(idl_object, "generic")
         {
             return ToolboxIdlTypeFlat::try_parse_generic_symbol(
                 idl_generic_symbol,
-            );
+            )
+            .context("Generic");
         }
         if let Some(idl_option) = idl_object.get("option") {
-            return ToolboxIdlTypeFlat::try_parse_option(idl_option, 1);
+            return ToolboxIdlTypeFlat::try_parse_option(idl_option, 1)
+                .context("Option");
         }
         if let Some(idl_option) = idl_object.get("option32") {
-            return ToolboxIdlTypeFlat::try_parse_option(idl_option, 4);
+            return ToolboxIdlTypeFlat::try_parse_option(idl_option, 4)
+                .context("Option32");
         }
         if let Some(idl_vec) = idl_object.get("vec") {
-            return ToolboxIdlTypeFlat::try_parse_vec(idl_vec);
+            return ToolboxIdlTypeFlat::try_parse_vec(idl_vec).context("Vec");
         }
         if let Some(idl_array) =
             idl_object_get_key_as_array(idl_object, "array")
         {
-            return ToolboxIdlTypeFlat::try_parse_array(idl_array);
+            return ToolboxIdlTypeFlat::try_parse_array(idl_array)
+                .context("Array");
         }
         if let Some(idl_struct_fields) =
             idl_object_get_key_as_array(idl_object, "fields")
         {
             return ToolboxIdlTypeFlat::try_parse_struct_fields(
                 idl_struct_fields,
-            );
+            )
+            .context("Struct Fields");
         }
         if let Some(idl_enum_variants) =
             idl_object_get_key_as_array(idl_object, "variants")
         {
             return ToolboxIdlTypeFlat::try_parse_enum_variants(
                 idl_enum_variants,
-            );
+            )
+            .context("Enum Variants");
         }
         if let Some(idl_padded) =
             idl_object_get_key_as_object(idl_object, "padded")
         {
-            return ToolboxIdlTypeFlat::try_parse_padded(idl_padded);
+            return ToolboxIdlTypeFlat::try_parse_padded(idl_padded)
+                .context("Padded");
         }
         if let Some(idl_value_literal) =
             idl_object_get_key_as_str(idl_object, "value")
         {
-            return ToolboxIdlTypeFlat::try_parse_value_literal(
+            return ToolboxIdlTypeFlat::try_parse_const_value(
                 idl_value_literal,
-            );
+            )
+            .context("Const Value");
         }
         Err(anyhow!(
             "Could not parse type object: Missing type object key: {:?}",
@@ -155,12 +163,13 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_defined_generics) =
             idl_value_as_object_get_key_as_array(idl_defined, "generics")
         {
-            for (_, idl_defined_generic, context) in
-                idl_iter_get_scoped_values(idl_defined_generics)
+            for (index, idl_defined_generic) in
+                idl_defined_generics.iter().enumerate()
             {
                 defined_generics.push(
                     ToolboxIdlTypeFlat::try_parse_value(idl_defined_generic)
-                        .context(context)?,
+                        .context(index)
+                        .context("Generics")?,
                 );
             }
         }
@@ -178,7 +187,7 @@ impl ToolboxIdlTypeFlat {
         })
     }
 
-    fn try_parse_value_literal(
+    fn try_parse_const_value(
         idl_value_literal: &str,
     ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Const {
@@ -216,14 +225,12 @@ impl ToolboxIdlTypeFlat {
         idl_enum_variants: &[Value],
     ) -> Result<ToolboxIdlTypeFlat> {
         let mut enum_variants = vec![];
-        for (_, idl_enum_variant, context) in
-            idl_iter_get_scoped_values(idl_enum_variants)
-        {
+        for (index, idl_enum_variant) in idl_enum_variants.iter().enumerate() {
             let enum_variant_name = idl_convert_to_type_name(
                 idl_value_as_str_or_object_with_name_as_str_or_else(
                     idl_enum_variant,
                 )
-                .context(context)?,
+                .context(index)?,
             );
             let enum_variant_docs =
                 idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
@@ -266,9 +273,7 @@ impl ToolboxIdlTypeFlatFields {
         }
         let mut fields_named = false;
         let mut fields_info = vec![];
-        for (idl_field_index, idl_field, context) in
-            idl_iter_get_scoped_values(idl_fields)
-        {
+        for (index, idl_field) in idl_fields.iter().enumerate() {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .and_then(|name| name.as_str())
                 .map(idl_convert_to_value_name);
@@ -276,12 +281,12 @@ impl ToolboxIdlTypeFlatFields {
                 fields_named = true;
             }
             let field_name_or_index =
-                field_name.unwrap_or(format!("{}", idl_field_index));
+                field_name.unwrap_or_else(|| format!("{}", index));
             let field_docs =
                 idl_value_as_object_get_key(idl_field, "docs").cloned();
             let field_type_flat =
                 ToolboxIdlTypeFlat::try_parse_value(idl_field)
-                    .context(context)?;
+                    .context(index)?;
             fields_info.push((
                 field_name_or_index,
                 field_docs,

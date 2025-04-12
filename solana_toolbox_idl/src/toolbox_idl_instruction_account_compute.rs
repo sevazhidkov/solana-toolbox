@@ -9,7 +9,6 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
 impl ToolboxIdlInstructionAccount {
@@ -47,9 +46,7 @@ impl ToolboxIdlInstructionAccountPda {
         instruction_accounts_states: &HashMap<String, Value>,
     ) -> Result<Pubkey> {
         let mut pda_seeds_bytes = vec![];
-        for (_, pda_seed_blob, context) in
-            idl_iter_get_scoped_values(&self.seeds)
-        {
+        for (index, pda_seed_blob) in self.seeds.iter().enumerate() {
             pda_seeds_bytes.push(
                 pda_seed_blob
                     .try_compute(
@@ -57,7 +54,8 @@ impl ToolboxIdlInstructionAccountPda {
                         instruction_addresses,
                         instruction_accounts_states,
                     )
-                    .context(context)?,
+                    .context(index)
+                    .context("Seeds")?,
             );
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {

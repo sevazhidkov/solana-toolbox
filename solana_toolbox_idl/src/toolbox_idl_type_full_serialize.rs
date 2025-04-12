@@ -18,7 +18,6 @@ use crate::toolbox_idl_utils::idl_as_i128_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_str_or_else;
 use crate::toolbox_idl_utils::idl_as_u128_or_else;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -28,7 +27,7 @@ impl ToolboxIdlTypeFull {
         &self,
         value: &Value,
         data: &mut Vec<u8>,
-        // TODO - Config object for pubkey hashmap and prefixes
+        // TODO (FAR) - Config object for pubkey hashmap and prefixes
         deserializable: bool,
     ) -> Result<()> {
         match self {
@@ -148,10 +147,10 @@ impl ToolboxIdlTypeFull {
                 &u32::try_from(values.len()).unwrap(),
             ));
         }
-        for (_, value_item, context) in idl_iter_get_scoped_values(values) {
+        for (index, value_item) in values.iter().enumerate() {
             vec_items
                 .try_serialize(value_item, data, deserializable)
-                .context(context)?;
+                .context(index)?;
         }
         Ok(())
     }
@@ -184,10 +183,10 @@ impl ToolboxIdlTypeFull {
                 values.len()
             ));
         }
-        for (_, value_item, context) in idl_iter_get_scoped_values(values) {
+        for (index, value_item) in values.iter().enumerate() {
             array_items
                 .try_serialize(value_item, data, deserializable)
-                .context(context)?;
+                .context(index)?;
         }
         Ok(())
     }
@@ -208,16 +207,13 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         if let Some(value_string) = value.as_str() {
-            for (enum_code, enum_variant, context) in
-                idl_iter_get_scoped_values(enum_variants)
-            {
+            for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
                 if enum_variant_name == value_string {
                     data.push(u8::try_from(enum_code).unwrap());
                     return enum_variant_fields
                         .try_serialize(&Value::Null, data, deserializable)
-                        .context(value_string.to_string())
-                        .context(context);
+                        .context(value_string.to_string());
                 }
             }
             return Err(anyhow!(
@@ -226,16 +222,13 @@ impl ToolboxIdlTypeFull {
             ));
         }
         if let Some(value_object) = value.as_object() {
-            for (enum_code, enum_variant, context) in
-                idl_iter_get_scoped_values(enum_variants)
-            {
+            for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
                 if let Some(enum_value) = value_object.get(enum_variant_name) {
                     data.push(u8::try_from(enum_code).unwrap());
                     return enum_variant_fields
                         .try_serialize(enum_value, data, deserializable)
-                        .context(enum_variant_name.to_string())
-                        .context(context);
+                        .context(enum_variant_name.to_string());
                 }
             }
             return Err(anyhow!("Could not guess enum object key"));
@@ -378,16 +371,10 @@ impl ToolboxIdlTypeFullFields {
                 if values.len() != fields.len() {
                     return Err(anyhow!("Wrong number of unamed fields, expected: {}, found: {}", fields.len(), values.len()));
                 }
-                for (field_index, field, context) in
-                    idl_iter_get_scoped_values(fields)
-                {
+                for (index, field) in fields.iter().enumerate() {
                     field
-                        .try_serialize(
-                            &values[field_index],
-                            data,
-                            deserializable,
-                        )
-                        .context(context)?;
+                        .try_serialize(&values[index], data, deserializable)
+                        .context(index)?;
                 }
             },
             ToolboxIdlTypeFullFields::None => {},

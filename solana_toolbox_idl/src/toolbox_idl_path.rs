@@ -11,15 +11,14 @@ pub enum ToolboxIdlPathPart {
     Index(usize),
 }
 
-// TODO - have tests for path stuff
 impl ToolboxIdlPath {
     pub fn try_parse(value: &str) -> Result<ToolboxIdlPath> {
         let mut parts = vec![];
         for part in value.split(".") {
             if part.contains(|c: char| !c.is_ascii_digit()) {
-                parts.push(ToolboxIdlPathPart::Index(part.parse()?))
-            } else {
                 parts.push(ToolboxIdlPathPart::Key(part.to_string()))
+            } else {
+                parts.push(ToolboxIdlPathPart::Index(part.parse()?))
             }
         }
         Ok(ToolboxIdlPath { parts })

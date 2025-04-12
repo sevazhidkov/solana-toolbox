@@ -10,6 +10,7 @@ use solana_sdk::transaction::Transaction;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
+use crate::toolbox_cli_json::cli_json_object_set_value_at_path;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Prepare an instruction using its program's IDL")]
@@ -91,7 +92,7 @@ impl ToolboxCliCommandInstructionArgs {
         let mut instruction_payload_object = Map::new();
         for arg in &self.args {
             if let Some((path, json)) = arg.split_once(":") {
-                object_set_value_at_path(
+                cli_json_object_set_value_at_path(
                     &mut instruction_payload_object,
                     path,
                     context.parse_hjson(json)?,
@@ -271,25 +272,4 @@ impl ToolboxCliCommandInstructionArgs {
             "outcome": json_outcome,
         }))
     }
-}
-
-fn object_set_value_at_path(
-    object: &mut Map<String, Value>,
-    path: &str,
-    value: Value,
-) {
-    // TODO - support unamed append (index array)
-    if let Some((key, path_child)) = path.split_once(".") {
-        if let Some(object_value) = object.get_mut(key) {
-            if let Some(object_child) = object_value.as_object_mut() {
-                object_set_value_at_path(object_child, path_child, value);
-                return;
-            }
-        }
-        let mut object_child = Map::new();
-        object_set_value_at_path(&mut object_child, path_child, value);
-        object.insert(key.to_string(), json!(object_child));
-        return;
-    }
-    object.insert(path.to_string(), value);
 }

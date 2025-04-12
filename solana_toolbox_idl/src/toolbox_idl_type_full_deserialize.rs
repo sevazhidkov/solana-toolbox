@@ -10,7 +10,6 @@ use serde_json::Value;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
@@ -21,6 +20,7 @@ impl ToolboxIdlTypeFull {
         &self,
         data: &[u8],
         data_offset: usize,
+        // TODO - config object for data format for example ?
     ) -> Result<(usize, Value)> {
         match self {
             ToolboxIdlTypeFull::Option {
@@ -115,12 +115,10 @@ impl ToolboxIdlTypeFull {
         let data_length = idl_u32_from_bytes_at(data, data_offset)?;
         let mut data_size = std::mem::size_of_val(&data_length);
         let mut data_items = vec![];
-        for (_, _, context) in
-            idl_iter_get_scoped_values(&(0..data_length).collect::<Vec<u32>>())
-        {
+        for index in 0..data_length {
             let (data_item_size, data_item) = vec_items
                 .try_deserialize(data, data_offset + data_size)
-                .context(context)?;
+                .context(index)?;
             data_size += data_item_size;
             data_items.push(data_item);
         }
@@ -136,12 +134,10 @@ impl ToolboxIdlTypeFull {
         let array_length = usize::try_from(*array_length).unwrap();
         let mut data_size = 0;
         let mut data_items = vec![];
-        for (_, _, context) in idl_iter_get_scoped_values(
-            &(0..array_length).collect::<Vec<usize>>(),
-        ) {
+        for index in 0..array_length {
             let (data_item_size, data_item) = array_items
                 .try_deserialize(data, data_offset + data_size)
-                .context(context)?;
+                .context(index)?;
             data_size += data_item_size;
             data_items.push(data_item);
         }
@@ -317,12 +313,10 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut data_size = 0;
                 let mut data_fields = vec![];
-                for (_, field_type, context) in
-                    idl_iter_get_scoped_values(fields)
-                {
+                for (index, field_type) in fields.iter().enumerate() {
                     let (data_field_size, data_field) = field_type
                         .try_deserialize(data, data_offset + data_size)
-                        .context(context)?;
+                        .context(index)?;
                     data_size += data_field_size;
                     data_fields.push(data_field);
                 }

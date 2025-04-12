@@ -47,37 +47,62 @@ pub(crate) fn idl_object_get_key_as_bool(
     object.get(key).and_then(|value| value.as_bool())
 }
 
+pub(crate) fn idl_object_get_key_or_else<'a>(
+    object: &'a Map<String, Value>,
+    key: &str,
+) -> Result<&'a Value> {
+    object.get(key).ok_or_else(|| {
+        anyhow!(
+            "missing value at key: {}, available keys: {:?}",
+            key,
+            object.keys().collect::<Vec<_>>()
+        )
+    })
+}
+
 pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
 ) -> Result<&'a Vec<Value>> {
-    idl_object_get_key_as_array(object, key)
-        .ok_or_else(|| anyhow!("Expected an array at key: {}", key))
+    idl_object_get_key_or_else(object, key)?
+        .as_array()
+        .ok_or_else(|| {
+            anyhow!(
+                "Expected an array at key: {}, got: {:?}",
+                key,
+                object.get(key)
+            )
+        })
 }
 
 pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
 ) -> Result<&'a str> {
-    idl_object_get_key_as_str(object, key)
-        .ok_or_else(|| anyhow!("Expected a string at key: {}", key))
+    idl_object_get_key_or_else(object, key)?
+        .as_str()
+        .ok_or_else(|| {
+            anyhow!(
+                "Expected a string at key: {}, got: {:?}",
+                key,
+                object.get(key)
+            )
+        })
 }
 
 pub(crate) fn idl_object_get_key_as_u64_or_else(
     object: &Map<String, Value>,
     key: &str,
 ) -> Result<u64> {
-    idl_object_get_key_as_u64(object, key)
-        .ok_or_else(|| anyhow!("Expected a string at key: {}", key))
-}
-
-pub(crate) fn idl_object_get_key_or_else<'a>(
-    object: &'a Map<String, Value>,
-    key: &str,
-) -> Result<&'a Value> {
-    object
-        .get(key)
-        .ok_or_else(|| anyhow!("missing value at key: {}", key))
+    idl_object_get_key_or_else(object, key)?
+        .as_u64()
+        .ok_or_else(|| {
+            anyhow!(
+                "Expected a string at key: {}, got: {:?}",
+                key,
+                object.get(key)
+            )
+        })
 }
 
 pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else(
@@ -175,6 +200,19 @@ pub(crate) fn idl_slice_from_bytes(
     Ok(&bytes[offset..end])
 }
 
+pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
+    map: &'a HashMap<String, V>,
+    key: &str,
+) -> Result<&'a V> {
+    map.get(key).ok_or_else(|| {
+        anyhow!(
+            "Missing key: {}, available keys: {:?}",
+            key,
+            map.keys().collect::<Vec<_>>()
+        )
+    })
+}
+
 pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
     let size = std::mem::size_of::<u8>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
@@ -197,25 +235,6 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     let size = std::mem::size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
-}
-
-// TODO (FAR) - could be clean'ed
-pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
-    map: &'a HashMap<String, V>,
-    key: &str,
-) -> Result<&'a V> {
-    map.get(key).ok_or_else(|| anyhow!("Missing key: {}", key))
-}
-
-// TODO - this could be handling context a lot better
-pub(crate) fn idl_iter_get_scoped_values<'a, T>(
-    iter: impl IntoIterator<Item = &'a T>,
-) -> Vec<(usize, &'a T, String)> {
-    let mut scoped_values = vec![];
-    for (item_index, item) in iter.into_iter().enumerate() {
-        scoped_values.push((item_index, item, format!("[{}]", item_index)));
-    }
-    scoped_values
 }
 
 pub(crate) fn idl_convert_to_value_name(name: &str) -> String {

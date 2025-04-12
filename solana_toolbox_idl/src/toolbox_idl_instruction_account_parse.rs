@@ -20,7 +20,6 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
@@ -106,8 +105,8 @@ impl ToolboxIdlInstructionAccount {
         if let Some(idl_instruction_account_pda_seeds) =
             idl_object_get_key_as_array(idl_instruction_account_pda, "seeds")
         {
-            for (_, idl_instruction_account_pda_seed, context) in
-                idl_iter_get_scoped_values(idl_instruction_account_pda_seeds)
+            for (index, idl_instruction_account_pda_seed) in
+                idl_instruction_account_pda_seeds.iter().enumerate()
             {
                 seeds.push(
                     ToolboxIdlInstructionAccount::try_parse_pda_blob(
@@ -115,7 +114,8 @@ impl ToolboxIdlInstructionAccount {
                         args,
                         accounts,
                     )
-                    .context(context)?,
+                    .context(index)
+                    .context("Seeds")?,
                 );
             }
         }
@@ -244,7 +244,8 @@ impl ToolboxIdlInstructionAccount {
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
         let path =
-            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path)?;
+            ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path)
+                .context("Parse path")?;
         let (instruction_account_part, account_content_path) =
             path.split_first().context("Empty path")?;
         let instruction_account_name = instruction_account_part

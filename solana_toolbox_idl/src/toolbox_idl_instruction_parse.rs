@@ -16,7 +16,6 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
-use crate::toolbox_idl_utils::idl_iter_get_scoped_values;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 
@@ -53,7 +52,7 @@ impl ToolboxIdlInstruction {
             &args_type_full_fields,
             accounts,
         )
-        .context("Accounts")?;
+        .context("Accounts Parsing")?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
             docs,
@@ -89,8 +88,8 @@ impl ToolboxIdlInstruction {
         let idl_instruction_accounts_array =
             idl_object_get_key_as_array_or_else(idl_instruction, "accounts")?;
         let mut instruction_accounts = vec![];
-        for (_, idl_instruction_account, context) in
-            idl_iter_get_scoped_values(idl_instruction_accounts_array)
+        for (index, idl_instruction_account) in
+            idl_instruction_accounts_array.iter().enumerate()
         {
             instruction_accounts.push(
                 ToolboxIdlInstructionAccount::try_parse(
@@ -98,7 +97,7 @@ impl ToolboxIdlInstruction {
                     args,
                     accounts,
                 )
-                .context(context)?,
+                .context(index)?,
             );
         }
         Ok(instruction_accounts)

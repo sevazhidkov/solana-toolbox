@@ -25,6 +25,10 @@ pub async fn run() {
         &user,
         &collateral_mint,
     );
+    let name_record_header =
+        pubkey!("8EodedXFv8DAJ6jGTg4DVXaBVJTVL3o4T2BWwTJTTJjw");
+    let name_record_owner =
+        pubkey!("8aU2gq8XgzNZr8z4noV87Sx8a3EV29gmi645qQERsaTD");
     // Lookup our program
     let mut idl_service = ToolboxIdlService::new();
     let idl_program_ata = idl_service
@@ -128,6 +132,21 @@ pub async fn run() {
         json!({
             "slot": 347133692,
             "upgrade_authority": mint_authority.to_string(),
+        }),
+    );
+    // Check the state of a known name record header
+    let name_record_header_decoded = idl_service
+        .get_and_decode_account(&mut endpoint, &name_record_header)
+        .await
+        .unwrap();
+    assert_account_decoded_properly(
+        name_record_header_decoded,
+        "SplNameService",
+        "NameRecordHeader",
+        json!({
+            "class": ToolboxEndpoint::SYSTEM_PROGRAM_ID.to_string(),
+            "owner": name_record_owner.to_string(),
+            "parent_name": ToolboxEndpoint::SYSTEM_PROGRAM_ID.to_string(),
         }),
     );
 }

@@ -30,7 +30,7 @@ pub async fn run() {
         .unwrap();
     // Mint some token to our users
     let mut users_collaterals = vec![];
-    for (idx, user) in users.iter().enumerate() {
+    for (index, user) in users.iter().enumerate() {
         let user_collateral = endpoint
             .process_spl_associated_token_account_get_or_init(
                 &payer,
@@ -45,7 +45,7 @@ pub async fn run() {
                 &collateral_mint,
                 &collateral_mint_authority,
                 &user_collateral,
-                1_000_000 + u64::try_from(idx).unwrap(),
+                1_000_000 + u64::try_from(index).unwrap(),
             )
             .await
             .unwrap();
