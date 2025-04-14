@@ -95,6 +95,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 instructions,
                 slot: current_slot,
                 error: outcome.result.transpose().err(),
+                steps: Some(ToolboxEndpointExecution::try_parse_steps(
+                    &simulation_details.logs,
+                )?),
                 logs: Some(simulation_details.logs),
                 return_data: simulation_details
                     .return_data
@@ -107,6 +110,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             instructions,
             slot: current_slot,
             error: outcome.result.transpose().err(),
+            steps: None,
             logs: None,
             return_data: None,
             units_consumed: None,
@@ -171,6 +175,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 instructions,
                 slot: current_slot,
                 error: outcome.result.err(),
+                steps: Some(ToolboxEndpointExecution::try_parse_steps(
+                    &metadata.log_messages,
+                )?),
                 logs: Some(metadata.log_messages),
                 return_data: metadata
                     .return_data
@@ -182,6 +189,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 instructions,
                 slot: current_slot,
                 error: outcome.result.err(),
+                steps: None,
                 logs: None,
                 return_data: None,
                 units_consumed: None,

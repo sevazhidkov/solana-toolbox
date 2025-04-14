@@ -37,6 +37,8 @@ pub use solana_program_test::processor as solana_program_test_processor;
 // TODO (MEDIUM) - should the naming just start with _endpoint ??
 pub use toolbox_endpoint::ToolboxEndpoint;
 pub use toolbox_endpoint_execution::ToolboxEndpointExecution;
+pub use toolbox_endpoint_execution::ToolboxEndpointExecutionStep;
+pub use toolbox_endpoint_execution::ToolboxEndpointExecutionStepCall;
 pub use toolbox_endpoint_factory_program_test::ToolboxEndpointProgramTestBuiltinProgram;
 pub use toolbox_endpoint_factory_program_test::ToolboxEndpointProgramTestPreloadedProgram;
 pub use toolbox_endpoint_logger::ToolboxEndpointLogger;

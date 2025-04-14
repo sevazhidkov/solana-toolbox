@@ -6,6 +6,8 @@ use solana_sdk::system_instruction::create_account;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointExecution;
+use solana_toolbox_endpoint::ToolboxEndpointExecutionStep;
+use solana_toolbox_endpoint::ToolboxEndpointExecutionStepCall;
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
@@ -42,6 +44,15 @@ pub async fn run() {
             instructions: vec![instruction_success],
             slot: 1,
             error: None,
+            steps: Some(vec![ToolboxEndpointExecutionStep::Call(
+                ToolboxEndpointExecutionStepCall {
+                    program_id: ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+                    steps: vec![],
+                    consumed: None,
+                    returns: None,
+                    failure: None
+                }
+            )]),
             logs: Some(vec![
                 "Program 11111111111111111111111111111111 invoke [1]"
                     .to_string(),
@@ -78,6 +89,21 @@ pub async fn run() {
                 0,
                 InstructionError::Custom(1)
             )),
+            steps: Some(vec![
+                ToolboxEndpointExecutionStep::Call(
+                    ToolboxEndpointExecutionStepCall {
+                        program_id: ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+                        steps: vec![
+                            ToolboxEndpointExecutionStep::Unknown(
+                                "Transfer: insufficient lamports 1999990000, need 10000000000".to_string()
+                            ),
+                        ],
+                        consumed: None,
+                        returns: None,
+                        failure: Some("custom program error: 0x1".to_string())
+                    }
+                )
+            ]),
             logs: Some(vec![
                 "Program 11111111111111111111111111111111 invoke [1]".to_string(),
                 "Transfer: insufficient lamports 1999990000, need 10000000000".to_string(),
@@ -109,6 +135,21 @@ pub async fn run() {
             instructions: vec![instruction_returned],
             slot: 1,
             error: None,
+            steps: Some(vec![
+                ToolboxEndpointExecutionStep::Call(
+                    ToolboxEndpointExecutionStepCall {
+                        program_id: ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+                        steps: vec![
+                            ToolboxEndpointExecutionStep::Log(
+                                "Instruction: UiAmountToAmount".to_string()
+                            )
+                        ],
+                        consumed: Some((3034, 200000)),
+                        returns: Some(vec![32, 75, 188, 0, 0, 0, 0, 0]),
+                        failure: None
+                    }
+                )
+            ]),
             logs: Some(vec![
                 "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]".to_string(),
                 "Program log: Instruction: UiAmountToAmount".to_string(),

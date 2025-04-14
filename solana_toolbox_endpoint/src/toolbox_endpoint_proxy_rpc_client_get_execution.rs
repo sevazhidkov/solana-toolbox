@@ -141,6 +141,12 @@ impl ToolboxEndpointProxyRpcClient {
             instructions,
             slot: response.slot,
             error: response.meta.err,
+            steps: response
+                .meta
+                .log_messages
+                .as_ref()
+                .map(|logs| ToolboxEndpointExecution::try_parse_steps(logs))
+                .transpose()?,
             logs: response.meta.log_messages,
             return_data:
                 ToolboxEndpointProxyRpcClient::decode_transaction_return_data(

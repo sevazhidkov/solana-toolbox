@@ -64,6 +64,12 @@ impl ToolboxEndpointProxyRpcClient {
             instructions,
             slot: outcome.context.slot,
             error: outcome.value.err,
+            steps: outcome
+                .value
+                .logs
+                .as_ref()
+                .map(|logs| ToolboxEndpointExecution::try_parse_steps(logs))
+                .transpose()?,
             logs: outcome.value.logs,
             return_data:
                 ToolboxEndpointProxyRpcClient::decode_transaction_return_data(
