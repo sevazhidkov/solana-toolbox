@@ -46,45 +46,49 @@ impl ToolboxIdlProgram {
         let authority_offset = discriminator.len();
         let authority =
             idl_pubkey_from_bytes_at(account_data, authority_offset)
-                .context("Authority")?;
+                .context("Read Authority")?;
         let length_offset =
             authority_offset + std::mem::size_of_val(&authority);
         let length = idl_u32_from_bytes_at(account_data, length_offset)
-            .context("Length")?;
+            .context("Read Length")?;
         let content_offset = length_offset + std::mem::size_of_val(&length);
         let content = idl_slice_from_bytes(
             account_data,
             content_offset,
             usize::try_from(length)?,
         )
-        .context("Content")?;
+        .context("Read Content")?;
         let content_encoded = inflate_bytes_zlib(content).map_err(|error| {
             anyhow!("Could not decompress idl data: {}", error)
         })?;
-        let content_decoded = String::from_utf8(content_encoded)?;
+        let content_decoded =
+            String::from_utf8(content_encoded).context("Decode Content")?;
         ToolboxIdlProgram::try_parse_from_str(&content_decoded)
+            .context("Parse Content")
     }
 
     pub fn try_parse_from_str(content: &str) -> Result<ToolboxIdlProgram> {
-        ToolboxIdlProgram::try_parse_from_value(&from_str::<Value>(content)?)
+        ToolboxIdlProgram::try_parse_from_value(
+            &from_str::<Value>(content).context("Parse JSON")?,
+        )
     }
 
     pub fn try_parse_from_value(value: &Value) -> Result<ToolboxIdlProgram> {
         let idl_root = idl_as_object_or_else(value).context("Root")?;
         let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root)?;
-        let typedefs =
-            ToolboxIdlProgram::try_parse_typedefs(idl_root).context("Types")?;
+        let typedefs = ToolboxIdlProgram::try_parse_typedefs(idl_root)
+            .context("Parse Types")?;
         let accounts =
             ToolboxIdlProgram::try_parse_accounts(idl_root, &typedefs)
-                .context("Accounts")?;
+                .context("Parse Accounts")?;
         let instructions = ToolboxIdlProgram::try_parse_instructions(
             idl_root, &typedefs, &accounts,
         )
-        .context("Instructions")?;
+        .context("Parse Instructions")?;
         let events = ToolboxIdlProgram::try_parse_events(idl_root, &typedefs)
-            .context("Events")?;
-        let errors =
-            ToolboxIdlProgram::try_parse_errors(idl_root).context("Errors")?;
+            .context("Parse Events")?;
+        let errors = ToolboxIdlProgram::try_parse_errors(idl_root)
+            .context("Parse Errors")?;
         Ok(ToolboxIdlProgram {
             metadata,
             typedefs,
@@ -146,7 +150,10 @@ impl ToolboxIdlProgram {
         {
             typedefs.insert(
                 idl_typedef_name.to_string(),
-                ToolboxIdlTypedef::try_parse(idl_typedef_name, idl_typedef)?
+                ToolboxIdlTypedef::try_parse(idl_typedef_name, idl_typedef)
+                    .with_context(|| {
+                        format!("Parse Typedef: {}", idl_typedef_name)
+                    })?
                     .into(),
             );
         }
@@ -169,7 +176,10 @@ impl ToolboxIdlProgram {
                     idl_account_name,
                     idl_account,
                     typedefs,
-                )?
+                )
+                .with_context(|| {
+                    format!("Parse Account: {}", idl_account_name)
+                })?
                 .into(),
             );
         }
@@ -198,7 +208,9 @@ impl ToolboxIdlProgram {
                     typedefs,
                     accounts,
                 )
-                .context(idl_instruction_name)?
+                .with_context(|| {
+                    format!("Parse Instruction: {}", idl_instruction_name)
+                })?
                 .into(),
             );
         }
@@ -217,12 +229,11 @@ impl ToolboxIdlProgram {
         {
             events.insert(
                 idl_event_name.to_string(),
-                ToolboxIdlEvent::try_parse(
-                    idl_event_name,
-                    idl_event,
-                    typedefs,
-                )?
-                .into(),
+                ToolboxIdlEvent::try_parse(idl_event_name, idl_event, typedefs)
+                    .with_context(|| {
+                        format!("Parse Event: {}", idl_event_name)
+                    })?
+                    .into(),
             );
         }
         Ok(events)
@@ -239,7 +250,11 @@ impl ToolboxIdlProgram {
         {
             errors.insert(
                 idl_error_name.to_string(),
-                ToolboxIdlError::try_parse(idl_error_name, idl_error)?.into(),
+                ToolboxIdlError::try_parse(idl_error_name, idl_error)
+                    .with_context(|| {
+                        format!("Parse Error: {}", idl_error_name)
+                    })?
+                    .into(),
             );
         }
         Ok(errors)

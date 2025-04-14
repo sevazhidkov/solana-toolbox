@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::Context;
 use anyhow::Result;
 use serde_json::Map;
 use serde_json::Value;
@@ -20,17 +21,18 @@ impl ToolboxIdlEvent {
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlEvent> {
         let idl_event = idl_as_object_or_else(idl_event)?;
-        let discriminator = ToolboxIdlEvent::try_parse_discriminator(
-            idl_event_name,
-            idl_event,
-        )?;
+        let discriminator =
+            ToolboxIdlEvent::try_parse_discriminator(idl_event_name, idl_event)
+                .context("Parse Discriminator")?;
         let docs = idl_event.get("docs").cloned();
         let info_type_flat = ToolboxIdlEvent::try_parse_info_type_flat(
             idl_event_name,
             idl_event,
-        )?;
-        let info_type_full =
-            info_type_flat.try_hydrate(&HashMap::new(), typedefs)?;
+        )
+        .context("Parse Info Type")?;
+        let info_type_full = info_type_flat
+            .try_hydrate(&HashMap::new(), typedefs)
+            .context("Hydrate Info Type")?;
         Ok(ToolboxIdlEvent {
             name: idl_event_name.to_string(),
             docs,

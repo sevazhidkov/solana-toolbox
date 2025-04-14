@@ -36,7 +36,8 @@ impl ToolboxIdlInstructionAccount {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account)?;
         let name = idl_convert_to_snake_case(
-            idl_object_get_key_as_str_or_else(idl_instruction_account, "name")?,
+            idl_object_get_key_as_str_or_else(idl_instruction_account, "name")
+                .context("Parse Name")?,
         );
         let docs = idl_instruction_account.get("docs").cloned();
         let writable =
@@ -63,13 +64,13 @@ impl ToolboxIdlInstructionAccount {
         let address = ToolboxIdlInstructionAccount::try_parse_address(
             idl_instruction_account,
         )
-        .context("Address")?;
+        .with_context(|| format!("Parse {} Address", name))?;
         let pda = ToolboxIdlInstructionAccount::try_parse_pda(
             idl_instruction_account,
             args,
             accounts,
         )
-        .context("Pda")?;
+        .with_context(|| format!("Parse {} Pda", name))?;
         Ok(ToolboxIdlInstructionAccount {
             name,
             docs,

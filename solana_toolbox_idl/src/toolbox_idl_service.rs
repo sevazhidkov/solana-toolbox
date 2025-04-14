@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
@@ -46,13 +46,21 @@ impl ToolboxIdlService {
             } else {
                 let mut source_account = None;
                 if let Some(anchor_account) = endpoint
-                    .get_account(&ToolboxIdlProgram::find_anchor(program_id)?)
-                    .await?
+                    .get_account(
+                        &ToolboxIdlProgram::find_anchor(program_id)
+                            .context("Find Anchor Account")?,
+                    )
+                    .await
+                    .context("Get Anchor Account")?
                 {
                     source_account = Some(anchor_account);
                 } else if let Some(shank_account) = endpoint
-                    .get_account(&ToolboxIdlProgram::find_shank(program_id)?)
-                    .await?
+                    .get_account(
+                        &ToolboxIdlProgram::find_shank(program_id)
+                            .context("Find Shank Account")?,
+                    )
+                    .await
+                    .context("Get Shank Account")?
                 {
                     source_account = Some(shank_account);
                 }
@@ -62,7 +70,8 @@ impl ToolboxIdlService {
                             &source_account.data,
                         )
                     })
-                    .transpose()?
+                    .transpose()
+                    .context("Parse IDL Account Data")?
                     .map(Arc::new)
             }
         };

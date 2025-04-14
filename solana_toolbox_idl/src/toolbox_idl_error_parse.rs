@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use serde_json::Value;
 
@@ -12,7 +13,8 @@ impl ToolboxIdlError {
         idl_error: &Value,
     ) -> Result<ToolboxIdlError> {
         if let Some(idl_error) = idl_error.as_object() {
-            let code = idl_object_get_key_as_u64_or_else(idl_error, "code")?;
+            let code = idl_object_get_key_as_u64_or_else(idl_error, "code")
+                .context("Parse Code")?;
             let msg = idl_object_get_key_as_str(idl_error, "msg")
                 .unwrap_or("")
                 .to_string();

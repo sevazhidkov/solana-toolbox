@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use anyhow::Context;
 use anyhow::Result;
 use serde_json::Map;
 use serde_json::Value;
@@ -26,18 +27,23 @@ impl ToolboxIdlAccount {
         let discriminator = ToolboxIdlAccount::try_parse_discriminator(
             idl_account_name,
             idl_account,
-        )?;
+        )
+        .context("Parse Discriminator")?;
         let docs = idl_account.get("docs").cloned();
         let space = idl_object_get_key_as_u64(idl_account, "space")
             .map(usize::try_from)
-            .transpose()?;
-        let blobs = ToolboxIdlAccount::try_parse_blobs(idl_account)?;
+            .transpose()
+            .context("Parse Space")?;
+        let blobs = ToolboxIdlAccount::try_parse_blobs(idl_account)
+            .context("Parse Blobs")?;
         let content_type_flat = ToolboxIdlAccount::try_parse_content_type_flat(
             idl_account_name,
             idl_account,
-        )?;
-        let content_type_full =
-            content_type_flat.try_hydrate(&HashMap::new(), typedefs)?;
+        )
+        .context("Parse Content Type")?;
+        let content_type_full = content_type_flat
+            .try_hydrate(&HashMap::new(), typedefs)
+            .context("Hydrate Content Type")?;
         Ok(ToolboxIdlAccount {
             name: idl_account_name.to_string(),
             docs,

@@ -24,17 +24,20 @@ impl ToolboxIdlTypeFlat {
                 generics: generics_flat,
             } => {
                 let mut generics_full = vec![];
-                for generic_flat in generics_flat {
+                for (index, generic_flat) in generics_flat.iter().enumerate() {
                     generics_full.push(
                         generic_flat
-                            .try_hydrate(generics_by_symbol, typedefs)?,
+                            .try_hydrate(generics_by_symbol, typedefs)
+                            .with_context(|| {
+                                format!("Defined's Generic: {}", index)
+                            })?,
                     );
                 }
                 let typedef = idl_map_get_key_or_else(typedefs, name)
                     .context("Defined type")?;
-                if generics_full.len() != typedef.generics.len() {
+                if generics_full.len() < typedef.generics.len() {
                     return Err(anyhow!(
-                        "Wrong number of generic parameter: expected: {}, found: {}",
+                        "Insufficient number of generic parameter: expected: {}, found: {}",
                         typedef.generics.len(),
                         generics_full.len()
                     ));
@@ -48,11 +51,12 @@ impl ToolboxIdlTypeFlat {
                 }
                 typedef
                     .type_flat
-                    .try_hydrate(&generics_by_symbol, typedefs)?
+                    .try_hydrate(&generics_by_symbol, typedefs)
+                    .with_context(|| format!("Defined: {}", name))?
             },
             ToolboxIdlTypeFlat::Generic { symbol } => {
                 idl_map_get_key_or_else(generics_by_symbol, symbol)
-                    .context("Generic type")?
+                    .with_context(|| format!("Generic: {}", symbol))?
                     .clone()
             },
             ToolboxIdlTypeFlat::Option {
@@ -102,7 +106,10 @@ impl ToolboxIdlTypeFlat {
                     variants_full.push((
                         variant_name.to_string(),
                         variant_flat_fields
-                            .try_hydrate(generics_by_symbol, typedefs)?,
+                            .try_hydrate(generics_by_symbol, typedefs)
+                            .with_context(|| {
+                                format!("Variant: {}", variant_name)
+                            })?,
                     ));
                 }
                 ToolboxIdlTypeFull::Enum {
@@ -144,17 +151,23 @@ impl ToolboxIdlTypeFlatFields {
                     fields_full.push((
                         field_name.to_string(),
                         field_type_flat
-                            .try_hydrate(generics_by_symbol, typedefs)?,
+                            .try_hydrate(generics_by_symbol, typedefs)
+                            .with_context(|| {
+                                format!("Field: {}", field_name)
+                            })?,
                     ));
                 }
                 ToolboxIdlTypeFullFields::Named(fields_full)
             },
             ToolboxIdlTypeFlatFields::Unnamed(fields) => {
                 let mut fields_type_full = vec![];
-                for (_field_docs, field_type_flat) in fields {
+                for (index, (_field_docs, field_type_flat)) in
+                    fields.iter().enumerate()
+                {
                     fields_type_full.push(
                         field_type_flat
-                            .try_hydrate(generics_by_symbol, typedefs)?,
+                            .try_hydrate(generics_by_symbol, typedefs)
+                            .with_context(|| format!("Field: {}", index))?,
                     );
                 }
                 ToolboxIdlTypeFullFields::Unnamed(fields_type_full)

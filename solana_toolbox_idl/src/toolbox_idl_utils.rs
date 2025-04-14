@@ -51,8 +51,8 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
     object: &'a Map<String, Value>,
     key: &str,
 ) -> Result<&'a Value> {
-    object.get(key).ok_or_else(|| {
-        anyhow!(
+    object.get(key).with_context(|| {
+        format!(
             "Expected value at key: {}. Found keys: {:?}",
             key,
             object.keys().collect::<Vec<_>>()
@@ -66,8 +66,8 @@ pub(crate) fn idl_object_get_key_as_array_or_else<'a>(
 ) -> Result<&'a Vec<Value>> {
     idl_object_get_key_or_else(object, key)?
         .as_array()
-        .ok_or_else(|| {
-            anyhow!(
+        .with_context(|| {
+            format!(
                 "Expected an array at key: {}, got: {:?}",
                 key,
                 object.get(key)
@@ -81,8 +81,8 @@ pub(crate) fn idl_object_get_key_as_str_or_else<'a>(
 ) -> Result<&'a str> {
     idl_object_get_key_or_else(object, key)?
         .as_str()
-        .ok_or_else(|| {
-            anyhow!(
+        .with_context(|| {
+            format!(
                 "Expected a string at key: {}, got: {:?}",
                 key,
                 object.get(key)
@@ -96,8 +96,8 @@ pub(crate) fn idl_object_get_key_as_u64_or_else(
 ) -> Result<u64> {
     idl_object_get_key_or_else(object, key)?
         .as_u64()
-        .ok_or_else(|| {
-            anyhow!(
+        .with_context(|| {
+            format!(
                 "Expected a string at key: {}, got: {:?}",
                 key,
                 object.get(key)
@@ -177,11 +177,10 @@ pub(crate) fn idl_slice_from_bytes(
     offset: usize,
     length: usize,
 ) -> Result<&[u8]> {
-    let end = offset.checked_add(length).ok_or_else(|| {
-        anyhow!(
+    let end = offset.checked_add(length).with_context(|| {
+        format!(
             "Invalid slice length: offset: {}, length: {}",
-            offset,
-            length,
+            offset, length,
         )
     })?;
     if bytes.len() < end {
@@ -199,8 +198,8 @@ pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
     map: &'a HashMap<String, V>,
     key: &str,
 ) -> Result<&'a V> {
-    map.get(key).ok_or_else(|| {
-        anyhow!(
+    map.get(key).with_context(|| {
+        format!(
             "Expected value at key: {}. Found keys: {:?}",
             key,
             map.keys().collect::<Vec<_>>()

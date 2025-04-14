@@ -49,7 +49,6 @@ impl ToolboxEndpointExecution {
                 0,
                 logs,
             )?;
-        // TODO - check warning for returns/failure/consumed/offset weirdness?
         Ok(root_step.steps)
     }
 

@@ -46,6 +46,7 @@ mod toolbox_idl_typedef;
 mod toolbox_idl_typedef_export;
 mod toolbox_idl_typedef_parse;
 mod toolbox_idl_utils;
+// TODO (FAR) - support repr C by adding padding alignment ?
 // TODO (FAR) - handle events from logs ?
 // TODO (FAR) - support for uploading IDLs ?
 

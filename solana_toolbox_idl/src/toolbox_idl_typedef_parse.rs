@@ -24,8 +24,9 @@ impl ToolboxIdlTypedef {
                     idl_value_as_str_or_object_with_name_as_str_or_else(
                         idl_typedef_generic,
                     )
-                    .context(index)
-                    .context("Generics")?;
+                    .with_context(|| {
+                        format!("Parse Generic Name: {}", index)
+                    })?;
                 generics.push(idl_typedef_generic_name.to_string());
             }
         }
@@ -33,7 +34,8 @@ impl ToolboxIdlTypedef {
             name: idl_typedef_name.to_string(),
             docs,
             generics,
-            type_flat: ToolboxIdlTypeFlat::try_parse_value(idl_typedef)?,
+            type_flat: ToolboxIdlTypeFlat::try_parse_value(idl_typedef)
+                .context("Parse Type")?,
         })
     }
 }

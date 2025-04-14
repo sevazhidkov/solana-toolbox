@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
@@ -27,13 +27,15 @@ impl ToolboxIdlService {
     ) -> Result<ToolboxIdlServiceInstructionDecoded> {
         let idl_program = self
             .resolve_program(endpoint, &instruction.program_id)
-            .await?
+            .await
+            .context("Resolve Program")?
             .unwrap_or_default();
         let idl_instruction = idl_program
             .guess_instruction(&instruction.data)
             .unwrap_or_default();
-        let (_, instruction_payload, instruction_addresses) =
-            idl_instruction.decode(instruction)?;
+        let (_, instruction_payload, instruction_addresses) = idl_instruction
+            .decode(instruction)
+            .context("Decode Instruction")?;
         Ok(ToolboxIdlServiceInstructionDecoded {
             program_id: instruction.program_id,
             program: idl_program,
@@ -51,19 +53,22 @@ impl ToolboxIdlService {
         instruction_payload: &Value,
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Instruction> {
-        idl_instruction.encode(
-            instruction_program_id,
-            instruction_payload,
-            &self
-                .resolve_instruction_addresses(
-                    endpoint,
-                    idl_instruction,
-                    instruction_program_id,
-                    instruction_payload,
-                    instruction_addresses,
-                )
-                .await?,
-        )
+        idl_instruction
+            .encode(
+                instruction_program_id,
+                instruction_payload,
+                &self
+                    .resolve_instruction_addresses(
+                        endpoint,
+                        idl_instruction,
+                        instruction_program_id,
+                        instruction_payload,
+                        instruction_addresses,
+                    )
+                    .await
+                    .context("Resolve Instruction Addresses")?,
+            )
+            .context("Encode Instruction")
     }
 
     pub async fn resolve_instruction_addresses(
@@ -81,7 +86,13 @@ impl ToolboxIdlService {
         {
             let account_decoded = self
                 .get_and_decode_account(endpoint, instruction_address)
-                .await?;
+                .await
+                .with_context(|| {
+                    format!(
+                        "Get And Decode Instruction Account: {} ({})",
+                        instruction_account_name, instruction_address
+                    )
+                })?;
             instruction_accounts_states.insert(
                 instruction_account_name.to_string(),
                 account_decoded.state,
@@ -110,7 +121,14 @@ impl ToolboxIdlService {
                     );
                     let account_decoded = self
                         .get_and_decode_account(endpoint, &instruction_address)
-                        .await?;
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "Get And Decode Instruction Account: {} ({})",
+                                idl_instruction_account.name,
+                                instruction_address
+                            )
+                        })?;
                     instruction_accounts_states.insert(
                         idl_instruction_account.name.to_string(),
                         account_decoded.state,

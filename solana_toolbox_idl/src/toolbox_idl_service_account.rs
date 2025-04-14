@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde_json::Value;
 use solana_sdk::account::Account;
 use solana_sdk::pubkey::Pubkey;
@@ -24,7 +24,11 @@ impl ToolboxIdlService {
         endpoint: &mut ToolboxEndpoint,
         address: &Pubkey,
     ) -> Result<ToolboxIdlServiceAccountDecoded> {
-        let account = endpoint.get_account(address).await?.unwrap_or_default();
+        let account = endpoint
+            .get_account(address)
+            .await
+            .context("Get Account")?
+            .unwrap_or_default();
         self.decode_account(endpoint, &account).await
     }
 
@@ -35,11 +39,14 @@ impl ToolboxIdlService {
     ) -> Result<ToolboxIdlServiceAccountDecoded> {
         let idl_program = self
             .resolve_program(endpoint, &account.owner)
-            .await?
+            .await
+            .context("Resolve Program")?
             .unwrap_or_default();
         let idl_account =
             idl_program.guess_account(&account.data).unwrap_or_default();
-        let account_state = idl_account.decode(&account.data)?;
+        let account_state = idl_account
+            .decode(&account.data)
+            .context("Decode Account State")?;
         Ok(ToolboxIdlServiceAccountDecoded {
             lamports: account.lamports,
             owner: account.owner,

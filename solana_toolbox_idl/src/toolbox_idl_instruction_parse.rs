@@ -37,22 +37,22 @@ impl ToolboxIdlInstruction {
             ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,
             )
-            .context("Args parsing")?;
+            .context("Parse Args Type")?;
         let args_type_full_fields = args_type_flat_fields
             .try_hydrate(&HashMap::new(), typedefs)
-            .context("Args hydration")?;
+            .context("Hydrate Args Type")?;
         let return_type_flat =
             ToolboxIdlInstruction::try_parse_return_type_flat(idl_instruction)
-                .context("Returns parsing")?;
+                .context("Parse Returns Type")?;
         let return_type_full = return_type_flat
             .try_hydrate(&HashMap::new(), typedefs)
-            .context("Returns hydration")?;
+            .context("Hydrate Returns Type")?;
         let accounts = ToolboxIdlInstruction::try_parse_accounts(
             idl_instruction,
             &args_type_full_fields,
             accounts,
         )
-        .context("Accounts Parsing")?;
+        .context("Parse Accounts")?;
         Ok(ToolboxIdlInstruction {
             name: idl_instruction_name.to_string(),
             docs,
@@ -97,7 +97,7 @@ impl ToolboxIdlInstruction {
                     args,
                     accounts,
                 )
-                .context(index)?,
+                .with_context(|| format!("Parse Account: {}", index))?,
             );
         }
         Ok(instruction_accounts)

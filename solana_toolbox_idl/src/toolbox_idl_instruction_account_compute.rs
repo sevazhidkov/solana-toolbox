@@ -26,12 +26,14 @@ impl ToolboxIdlInstructionAccount {
             return Ok(*instruction_account_address);
         }
         if let Some(instruction_account_pda) = &self.pda {
-            return instruction_account_pda.try_find(
-                instruction_program_id,
-                instruction_payload,
-                instruction_addresses,
-                instruction_accounts_states,
-            );
+            return instruction_account_pda
+                .try_find(
+                    instruction_program_id,
+                    instruction_payload,
+                    instruction_addresses,
+                    instruction_accounts_states,
+                )
+                .context("Compute Pda");
         }
         Err(anyhow!("Could not find account (unresolvable)"))
     }
@@ -54,8 +56,7 @@ impl ToolboxIdlInstructionAccountPda {
                         instruction_addresses,
                         instruction_accounts_states,
                     )
-                    .context(index)
-                    .context("Seeds")?,
+                    .with_context(|| format!("Compute Seed Blob: {}", index))?,
             );
         }
         let pda_program_id = if let Some(pda_program_blob) = &self.program {
@@ -65,14 +66,14 @@ impl ToolboxIdlInstructionAccountPda {
                     instruction_addresses,
                     instruction_accounts_states,
                 )
-                .context("Program blob compute")?;
+                .context("Compute Program Blob")?;
             Pubkey::new_from_array(
                 pda_program_id_bytes
                     .try_into()
                     .map_err(|error| {
                         anyhow!("Invalid Pubkey bytes: {:?}", error)
                     })
-                    .context("Program")?,
+                    .context("Compute Program")?,
             )
         } else {
             *instruction_program_id
@@ -136,7 +137,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
         let mut bytes = vec![];
         type_full
             .try_serialize(value, &mut bytes, false)
-            .context("Serialize")?;
+            .context("Serialize Blob Bytes")?;
         Ok(bytes)
     }
 }

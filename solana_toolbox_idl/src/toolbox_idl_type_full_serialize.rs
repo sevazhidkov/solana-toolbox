@@ -41,21 +41,17 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-            )
-            .context("Option"),
+            ),
             ToolboxIdlTypeFull::Vec {
                 prefix_bytes,
                 items,
-            } => {
-                ToolboxIdlTypeFull::try_serialize_vec(
-                    prefix_bytes,
-                    items,
-                    value,
-                    data,
-                    deserializable,
-                )
-            }
-            .context("Vec"),
+            } => ToolboxIdlTypeFull::try_serialize_vec(
+                prefix_bytes,
+                items,
+                value,
+                data,
+                deserializable,
+            ),
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_serialize_array(
                     items,
@@ -64,8 +60,7 @@ impl ToolboxIdlTypeFull {
                     data,
                     deserializable,
                 )
-            }
-            .context("Array"),
+            },
             ToolboxIdlTypeFull::Struct { fields } => {
                 ToolboxIdlTypeFull::try_serialize_struct(
                     fields,
@@ -73,21 +68,17 @@ impl ToolboxIdlTypeFull {
                     data,
                     deserializable,
                 )
-            }
-            .context("Struct"),
+            },
             ToolboxIdlTypeFull::Enum {
                 prefix_bytes,
                 variants,
-            } => {
-                ToolboxIdlTypeFull::try_serialize_enum(
-                    prefix_bytes,
-                    variants,
-                    value,
-                    data,
-                    deserializable,
-                )
-            }
-            .context("Enum"),
+            } => ToolboxIdlTypeFull::try_serialize_enum(
+                prefix_bytes,
+                variants,
+                value,
+                data,
+                deserializable,
+            ),
             ToolboxIdlTypeFull::Padded {
                 size_bytes,
                 content,
@@ -97,8 +88,7 @@ impl ToolboxIdlTypeFull {
                 value,
                 data,
                 deserializable,
-            )
-            .context("Padded"),
+            ),
             ToolboxIdlTypeFull::Const { literal } => {
                 Err(anyhow!("Can't use a const literal directly: {}", literal))
             },
@@ -151,7 +141,7 @@ impl ToolboxIdlTypeFull {
         for (index, value_item) in values.iter().enumerate() {
             vec_items
                 .try_serialize(value_item, data, deserializable)
-                .context(index)?;
+                .with_context(|| format!("Serialize Vec Item: {}", index))?;
         }
         Ok(())
     }
@@ -187,7 +177,7 @@ impl ToolboxIdlTypeFull {
         for (index, value_item) in values.iter().enumerate() {
             array_items
                 .try_serialize(value_item, data, deserializable)
-                .context(index)?;
+                .with_context(|| format!("Serialize Array Item: {}", index))?;
         }
         Ok(())
     }
@@ -216,7 +206,12 @@ impl ToolboxIdlTypeFull {
                     idl_prefix_write(enum_prefix_bytes, enum_code, data)?;
                     return enum_variant_fields
                         .try_serialize(&Value::Null, data, deserializable)
-                        .context(value_string.to_string());
+                        .with_context(|| {
+                            format!(
+                                "Serialize Enum Variant: {}",
+                                enum_variant_name
+                            )
+                        });
                 }
             }
             return Err(anyhow!(
@@ -231,7 +226,12 @@ impl ToolboxIdlTypeFull {
                     idl_prefix_write(enum_prefix_bytes, enum_code, data)?;
                     return enum_variant_fields
                         .try_serialize(enum_value, data, deserializable)
-                        .context(enum_variant_name.to_string());
+                        .with_context(|| {
+                            format!(
+                                "Serialize Enum Variant: {}",
+                                enum_variant_name
+                            )
+                        });
                 }
             }
             return Err(anyhow!("Could not guess enum object key"));
@@ -352,7 +352,9 @@ impl ToolboxIdlTypeFullFields {
                         idl_object_get_key_or_else(value, field_name)?;
                     field_type
                         .try_serialize(value_field, data, deserializable)
-                        .context(field_name.to_string())?;
+                        .with_context(|| {
+                            format!("Serialize Field: {}", field_name)
+                        })?;
                 }
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
@@ -363,7 +365,7 @@ impl ToolboxIdlTypeFullFields {
                 for (index, field) in fields.iter().enumerate() {
                     field
                         .try_serialize(&values[index], data, deserializable)
-                        .context(index)?;
+                        .with_context(|| format!("Serialize Field: {}", index))?;
                 }
             },
             ToolboxIdlTypeFullFields::None => {},

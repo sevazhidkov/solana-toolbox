@@ -32,20 +32,16 @@ impl ToolboxIdlTypeFull {
                 content,
                 data,
                 data_offset,
-            )
-            .context("Option"),
+            ),
             ToolboxIdlTypeFull::Vec {
                 prefix_bytes,
                 items,
-            } => {
-                ToolboxIdlTypeFull::try_deserialize_vec(
-                    prefix_bytes,
-                    items,
-                    data,
-                    data_offset,
-                )
-            }
-            .context("Vec"),
+            } => ToolboxIdlTypeFull::try_deserialize_vec(
+                prefix_bytes,
+                items,
+                data,
+                data_offset,
+            ),
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_deserialize_array(
                     items,
@@ -53,28 +49,23 @@ impl ToolboxIdlTypeFull {
                     data,
                     data_offset,
                 )
-            }
-            .context("Array"),
+            },
             ToolboxIdlTypeFull::Struct { fields } => {
                 ToolboxIdlTypeFull::try_deserialize_struct(
                     fields,
                     data,
                     data_offset,
                 )
-            }
-            .context("Struct"),
+            },
             ToolboxIdlTypeFull::Enum {
                 prefix_bytes,
                 variants,
-            } => {
-                ToolboxIdlTypeFull::try_deserialize_enum(
-                    prefix_bytes,
-                    variants,
-                    data,
-                    data_offset,
-                )
-            }
-            .context("Enum"),
+            } => ToolboxIdlTypeFull::try_deserialize_enum(
+                prefix_bytes,
+                variants,
+                data,
+                data_offset,
+            ),
             ToolboxIdlTypeFull::Padded {
                 size_bytes,
                 content,
@@ -83,8 +74,7 @@ impl ToolboxIdlTypeFull {
                 content,
                 data,
                 data_offset,
-            )
-            .context("Padded"),
+            ),
             ToolboxIdlTypeFull::Const { literal } => {
                 Err(anyhow!("Can't use a const literal directly: {}", literal))
             },
@@ -130,7 +120,7 @@ impl ToolboxIdlTypeFull {
         for index in 0..data_length {
             let (data_item_size, data_item) = vec_items
                 .try_deserialize(data, data_offset + data_size)
-                .context(index)?;
+                .with_context(|| format!("Decode Vec Item: {}", index))?;
             data_size += data_item_size;
             data_items.push(data_item);
         }
@@ -149,7 +139,7 @@ impl ToolboxIdlTypeFull {
         for index in 0..array_length {
             let (data_item_size, data_item) = array_items
                 .try_deserialize(data, data_offset + data_size)
-                .context(index)?;
+                .with_context(|| format!("Decode Array Item: {}", index))?;
             data_size += data_item_size;
             data_items.push(data_item);
         }
@@ -186,7 +176,10 @@ impl ToolboxIdlTypeFull {
         let enum_variant = &enum_variants[data_code];
         let (enum_variant_name, enum_variant_fields) = enum_variant;
         let (data_fields_size, data_fields) = enum_variant_fields
-            .try_deserialize(data, data_offset + data_size)?;
+            .try_deserialize(data, data_offset + data_size)
+            .with_context(|| {
+                format!("Decode Enum Variant Name: {}", enum_variant_name)
+            })?;
         data_size += data_fields_size;
         if data_fields.is_null() {
             Ok((data_size, json!(enum_variant_name)))
@@ -321,7 +314,10 @@ impl ToolboxIdlTypeFullFields {
                 let mut data_fields = Map::new();
                 for (field_name, field_type) in fields {
                     let (data_field_size, data_field) = field_type
-                        .try_deserialize(data, data_offset + data_size)?;
+                        .try_deserialize(data, data_offset + data_size)
+                        .with_context(|| {
+                            format!("Decode Field: {}", field_name)
+                        })?;
                     data_size += data_field_size;
                     data_fields.insert(field_name.to_string(), data_field);
                 }
@@ -333,7 +329,7 @@ impl ToolboxIdlTypeFullFields {
                 for (index, field_type) in fields.iter().enumerate() {
                     let (data_field_size, data_field) = field_type
                         .try_deserialize(data, data_offset + data_size)
-                        .context(index)?;
+                        .with_context(|| format!("Decode Field: {}", index))?;
                     data_size += data_field_size;
                     data_fields.push(data_field);
                 }
