@@ -4,7 +4,6 @@ use solana_sdk::pubkey::Pubkey;
 use crate::toolbox_idl_path::ToolboxIdlPath;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstructionAccount {
@@ -43,10 +42,4 @@ pub enum ToolboxIdlInstructionAccountPdaBlob {
         type_flat: ToolboxIdlTypeFlat,
         type_full: ToolboxIdlTypeFull,
     },
-}
-
-impl ToolboxIdlInstructionAccount {
-    pub fn sanitize_name(name: &str) -> String {
-        idl_convert_to_value_name(name)
-    }
 }

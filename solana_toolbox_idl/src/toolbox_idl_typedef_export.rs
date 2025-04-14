@@ -17,7 +17,7 @@ impl ToolboxIdlTypedef {
         if !self.generics.is_empty() {
             let mut json_generics = vec![];
             for generic in &self.generics {
-                if format.can_skip_generic_kind_key {
+                if format.can_skip_typedef_generic_kind_key {
                     json_generics.push(json!(generic));
                 } else {
                     json_generics.push(json!({

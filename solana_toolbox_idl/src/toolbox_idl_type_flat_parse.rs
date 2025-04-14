@@ -7,8 +7,7 @@ use serde_json::Value;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_convert_to_type_name;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
+use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
@@ -156,9 +155,9 @@ impl ToolboxIdlTypeFlat {
     }
 
     fn try_parse_defined(idl_defined: &Value) -> Result<ToolboxIdlTypeFlat> {
-        let defined_name = idl_convert_to_type_name(
-            idl_value_as_str_or_object_with_name_as_str_or_else(idl_defined)?,
-        );
+        let defined_name =
+            idl_value_as_str_or_object_with_name_as_str_or_else(idl_defined)?
+                .to_string();
         let mut defined_generics = vec![];
         if let Some(idl_defined_generics) =
             idl_value_as_object_get_key_as_array(idl_defined, "generics")
@@ -226,12 +225,12 @@ impl ToolboxIdlTypeFlat {
     ) -> Result<ToolboxIdlTypeFlat> {
         let mut enum_variants = vec![];
         for (index, idl_enum_variant) in idl_enum_variants.iter().enumerate() {
-            let enum_variant_name = idl_convert_to_type_name(
+            let enum_variant_name =
                 idl_value_as_str_or_object_with_name_as_str_or_else(
                     idl_enum_variant,
                 )
-                .context(index)?,
-            );
+                .context(index)?
+                .to_string();
             let enum_variant_docs =
                 idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
             let enum_variant_fields = if let Some(idl_enum_variant_fields) =
@@ -276,7 +275,7 @@ impl ToolboxIdlTypeFlatFields {
         for (index, idl_field) in idl_fields.iter().enumerate() {
             let field_name = idl_value_as_object_get_key(idl_field, "name")
                 .and_then(|name| name.as_str())
-                .map(idl_convert_to_value_name);
+                .map(idl_convert_to_snake_case);
             if field_name.is_some() {
                 fields_named = true;
             }

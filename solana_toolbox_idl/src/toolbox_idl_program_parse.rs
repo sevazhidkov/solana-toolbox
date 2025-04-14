@@ -18,7 +18,7 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_program::ToolboxIdlProgramMetadata;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_convert_to_type_name;
+use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
@@ -70,10 +70,7 @@ impl ToolboxIdlProgram {
 
     pub fn try_parse_from_value(value: &Value) -> Result<ToolboxIdlProgram> {
         let idl_root = idl_as_object_or_else(value).context("Root")?;
-        let address = idl_object_get_key_as_str(idl_root, "address")
-            .and_then(|address| Pubkey::from_str(address).ok());
-        let docs = idl_root.get("docs").cloned();
-        let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root);
+        let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root)?;
         let typedefs =
             ToolboxIdlProgram::try_parse_typedefs(idl_root).context("Types")?;
         let accounts =
@@ -86,48 +83,52 @@ impl ToolboxIdlProgram {
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root).context("Errors")?;
         Ok(ToolboxIdlProgram {
-            address,
-            docs,
             metadata,
             typedefs,
-            instructions,
             accounts,
+            instructions,
             errors,
         })
     }
 
     fn try_parse_metadata(
         idl_root: &Map<String, Value>,
-    ) -> ToolboxIdlProgramMetadata {
+    ) -> Result<ToolboxIdlProgramMetadata> {
         let mut metadata =
-            ToolboxIdlProgram::try_parse_metadata_object(idl_root);
+            ToolboxIdlProgram::try_parse_metadata_object(idl_root)?;
         if let Some(idl_metadata) =
             idl_object_get_key_as_object(idl_root, "metadata")
         {
             let metadata_inner =
-                ToolboxIdlProgram::try_parse_metadata_object(idl_metadata);
+                ToolboxIdlProgram::try_parse_metadata_object(idl_metadata)?;
+            metadata.address = metadata_inner.address.or(metadata.address);
             metadata.name = metadata_inner.name.or(metadata.name);
             metadata.description =
                 metadata_inner.description.or(metadata.description);
+            metadata.docs = metadata_inner.docs.or(metadata.docs);
             metadata.version = metadata_inner.version.or(metadata.version);
             metadata.spec = metadata_inner.spec.or(metadata.spec);
         }
-        metadata
+        Ok(metadata)
     }
 
     fn try_parse_metadata_object(
         idl_object: &Map<String, Value>,
-    ) -> ToolboxIdlProgramMetadata {
-        ToolboxIdlProgramMetadata {
+    ) -> Result<ToolboxIdlProgramMetadata> {
+        Ok(ToolboxIdlProgramMetadata {
+            address: idl_object_get_key_as_str(idl_object, "address")
+                .map(Pubkey::from_str)
+                .transpose()?,
             name: idl_object_get_key_as_str(idl_object, "name")
-                .map(ToolboxIdlProgram::sanitize_name),
+                .map(String::from),
             description: idl_object_get_key_as_str(idl_object, "description")
                 .map(String::from),
+            docs: idl_object.get("docs").cloned(),
             version: idl_object_get_key_as_str(idl_object, "version")
                 .map(String::from),
             spec: idl_object_get_key_as_str(idl_object, "spec")
                 .map(String::from),
-        }
+        })
     }
 
     fn try_parse_typedefs(
@@ -148,6 +149,29 @@ impl ToolboxIdlProgram {
         Ok(typedefs)
     }
 
+    fn try_parse_accounts(
+        idl_root: &Map<String, Value>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+    ) -> Result<HashMap<String, Arc<ToolboxIdlAccount>>> {
+        let mut accounts = HashMap::new();
+        for (idl_account_name, idl_account) in
+            ToolboxIdlProgram::root_collection_scoped_named_values(
+                idl_root, "accounts",
+            )?
+        {
+            accounts.insert(
+                idl_account_name.to_string(),
+                ToolboxIdlAccount::try_parse(
+                    idl_account_name,
+                    idl_account,
+                    typedefs,
+                )?
+                .into(),
+            );
+        }
+        Ok(accounts)
+    }
+
     fn try_parse_instructions(
         idl_root: &Map<String, Value>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
@@ -161,7 +185,7 @@ impl ToolboxIdlProgram {
             )?
         {
             let idl_instruction_name =
-                ToolboxIdlInstruction::sanitize_name(idl_instruction_name);
+                idl_convert_to_snake_case(idl_instruction_name);
             instructions.insert(
                 idl_instruction_name.to_string(),
                 ToolboxIdlInstruction::try_parse(
@@ -177,31 +201,6 @@ impl ToolboxIdlProgram {
         Ok(instructions)
     }
 
-    fn try_parse_accounts(
-        idl_root: &Map<String, Value>,
-        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
-    ) -> Result<HashMap<String, Arc<ToolboxIdlAccount>>> {
-        let mut accounts = HashMap::new();
-        for (idl_account_name, idl_account) in
-            ToolboxIdlProgram::root_collection_scoped_named_values(
-                idl_root, "accounts",
-            )?
-        {
-            let idl_account_name =
-                ToolboxIdlAccount::sanitize_name(idl_account_name);
-            accounts.insert(
-                idl_account_name.to_string(),
-                ToolboxIdlAccount::try_parse(
-                    &idl_account_name,
-                    idl_account,
-                    typedefs,
-                )?
-                .into(),
-            );
-        }
-        Ok(accounts)
-    }
-
     fn try_parse_errors(
         idl_root: &Map<String, Value>,
     ) -> Result<HashMap<String, Arc<ToolboxIdlError>>> {
@@ -211,10 +210,9 @@ impl ToolboxIdlProgram {
                 idl_root, "errors",
             )?
         {
-            let idl_error_name = idl_convert_to_type_name(idl_error_name);
             errors.insert(
                 idl_error_name.to_string(),
-                ToolboxIdlError::try_parse(&idl_error_name, idl_error)?.into(),
+                ToolboxIdlError::try_parse(idl_error_name, idl_error)?.into(),
             );
         }
         Ok(errors)

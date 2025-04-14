@@ -2,7 +2,7 @@
   "name": "native_loader",
   "instructions": {},
   "accounts": {
-    "Account": {
+    "Program": {
       "discriminator": [],
       "fields": []
     }

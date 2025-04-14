@@ -28,6 +28,8 @@ pub mod unit_find_instruction_addresses_address;
 pub mod unit_find_instruction_addresses_pda_account;
 pub mod unit_find_instruction_addresses_pda_args;
 pub mod unit_find_instruction_addresses_pda_consts;
+pub mod unit_guess_account_blobs;
+pub mod unit_guess_account_space;
 pub mod unit_parse_account_defined;
 pub mod unit_parse_account_generics;
 pub mod unit_parse_account_inlined;

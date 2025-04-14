@@ -17,6 +17,16 @@ impl ToolboxIdlAccount {
         if let Some(space) = &self.space {
             json_object.insert("space".to_string(), json!(space));
         }
+        if !self.blobs.is_empty() {
+            let mut json_blobs = vec![];
+            for blob in &self.blobs {
+                json_blobs.push(json!({
+                    "offset": blob.0,
+                    "value": blob.1,
+                }));
+            }
+            json_object.insert("blobs".to_string(), json!(json_blobs));
+        }
         json_object
             .insert("discriminator".to_string(), json!(self.discriminator));
         json_object

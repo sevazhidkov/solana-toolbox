@@ -12,7 +12,9 @@ use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
+use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
 
 impl ToolboxIdlAccount {
     pub fn try_parse(
@@ -29,6 +31,7 @@ impl ToolboxIdlAccount {
         let space = idl_object_get_key_as_u64(idl_account, "space")
             .map(usize::try_from)
             .transpose()?;
+        let blobs = ToolboxIdlAccount::try_parse_blobs(idl_account)?;
         let content_type_flat = ToolboxIdlAccount::try_parse_data_type_flat(
             idl_account_name,
             idl_account,
@@ -39,6 +42,7 @@ impl ToolboxIdlAccount {
             name: idl_account_name.to_string(),
             docs,
             space,
+            blobs,
             discriminator,
             content_type_flat,
             content_type_full,
@@ -60,6 +64,33 @@ impl ToolboxIdlAccount {
         )))
     }
 
+    fn try_parse_blobs(
+        idl_account: &Map<String, Value>,
+    ) -> Result<Vec<(usize, Vec<u8>)>> {
+        let mut blobs = vec![];
+        if let Some(idl_account_blobs) =
+            idl_object_get_key_as_array(idl_account, "blobs")
+        {
+            for idl_account_blob in idl_account_blobs {
+                if let Some(idl_account_blob) = idl_account_blob.as_object() {
+                    let offset =
+                        usize::try_from(idl_object_get_key_as_u64_or_else(
+                            idl_account_blob,
+                            "offset",
+                        )?)?;
+                    let bytes = idl_as_bytes_or_else(
+                        idl_object_get_key_as_array_or_else(
+                            idl_account_blob,
+                            "value",
+                        )?,
+                    )?;
+                    blobs.push((offset, bytes));
+                }
+            }
+        }
+        Ok(blobs)
+    }
+
     fn try_parse_data_type_flat(
         idl_account_name: &str,
         idl_account: &Map<String, Value>,
@@ -69,7 +100,7 @@ impl ToolboxIdlAccount {
             || idl_account.contains_key("generic")
             || idl_account.contains_key("option")
             || idl_account.contains_key("option32")
-            || idl_account.contains_key("vec") // TODO (MEDIUM) - should we support vec8/variants32 ??
+            || idl_account.contains_key("vec") // TODO (FAR) - should we support vec8/variants32 ??
             || idl_account.contains_key("array")
             || idl_account.contains_key("fields")
             || idl_account.contains_key("variants")

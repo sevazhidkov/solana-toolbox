@@ -5,7 +5,7 @@ use serde_json::Value;
 use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
-use crate::toolbox_idl_utils::idl_convert_to_camel_name;
+use crate::toolbox_idl_utils::idl_convert_to_camel_case;
 
 impl ToolboxIdlInstruction {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -38,7 +38,7 @@ impl ToolboxIdlInstruction {
 
     fn export_name(&self, format: &ToolboxIdlFormat) -> Value {
         if format.use_camel_case_instruction_names {
-            json!(idl_convert_to_camel_name(&self.name))
+            json!(idl_convert_to_camel_case(&self.name))
         } else {
             json!(self.name)
         }

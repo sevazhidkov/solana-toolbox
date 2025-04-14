@@ -8,7 +8,7 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_convert_to_camel_name;
+use crate::toolbox_idl_utils::idl_convert_to_camel_case;
 
 impl ToolboxIdlTypeFlat {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -50,7 +50,7 @@ impl ToolboxIdlTypeFlat {
                 }
             },
             ToolboxIdlTypeFlat::Vec { items } => {
-                if format.can_shortcut_vec_notation {
+                if format.can_shortcut_type_vec_notation {
                     return json!([items.export(format)]);
                 }
                 if items.deref().eq(&ToolboxIdlTypeFlat::Primitive {
@@ -61,7 +61,7 @@ impl ToolboxIdlTypeFlat {
                 json!({ "vec": items.export(format) })
             },
             ToolboxIdlTypeFlat::Array { items, length } => {
-                if format.can_shortcut_array_notation {
+                if format.can_shortcut_type_array_notation {
                     return json!([
                         items.export(format),
                         length.export(format)
@@ -197,7 +197,7 @@ impl ToolboxIdlTypeFlatFields {
 
     fn export_field_name(field_name: &str, format: &ToolboxIdlFormat) -> Value {
         if format.use_camel_case_type_fields_names {
-            json!(idl_convert_to_camel_name(field_name))
+            json!(idl_convert_to_camel_case(field_name))
         } else {
             json!(field_name)
         }

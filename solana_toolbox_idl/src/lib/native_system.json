@@ -84,7 +84,7 @@
     }
   },
   "accounts": {
-    "Account": {
+    "Wallet": {
       "discriminator": [],
       "fields": []
     }

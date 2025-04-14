@@ -8,46 +8,35 @@ use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_error::ToolboxIdlError;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgramMetadata {
+    pub address: Option<Pubkey>,
     pub name: Option<String>,
     pub description: Option<String>,
+    pub docs: Option<Value>,
     pub version: Option<String>,
     pub spec: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ToolboxIdlProgram {
-    pub address: Option<Pubkey>,
-    pub docs: Option<Value>,
     pub metadata: ToolboxIdlProgramMetadata,
-    pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
-    pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
+    pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
+    pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
     pub errors: HashMap<String, Arc<ToolboxIdlError>>,
 }
 
 impl ToolboxIdlProgram {
-    pub fn sanitize_name(name: &str) -> String {
-        idl_convert_to_type_name(name)
-    }
-
     pub fn guess_account(
         &self,
         account_data: &[u8],
     ) -> Option<Arc<ToolboxIdlAccount>> {
         for account in self.accounts.values() {
-            if !account_data.starts_with(&account.discriminator) {
-                continue;
+            if account.check(account_data).is_ok() {
+                return Some(account.clone());
             }
-            if let Some(account_space) = account.space {
-                if account_data.len() != account_space {
-                    continue;
-                }
-            }
-            return Some(account.clone());
         }
         None
     }
@@ -57,10 +46,9 @@ impl ToolboxIdlProgram {
         instruction_data: &[u8],
     ) -> Option<Arc<ToolboxIdlInstruction>> {
         for instruction in self.instructions.values() {
-            if !instruction_data.starts_with(&instruction.discriminator) {
-                continue;
+            if instruction.check_payload(instruction_data).is_ok() {
+                return Some(instruction.clone());
             }
-            return Some(instruction.clone());
         }
         None
     }

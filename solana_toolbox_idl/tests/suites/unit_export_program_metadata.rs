@@ -9,25 +9,28 @@ pub async fn run() {
         "address": "11111111111111111111111111111111",
         "docs": ["My Program"],
         "name": "my_Program",
-        "version": "42.42.42",
+        "version": "42.42.41",
         "metadata": {
             "description": "My program description",
             "spec": "222",
+            "version": "42.42.42",
         },
     }))
     .unwrap();
+    // Expected parsed info
+    let metadata = json!({
+        "address": "11111111111111111111111111111111",
+        "name": "my_Program",
+        "description": "My program description",
+        "docs": ["My Program"],
+        "version": "42.42.42",
+        "spec": "222",
+    });
     // Check the JSON human compact version
     assert_eq!(
         idl_program.export(&ToolboxIdlFormat::human()),
         json!({
-            "address": "11111111111111111111111111111111",
-            "docs": ["My Program"],
-            "metadata": {
-                "name": "MyProgram",
-                "description": "My program description",
-                "version": "42.42.42",
-                "spec": "222",
-            },
+            "metadata": metadata,
             "instructions": {},
             "accounts": {},
             "errors": {},
@@ -40,10 +43,11 @@ pub async fn run() {
         json!({
             "address": "11111111111111111111111111111111",
             "docs": ["My Program"],
-            "name": "MyProgram",
+            "name": "my_Program",
             "description": "My program description",
             "version": "42.42.42",
             "spec": "222",
+            "metadata": metadata,
             "instructions": [],
             "accounts": [],
             "errors": [],
@@ -56,12 +60,11 @@ pub async fn run() {
         json!({
             "address": "11111111111111111111111111111111",
             "docs": ["My Program"],
-            "metadata": {
-                "name": "MyProgram",
-                "description": "My program description",
-                "version": "42.42.42",
-                "spec": "222",
-            },
+            "name": "my_Program",
+            "description": "My program description",
+            "version": "42.42.42",
+            "spec": "222",
+            "metadata": metadata,
             "instructions": [],
             "accounts": [],
             "errors": [],

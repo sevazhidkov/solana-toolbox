@@ -62,6 +62,7 @@ pub async fn run() {
             name: "MyAccount".to_string(),
             docs: None,
             space: None,
+            blobs: vec![],
             discriminator: vec![246, 28, 6, 87, 251, 45, 50, 42],
             content_type_flat: ToolboxIdlTypeFlat::Defined {
                 name: "MyAccount".to_string(),

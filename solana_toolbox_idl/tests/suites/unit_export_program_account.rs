@@ -44,6 +44,7 @@ pub async fn run() {
     assert_eq!(
         idl_program.export(&ToolboxIdlFormat::anchor_26()),
         json!({
+            "metadata": {},
             "instructions": [],
             "accounts": [
                 {

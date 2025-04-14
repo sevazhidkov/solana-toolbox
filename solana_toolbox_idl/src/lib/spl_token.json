@@ -208,7 +208,7 @@
     }
   },
   "accounts": {
-    "Account": {
+    "TokenAccount": {
       "space": 165,
       "discriminator": [],
       "fields": [
@@ -234,7 +234,7 @@
         }
       ]
     },
-    "Mint": {
+    "TokenMint": {
       "space": 82,
       "discriminator": [],
       "fields": [

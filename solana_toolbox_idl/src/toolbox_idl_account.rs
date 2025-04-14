@@ -4,14 +4,13 @@ use serde_json::Value;
 
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
-use crate::toolbox_idl_utils::idl_convert_to_type_name;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlAccount {
     pub name: String,
     pub docs: Option<Value>,
     pub space: Option<usize>,
-    // TODO (FAR) - support discrimination by data chunks (for token account 2022 for example)
+    pub blobs: Vec<(usize, Vec<u8>)>,
     pub discriminator: Vec<u8>,
     pub content_type_flat: ToolboxIdlTypeFlat,
     pub content_type_full: ToolboxIdlTypeFull,
@@ -20,9 +19,10 @@ pub struct ToolboxIdlAccount {
 impl Default for ToolboxIdlAccount {
     fn default() -> ToolboxIdlAccount {
         ToolboxIdlAccount {
-            name: ToolboxIdlAccount::sanitize_name("UnknownAccount"),
+            name: "Unknown".to_string(),
             docs: None,
             space: None,
+            blobs: vec![],
             discriminator: vec![],
             content_type_flat: ToolboxIdlTypeFlat::nothing(),
             content_type_full: ToolboxIdlTypeFull::nothing(),
@@ -31,10 +31,6 @@ impl Default for ToolboxIdlAccount {
 }
 
 impl ToolboxIdlAccount {
-    pub fn sanitize_name(name: &str) -> String {
-        idl_convert_to_type_name(name)
-    }
-
     pub fn encode(&self, account_state: &Value) -> Result<Vec<u8>> {
         let mut account_data = vec![];
         account_data.extend_from_slice(&self.discriminator);
@@ -47,6 +43,14 @@ impl ToolboxIdlAccount {
     }
 
     pub fn decode(&self, account_data: &[u8]) -> Result<Value> {
+        self.check(account_data)?;
+        let (_, account_value) = self
+            .content_type_full
+            .try_deserialize(account_data, self.discriminator.len())?;
+        Ok(account_value)
+    }
+
+    pub fn check(&self, account_data: &[u8]) -> Result<()> {
         if !account_data.starts_with(&self.discriminator) {
             return Err(anyhow!(
                 "Invalid account discriminator, expected: {:?}, found: {:?}",
@@ -57,15 +61,35 @@ impl ToolboxIdlAccount {
         if let Some(space) = self.space {
             if account_data.len() != space {
                 return Err(anyhow!(
-                    "Invalid account size, expected: {}, found: {}",
+                    "Invalid account space, expected: {}, found: {}",
                     space,
                     account_data.len(),
                 ));
             }
         }
-        let (_, account_value) = self
-            .content_type_full
-            .try_deserialize(account_data, self.discriminator.len())?;
-        Ok(account_value)
+        for blob in &self.blobs {
+            let bytes_expected = &blob.1;
+            let offset = blob.0;
+            let length = bytes_expected.len();
+            let end = offset + length;
+            let space = account_data.len();
+            if space < end {
+                return Err(anyhow!(
+                    "Invalid account space for blob, expected at least: {}, found: {}",
+                    end,
+                    space,
+                ));
+            }
+            let bytes_found = &account_data[offset..end];
+            if bytes_found != bytes_expected {
+                return Err(anyhow!(
+                    "Invalid account blob, at offset: {}, expected: {:?}, found: {:?}",
+                    offset,
+                    bytes_expected,
+                    bytes_found,
+                ));
+            }
+        }
+        Ok(())
     }
 }

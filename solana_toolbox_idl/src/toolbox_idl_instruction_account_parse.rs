@@ -20,6 +20,7 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_bool;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
@@ -34,7 +35,7 @@ impl ToolboxIdlInstructionAccount {
     ) -> Result<ToolboxIdlInstructionAccount> {
         let idl_instruction_account =
             idl_as_object_or_else(idl_instruction_account)?;
-        let name = ToolboxIdlInstructionAccount::sanitize_name(
+        let name = idl_convert_to_snake_case(
             idl_object_get_key_as_str_or_else(idl_instruction_account, "name")?,
         );
         let docs = idl_instruction_account.get("docs").cloned();

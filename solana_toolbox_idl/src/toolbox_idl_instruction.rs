@@ -10,7 +10,6 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
-use crate::toolbox_idl_utils::idl_convert_to_value_name;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlInstruction {
@@ -27,7 +26,7 @@ pub struct ToolboxIdlInstruction {
 impl Default for ToolboxIdlInstruction {
     fn default() -> ToolboxIdlInstruction {
         ToolboxIdlInstruction {
-            name: ToolboxIdlInstruction::sanitize_name("unknown_instruction"),
+            name: "unknown".to_string(),
             docs: None,
             discriminator: vec![],
             accounts: vec![],
@@ -40,10 +39,6 @@ impl Default for ToolboxIdlInstruction {
 }
 
 impl ToolboxIdlInstruction {
-    pub fn sanitize_name(name: &str) -> String {
-        idl_convert_to_value_name(name)
-    }
-
     pub fn encode(
         &self,
         instruction_program_id: &Pubkey,

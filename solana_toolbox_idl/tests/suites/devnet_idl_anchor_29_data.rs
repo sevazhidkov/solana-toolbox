@@ -31,7 +31,7 @@ pub async fn run() {
     // Check that the account was parsed properly and values matches
     assert_eq!(
         realm_decoded.program.metadata.name,
-        Some("Redemption".to_string()),
+        Some("redemption".to_string()),
     );
     assert_eq!(realm_decoded.account.name, "Realm");
     assert_eq!(realm_decoded.state.get("bump").unwrap(), &json!(realm_bump));

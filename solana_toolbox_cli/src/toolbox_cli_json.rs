@@ -5,7 +5,7 @@ pub fn cli_json_object_set_value_at_path(
     path: &str,
     value: Value,
 ) {
-    // TODO - support unamed append (index array)
+    // TODO (MEDIUM) - support unamed append (index array)
     if let Some((key, path_child)) = path.split_once(".") {
         if let Some(object_value) = object.get_mut(key) {
             if let Some(object_child) = object_value.as_object_mut() {

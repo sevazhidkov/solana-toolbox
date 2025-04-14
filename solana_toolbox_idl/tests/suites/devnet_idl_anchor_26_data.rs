@@ -39,7 +39,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         &global_market_state_decoded,
-        "Credix",
+        "credix",
         "GlobalMarketState",
         "seed",
         &json!("credix-marketplace"),
@@ -53,7 +53,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         &program_state_decoded,
-        "Credix",
+        "credix",
         "ProgramState",
         "credix_multisig_key",
         &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),
@@ -70,7 +70,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         &market_admins_decoded,
-        "Credix",
+        "credix",
         "MarketAdmins",
         "multisig",
         &json!("Ej5zJzej7rrUoDngsJ3jcpfuvfVyWpcDcK7uv9cE2LdL"),

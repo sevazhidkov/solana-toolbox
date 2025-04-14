@@ -66,8 +66,8 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         user_decoded,
-        "System",
-        "Account",
+        "system",
+        "Wallet",
         json!(null),
     );
     // Check the state of the collateral mint
@@ -77,8 +77,8 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         collateral_mint_decoded,
-        "SplToken",
-        "Mint",
+        "spl_token",
+        "TokenMint",
         json!({
             "mint_authority": mint_authority.to_string(),
             "supply": 1000000000000000u64,
@@ -94,8 +94,8 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         user_collateral_decoded,
-        "SplToken",
-        "Account",
+        "spl_token",
+        "TokenAccount",
         json!({
             "mint": collateral_mint.to_string(),
             "owner": user.to_string(),
@@ -114,7 +114,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         program_id_decoded,
-        "BpfLoaderUpgradeable",
+        "bpf_loader_upgradeable",
         "Program",
         json!({
             "program_data": program_data.to_string()
@@ -127,7 +127,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         program_data_decoded,
-        "BpfLoaderUpgradeable",
+        "bpf_loader_upgradeable",
         "ProgramData",
         json!({
             "slot": 347133692,
@@ -141,7 +141,7 @@ pub async fn run() {
         .unwrap();
     assert_account_decoded_properly(
         name_record_header_decoded,
-        "SplNameService",
+        "spl_name_service",
         "NameRecordHeader",
         json!({
             "class": ToolboxEndpoint::SYSTEM_PROGRAM_ID.to_string(),

@@ -85,6 +85,7 @@ pub async fn run() {
             name: "MyAccount".to_string(),
             docs: None,
             space: None,
+            blobs: vec![],
             discriminator: vec![77],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![

@@ -237,7 +237,7 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
 }
 
-pub(crate) fn idl_convert_to_value_name(name: &str) -> String {
+pub(crate) fn idl_convert_to_snake_case(name: &str) -> String {
     if name.contains(|c: char| {
         !(c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
     }) {
@@ -249,20 +249,7 @@ pub(crate) fn idl_convert_to_value_name(name: &str) -> String {
     }
 }
 
-pub(crate) fn idl_convert_to_type_name(name: &str) -> String {
-    if name.len() <= 0
-        || !name.chars().nth(0).unwrap().is_ascii_uppercase()
-        || name.contains(|c: char| !c.is_ascii_alphanumeric())
-    {
-        name.without_boundaries(&[Boundary::UPPER_DIGIT])
-            .without_boundaries(&[Boundary::LOWER_DIGIT])
-            .to_case(Case::Pascal)
-    } else {
-        name.to_string()
-    }
-}
-
-pub(crate) fn idl_convert_to_camel_name(name: &str) -> String {
+pub(crate) fn idl_convert_to_camel_case(name: &str) -> String {
     if name.contains(|c: char| !c.is_ascii_alphanumeric()) {
         name.without_boundaries(&[Boundary::UPPER_DIGIT])
             .without_boundaries(&[Boundary::LOWER_DIGIT])

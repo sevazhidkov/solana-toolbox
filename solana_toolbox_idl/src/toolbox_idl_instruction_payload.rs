@@ -20,6 +20,14 @@ impl ToolboxIdlInstruction {
     }
 
     pub fn decode_payload(&self, instruction_data: &[u8]) -> Result<Value> {
+        self.check_payload(instruction_data)?;
+        let (_, instruction_payload) = self
+            .args_type_full_fields
+            .try_deserialize(instruction_data, self.discriminator.len())?;
+        Ok(instruction_payload)
+    }
+
+    pub fn check_payload(&self, instruction_data: &[u8]) -> Result<()> {
         if !instruction_data.starts_with(&self.discriminator) {
             return Err(anyhow!(
                 "Invalid instruction discriminator: expected: {:?}, found: {:?}",
@@ -27,9 +35,6 @@ impl ToolboxIdlInstruction {
                 instruction_data
             ));
         }
-        let (_, instruction_payload) = self
-            .args_type_full_fields
-            .try_deserialize(instruction_data, self.discriminator.len())?;
-        Ok(instruction_payload)
+        Ok(())
     }
 }

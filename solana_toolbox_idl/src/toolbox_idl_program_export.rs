@@ -8,38 +8,37 @@ use crate::toolbox_idl_program::ToolboxIdlProgram;
 impl ToolboxIdlProgram {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         let mut json_program = Map::new();
-        if let Some(address) = &self.address {
-            json_program
-                .insert("address".to_string(), json!(address.to_string()));
-        }
-        if let Some(docs) = &self.docs {
-            json_program.insert("docs".to_string(), json!(docs));
-        }
-        if format.use_root_as_metadata_object {
+        if format.use_root_also_as_metadata_object {
             self.export_metadata_to(&mut json_program);
-        } else {
-            let mut json_program_metadata = Map::new();
-            self.export_metadata_to(&mut json_program_metadata);
-            json_program
-                .insert("metadata".to_string(), json!(json_program_metadata));
         }
+        let mut json_program_metadata = Map::new();
+        self.export_metadata_to(&mut json_program_metadata);
+        json_program
+            .insert("metadata".to_string(), json!(json_program_metadata));
+        json_program
+            .insert("accounts".to_string(), self.export_accounts(format));
+        json_program.insert("types".to_string(), self.export_typedefs(format));
         json_program.insert(
             "instructions".to_string(),
             self.export_instructions(format),
         );
-        json_program
-            .insert("accounts".to_string(), self.export_accounts(format));
-        json_program.insert("types".to_string(), self.export_typedefs(format));
         json_program.insert("errors".to_string(), self.export_errors(format));
         json!(json_program)
     }
 
     fn export_metadata_to(&self, json_object: &mut Map<String, Value>) {
+        if let Some(address) = &self.metadata.address {
+            json_object
+                .insert("address".to_string(), json!(address.to_string()));
+        }
         if let Some(name) = &self.metadata.name {
             json_object.insert("name".to_string(), json!(name));
         }
         if let Some(description) = &self.metadata.description {
             json_object.insert("description".to_string(), json!(description));
+        }
+        if let Some(docs) = &self.metadata.docs {
+            json_object.insert("docs".to_string(), json!(docs));
         }
         if let Some(version) = &self.metadata.version {
             json_object.insert("version".to_string(), json!(version));

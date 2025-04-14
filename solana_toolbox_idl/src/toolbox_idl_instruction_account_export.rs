@@ -7,7 +7,7 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_convert_to_camel_name;
+use crate::toolbox_idl_utils::idl_convert_to_camel_case;
 
 impl ToolboxIdlInstructionAccount {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
@@ -49,7 +49,7 @@ impl ToolboxIdlInstructionAccount {
 
     fn export_name(&self, format: &ToolboxIdlFormat) -> Value {
         if format.use_camel_case_instruction_account_names {
-            json!(idl_convert_to_camel_name(&self.name))
+            json!(idl_convert_to_camel_case(&self.name))
         } else {
             json!(self.name)
         }
