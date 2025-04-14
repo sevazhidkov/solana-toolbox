@@ -6,6 +6,7 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_event::ToolboxIdlEvent;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 
@@ -25,6 +26,7 @@ pub struct ToolboxIdlProgram {
     pub typedefs: HashMap<String, Arc<ToolboxIdlTypedef>>,
     pub accounts: HashMap<String, Arc<ToolboxIdlAccount>>,
     pub instructions: HashMap<String, Arc<ToolboxIdlInstruction>>,
+    pub events: HashMap<String, Arc<ToolboxIdlEvent>>,
     pub errors: HashMap<String, Arc<ToolboxIdlError>>,
 }
 
@@ -53,12 +55,23 @@ impl ToolboxIdlProgram {
         None
     }
 
+    pub fn guess_event(
+        &self,
+        event_data: &[u8],
+    ) -> Option<Arc<ToolboxIdlEvent>> {
+        for event in self.events.values() {
+            if event.check(event_data).is_ok() {
+                return Some(event.clone());
+            }
+        }
+        None
+    }
+
     pub fn guess_error(&self, error_code: u64) -> Option<Arc<ToolboxIdlError>> {
         for error in self.errors.values() {
-            if error_code != error.code {
-                continue;
+            if error_code == error.code {
+                return Some(error.clone());
             }
-            return Some(error.clone());
         }
         None
     }

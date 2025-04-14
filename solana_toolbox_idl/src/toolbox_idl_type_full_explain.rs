@@ -10,7 +10,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Option { content, .. } => {
                 json!({ "option": content.explain() })
             },
-            ToolboxIdlTypeFull::Vec { items } => {
+            ToolboxIdlTypeFull::Vec { items, .. } => {
                 json!([items.explain()])
             },
             ToolboxIdlTypeFull::Array { items, length } => {
@@ -19,7 +19,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Struct { fields } => {
                 json!({ "fields": fields.explain() })
             },
-            ToolboxIdlTypeFull::Enum { variants } => {
+            ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let mut json_variants = vec![];
                 for (variant_name, variant_fields) in variants {
                     if variant_fields == &ToolboxIdlTypeFullFields::None {

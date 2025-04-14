@@ -1,9 +1,7 @@
 {
   "version": "0.1.0",
   "name": "idl",
-  "docs": [
-    "IDL test program documentation."
-  ],
+  "docs": ["IDL test program documentation."],
   "constants": [
     {
       "name": "U8",
@@ -34,9 +32,7 @@
           "name": "state",
           "isMut": true,
           "isSigner": true,
-          "docs": [
-            "State account"
-          ]
+          "docs": ["State account"]
         },
         {
           "name": "nested",
@@ -45,9 +41,7 @@
               "name": "clock",
               "isMut": false,
               "isSigner": false,
-              "docs": [
-                "Sysvar clock"
-              ]
+              "docs": ["Sysvar clock"]
             },
             {
               "name": "rent",
@@ -96,17 +90,13 @@
     },
     {
       "name": "initializeWithValues",
-      "docs": [
-        "Initializes an account with specified values"
-      ],
+      "docs": ["Initializes an account with specified values"],
       "accounts": [
         {
           "name": "state",
           "isMut": true,
           "isSigner": true,
-          "docs": [
-            "State account"
-          ]
+          "docs": ["State account"]
         },
         {
           "name": "nested",
@@ -115,9 +105,7 @@
               "name": "clock",
               "isMut": false,
               "isSigner": false,
-              "docs": [
-                "Sysvar clock"
-              ]
+              "docs": ["Sysvar clock"]
             },
             {
               "name": "rent",
@@ -264,10 +252,7 @@
         {
           "name": "arrayField",
           "type": {
-            "array": [
-              "bool",
-              3
-            ]
+            "array": ["bool", 3]
           }
         },
         {
@@ -346,17 +331,13 @@
   "accounts": [
     {
       "name": "State",
-      "docs": [
-        "An account containing various fields"
-      ],
+      "docs": ["An account containing various fields"],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "boolField",
-            "docs": [
-              "A boolean field"
-            ],
+            "docs": ["A boolean field"],
             "type": "bool"
           },
           {
@@ -456,10 +437,7 @@
           {
             "name": "arrayField",
             "type": {
-              "array": [
-                "bool",
-                3
-              ]
+              "array": ["bool", 3]
             }
           },
           {
@@ -526,6 +504,20 @@
   ],
   "types": [
     {
+      "name": "external::MyStruct",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
+      "name": "some_other_module::MyStruct",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
       "name": "MyStruct",
       "type": {
         "kind": "struct",
@@ -539,17 +531,13 @@
     },
     {
       "name": "BarStruct",
-      "docs": [
-        "Bar struct type"
-      ],
+      "docs": ["Bar struct type"],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "someField",
-            "docs": [
-              "Some field"
-            ],
+            "docs": ["Some field"],
             "type": "bool"
           },
           {
@@ -629,9 +617,7 @@
     },
     {
       "name": "FooEnum",
-      "docs": [
-        "Enum type"
-      ],
+      "docs": ["Enum type"],
       "type": {
         "kind": "enum",
         "variants": [
@@ -658,9 +644,7 @@
             "fields": [
               {
                 "name": "boolField",
-                "docs": [
-                  "A bool field inside a struct tuple kind"
-                ],
+                "docs": ["A bool field inside a struct tuple kind"],
                 "type": "bool"
               },
               {

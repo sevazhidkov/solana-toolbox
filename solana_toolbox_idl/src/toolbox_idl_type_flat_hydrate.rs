@@ -64,12 +64,14 @@ impl ToolboxIdlTypeFlat {
                     content_flat.try_hydrate(generics_by_symbol, typedefs)?,
                 ),
             },
-            ToolboxIdlTypeFlat::Vec { items: items_flat } => {
-                ToolboxIdlTypeFull::Vec {
-                    items: Box::new(
-                        items_flat.try_hydrate(generics_by_symbol, typedefs)?,
-                    ),
-                }
+            ToolboxIdlTypeFlat::Vec {
+                prefix_bytes,
+                items: items_flat,
+            } => ToolboxIdlTypeFull::Vec {
+                prefix_bytes: *prefix_bytes,
+                items: Box::new(
+                    items_flat.try_hydrate(generics_by_symbol, typedefs)?,
+                ),
             },
             ToolboxIdlTypeFlat::Array {
                 items: items_flat,
@@ -90,6 +92,7 @@ impl ToolboxIdlTypeFlat {
                     .try_hydrate(generics_by_symbol, typedefs)?,
             },
             ToolboxIdlTypeFlat::Enum {
+                prefix_bytes,
                 variants: variants_flat,
             } => {
                 let mut variants_full = vec![];
@@ -103,6 +106,7 @@ impl ToolboxIdlTypeFlat {
                     ));
                 }
                 ToolboxIdlTypeFull::Enum {
+                    prefix_bytes: *prefix_bytes,
                     variants: variants_full,
                 }
             },

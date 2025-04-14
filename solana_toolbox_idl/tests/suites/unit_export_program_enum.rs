@@ -32,7 +32,6 @@ pub async fn run() {
             "metadata": {},
             "instructions": {},
             "accounts": {},
-            "errors": {},
             "types": {
                 "MyEnum": {
                     "variants": [
@@ -49,6 +48,8 @@ pub async fn run() {
                     ],
                 }
             },
+            "events": {},
+            "errors": {},
         })
     );
     // Check the JSON backward compatibility version for anchor 26
@@ -78,6 +79,7 @@ pub async fn run() {
                     }
                 }
             ],
+            "events": [],
             "errors": [],
         }),
     );
@@ -108,6 +110,7 @@ pub async fn run() {
                     }
                 }
             ],
+            "events": [],
             "errors": [],
         })
     );

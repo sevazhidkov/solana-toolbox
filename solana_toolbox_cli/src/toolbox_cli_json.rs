@@ -1,4 +1,6 @@
-use serde_json::{json, Map, Value};
+use serde_json::json;
+use serde_json::Map;
+use serde_json::Value;
 
 pub fn cli_json_object_set_value_at_path(
     object: &mut Map<String, Value>,

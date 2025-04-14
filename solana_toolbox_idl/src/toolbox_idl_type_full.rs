@@ -7,6 +7,7 @@ pub enum ToolboxIdlTypeFull {
         content: Box<ToolboxIdlTypeFull>,
     },
     Vec {
+        prefix_bytes: u8,
         items: Box<ToolboxIdlTypeFull>,
     },
     Array {
@@ -17,6 +18,7 @@ pub enum ToolboxIdlTypeFull {
         fields: ToolboxIdlTypeFullFields,
     },
     Enum {
+        prefix_bytes: u8,
         variants: Vec<(String, ToolboxIdlTypeFullFields)>,
     },
     Padded {
@@ -38,10 +40,14 @@ impl ToolboxIdlTypeFull {
         }
     }
 
-    pub fn is_vec_u8(&self) -> bool {
+    pub fn is_bytes(&self) -> bool {
         match self {
-            ToolboxIdlTypeFull::Vec { items } => {
-                items.is_primitive(&ToolboxIdlTypePrimitive::U8)
+            ToolboxIdlTypeFull::Vec {
+                prefix_bytes,
+                items,
+            } => {
+                *prefix_bytes == 4
+                    && items.is_primitive(&ToolboxIdlTypePrimitive::U8)
             },
             _ => false,
         }

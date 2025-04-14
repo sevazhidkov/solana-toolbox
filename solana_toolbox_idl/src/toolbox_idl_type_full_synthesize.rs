@@ -10,7 +10,7 @@ impl ToolboxIdlTypeFull {
     pub fn synthesize(&self) -> Value {
         match self {
             ToolboxIdlTypeFull::Option { content, .. } => content.synthesize(),
-            ToolboxIdlTypeFull::Vec { items } => {
+            ToolboxIdlTypeFull::Vec { items, .. } => {
                 json!([items.synthesize()])
             },
             ToolboxIdlTypeFull::Array { items, length } => {
@@ -21,7 +21,7 @@ impl ToolboxIdlTypeFull {
                 json!(json_values)
             },
             ToolboxIdlTypeFull::Struct { fields } => fields.synthesize(),
-            ToolboxIdlTypeFull::Enum { variants } => {
+            ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let mut json_variants = Map::new();
                 for (variant_name, variant_fields) in variants {
                     json_variants.insert(
@@ -49,7 +49,7 @@ impl ToolboxIdlTypeFull {
                 ToolboxIdlTypePrimitive::F32 => json!(0),
                 ToolboxIdlTypePrimitive::F64 => json!(0),
                 ToolboxIdlTypePrimitive::Boolean => json!(false),
-                ToolboxIdlTypePrimitive::String => json!(""),
+                ToolboxIdlTypePrimitive::String => json!("..."),
                 ToolboxIdlTypePrimitive::PublicKey => json!("PublicKey"),
             },
         }

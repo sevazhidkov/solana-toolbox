@@ -18,7 +18,7 @@ impl ToolboxIdlPath {
             ToolboxIdlTypeFull::Option { content, .. } => {
                 self.try_get_type_full(content)
             },
-            ToolboxIdlTypeFull::Vec { items } => {
+            ToolboxIdlTypeFull::Vec { items, .. } => {
                 let _index = current.index().context("Vec index")?;
                 next.try_get_type_full(items)
             },
@@ -36,7 +36,7 @@ impl ToolboxIdlPath {
             ToolboxIdlTypeFull::Struct { fields } => {
                 self.try_get_type_full_fields(fields)
             },
-            ToolboxIdlTypeFull::Enum { variants } => {
+            ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let key = current.key().context("Enum variant")?;
                 for (variant_name, variant_fields) in variants {
                     if variant_name == key {

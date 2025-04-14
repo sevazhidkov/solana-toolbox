@@ -1,8 +1,8 @@
 use serde_json::json;
-use solana_toolbox_idl::{
-    ToolboxIdlAccount, ToolboxIdlProgram, ToolboxIdlTypeFlat,
-    ToolboxIdlTypeFull,
-};
+use solana_toolbox_idl::ToolboxIdlAccount;
+use solana_toolbox_idl::ToolboxIdlProgram;
+use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFull;
 
 #[tokio::test]
 pub async fn run() {

@@ -31,6 +31,7 @@ pub async fn run() {
         idl_program.export(&ToolboxIdlFormat::human()),
         json!({
             "metadata": {},
+            "accounts": {},
             "instructions": {
                 "my_ix": {
                     "docs": ["My Ix"],
@@ -49,7 +50,7 @@ pub async fn run() {
                     ]
                 }
             },
-            "accounts": {},
+            "events": {},
             "errors": {},
             "types": {},
         })
@@ -59,6 +60,8 @@ pub async fn run() {
         idl_program.export(&ToolboxIdlFormat::anchor_26()),
         json!({
             "metadata": {},
+            "types": [],
+            "accounts": [],
             "instructions": [
                 {
                     "name": "myIx",
@@ -78,8 +81,7 @@ pub async fn run() {
                     ],
                 }
             ],
-            "accounts": [],
-            "types": [],
+            "events": [],
             "errors": [],
         })
     );
@@ -109,6 +111,7 @@ pub async fn run() {
             ],
             "accounts": [],
             "types": [],
+            "events": [],
             "errors": [],
         })
     );

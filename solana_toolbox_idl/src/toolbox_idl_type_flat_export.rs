@@ -44,12 +44,23 @@ impl ToolboxIdlTypeFlat {
                 content,
             } => {
                 if *prefix_bytes == 4 {
-                    json!({ "option32": content.export(format) })
-                } else {
-                    json!({ "option": content.export(format) })
+                    return json!({ "option32": content.export(format) });
                 }
+                if *prefix_bytes == 2 {
+                    return json!({ "option16": content.export(format) });
+                }
+                json!({ "option": content.export(format) })
             },
-            ToolboxIdlTypeFlat::Vec { items } => {
+            ToolboxIdlTypeFlat::Vec {
+                prefix_bytes,
+                items,
+            } => {
+                if *prefix_bytes == 1 {
+                    return json!({ "vec8": items.export(format) });
+                }
+                if *prefix_bytes == 2 {
+                    return json!({ "vec16": items.export(format) });
+                }
                 if format.can_shortcut_type_vec_notation {
                     return json!([items.export(format)]);
                 }
@@ -81,7 +92,10 @@ impl ToolboxIdlTypeFlat {
                     "fields": fields.export(format)
                 })
             },
-            ToolboxIdlTypeFlat::Enum { variants } => {
+            ToolboxIdlTypeFlat::Enum {
+                prefix_bytes,
+                variants,
+            } => {
                 let mut json_variants = vec![];
                 for (variant_name, variant_docs, variant_fields) in variants {
                     if format.can_shortcut_enum_variant_to_string_if_no_fields
@@ -106,13 +120,21 @@ impl ToolboxIdlTypeFlat {
                     }
                     json_variants.push(json!(json_variant));
                 }
-                if format.can_skip_type_kind_key {
-                    return json!({ "variants": json_variants });
+                let mut json_enum = Map::new();
+                if !format.can_skip_type_kind_key {
+                    json_enum.insert("kind".to_string(), json!("enum"));
                 }
-                json!({
-                    "kind": "enum",
-                    "variants": json_variants
-                })
+                if *prefix_bytes == 4 {
+                    json_enum
+                        .insert("variants32".to_string(), json!(json_variants));
+                } else if *prefix_bytes == 2 {
+                    json_enum
+                        .insert("variants16".to_string(), json!(json_variants));
+                } else {
+                    json_enum
+                        .insert("variants".to_string(), json!(json_variants));
+                }
+                json!(json_enum)
             },
             ToolboxIdlTypeFlat::Padded {
                 size_bytes,

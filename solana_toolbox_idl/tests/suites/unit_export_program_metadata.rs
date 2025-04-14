@@ -33,6 +33,7 @@ pub async fn run() {
             "metadata": metadata,
             "instructions": {},
             "accounts": {},
+            "events": {},
             "errors": {},
             "types": {},
         })
@@ -50,6 +51,7 @@ pub async fn run() {
             "metadata": metadata,
             "instructions": [],
             "accounts": [],
+            "events": [],
             "errors": [],
             "types": []
         })
@@ -67,6 +69,7 @@ pub async fn run() {
             "metadata": metadata,
             "instructions": [],
             "accounts": [],
+            "events": [],
             "errors": [],
             "types": []
         })

@@ -117,6 +117,7 @@ fn make_type_full_generic_enum(
     n: ToolboxIdlTypeFull,
 ) -> ToolboxIdlTypeFull {
     ToolboxIdlTypeFull::Enum {
+        prefix_bytes: 1,
         variants: vec![
             (
                 "Unnamed".to_string(),

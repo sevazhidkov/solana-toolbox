@@ -55,7 +55,10 @@ pub async fn run() {
             name: "MyEnum".to_string(),
             docs: Some(json!(vec!["Hello world!"])),
             generics: vec![],
-            type_flat: ToolboxIdlTypeFlat::Enum { variants: vec![] }
+            type_flat: ToolboxIdlTypeFlat::Enum {
+                prefix_bytes: 1,
+                variants: vec![]
+            }
         }
         .into()
     )

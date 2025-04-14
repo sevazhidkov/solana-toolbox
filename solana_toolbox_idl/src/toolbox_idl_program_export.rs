@@ -15,13 +15,14 @@ impl ToolboxIdlProgram {
         self.export_metadata_to(&mut json_program_metadata);
         json_program
             .insert("metadata".to_string(), json!(json_program_metadata));
+        json_program.insert("types".to_string(), self.export_typedefs(format));
         json_program
             .insert("accounts".to_string(), self.export_accounts(format));
-        json_program.insert("types".to_string(), self.export_typedefs(format));
         json_program.insert(
             "instructions".to_string(),
             self.export_instructions(format),
         );
+        json_program.insert("events".to_string(), self.export_events(format));
         json_program.insert("errors".to_string(), self.export_errors(format));
         json!(json_program)
     }
@@ -66,6 +67,24 @@ impl ToolboxIdlProgram {
         json!(json_typedefs)
     }
 
+    fn export_accounts(&self, format: &ToolboxIdlFormat) -> Value {
+        if format.use_object_for_unordered_named_array {
+            let mut json_accounts = Map::new();
+            for program_account in self.accounts.values() {
+                json_accounts.insert(
+                    program_account.name.to_string(),
+                    program_account.export(format),
+                );
+            }
+            return json!(json_accounts);
+        }
+        let mut json_accounts = vec![];
+        for program_account in self.accounts.values() {
+            json_accounts.push(program_account.export(format));
+        }
+        json!(json_accounts)
+    }
+
     fn export_instructions(&self, format: &ToolboxIdlFormat) -> Value {
         if format.use_object_for_unordered_named_array {
             let mut json_instructions = Map::new();
@@ -84,22 +103,22 @@ impl ToolboxIdlProgram {
         json!(json_instructions)
     }
 
-    fn export_accounts(&self, format: &ToolboxIdlFormat) -> Value {
+    fn export_events(&self, format: &ToolboxIdlFormat) -> Value {
         if format.use_object_for_unordered_named_array {
-            let mut json_accounts = Map::new();
-            for program_account in self.accounts.values() {
-                json_accounts.insert(
-                    program_account.name.to_string(),
-                    program_account.export(format),
+            let mut json_events = Map::new();
+            for program_event in self.events.values() {
+                json_events.insert(
+                    program_event.name.to_string(),
+                    program_event.export(format),
                 );
             }
-            return json!(json_accounts);
+            return json!(json_events);
         }
-        let mut json_accounts = vec![];
-        for program_account in self.accounts.values() {
-            json_accounts.push(program_account.export(format));
+        let mut json_events = vec![];
+        for program_event in self.events.values() {
+            json_events.push(program_event.export(format));
         }
-        json!(json_accounts)
+        json!(json_events)
     }
 
     fn export_errors(&self, format: &ToolboxIdlFormat) -> Value {

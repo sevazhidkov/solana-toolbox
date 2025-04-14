@@ -21,6 +21,7 @@ use crate::toolbox_idl_utils::idl_as_u128_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_prefix_write;
 
 impl ToolboxIdlTypeFull {
     pub fn try_serialize(
@@ -42,8 +43,12 @@ impl ToolboxIdlTypeFull {
                 deserializable,
             )
             .context("Option"),
-            ToolboxIdlTypeFull::Vec { items } => {
+            ToolboxIdlTypeFull::Vec {
+                prefix_bytes,
+                items,
+            } => {
                 ToolboxIdlTypeFull::try_serialize_vec(
+                    prefix_bytes,
                     items,
                     value,
                     data,
@@ -70,8 +75,12 @@ impl ToolboxIdlTypeFull {
                 )
             }
             .context("Struct"),
-            ToolboxIdlTypeFull::Enum { variants } => {
+            ToolboxIdlTypeFull::Enum {
+                prefix_bytes,
+                variants,
+            } => {
                 ToolboxIdlTypeFull::try_serialize_enum(
+                    prefix_bytes,
                     variants,
                     value,
                     data,
@@ -112,20 +121,16 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         if value.is_null() {
-            for _ in 0..*option_prefix_bytes {
-                data.push(0);
-            }
+            idl_prefix_write(option_prefix_bytes, 0, data)?;
             Ok(())
         } else {
-            data.push(1);
-            for _ in 1..*option_prefix_bytes {
-                data.push(0);
-            }
+            idl_prefix_write(option_prefix_bytes, 1, data)?;
             option_content.try_serialize(value, data, deserializable)
         }
     }
 
     fn try_serialize_vec(
+        vec_prefix_bytes: &u8,
         vec_items: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
@@ -134,18 +139,14 @@ impl ToolboxIdlTypeFull {
         if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if deserializable {
-                data.extend_from_slice(bytemuck::bytes_of::<u32>(
-                    &u32::try_from(bytes.len()).unwrap(),
-                ));
+                idl_prefix_write(vec_prefix_bytes, bytes.len(), data)?;
             }
             data.extend_from_slice(&bytes);
             return Ok(());
         }
         let values = idl_as_array_or_else(value)?;
         if deserializable {
-            data.extend_from_slice(bytemuck::bytes_of::<u32>(
-                &u32::try_from(values.len()).unwrap(),
-            ));
+            idl_prefix_write(vec_prefix_bytes, values.len(), data)?;
         }
         for (index, value_item) in values.iter().enumerate() {
             vec_items
@@ -201,6 +202,7 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_enum(
+        enum_prefix_bytes: &u8,
         enum_variants: &[(String, ToolboxIdlTypeFullFields)],
         value: &Value,
         data: &mut Vec<u8>,
@@ -210,7 +212,7 @@ impl ToolboxIdlTypeFull {
             for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
                 if enum_variant_name == value_string {
-                    data.push(u8::try_from(enum_code).unwrap());
+                    idl_prefix_write(enum_prefix_bytes, enum_code, data)?;
                     return enum_variant_fields
                         .try_serialize(&Value::Null, data, deserializable)
                         .context(value_string.to_string());
@@ -225,7 +227,7 @@ impl ToolboxIdlTypeFull {
             for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
                 if let Some(enum_value) = value_object.get(enum_variant_name) {
-                    data.push(u8::try_from(enum_code).unwrap());
+                    idl_prefix_write(enum_prefix_bytes, enum_code, data)?;
                     return enum_variant_fields
                         .try_serialize(enum_value, data, deserializable)
                         .context(enum_variant_name.to_string());

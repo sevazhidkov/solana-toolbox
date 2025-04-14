@@ -32,7 +32,7 @@ impl ToolboxIdlAccount {
             .map(usize::try_from)
             .transpose()?;
         let blobs = ToolboxIdlAccount::try_parse_blobs(idl_account)?;
-        let content_type_flat = ToolboxIdlAccount::try_parse_data_type_flat(
+        let content_type_flat = ToolboxIdlAccount::try_parse_content_type_flat(
             idl_account_name,
             idl_account,
         )?;
@@ -91,21 +91,11 @@ impl ToolboxIdlAccount {
         Ok(blobs)
     }
 
-    fn try_parse_data_type_flat(
+    fn try_parse_content_type_flat(
         idl_account_name: &str,
         idl_account: &Map<String, Value>,
     ) -> Result<ToolboxIdlTypeFlat> {
-        if idl_account.contains_key("type")
-            || idl_account.contains_key("defined")
-            || idl_account.contains_key("generic")
-            || idl_account.contains_key("option")
-            || idl_account.contains_key("option32")
-            || idl_account.contains_key("vec") // TODO (FAR) - should we support vec8/variants32 ??
-            || idl_account.contains_key("array")
-            || idl_account.contains_key("fields")
-            || idl_account.contains_key("variants")
-            || idl_account.contains_key("padded")
-        {
+        if ToolboxIdlTypeFlat::try_parse_object_is_possible(idl_account) {
             return ToolboxIdlTypeFlat::try_parse_object(idl_account);
         }
         Ok(ToolboxIdlTypeFlat::Defined {

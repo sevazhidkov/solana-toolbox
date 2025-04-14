@@ -13,10 +13,12 @@ impl ToolboxIdlTypeFull {
                 prefix_bytes: *prefix_bytes,
                 content: content_full.flattened().into(),
             },
-            ToolboxIdlTypeFull::Vec { items: items_full } => {
-                ToolboxIdlTypeFlat::Vec {
-                    items: items_full.flattened().into(),
-                }
+            ToolboxIdlTypeFull::Vec {
+                prefix_bytes,
+                items: items_full,
+            } => ToolboxIdlTypeFlat::Vec {
+                prefix_bytes: *prefix_bytes,
+                items: items_full.flattened().into(),
             },
             ToolboxIdlTypeFull::Array {
                 items: items_full,
@@ -31,6 +33,7 @@ impl ToolboxIdlTypeFull {
                 fields: fields_full.flattened(),
             },
             ToolboxIdlTypeFull::Enum {
+                prefix_bytes,
                 variants: variants_full,
             } => {
                 let mut variants_flat = vec![];
@@ -42,6 +45,7 @@ impl ToolboxIdlTypeFull {
                     ));
                 }
                 ToolboxIdlTypeFlat::Enum {
+                    prefix_bytes: *prefix_bytes,
                     variants: variants_flat,
                 }
             },

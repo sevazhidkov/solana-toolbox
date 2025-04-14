@@ -101,6 +101,7 @@ pub async fn run() {
                     ],
                 },
             },
+            "events": {},
             "errors": {},
         })
     );
@@ -178,6 +179,7 @@ pub async fn run() {
                     }
                 }
             ],
+            "events": [],
             "errors": [],
         })
     );
@@ -255,6 +257,7 @@ pub async fn run() {
                     }
                 }
             ],
+            "events": [],
             "errors": [],
         })
     );

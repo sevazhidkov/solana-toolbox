@@ -70,6 +70,7 @@ pub async fn run() {
             docs: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum {
+                prefix_bytes: 1,
                 variants: vec![
                     (
                         "Named".to_string(),
@@ -87,6 +88,7 @@ pub async fn run() {
                                 "f2".to_string(),
                                 None,
                                 ToolboxIdlTypeFlat::Vec {
+                                    prefix_bytes: 4,
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
                                             primitive:
@@ -117,6 +119,7 @@ pub async fn run() {
                             (
                                 None,
                                 ToolboxIdlTypeFlat::Vec {
+                                    prefix_bytes: 4,
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
                                             primitive:
@@ -128,6 +131,7 @@ pub async fn run() {
                             (
                                 None,
                                 ToolboxIdlTypeFlat::Vec {
+                                    prefix_bytes: 4,
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
                                             primitive:

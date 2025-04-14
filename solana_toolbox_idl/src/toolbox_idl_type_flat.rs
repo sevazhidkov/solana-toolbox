@@ -16,6 +16,7 @@ pub enum ToolboxIdlTypeFlat {
         content: Box<ToolboxIdlTypeFlat>,
     },
     Vec {
+        prefix_bytes: u8,
         items: Box<ToolboxIdlTypeFlat>,
     },
     Array {
@@ -26,6 +27,7 @@ pub enum ToolboxIdlTypeFlat {
         fields: ToolboxIdlTypeFlatFields,
     },
     Enum {
+        prefix_bytes: u8,
         variants: Vec<(String, Option<Value>, ToolboxIdlTypeFlatFields)>,
     },
     Padded {

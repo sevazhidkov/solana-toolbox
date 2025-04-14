@@ -90,6 +90,7 @@ pub async fn run() {
                     (
                         None,
                         ToolboxIdlTypeFlat::Vec {
+                            prefix_bytes: 4,
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
@@ -98,6 +99,7 @@ pub async fn run() {
                     (
                         None,
                         ToolboxIdlTypeFlat::Vec {
+                            prefix_bytes: 4,
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
@@ -131,7 +133,13 @@ pub async fn run() {
                             fields: ToolboxIdlTypeFlatFields::None
                         }
                     ),
-                    (None, ToolboxIdlTypeFlat::Enum { variants: vec![] }),
+                    (
+                        None,
+                        ToolboxIdlTypeFlat::Enum {
+                            prefix_bytes: 1,
+                            variants: vec![]
+                        }
+                    ),
                     (
                         None,
                         ToolboxIdlTypeFlat::Defined {

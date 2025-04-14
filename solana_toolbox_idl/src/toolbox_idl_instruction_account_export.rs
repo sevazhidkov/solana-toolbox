@@ -88,7 +88,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     json_const.insert("kind".to_string(), json!("const"));
                 }
                 if !format.can_skip_instruction_account_pda_type_key
-                    || !(type_full.is_vec_u8()
+                    || !(type_full.is_bytes()
                         || type_full
                             .is_primitive(&ToolboxIdlTypePrimitive::String))
                 {

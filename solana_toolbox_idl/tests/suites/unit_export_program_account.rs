@@ -37,6 +37,7 @@ pub async fn run() {
                     "fields": [],
                 }
             },
+            "events": {},
             "errors": {},
         })
     );
@@ -63,6 +64,7 @@ pub async fn run() {
                     }
                 }
             ],
+            "events": [],
             "errors": [],
         })
     );
@@ -89,6 +91,7 @@ pub async fn run() {
                     }
                 }
             ],
+            "events": [],
             "errors": [],
         })
     );

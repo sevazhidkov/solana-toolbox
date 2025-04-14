@@ -129,11 +129,13 @@ pub async fn run() {
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                     ToolboxIdlTypeFull::Enum {
+                        prefix_bytes: 1,
                         variants: vec![
                             (
                                 "CaseA".to_string(),
                                 ToolboxIdlTypeFullFields::Unnamed(vec![
                                     ToolboxIdlTypeFull::Vec {
+                                        prefix_bytes: 4,
                                         items: Box::new(
                                             ToolboxIdlTypeFull::Primitive {
                                                 primitive:
@@ -170,6 +172,7 @@ pub async fn run() {
                             (
                                 "field_b".to_string(),
                                 ToolboxIdlTypeFull::Vec {
+                                    prefix_bytes: 4,
                                     items: Box::new(
                                         ToolboxIdlTypeFull::Primitive {
                                             primitive:

@@ -13,6 +13,7 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_error::ToolboxIdlError;
+use crate::toolbox_idl_event::ToolboxIdlEvent;
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_program::ToolboxIdlProgramMetadata;
@@ -80,6 +81,8 @@ impl ToolboxIdlProgram {
             idl_root, &typedefs, &accounts,
         )
         .context("Instructions")?;
+        let events = ToolboxIdlProgram::try_parse_events(idl_root, &typedefs)
+            .context("Events")?;
         let errors =
             ToolboxIdlProgram::try_parse_errors(idl_root).context("Errors")?;
         Ok(ToolboxIdlProgram {
@@ -88,6 +91,7 @@ impl ToolboxIdlProgram {
             accounts,
             instructions,
             errors,
+            events,
         })
     }
 
@@ -199,6 +203,29 @@ impl ToolboxIdlProgram {
             );
         }
         Ok(instructions)
+    }
+
+    fn try_parse_events(
+        idl_root: &Map<String, Value>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+    ) -> Result<HashMap<String, Arc<ToolboxIdlEvent>>> {
+        let mut events = HashMap::new();
+        for (idl_event_name, idl_event) in
+            ToolboxIdlProgram::root_collection_scoped_named_values(
+                idl_root, "events",
+            )?
+        {
+            events.insert(
+                idl_event_name.to_string(),
+                ToolboxIdlEvent::try_parse(
+                    idl_event_name,
+                    idl_event,
+                    typedefs,
+                )?
+                .into(),
+            );
+        }
+        Ok(events)
     }
 
     fn try_parse_errors(
