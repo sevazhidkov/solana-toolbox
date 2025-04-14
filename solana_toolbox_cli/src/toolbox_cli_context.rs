@@ -83,14 +83,14 @@ impl ToolboxCliContext {
     }
 
     pub fn parse_key(&self, key: &str) -> Result<ToolboxCliKey> {
-        if key.to_ascii_lowercase() == "keypair"
-            || key.to_ascii_lowercase() == "wallet"
-            || key.to_ascii_lowercase() == "config"
+        if key.eq_ignore_ascii_case("keypair")
+            || key.eq_ignore_ascii_case("wallet")
+            || key.eq_ignore_ascii_case("config")
         {
             return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }
         // TODO - support from_base58_string
-        if exists(&key)? {
+        if exists(key)? {
             return Ok(ToolboxCliKey::Keypair(self.load_keypair(key)));
         }
         Ok(ToolboxCliKey::Pubkey(Pubkey::from_str(

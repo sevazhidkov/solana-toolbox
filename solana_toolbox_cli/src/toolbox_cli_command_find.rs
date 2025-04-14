@@ -101,7 +101,7 @@ impl ToolboxCliCommandFindArgs {
             for state in &self.states {
                 if !cli_json_value_fit(
                     &account_decoded.state,
-                    &context.parse_hjson(&state)?,
+                    &context.parse_hjson(state)?,
                 ) {
                     continue;
                 }

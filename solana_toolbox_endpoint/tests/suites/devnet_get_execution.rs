@@ -142,19 +142,19 @@ pub async fn run() {
     );
     assert_eq!(execution_tables.instructions.len(), 50);
     for instruction_tables in execution_tables.instructions {
-        assert_eq!(instruction_tables.program_id, Pubkey::default());
-        assert_eq!(instruction_tables.accounts.len(), 2);
         assert_eq!(
-            instruction_tables.accounts[0].pubkey,
-            execution_tables.payer
-        );
-        assert_eq!(instruction_tables.accounts[0].is_signer, true);
-        assert_eq!(instruction_tables.accounts[0].is_writable, true);
-        assert_eq!(instruction_tables.accounts[1].is_signer, false);
-        assert_eq!(instruction_tables.accounts[1].is_writable, true);
-        assert_eq!(
-            instruction_tables.data,
-            [2, 0, 0, 0, 0, 152, 13, 0, 0, 0, 0, 0]
+            instruction_tables,
+            Instruction {
+                program_id: ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+                accounts: vec![
+                    AccountMeta::new(execution_tables.payer, true),
+                    AccountMeta::new(
+                        instruction_tables.accounts[1].pubkey,
+                        false
+                    )
+                ],
+                data: vec![2, 0, 0, 0, 0, 152, 13, 0, 0, 0, 0, 0],
+            }
         );
     }
     assert_eq!(

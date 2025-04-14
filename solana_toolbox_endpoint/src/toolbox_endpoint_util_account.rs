@@ -156,8 +156,7 @@ impl ToolboxEndpoint {
         address: &Pubkey,
         offset: usize,
     ) -> Result<Option<T>> {
-        Ok(self
-            .get_account(address)
+        self.get_account(address)
             .await?
             .map(|account| {
                 bytemuck::try_from_bytes::<T>(&account.data[offset..]).cloned()
@@ -165,6 +164,6 @@ impl ToolboxEndpoint {
             .transpose()
             .map_err(|error| {
                 anyhow!("Could not bytemuck deserialize data: {}", error)
-            })?)
+            })
     }
 }

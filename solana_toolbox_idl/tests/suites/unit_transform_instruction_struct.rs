@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
 use serde_json::json;
+use solana_sdk::instruction::AccountMeta;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
@@ -53,22 +55,22 @@ pub async fn run() {
             &instruction_addresses,
         )
         .unwrap();
-    assert_eq!(instruction.program_id, instruction_program_id);
     assert_eq!(
-        instruction.accounts[0].pubkey,
-        *instruction_addresses.get("signer").unwrap(),
-    );
-    assert_eq!(instruction.accounts[0].is_signer, true);
-    assert_eq!(instruction.accounts[0].is_writable, false);
-    assert_eq!(
-        instruction.accounts[1].pubkey,
-        *instruction_addresses.get("writable").unwrap(),
-    );
-    assert_eq!(instruction.accounts[1].is_signer, false);
-    assert_eq!(instruction.accounts[1].is_writable, true);
-    assert_eq!(
-        vec![77, 78, 42, 0, 3, 0, 0, 0, 1, 2, 3, 254, 255],
-        instruction.data
+        instruction,
+        Instruction {
+            program_id: instruction_program_id,
+            accounts: vec![
+                AccountMeta::new_readonly(
+                    *instruction_addresses.get("signer").unwrap(),
+                    true
+                ),
+                AccountMeta::new(
+                    *instruction_addresses.get("writable").unwrap(),
+                    false
+                ),
+            ],
+            data: vec![77, 78, 42, 0, 3, 0, 0, 0, 1, 2, 3, 254, 255]
+        }
     );
     assert_eq!(
         idl_instruction.decode(&instruction).unwrap(),
