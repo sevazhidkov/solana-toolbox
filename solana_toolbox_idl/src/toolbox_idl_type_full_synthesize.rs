@@ -15,7 +15,7 @@ impl ToolboxIdlTypeFull {
             },
             ToolboxIdlTypeFull::Array { items, length } => {
                 let mut json_values = vec![];
-                for _ in 0..usize::try_from(*length).unwrap() {
+                for _ in 0..*length {
                     json_values.push(items.synthesize());
                 }
                 json!(json_values)

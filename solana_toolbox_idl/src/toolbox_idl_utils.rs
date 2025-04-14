@@ -148,16 +148,12 @@ pub(crate) fn idl_as_str_or_else(value: &Value) -> Result<&str> {
     value.as_str().context("Expected an string")
 }
 
-pub(crate) fn idl_as_u128_or_else(value: &Value) -> Result<u128> {
-    Ok(u128::from(
-        value.as_u64().context("Expected an unsigned number")?,
-    ))
+pub(crate) fn idl_as_u64_or_else(value: &Value) -> Result<u64> {
+    value.as_u64().context("Expected an unsigned number")
 }
 
-pub(crate) fn idl_as_i128_or_else(value: &Value) -> Result<i128> {
-    Ok(i128::from(
-        value.as_i64().context("Expected a signed number")?,
-    ))
+pub(crate) fn idl_as_i64_or_else(value: &Value) -> Result<i64> {
+    value.as_i64().context("Expected a signed number")
 }
 
 pub(crate) fn idl_as_f64_or_else(value: &Value) -> Result<f64> {
@@ -171,8 +167,7 @@ pub(crate) fn idl_as_bool_or_else(value: &Value) -> Result<bool> {
 pub(crate) fn idl_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
     let mut bytes = vec![];
     for item in array {
-        let integer = idl_as_u128_or_else(item)?;
-        bytes.push(u8::try_from(integer)?);
+        bytes.push(u8::try_from(idl_as_u64_or_else(item)?)?);
     }
     Ok(bytes)
 }
@@ -216,7 +211,7 @@ pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
 pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
     let size = std::mem::size_of::<u8>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(u8::from_le_bytes(slice.try_into().unwrap()))
+    Ok(u8::from_le_bytes(slice.try_into()?))
 }
 
 pub(crate) fn idl_u16_from_bytes_at(
@@ -225,7 +220,7 @@ pub(crate) fn idl_u16_from_bytes_at(
 ) -> Result<u16> {
     let size = std::mem::size_of::<u16>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(u16::from_le_bytes(slice.try_into().unwrap()))
+    Ok(u16::from_le_bytes(slice.try_into()?))
 }
 
 pub(crate) fn idl_u32_from_bytes_at(
@@ -234,7 +229,7 @@ pub(crate) fn idl_u32_from_bytes_at(
 ) -> Result<u32> {
     let size = std::mem::size_of::<u32>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(u32::from_le_bytes(slice.try_into().unwrap()))
+    Ok(u32::from_le_bytes(slice.try_into()?))
 }
 
 pub(crate) fn idl_pubkey_from_bytes_at(
@@ -243,7 +238,7 @@ pub(crate) fn idl_pubkey_from_bytes_at(
 ) -> Result<Pubkey> {
     let size = std::mem::size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(Pubkey::new_from_array(slice.try_into().unwrap()))
+    Ok(Pubkey::new_from_array(slice.try_into()?))
 }
 
 pub(crate) fn idl_prefix_from_bytes_at(

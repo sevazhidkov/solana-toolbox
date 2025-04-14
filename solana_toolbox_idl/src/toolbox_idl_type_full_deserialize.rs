@@ -21,6 +21,7 @@ impl ToolboxIdlTypeFull {
         &self,
         data: &[u8],
         data_offset: usize,
+        // TODO (FAR) - support deserializing bytes into custom stuff like base64 ?
     ) -> Result<(usize, Value)> {
         match self {
             ToolboxIdlTypeFull::Option {
@@ -142,7 +143,7 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let array_length = usize::try_from(*array_length).unwrap();
+        let array_length = usize::try_from(*array_length)?;
         let mut data_size = 0;
         let mut data_items = vec![];
         for index in 0..array_length {

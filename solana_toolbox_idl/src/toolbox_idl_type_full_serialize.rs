@@ -14,10 +14,10 @@ use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
 use crate::toolbox_idl_utils::idl_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_as_f64_or_else;
-use crate::toolbox_idl_utils::idl_as_i128_or_else;
+use crate::toolbox_idl_utils::idl_as_i64_or_else;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
 use crate::toolbox_idl_utils::idl_as_str_or_else;
-use crate::toolbox_idl_utils::idl_as_u128_or_else;
+use crate::toolbox_idl_utils::idl_as_u64_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
@@ -163,7 +163,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let array_length = usize::try_from(*array_length).unwrap();
+        let array_length = usize::try_from(*array_length)?;
         if array_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if bytes.len() != array_length {
@@ -208,6 +208,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
+        // TODO (FAR) - support non-sequential enums ?
         if let Some(value_string) = value.as_str() {
             for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
                 let (enum_variant_name, enum_variant_fields) = enum_variant;
@@ -245,7 +246,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let padded_size_bytes = usize::try_from(*padded_size_bytes).unwrap();
+        let padded_size_bytes = usize::try_from(*padded_size_bytes)?;
         let data_len_enforced = data.len() + padded_size_bytes;
         padded_content.try_serialize(value, data, deserializable)?;
         while data.len() < data_len_enforced {
@@ -260,72 +261,60 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        macro_rules! write_data_using_u_number {
-            ($type:ident) => {
-                let value_integer = idl_as_u128_or_else(value)?;
-                let value_typed = $type::try_from(value_integer)?;
-                data.extend_from_slice(bytemuck::bytes_of::<$type>(
-                    &value_typed,
-                ));
-            };
-        }
-        macro_rules! write_data_using_i_number {
-            ($type:ident) => {
-                let value_integer = idl_as_i128_or_else(value)?;
-                let value_typed = $type::try_from(value_integer)?;
-                data.extend_from_slice(bytemuck::bytes_of::<$type>(
-                    &value_typed,
-                ));
-            };
-        }
         match primitive {
             ToolboxIdlTypePrimitive::U8 => {
-                write_data_using_u_number!(u8);
+                let value_integer = idl_as_u64_or_else(value)?;
+                let value_typed = u8::try_from(value_integer)?;
+                data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U16 => {
-                write_data_using_u_number!(u16);
+                let value_integer = idl_as_u64_or_else(value)?;
+                let value_typed = u16::try_from(value_integer)?;
+                data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U32 => {
-                write_data_using_u_number!(u32);
+                let value_integer = idl_as_u64_or_else(value)?;
+                let value_typed = u32::try_from(value_integer)?;
+                data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U64 => {
-                write_data_using_u_number!(u64);
+                let value_integer = idl_as_u64_or_else(value)?;
+                data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U128 => {
-                let value_integer = idl_as_u128_or_else(value)?;
-                data.extend_from_slice(bytemuck::bytes_of::<u128>(
-                    &value_integer,
-                ));
+                let value_integer = u128::from(idl_as_u64_or_else(value)?);
+                data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I8 => {
-                write_data_using_i_number!(i8);
+                let value_integer = idl_as_i64_or_else(value)?;
+                let value_typed = i8::try_from(value_integer)?;
+                data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I16 => {
-                write_data_using_i_number!(i16);
+                let value_integer = idl_as_i64_or_else(value)?;
+                let value_typed = i16::try_from(value_integer)?;
+                data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I32 => {
-                write_data_using_i_number!(i32);
+                let value_integer = idl_as_i64_or_else(value)?;
+                let value_typed = i32::try_from(value_integer)?;
+                data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I64 => {
-                write_data_using_i_number!(i64);
+                let value_integer = idl_as_i64_or_else(value)?;
+                data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I128 => {
-                let value_integer = idl_as_i128_or_else(value)?;
-                data.extend_from_slice(bytemuck::bytes_of::<i128>(
-                    &value_integer,
-                ));
+                let value_integer = i128::from(idl_as_i64_or_else(value)?);
+                data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::F32 => {
                 let value_floating = idl_as_f64_or_else(value)? as f32;
-                data.extend_from_slice(bytemuck::bytes_of::<f32>(
-                    &value_floating,
-                ));
+                data.extend_from_slice(&value_floating.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::F64 => {
                 let value_floating = idl_as_f64_or_else(value)?;
-                data.extend_from_slice(bytemuck::bytes_of::<f64>(
-                    &value_floating,
-                ));
+                data.extend_from_slice(&value_floating.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::Boolean => {
                 data.push(if idl_as_bool_or_else(value)? { 1 } else { 0 });
@@ -333,17 +322,15 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypePrimitive::String => {
                 let value_str = idl_as_str_or_else(value)?;
                 if deserializable {
-                    data.extend_from_slice(bytemuck::bytes_of::<u32>(
-                        &u32::try_from(value_str.len()).unwrap(),
-                    ));
+                    let value_length = u32::try_from(value_str.len())?;
+                    data.extend_from_slice(&value_length.to_le_bytes());
                 }
                 data.extend_from_slice(value_str.as_bytes());
             },
             ToolboxIdlTypePrimitive::PublicKey => {
                 let value_str = idl_as_str_or_else(value)?;
-                data.extend_from_slice(bytemuck::bytes_of::<Pubkey>(
-                    &Pubkey::from_str(value_str)?,
-                ));
+                let value_pubkey = Pubkey::from_str(value_str)?;
+                data.extend_from_slice(&value_pubkey.to_bytes());
             },
         };
         Ok(())
@@ -403,7 +390,7 @@ fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
             return Ok(data.as_bytes().to_vec());
         }
         if let Some(data) = idl_object_get_key_as_u64(value_object, "zeroes") {
-            return Ok(vec![0; usize::try_from(data).unwrap()]);
+            return Ok(vec![0; usize::try_from(data)?]);
         }
     }
     Err(anyhow!("Could not read bytes, expected an array/object"))

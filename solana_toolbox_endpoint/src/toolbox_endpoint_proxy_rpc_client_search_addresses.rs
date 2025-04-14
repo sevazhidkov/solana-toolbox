@@ -22,9 +22,8 @@ impl ToolboxEndpointProxyRpcClient {
     ) -> Result<HashSet<Pubkey>> {
         let mut program_accounts_filters = vec![];
         if let Some(data_len) = data_len {
-            program_accounts_filters.push(RpcFilterType::DataSize(
-                u64::try_from(data_len).unwrap(),
-            ));
+            program_accounts_filters
+                .push(RpcFilterType::DataSize(u64::try_from(data_len)?));
         }
         for (slice_offset, slice_bytes) in data_chunks {
             let slice_base64 = ToolboxEndpoint::encode_base64(slice_bytes);

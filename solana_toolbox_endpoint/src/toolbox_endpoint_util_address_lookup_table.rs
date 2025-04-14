@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use solana_sdk::address_lookup_table::instruction::close_lookup_table;
 use solana_sdk::address_lookup_table::instruction::create_lookup_table;
@@ -64,7 +65,10 @@ impl ToolboxEndpoint {
         lookup_addresses: &[Pubkey],
     ) -> Result<Pubkey> {
         let slot_hashes = self.get_sysvar_slot_hashes().await?;
-        let most_recent_slot = slot_hashes.first().unwrap().0;
+        let most_recent_slot = slot_hashes
+            .first()
+            .context("No recent slot hash available")?
+            .0;
         let (instruction, address_lookup_table) = create_lookup_table(
             authority.pubkey(),
             payer.pubkey(),

@@ -304,8 +304,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             self.inner.banks_client.get_sysvar::<Clock>().await?;
         let mut forwarded_clock = current_clock;
         forwarded_clock.slot += unix_timestamp_delta * SLOTS_PER_SECOND;
-        forwarded_clock.unix_timestamp +=
-            i64::try_from(unix_timestamp_delta).unwrap();
+        forwarded_clock.unix_timestamp += i64::try_from(unix_timestamp_delta)?;
         forwarded_clock.epoch += unix_timestamp_delta / SECONDS_PER_EPOCH;
         self.update_slot(&forwarded_clock).await
     }
@@ -319,7 +318,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         let mut forwarded_clock = current_clock;
         forwarded_clock.slot += slot_delta;
         forwarded_clock.unix_timestamp +=
-            i64::try_from(slot_delta / SLOTS_PER_SECOND).unwrap();
+            i64::try_from(slot_delta / SLOTS_PER_SECOND)?;
         forwarded_clock.epoch += slot_delta / SLOTS_PER_EPOCH;
         self.update_slot(&forwarded_clock).await
     }
@@ -333,7 +332,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         let mut forwarded_clock = current_clock;
         forwarded_clock.slot += epoch_delta * SLOTS_PER_EPOCH;
         forwarded_clock.unix_timestamp +=
-            i64::try_from(epoch_delta * SECONDS_PER_EPOCH).unwrap();
+            i64::try_from(epoch_delta * SECONDS_PER_EPOCH)?;
         forwarded_clock.epoch += epoch_delta;
         self.update_slot(&forwarded_clock).await
     }

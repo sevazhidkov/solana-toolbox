@@ -90,7 +90,7 @@ impl ToolboxCliContext {
             return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }
         // TODO - support from_base58_string
-        if exists(&key).unwrap() {
+        if exists(&key)? {
             return Ok(ToolboxCliKey::Keypair(self.load_keypair(key)));
         }
         Ok(ToolboxCliKey::Pubkey(Pubkey::from_str(

@@ -24,7 +24,7 @@ impl ToolboxIdlPath {
             },
             ToolboxIdlTypeFull::Array { items, length } => {
                 let index = current.index().context("Array index")?;
-                if u64::try_from(index).unwrap() >= *length {
+                if u64::try_from(index)? >= *length {
                     return Err(anyhow!(
                         "Invalid array index: {} (length: {})",
                         index,

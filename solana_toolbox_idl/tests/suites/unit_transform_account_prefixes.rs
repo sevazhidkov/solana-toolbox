@@ -17,10 +17,10 @@ pub async fn run() {
                     { "name": "vec8", "vec8": "u8" },
                     { "name": "vec16", "vec16": "u8" },
                     { "name": "vec32", "vec32": "u8" },
-                    { "name": "variants", "variants": ["A", "B"] },
-                    { "name": "variants8", "variants8": ["A", "B"] },
-                    { "name": "variants16", "variants16": ["A", "B"] },
-                    { "name": "variants32", "variants32": ["A", "B"] },
+                    { "name": "variants", "variants": ["A", "B", "C", "D"] },
+                    { "name": "variants8", "variants8": ["A", "B", "C", "D"] },
+                    { "name": "variants16", "variants16": ["A", "B", "C", "D"] },
+                    { "name": "variants32", "variants32": ["A", "B", "C", "D"] },
                 ]
             }
         },
@@ -39,10 +39,10 @@ pub async fn run() {
                     { "name": "vec8", "type": {"vec8": "u8"} },
                     { "name": "vec16", "type": {"vec16": "u8"} },
                     { "name": "vec32", "type": {"vec32": "u8"} },
-                    { "name": "variants", "type": {"variants": ["A", "B"]} },
-                    { "name": "variants8", "type": {"variants8": ["A", "B"]} },
-                    { "name": "variants16", "type": {"variants16": ["A", "B"]} },
-                    { "name": "variants32", "type": {"variants32": ["A", "B"]} },
+                    { "name": "variants", "type": {"variants": ["A", "B", "C", "D"]} },
+                    { "name": "variants8", "type": {"variants8": ["A", "B", "C", "D"]} },
+                    { "name": "variants16", "type": {"variants16": ["A", "B", "C", "D"]} },
+                    { "name": "variants32", "type": {"variants32": ["A", "B", "C", "D"]} },
                 ]
             }
         },
@@ -64,15 +64,15 @@ pub async fn run() {
         "vec32": [53],
         "variants": "A",
         "variants8": "B",
-        "variants16": "A",
-        "variants32": "B",
+        "variants16": "C",
+        "variants32": "D",
     });
     // Check that we can use the manual IDL to encode/decode our account
     let account_data = idl_account.encode(&account_state).unwrap();
     assert_eq!(
         vec![
             77, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43, 1, 0, 0, 0, 50, 1, 51,
-            1, 0, 52, 1, 0, 0, 0, 53, 0, 1, 0, 0, 1, 0, 0, 0
+            1, 0, 52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0
         ],
         account_data,
     );

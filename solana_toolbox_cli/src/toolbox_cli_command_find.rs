@@ -61,17 +61,17 @@ impl ToolboxCliCommandFindArgs {
             if let Some((offset, encoded)) = chunk.split_once(":") {
                 let mut bytes = vec![];
                 ToolboxIdlTypeFull::Vec {
+                    prefix_bytes: 4,
                     items: Box::new(ToolboxIdlTypeFull::Primitive {
                         primitive: ToolboxIdlTypePrimitive::U8,
                     }),
                 }
                 .try_serialize(
-                    &serde_hjson::from_str(encoded).unwrap(),
+                    &serde_hjson::from_str(encoded)?,
                     &mut bytes,
                     false,
-                )
-                .unwrap();
-                chunks.push((offset.parse::<usize>().unwrap(), bytes));
+                )?;
+                chunks.push((offset.parse::<usize>()?, bytes));
             } else {
                 return Err(anyhow!(
                     "Invalid data chunk, expected: offset:bytes",

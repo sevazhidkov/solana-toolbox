@@ -108,8 +108,7 @@ impl ToolboxEndpoint {
             &program_buffer_authority.pubkey(),
             rent_minimum_lamports,
             program_bytecode_len,
-        )
-        .unwrap();
+        )?;
         self.process_instructions_with_signers(
             payer,
             &instructions_create,
@@ -167,8 +166,7 @@ impl ToolboxEndpoint {
             &program_authority.pubkey(),
             rent_minimum_lamports,
             program_bytecode_len,
-        )
-        .unwrap();
+        )?;
         self.process_instructions_with_signers(
             payer,
             &instruction_deploy,
