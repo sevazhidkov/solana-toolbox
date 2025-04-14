@@ -4,6 +4,7 @@ use serde_json::Value;
 
 use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
+use crate::ToolboxIdlInstructionAccountPda;
 
 impl ToolboxIdlInstruction {
     pub fn get_needs(&self) -> (Value, Map<String, Value>) {
@@ -16,19 +17,10 @@ impl ToolboxIdlInstruction {
                     json!(account_address.to_string()),
                 );
             } else if let Some(account_pda) = &account.pda {
-                let mut needs_blobs = vec![];
-                for account_pda_seed in &account_pda.seeds {
-                    if let Some((key, value)) = get_need(account_pda_seed) {
-                        needs_blobs.push(json!({ key: value }));
-                    }
-                }
-                if let Some(account_pda_program) = &account_pda.program {
-                    if let Some((key, value)) = get_need(account_pda_program) {
-                        needs_blobs.push(json!({ key: value }));
-                    }
-                }
-                instruction_needs_addresses
-                    .insert(account.name.to_string(), json!(needs_blobs));
+                instruction_needs_addresses.insert(
+                    account.name.to_string(),
+                    json!(account_pda.get_needs()),
+                );
             } else {
                 instruction_needs_addresses
                     .insert(account.name.to_string(), json!(null));
@@ -38,16 +30,45 @@ impl ToolboxIdlInstruction {
     }
 }
 
-fn get_need(
-    blob: &ToolboxIdlInstructionAccountPdaBlob,
-) -> Option<(&str, String)> {
-    match blob {
-        ToolboxIdlInstructionAccountPdaBlob::Const { .. } => None,
-        ToolboxIdlInstructionAccountPdaBlob::Arg { path, .. } => {
-            Some(("arg", path.export()))
-        },
-        ToolboxIdlInstructionAccountPdaBlob::Account { path, .. } => {
-            Some(("account", path.export()))
-        },
+impl ToolboxIdlInstructionAccountPda {
+    pub fn get_needs(&self) -> Vec<Value> {
+        let mut needs_blobs = vec![];
+        for seed in &self.seeds {
+            if let Some((kind, path, explained)) = seed.get_need() {
+                needs_blobs.push(json!({
+                    "kind": kind,
+                    "path": path,
+                    "type": explained,
+                }));
+            }
+        }
+        if let Some(program) = &self.program {
+            if let Some((kind, path, explained)) = program.get_need() {
+                needs_blobs.push(json!({
+                    "kind": kind,
+                    "path": path,
+                    "type": explained,
+                }));
+            }
+        }
+        needs_blobs
+    }
+}
+
+impl ToolboxIdlInstructionAccountPdaBlob {
+    pub fn get_need(&self) -> Option<(&str, String, Value)> {
+        match self {
+            ToolboxIdlInstructionAccountPdaBlob::Const { .. } => None,
+            ToolboxIdlInstructionAccountPdaBlob::Arg {
+                path,
+                type_full,
+                ..
+            } => Some(("arg", path.export(), type_full.explain())),
+            ToolboxIdlInstructionAccountPdaBlob::Account {
+                path,
+                type_full,
+                ..
+            } => Some(("account", path.export(), type_full.explain())),
+        }
     }
 }

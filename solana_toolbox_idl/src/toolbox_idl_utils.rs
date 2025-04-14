@@ -53,7 +53,7 @@ pub(crate) fn idl_object_get_key_or_else<'a>(
 ) -> Result<&'a Value> {
     object.get(key).ok_or_else(|| {
         anyhow!(
-            "missing value at key: {}, available keys: {:?}",
+            "Expected value at key: {}. Found keys: {:?}",
             key,
             object.keys().collect::<Vec<_>>()
         )
@@ -201,7 +201,7 @@ pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
 ) -> Result<&'a V> {
     map.get(key).ok_or_else(|| {
         anyhow!(
-            "Missing key: {}, available keys: {:?}",
+            "Expected value at key: {}. Found keys: {:?}",
             key,
             map.keys().collect::<Vec<_>>()
         )

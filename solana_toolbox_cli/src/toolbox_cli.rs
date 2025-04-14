@@ -19,26 +19,35 @@ use crate::toolbox_cli_context::ToolboxCliContext;
 #[command(version, about = "Tooling to interact with a solana endpoint")]
 pub struct ToolboxCliArgs {
     #[arg(
+        global = true,
         long = "config",
         value_name = "CONFIG_FILE_PATH",
         help = "To use a different path for the solana's config YAML file"
     )]
     config: Option<String>,
     #[arg(
-        short,
+        global = true,
+        short = 'u',
+        short_alias = 'r',
+        short_alias = 'c',
+        short_alias = 'm',
         long = "url",
         alias = "rpc",
+        alias = "cluster",
+        alias = "moniker",
         value_name = "URL_OR_MONIKER",
         help = "The solana RPC endpoint's URL used"
     )]
     url: Option<String>,
     #[arg(
+        global = true,
         long = "commitment",
         value_name = "COMMITMENT_LEVEL",
         help = "Commitment level used for RPC endpoint"
     )]
     commitment: Option<String>,
     #[arg(
+        global = true,
         short,
         long = "keypair",
         alias = "wallet",
@@ -47,6 +56,7 @@ pub struct ToolboxCliArgs {
     )]
     keypair: Option<String>,
     #[arg(
+        global = true,
         short,
         long = "idl",
         alias = "idls",
@@ -54,7 +64,13 @@ pub struct ToolboxCliArgs {
         help = "Use a custom IDL file for a specific Program ID"
     )]
     idls: Vec<String>,
-    #[arg(long = "compact", help = "Output compacted JSON")]
+    #[arg(
+        global = true,
+        long = "minify",
+        alias = "compact",
+        alias = "ugly",
+        help = "Output minified JSON"
+    )]
     compact: bool,
     #[command(subcommand)]
     command: ToolboxCliCommand,

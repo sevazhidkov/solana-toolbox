@@ -261,7 +261,9 @@ impl ToolboxCliCommandInstructionArgs {
             Err(error) => {
                 json_outcome.insert(
                     "instruction_compile_error".to_string(),
-                    json!(format!("{:?}", error)),
+                    json!(format!("{:?}", error)
+                        .split("\n")
+                        .collect::<Vec<_>>()),
                 );
             },
         };

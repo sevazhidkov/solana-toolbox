@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use anyhow::Context;
 use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::instruction::Instruction;
@@ -47,8 +48,12 @@ impl ToolboxIdlInstruction {
     ) -> Result<Instruction> {
         Ok(Instruction {
             program_id: *instruction_program_id,
-            data: self.encode_payload(instruction_payload)?,
-            accounts: self.encode_addresses(instruction_addresses)?,
+            data: self
+                .encode_payload(instruction_payload)
+                .context("Encode Payload")?,
+            accounts: self
+                .encode_addresses(instruction_addresses)
+                .context("Encode Addresses")?,
         })
     }
 
@@ -58,8 +63,10 @@ impl ToolboxIdlInstruction {
     ) -> Result<(Pubkey, Value, HashMap<String, Pubkey>)> {
         Ok((
             instruction.program_id,
-            self.decode_payload(&instruction.data)?,
-            self.decode_addresses(&instruction.accounts)?,
+            self.decode_payload(&instruction.data)
+                .context("Decode Payload")?,
+            self.decode_addresses(&instruction.accounts)
+                .context("Decode Addresses")?,
         ))
     }
 }

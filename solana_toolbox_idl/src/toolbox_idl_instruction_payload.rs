@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use serde_json::Value;
 
@@ -11,11 +12,9 @@ impl ToolboxIdlInstruction {
     ) -> Result<Vec<u8>> {
         let mut instruction_data = vec![];
         instruction_data.extend_from_slice(&self.discriminator);
-        self.args_type_full_fields.try_serialize(
-            instruction_payload,
-            &mut instruction_data,
-            true,
-        )?;
+        self.args_type_full_fields
+            .try_serialize(instruction_payload, &mut instruction_data, true)
+            .context("Serialize Payload")?;
         Ok(instruction_data)
     }
 
@@ -23,7 +22,8 @@ impl ToolboxIdlInstruction {
         self.check_payload(instruction_data)?;
         let (_, instruction_payload) = self
             .args_type_full_fields
-            .try_deserialize(instruction_data, self.discriminator.len())?;
+            .try_deserialize(instruction_data, self.discriminator.len())
+            .context("Deserialize Payload")?;
         Ok(instruction_payload)
     }
 
