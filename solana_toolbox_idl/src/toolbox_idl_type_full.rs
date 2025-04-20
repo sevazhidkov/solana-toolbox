@@ -1,13 +1,14 @@
+use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
     Option {
-        prefix_bytes: u8,
+        prefix: ToolboxIdlTypePrefix,
         content: Box<ToolboxIdlTypeFull>,
     },
     Vec {
-        prefix_bytes: u8,
+        prefix: ToolboxIdlTypePrefix,
         items: Box<ToolboxIdlTypeFull>,
     },
     Array {
@@ -18,8 +19,8 @@ pub enum ToolboxIdlTypeFull {
         fields: ToolboxIdlTypeFullFields,
     },
     Enum {
-        prefix_bytes: u8,
-        variants: Vec<(String, ToolboxIdlTypeFullFields)>,
+        prefix: ToolboxIdlTypePrefix,
+        variants: Vec<ToolboxIdlTypeFullEnumVariant>,
     },
     Padded {
         size_bytes: u64,
@@ -42,11 +43,8 @@ impl ToolboxIdlTypeFull {
 
     pub fn is_bytes(&self) -> bool {
         match self {
-            ToolboxIdlTypeFull::Vec {
-                prefix_bytes,
-                items,
-            } => {
-                *prefix_bytes == 4
+            ToolboxIdlTypeFull::Vec { prefix, items } => {
+                prefix == &ToolboxIdlTypePrefix::U32
                     && items.is_primitive(&ToolboxIdlTypePrimitive::U8)
             },
             _ => false,
@@ -59,9 +57,7 @@ impl ToolboxIdlTypeFull {
             _ => false,
         }
     }
-}
 
-impl ToolboxIdlTypeFull {
     pub fn as_const_literal(&self) -> Option<&u64> {
         match self {
             ToolboxIdlTypeFull::Const { literal } => Some(literal),
@@ -78,10 +74,17 @@ impl ToolboxIdlTypeFull {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFullEnumVariant {
+    pub name: String,
+    pub code: u64,
+    pub fields: ToolboxIdlTypeFullFields,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFullFields {
     None,
-    Named(Vec<(String, ToolboxIdlTypeFull)>),
-    Unnamed(Vec<ToolboxIdlTypeFull>),
+    Named(Vec<ToolboxIdlTypeFullFieldNamed>),
+    Unnamed(Vec<ToolboxIdlTypeFullFieldUnnamed>),
 }
 
 impl ToolboxIdlTypeFullFields {
@@ -91,10 +94,21 @@ impl ToolboxIdlTypeFullFields {
 }
 
 impl ToolboxIdlTypeFullFields {
-    pub fn as_named(&self) -> Option<&Vec<(String, ToolboxIdlTypeFull)>> {
+    pub fn as_named(&self) -> Option<&Vec<ToolboxIdlTypeFullFieldNamed>> {
         match self {
             ToolboxIdlTypeFullFields::Named(named) => Some(named),
             _ => None,
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFullFieldNamed {
+    pub name: String,
+    pub type_full: ToolboxIdlTypeFull,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFullFieldUnnamed {
+    pub type_full: ToolboxIdlTypeFull,
 }

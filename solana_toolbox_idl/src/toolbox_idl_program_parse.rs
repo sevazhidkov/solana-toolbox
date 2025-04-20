@@ -26,7 +26,7 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
-use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_name_as_str_or_else;
+use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_key_as_str_or_else;
 
 impl ToolboxIdlProgram {
     pub const DISCRIMINATOR: &[u8] =
@@ -82,7 +82,7 @@ impl ToolboxIdlProgram {
             ToolboxIdlProgram::try_parse_accounts(idl_root, &typedefs)
                 .context("Parse Accounts")?;
         let instructions = ToolboxIdlProgram::try_parse_instructions(
-            idl_root, &typedefs, &accounts,
+            idl_root, &accounts, &typedefs,
         )
         .context("Parse Instructions")?;
         let events = ToolboxIdlProgram::try_parse_events(idl_root, &typedefs)
@@ -188,8 +188,8 @@ impl ToolboxIdlProgram {
 
     fn try_parse_instructions(
         idl_root: &Map<String, Value>,
-        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<HashMap<String, Arc<ToolboxIdlInstruction>>> {
         let mut instructions = HashMap::new();
         for (idl_instruction_name, idl_instruction) in
@@ -205,8 +205,8 @@ impl ToolboxIdlProgram {
                 ToolboxIdlInstruction::try_parse(
                     &idl_instruction_name,
                     idl_instruction,
-                    typedefs,
                     accounts,
+                    typedefs,
                 )
                 .with_context(|| {
                     format!("Parse Instruction: {}", idl_instruction_name)
@@ -283,8 +283,9 @@ impl ToolboxIdlProgram {
                 idl_collection.iter().enumerate()
             {
                 let idl_collection_item_name =
-                    idl_value_as_str_or_object_with_name_as_str_or_else(
+                    idl_value_as_str_or_object_with_key_as_str_or_else(
                         idl_collection_item,
+                        "name",
                     )
                     .context(index)?;
                 collection_scoped_named_objects

@@ -1,5 +1,6 @@
 use serde_json::Value;
 
+use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -12,11 +13,11 @@ pub enum ToolboxIdlTypeFlat {
         symbol: String,
     },
     Option {
-        prefix_bytes: u8,
+        prefix: ToolboxIdlTypePrefix,
         content: Box<ToolboxIdlTypeFlat>,
     },
     Vec {
-        prefix_bytes: u8,
+        prefix: ToolboxIdlTypePrefix,
         items: Box<ToolboxIdlTypeFlat>,
     },
     Array {
@@ -27,8 +28,8 @@ pub enum ToolboxIdlTypeFlat {
         fields: ToolboxIdlTypeFlatFields,
     },
     Enum {
-        prefix_bytes: u8,
-        variants: Vec<(String, Option<Value>, ToolboxIdlTypeFlatFields)>,
+        prefix: ToolboxIdlTypePrefix,
+        variants: Vec<ToolboxIdlTypeFlatEnumVariant>,
     },
     Padded {
         size_bytes: u64,
@@ -51,14 +52,35 @@ impl ToolboxIdlTypeFlat {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFlatEnumVariant {
+    pub name: String,
+    pub code: u64,
+    pub docs: Option<Value>,
+    pub fields: ToolboxIdlTypeFlatFields,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlatFields {
     None,
-    Named(Vec<(String, Option<Value>, ToolboxIdlTypeFlat)>),
-    Unnamed(Vec<(Option<Value>, ToolboxIdlTypeFlat)>),
+    Named(Vec<ToolboxIdlTypeFlatFieldNamed>),
+    Unnamed(Vec<ToolboxIdlTypeFlatFieldUnamed>),
 }
 
 impl ToolboxIdlTypeFlatFields {
     pub fn nothing() -> ToolboxIdlTypeFlatFields {
         ToolboxIdlTypeFlatFields::None
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFlatFieldNamed {
+    pub name: String,
+    pub docs: Option<Value>,
+    pub type_flat: ToolboxIdlTypeFlat,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ToolboxIdlTypeFlatFieldUnamed {
+    pub docs: Option<Value>,
+    pub type_flat: ToolboxIdlTypeFlat,
 }

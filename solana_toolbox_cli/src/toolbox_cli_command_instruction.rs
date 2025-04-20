@@ -31,6 +31,7 @@ pub struct ToolboxCliCommandInstructionArgs {
     )]
     accounts: Vec<String>,
     #[arg(
+        display_order = 11,
         long = "arg",
         alias = "args",
         value_name = "JSON_PATH:JSON_VALUE",
@@ -38,19 +39,34 @@ pub struct ToolboxCliCommandInstructionArgs {
     )]
     args: Vec<String>,
     #[arg(
+        display_order = 12,
         long = "signer",
         alias = "signers",
         value_name = "KEYPAIR_FILE_PATH",
-        help = "Specify an extra instruction signer keypair file"
+        help = "Specify an extra signer keypair file for the instruction"
     )]
     signers: Vec<String>,
     #[arg(
+        display_order = 13,
+        long = "compute-budget",
+        value_name = "COMPUTE_UNITS",
+        help = "Set the compute budget unit limit for the instruction"
+    )]
+    compute_budget: Option<u32>,
+    #[arg(
+        display_order = 14,
+        long = "compute-price",
+        value_name = "MICRO_LAMPORTS",
+        help = "Set the price of the compute unit for the instruction"
+    )]
+    compute_price: Option<u64>,
+    #[arg(
+        display_order = 15,
         long = "execute",
         action,
-        help = "Execute generated instruction instead of simulating it"
+        help = "Execute the generated instruction instead of simulating it"
     )]
     execute: bool,
-    // TODO (SHORT) - set compute budget / price
 }
 
 impl ToolboxCliCommandInstructionArgs {
@@ -188,9 +204,15 @@ impl ToolboxCliCommandInstructionArgs {
                 for instruction_signer in &instruction_signers {
                     signers.push(instruction_signer);
                 }
+                let instructions =
+                    ToolboxEndpoint::generate_instructions_with_compute_budget(
+                        &[instruction.clone()],
+                        self.compute_budget,
+                        self.compute_price,
+                    );
                 match ToolboxEndpoint::compile_versioned_transaction(
                     &context.get_keypair(),
-                    &[instruction.clone()],
+                    &instructions,
                     &signers,
                     &[],
                     endpoint.get_latest_blockhash().await?,

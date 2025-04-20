@@ -11,10 +11,8 @@ impl ToolboxIdlProgram {
         if format.use_root_also_as_metadata_object {
             self.export_metadata_to(&mut json_program);
         }
-        let mut json_program_metadata = Map::new();
-        self.export_metadata_to(&mut json_program_metadata);
         json_program
-            .insert("metadata".to_string(), json!(json_program_metadata));
+            .insert("metadata".to_string(), json!(self.export_metadata()));
         json_program.insert("types".to_string(), self.export_typedefs(format));
         json_program
             .insert("accounts".to_string(), self.export_accounts(format));
@@ -25,6 +23,12 @@ impl ToolboxIdlProgram {
         json_program.insert("events".to_string(), self.export_events(format));
         json_program.insert("errors".to_string(), self.export_errors(format));
         json!(json_program)
+    }
+
+    pub fn export_metadata(&self) -> Value {
+        let mut json_program_metadata = Map::new();
+        self.export_metadata_to(&mut json_program_metadata);
+        json!(json_program_metadata)
     }
 
     fn export_metadata_to(&self, json_object: &mut Map<String, Value>) {

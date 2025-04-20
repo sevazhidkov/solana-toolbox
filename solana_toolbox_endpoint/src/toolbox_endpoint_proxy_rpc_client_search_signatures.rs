@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use anyhow::Result;
 use solana_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
 use solana_sdk::pubkey::Pubkey;
@@ -19,11 +21,20 @@ impl ToolboxEndpointProxyRpcClient {
         let mut ordered_signatures = vec![];
         let mut retries = 0;
         loop {
-            let batch_size = match retries {
-                0 => 10,
-                1 => 100,
-                _ => 1000,
-            };
+            let batch_size = min(
+                1000,
+                match rewind_until {
+                    None => limit,
+                    Some(_) => min(
+                        limit,
+                        match retries {
+                            0 => 10,
+                            1 => 100,
+                            _ => usize::MAX,
+                        },
+                    ),
+                },
+            );
             retries += 1;
             let signatures = self
                 .inner

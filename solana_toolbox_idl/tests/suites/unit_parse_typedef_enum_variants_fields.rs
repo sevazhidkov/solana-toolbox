@@ -1,7 +1,11 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatEnumVariant;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldNamed;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 use solana_toolbox_idl::ToolboxIdlTypedef;
 
@@ -68,27 +72,29 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
             docs: None,
+            repr: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum {
-                prefix_bytes: 1,
+                prefix: ToolboxIdlTypePrefix::U8,
                 variants: vec![
-                    (
-                        "Named".to_string(),
-                        None,
-                        ToolboxIdlTypeFlatFields::Named(vec![
-                            (
-                                "f1".to_string(),
-                                None,
-                                ToolboxIdlTypeFlat::Defined {
+                    ToolboxIdlTypeFlatEnumVariant {
+                        name: "Named".to_string(),
+                        code: 0,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::Named(vec![
+                            ToolboxIdlTypeFlatFieldNamed {
+                                docs: None,
+                                name: "f1".to_string(),
+                                type_flat: ToolboxIdlTypeFlat::Defined {
                                     name: "Other".to_string(),
                                     generics: vec![]
                                 }
-                            ),
-                            (
-                                "f2".to_string(),
-                                None,
-                                ToolboxIdlTypeFlat::Vec {
-                                    prefix_bytes: 4,
+                            },
+                            ToolboxIdlTypeFlatFieldNamed {
+                                docs: None,
+                                name: "f2".to_string(),
+                                type_flat: ToolboxIdlTypeFlat::Vec {
+                                    prefix: ToolboxIdlTypePrefix::U32,
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
                                             primitive:
@@ -96,30 +102,31 @@ pub async fn run() {
                                         }
                                     )
                                 }
-                            ),
-                            (
-                                "f3".to_string(),
-                                None,
-                                ToolboxIdlTypeFlat::Generic {
+                            },
+                            ToolboxIdlTypeFlatFieldNamed {
+                                docs: None,
+                                name: "f3".to_string(),
+                                type_flat: ToolboxIdlTypeFlat::Generic {
                                     symbol: "G".to_string()
                                 }
-                            ),
+                            },
                         ])
-                    ),
-                    (
-                        "Unnamed".to_string(),
-                        None,
-                        ToolboxIdlTypeFlatFields::Unnamed(vec![
-                            (
-                                None,
-                                ToolboxIdlTypeFlat::Primitive {
+                    },
+                    ToolboxIdlTypeFlatEnumVariant {
+                        name: "Unnamed".to_string(),
+                        code: 1,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
+                            ToolboxIdlTypeFlatFieldUnamed {
+                                docs: None,
+                                type_flat: ToolboxIdlTypeFlat::Primitive {
                                     primitive: ToolboxIdlTypePrimitive::U64,
                                 }
-                            ),
-                            (
-                                None,
-                                ToolboxIdlTypeFlat::Vec {
-                                    prefix_bytes: 4,
+                            },
+                            ToolboxIdlTypeFlatFieldUnamed {
+                                docs: None,
+                                type_flat: ToolboxIdlTypeFlat::Vec {
+                                    prefix: ToolboxIdlTypePrefix::U32,
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
                                             primitive:
@@ -127,11 +134,11 @@ pub async fn run() {
                                         }
                                     )
                                 }
-                            ),
-                            (
-                                None,
-                                ToolboxIdlTypeFlat::Vec {
-                                    prefix_bytes: 4,
+                            },
+                            ToolboxIdlTypeFlatFieldUnamed {
+                                docs: None,
+                                type_flat: ToolboxIdlTypeFlat::Vec {
+                                    prefix: ToolboxIdlTypePrefix::U32,
                                     items: Box::new(
                                         ToolboxIdlTypeFlat::Primitive {
                                             primitive:
@@ -139,10 +146,15 @@ pub async fn run() {
                                         }
                                     )
                                 }
-                            ),
+                            },
                         ]),
-                    ),
-                    ("Empty".to_string(), None, ToolboxIdlTypeFlatFields::None),
+                    },
+                    ToolboxIdlTypeFlatEnumVariant {
+                        name: "Empty".to_string(),
+                        code: 2,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::None
+                    },
                 ]
             }
         }

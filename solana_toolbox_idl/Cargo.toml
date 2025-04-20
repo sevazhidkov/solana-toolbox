@@ -18,3 +18,4 @@ solana_toolbox_endpoint = { path = "../solana_toolbox_endpoint" }
 
 [dev-dependencies]
 tokio = "1.42.0"
+bytemuck = { version = "1.21.0", features = ["min_const_generics"] }

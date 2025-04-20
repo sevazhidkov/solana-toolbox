@@ -75,6 +75,7 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             docs: None,
+            repr: None,
             generics: vec!["A".to_string(), "B".to_string()],
             type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::None

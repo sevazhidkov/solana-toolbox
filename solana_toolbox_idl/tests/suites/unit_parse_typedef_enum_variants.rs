@@ -1,7 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatEnumVariant;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypedef;
 
 #[tokio::test]
@@ -12,7 +14,7 @@ pub async fn run() {
             "MyEnum": {
                 "variants": [
                     { "name": "Case1", "fields": [] },
-                    { "name": "Case2", "fields": [] },
+                    { "name": "Case2", "fields": [], "code": 42 },
                     { "name": "Case3", "fields": [] },
                 ]
             },
@@ -24,7 +26,7 @@ pub async fn run() {
             "MyEnum": {
                 "variants": [
                     { "name": "Case1" },
-                    { "name": "Case2" },
+                    { "name": "Case2", "code": 42 },
                     { "name": "Case3" },
                 ]
             },
@@ -36,7 +38,7 @@ pub async fn run() {
             "MyEnum": {
                 "variants": [
                     "Case1",
-                    "Case2",
+                    {"name": "Case2", "code": 42},
                     "Case3",
                 ]
             },
@@ -52,13 +54,29 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
             docs: None,
+            repr: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum {
-                prefix_bytes: 1,
+                prefix: ToolboxIdlTypePrefix::U8,
                 variants: vec![
-                    ("Case1".to_string(), None, ToolboxIdlTypeFlatFields::None),
-                    ("Case2".to_string(), None, ToolboxIdlTypeFlatFields::None),
-                    ("Case3".to_string(), None, ToolboxIdlTypeFlatFields::None),
+                    ToolboxIdlTypeFlatEnumVariant {
+                        name: "Case1".to_string(),
+                        code: 0,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::None
+                    },
+                    ToolboxIdlTypeFlatEnumVariant {
+                        name: "Case2".to_string(),
+                        code: 42,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::None
+                    },
+                    ToolboxIdlTypeFlatEnumVariant {
+                        name: "Case3".to_string(),
+                        code: 2,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::None
+                    },
                 ]
             }
         }

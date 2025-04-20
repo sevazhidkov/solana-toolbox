@@ -72,25 +72,22 @@ impl ToolboxCliCommandProgramCommandSummaryArgs {
         for idl_account_name in idl_program.instructions.keys() {
             json_instructions_names.push(json!(idl_account_name));
         }
-        let mut json_resolvables = vec![];
+        let mut json_pdas = vec![];
         for idl_instruction in idl_program.instructions.values() {
             for idl_instruction_account in &idl_instruction.accounts {
                 if idl_instruction_account.pda.is_some() {
-                    json_resolvables.push(format!(
-                        "{}.{}",
+                    json_pdas.push(format!(
+                        "{} -> {}",
                         idl_instruction.name, idl_instruction_account.name
                     ));
                 }
             }
         }
         Ok(json!({
-            "address": program_id.to_string(),
-            "name": idl_program.metadata.name,
-            "docs": idl_program.metadata.docs,
-            "description": idl_program.metadata.description,
+            "metadata": idl_program.export_metadata(),
             "accounts": json_accounts_names,
             "instructions": json_instructions_names,
-            "resolvables": json_resolvables,
+            "pdas": json_pdas,
         }))
     }
 }

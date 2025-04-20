@@ -21,13 +21,14 @@ impl ToolboxIdlTypeFull {
             },
             ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let mut json_variants = vec![];
-                for (variant_name, variant_fields) in variants {
-                    if variant_fields == &ToolboxIdlTypeFullFields::None {
-                        json_variants.push(json!(variant_name));
+                for variant in variants {
+                    if variant.fields == ToolboxIdlTypeFullFields::None {
+                        json_variants.push(json!(variant.name));
                     } else {
                         json_variants.push(json!({
-                            "name": variant_name,
-                            "fields": variant_fields.explain()
+                            "name": variant.name,
+                            "code": variant.code,
+                            "fields": variant.fields.explain()
                         }));
                     }
                 }
@@ -49,18 +50,18 @@ impl ToolboxIdlTypeFullFields {
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let mut json_fields = vec![];
-                for (field_name, field_type) in fields {
+                for field in fields {
                     json_fields.push(json!({
-                        "name": field_name,
-                        "type": field_type.explain(),
+                        "name": field.name,
+                        "type": field.type_full.explain(),
                     }));
                 }
                 json!(json_fields)
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut json_fields = vec![];
-                for field_type in fields {
-                    json_fields.push(field_type.explain());
+                for field in fields {
+                    json_fields.push(field.type_full.explain());
                 }
                 json!(json_fields)
             },

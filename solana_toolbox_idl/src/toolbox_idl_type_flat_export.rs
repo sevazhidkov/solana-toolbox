@@ -7,6 +7,7 @@ use serde_json::Value;
 use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
+use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_convert_to_camel_case;
 
@@ -39,27 +40,24 @@ impl ToolboxIdlTypeFlat {
             ToolboxIdlTypeFlat::Generic { symbol } => {
                 json!({ "generic": symbol })
             },
-            ToolboxIdlTypeFlat::Option {
-                prefix_bytes,
-                content,
-            } => {
-                if *prefix_bytes == 4 {
-                    return json!({ "option32": content.export(format) });
-                }
-                if *prefix_bytes == 2 {
-                    return json!({ "option16": content.export(format) });
-                }
-                json!({ "option": content.export(format) })
+            ToolboxIdlTypeFlat::Option { prefix, content } => {
+                let key = match prefix {
+                    ToolboxIdlTypePrefix::U8 => "option",
+                    ToolboxIdlTypePrefix::U16 => "option16",
+                    ToolboxIdlTypePrefix::U32 => "option32",
+                    ToolboxIdlTypePrefix::U64 => "option64",
+                };
+                json!({ key: content.export(format) })
             },
-            ToolboxIdlTypeFlat::Vec {
-                prefix_bytes,
-                items,
-            } => {
-                if *prefix_bytes == 1 {
-                    return json!({ "vec8": items.export(format) });
-                }
-                if *prefix_bytes == 2 {
-                    return json!({ "vec16": items.export(format) });
+            ToolboxIdlTypeFlat::Vec { prefix, items } => {
+                let key = match prefix {
+                    ToolboxIdlTypePrefix::U8 => "vec8",
+                    ToolboxIdlTypePrefix::U16 => "vec16",
+                    ToolboxIdlTypePrefix::U32 => "vec",
+                    ToolboxIdlTypePrefix::U64 => "vec64",
+                };
+                if key != "vec" {
+                    return json!({ key: items.export(format) });
                 }
                 if format.can_shortcut_type_vec_notation {
                     return json!([items.export(format)]);
@@ -92,30 +90,33 @@ impl ToolboxIdlTypeFlat {
                     "fields": fields.export(format)
                 })
             },
-            ToolboxIdlTypeFlat::Enum {
-                prefix_bytes,
-                variants,
-            } => {
+            ToolboxIdlTypeFlat::Enum { prefix, variants } => {
                 let mut json_variants = vec![];
-                for (variant_name, variant_docs, variant_fields) in variants {
+                for (index, variant) in variants.iter().enumerate() {
+                    let index_code = u64::try_from(index).unwrap();
                     if format.can_shortcut_enum_variant_to_string_if_no_fields
-                        && variant_fields == &ToolboxIdlTypeFlatFields::None
-                        && variant_docs.is_none()
+                        && variant.docs.is_none()
+                        && variant.code == index_code
+                        && variant.fields == ToolboxIdlTypeFlatFields::None
                     {
-                        json_variants.push(json!(variant_name));
+                        json_variants.push(json!(variant.name));
                         continue;
                     }
                     let mut json_variant = Map::new();
                     json_variant
-                        .insert("name".to_string(), json!(variant_name));
-                    if let Some(variant_docs) = variant_docs {
+                        .insert("name".to_string(), json!(variant.name));
+                    if let Some(variant_docs) = &variant.docs {
                         json_variant
                             .insert("docs".to_string(), json!(variant_docs));
                     }
-                    if variant_fields != &ToolboxIdlTypeFlatFields::None {
+                    if variant.code != index_code {
+                        json_variant
+                            .insert("code".to_string(), json!(variant.code));
+                    }
+                    if variant.fields != ToolboxIdlTypeFlatFields::None {
                         json_variant.insert(
                             "fields".to_string(),
-                            variant_fields.export(format),
+                            variant.fields.export(format),
                         );
                     }
                     json_variants.push(json!(json_variant));
@@ -124,16 +125,13 @@ impl ToolboxIdlTypeFlat {
                 if !format.can_skip_type_kind_key {
                     json_enum.insert("kind".to_string(), json!("enum"));
                 }
-                if *prefix_bytes == 4 {
-                    json_enum
-                        .insert("variants32".to_string(), json!(json_variants));
-                } else if *prefix_bytes == 2 {
-                    json_enum
-                        .insert("variants16".to_string(), json!(json_variants));
-                } else {
-                    json_enum
-                        .insert("variants".to_string(), json!(json_variants));
-                }
+                let key = match prefix {
+                    ToolboxIdlTypePrefix::U8 => "variants",
+                    ToolboxIdlTypePrefix::U16 => "variants16",
+                    ToolboxIdlTypePrefix::U32 => "variants32",
+                    ToolboxIdlTypePrefix::U64 => "variants64",
+                };
+                json_enum.insert(key.to_string(), json!(json_variants));
                 json!(json_enum)
             },
             ToolboxIdlTypeFlat::Padded {
@@ -173,19 +171,20 @@ impl ToolboxIdlTypeFlatFields {
         match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut json_fields = vec![];
-                for (field_name, field_docs, field_type_flat) in fields {
+                for field in fields {
                     let mut json_field = Map::new();
                     json_field.insert(
                         "name".to_string(),
                         ToolboxIdlTypeFlatFields::export_field_name(
-                            field_name, format,
+                            &field.name,
+                            format,
                         ),
                     );
                     json_field.insert(
                         "type".to_string(),
-                        field_type_flat.export(format),
+                        field.type_flat.export(format),
                     );
-                    if let Some(field_docs) = field_docs {
+                    if let Some(field_docs) = &field.docs {
                         json_field
                             .insert("docs".to_string(), json!(field_docs));
                     }
@@ -195,17 +194,17 @@ impl ToolboxIdlTypeFlatFields {
             },
             ToolboxIdlTypeFlatFields::Unnamed(fields) => {
                 let mut json_fields = vec![];
-                for (field_docs, field_type_flat) in fields {
-                    if let Some(field_docs) = &field_docs {
+                for field in fields {
+                    if let Some(field_docs) = &field.docs {
                         json_fields.push(json!({
                             "docs": field_docs,
-                            "type": field_type_flat.export(format)
+                            "type": field.type_flat.export(format)
                         }));
                     } else if format.can_skip_unamed_field_type_object_wrap {
-                        json_fields.push(field_type_flat.export(format));
+                        json_fields.push(field.type_flat.export(format));
                     } else {
                         json_fields.push(json!({
-                            "type": field_type_flat.export(format)
+                            "type": field.type_flat.export(format)
                         }));
                     }
                 }

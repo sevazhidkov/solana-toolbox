@@ -8,7 +8,7 @@ pub struct ToolboxIdlPath {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlPathPart {
     Key(String),
-    Index(usize),
+    Code(u64),
 }
 
 impl ToolboxIdlPath {
@@ -18,7 +18,7 @@ impl ToolboxIdlPath {
             if part.contains(|c: char| !c.is_ascii_digit()) {
                 parts.push(ToolboxIdlPathPart::Key(part.to_string()))
             } else {
-                parts.push(ToolboxIdlPathPart::Index(part.parse()?))
+                parts.push(ToolboxIdlPathPart::Code(part.parse()?))
             }
         }
         Ok(ToolboxIdlPath { parts })
@@ -26,14 +26,6 @@ impl ToolboxIdlPath {
 
     pub fn is_empty(&self) -> bool {
         self.parts.is_empty()
-    }
-
-    pub fn export(&self) -> String {
-        let mut parts = vec![];
-        for part in &self.parts {
-            parts.push(part.export());
-        }
-        parts.join(".")
     }
 
     pub fn split_first(&self) -> Option<(ToolboxIdlPathPart, ToolboxIdlPath)> {
@@ -47,27 +39,35 @@ impl ToolboxIdlPath {
         }
         None
     }
+
+    pub fn to_string(&self) -> String {
+        let mut parts = vec![];
+        for part in &self.parts {
+            parts.push(part.to_string());
+        }
+        parts.join(".")
+    }
 }
 
 impl ToolboxIdlPathPart {
-    pub fn export(&self) -> String {
-        match self {
-            ToolboxIdlPathPart::Key(key) => key.to_string(),
-            ToolboxIdlPathPart::Index(index) => index.to_string(),
-        }
-    }
-
     pub fn key(&self) -> Option<&str> {
         match self {
             ToolboxIdlPathPart::Key(key) => Some(key),
-            ToolboxIdlPathPart::Index(_) => None,
+            ToolboxIdlPathPart::Code(_) => None,
         }
     }
 
-    pub fn index(&self) -> Option<usize> {
+    pub fn code(&self) -> Option<u64> {
         match self {
             ToolboxIdlPathPart::Key(_) => None,
-            ToolboxIdlPathPart::Index(index) => Some(*index),
+            ToolboxIdlPathPart::Code(index) => Some(*index),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            ToolboxIdlPathPart::Key(key) => key.to_string(),
+            ToolboxIdlPathPart::Code(index) => index.to_string(),
         }
     }
 }

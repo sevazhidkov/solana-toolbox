@@ -5,9 +5,12 @@ use solana_toolbox_idl::ToolboxIdlInstruction;
 use solana_toolbox_idl::ToolboxIdlInstructionAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldNamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
+use solana_toolbox_idl::ToolboxIdlTypeFullFieldNamed;
 use solana_toolbox_idl::ToolboxIdlTypeFullFields;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
@@ -134,25 +137,29 @@ pub async fn run() {
                     pda: None
                 },
             ],
-            args_type_flat_fields: ToolboxIdlTypeFlatFields::Named(vec![(
-                "arg".to_string(),
-                None,
-                ToolboxIdlTypeFlat::Vec {
-                    prefix_bytes: 4,
-                    items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U8
-                    }),
+            args_type_flat_fields: ToolboxIdlTypeFlatFields::Named(vec![
+                ToolboxIdlTypeFlatFieldNamed {
+                    name: "arg".to_string(),
+                    docs: None,
+                    type_flat: ToolboxIdlTypeFlat::Vec {
+                        prefix: ToolboxIdlTypePrefix::U32,
+                        items: Box::new(ToolboxIdlTypeFlat::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U8
+                        }),
+                    }
                 }
-            )]),
-            args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![(
-                "arg".to_string(),
-                ToolboxIdlTypeFull::Vec {
-                    prefix_bytes: 4,
-                    items: Box::new(ToolboxIdlTypeFull::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U8
-                    }),
-                },
-            )]),
+            ]),
+            args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "arg".to_string(),
+                    type_full: ToolboxIdlTypeFull::Vec {
+                        prefix: ToolboxIdlTypePrefix::U32,
+                        items: Box::new(ToolboxIdlTypeFull::Primitive {
+                            primitive: ToolboxIdlTypePrimitive::U8
+                        }),
+                    },
+                }
+            ]),
             return_type_flat: ToolboxIdlTypeFlat::Primitive {
                 primitive: ToolboxIdlTypePrimitive::I8
             },

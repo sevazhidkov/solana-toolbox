@@ -105,14 +105,15 @@ pub(crate) fn idl_object_get_key_as_u64_or_else(
         })
 }
 
-pub(crate) fn idl_value_as_str_or_object_with_name_as_str_or_else(
-    value: &Value,
-) -> Result<&str> {
+pub(crate) fn idl_value_as_str_or_object_with_key_as_str_or_else<'a>(
+    value: &'a Value,
+    key: &str,
+) -> Result<&'a str> {
     match value.as_str() {
         Some(name) => Ok(name),
         None => {
             let object = idl_as_object_or_else(value)?;
-            Ok(idl_object_get_key_as_str_or_else(object, "name")?)
+            Ok(idl_object_get_key_as_str_or_else(object, key)?)
         },
     }
 }
@@ -125,6 +126,16 @@ pub(crate) fn idl_value_as_object_get_key_as_array<'a>(
         .as_object()
         .and_then(|object| object.get(key))
         .and_then(|item| item.as_array())
+}
+
+pub(crate) fn idl_value_as_object_get_key_as_u64(
+    value: &Value,
+    key: &str,
+) -> Option<u64> {
+    value
+        .as_object()
+        .and_then(|object| object.get(key))
+        .and_then(|item| item.as_u64())
 }
 
 pub(crate) fn idl_value_as_object_get_key<'a>(
@@ -231,6 +242,15 @@ pub(crate) fn idl_u32_from_bytes_at(
     Ok(u32::from_le_bytes(slice.try_into()?))
 }
 
+pub(crate) fn idl_u64_from_bytes_at(
+    bytes: &[u8],
+    offset: usize,
+) -> Result<u64> {
+    let size = std::mem::size_of::<u64>();
+    let slice = idl_slice_from_bytes(bytes, offset, size)?;
+    Ok(u64::from_le_bytes(slice.try_into()?))
+}
+
 pub(crate) fn idl_pubkey_from_bytes_at(
     bytes: &[u8],
     offset: usize,
@@ -238,42 +258,6 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     let size = std::mem::size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(Pubkey::new_from_array(slice.try_into()?))
-}
-
-pub(crate) fn idl_prefix_from_bytes_at(
-    prefix_size: &u8,
-    bytes: &[u8],
-    offset: usize,
-) -> Result<u32> {
-    match prefix_size {
-        1 => Ok(idl_u8_from_bytes_at(bytes, offset)?.into()),
-        2 => Ok(idl_u16_from_bytes_at(bytes, offset)?.into()),
-        4 => Ok(idl_u32_from_bytes_at(bytes, offset)?),
-        _ => Err(anyhow!("Invalid prefix size: {}", prefix_size)),
-    }
-}
-
-pub(crate) fn idl_prefix_write(
-    prefix_size: &u8,
-    value: usize,
-    data: &mut Vec<u8>,
-) -> Result<()> {
-    match prefix_size {
-        1 => {
-            let value = u8::try_from(value)?;
-            data.push(value);
-        },
-        2 => {
-            let value = u16::try_from(value)?;
-            data.extend_from_slice(&value.to_le_bytes());
-        },
-        4 => {
-            let value = u32::try_from(value)?;
-            data.extend_from_slice(&value.to_le_bytes());
-        },
-        _ => return Err(anyhow!("Invalid prefix size: {}", prefix_size)),
-    }
-    Ok(())
 }
 
 pub(crate) fn idl_convert_to_snake_case(name: &str) -> String {

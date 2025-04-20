@@ -2,9 +2,14 @@ use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
+use solana_toolbox_idl::ToolboxIdlTypeFullEnumVariant;
+use solana_toolbox_idl::ToolboxIdlTypeFullFieldNamed;
+use solana_toolbox_idl::ToolboxIdlTypeFullFieldUnnamed;
 use solana_toolbox_idl::ToolboxIdlTypeFullFields;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 #[tokio::test]
@@ -89,18 +94,18 @@ pub async fn run() {
             discriminator: vec![77],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Defined {
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Defined {
                             name: "MyDefinedEnum".to_string(),
                             generics: vec![ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8
                             }]
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Defined {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Defined {
                             name: "MyDefinedStruct".to_string(),
                             generics: vec![
                                 ToolboxIdlTypeFlat::Primitive {
@@ -111,10 +116,10 @@ pub async fn run() {
                                 },
                             ]
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Defined {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Defined {
                             name: "MyArray".to_string(),
                             generics: vec![
                                 ToolboxIdlTypeFlat::Primitive {
@@ -123,71 +128,83 @@ pub async fn run() {
                                 ToolboxIdlTypeFlat::Const { literal: 4 },
                             ]
                         }
-                    ),
+                    },
                 ])
             },
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-                    ToolboxIdlTypeFull::Enum {
-                        prefix_bytes: 1,
-                        variants: vec![
-                            (
-                                "CaseA".to_string(),
-                                ToolboxIdlTypeFullFields::Unnamed(vec![
-                                    ToolboxIdlTypeFull::Vec {
-                                        prefix_bytes: 4,
+                    ToolboxIdlTypeFullFieldUnnamed {
+                        type_full: ToolboxIdlTypeFull::Enum {
+                            prefix: ToolboxIdlTypePrefix::U8,
+                            variants: vec![
+                                ToolboxIdlTypeFullEnumVariant {
+                                    name: "CaseA".to_string(),
+                                    code: 0,
+                                    fields: ToolboxIdlTypeFullFields::Unnamed(
+                                        vec![ToolboxIdlTypeFullFieldUnnamed {
+                                            type_full: ToolboxIdlTypeFull::Vec {
+                                                prefix: ToolboxIdlTypePrefix::U32,
+                                                items: Box::new(
+                                                    ToolboxIdlTypeFull::Primitive {
+                                                        primitive:
+                                                            ToolboxIdlTypePrimitive::U8
+                                                    }
+                                                )
+                                            }
+                                        }]
+                                    )
+                                },
+                                ToolboxIdlTypeFullEnumVariant {
+                                    name: "CaseB".to_string(),
+                                    code: 1,
+                                    fields: ToolboxIdlTypeFullFields::Unnamed(
+                                        vec![ToolboxIdlTypeFullFieldUnnamed {
+                                            type_full: ToolboxIdlTypeFull::Primitive {
+                                                primitive: ToolboxIdlTypePrimitive::U8
+                                            }
+                                        }]
+                                    )
+                                },
+                            ]
+                        }
+                    },
+                    ToolboxIdlTypeFullFieldUnnamed {
+                        type_full: ToolboxIdlTypeFull::Struct {
+                            fields: ToolboxIdlTypeFullFields::Named(vec![
+                                ToolboxIdlTypeFullFieldNamed {
+                                    name: "field_a".to_string(),
+                                    type_full: ToolboxIdlTypeFull::Option {
+                                        prefix: ToolboxIdlTypePrefix::U8,
+                                        content: Box::new(
+                                            ToolboxIdlTypeFull::Primitive {
+                                                primitive:
+                                                    ToolboxIdlTypePrimitive::F64
+                                            }
+                                        )
+                                    }
+                                },
+                                ToolboxIdlTypeFullFieldNamed {
+                                    name: "field_b".to_string(),
+                                    type_full: ToolboxIdlTypeFull::Vec {
+                                        prefix: ToolboxIdlTypePrefix::U32,
                                         items: Box::new(
                                             ToolboxIdlTypeFull::Primitive {
                                                 primitive:
-                                                    ToolboxIdlTypePrimitive::U8
+                                                    ToolboxIdlTypePrimitive::F32
                                             }
                                         )
                                     },
-                                ])
-                            ),
-                            (
-                                "CaseB".to_string(),
-                                ToolboxIdlTypeFullFields::Unnamed(vec![
-                                    ToolboxIdlTypeFull::Primitive {
-                                        primitive: ToolboxIdlTypePrimitive::U8
-                                    }
-                                ])
-                            ),
-                        ]
-                    },
-                    ToolboxIdlTypeFull::Struct {
-                        fields: ToolboxIdlTypeFullFields::Named(vec![
-                            (
-                                "field_a".to_string(),
-                                ToolboxIdlTypeFull::Option {
-                                    prefix_bytes: 1,
-                                    content: Box::new(
-                                        ToolboxIdlTypeFull::Primitive {
-                                            primitive:
-                                                ToolboxIdlTypePrimitive::F64
-                                        }
-                                    )
-                                }
-                            ),
-                            (
-                                "field_b".to_string(),
-                                ToolboxIdlTypeFull::Vec {
-                                    prefix_bytes: 4,
-                                    items: Box::new(
-                                        ToolboxIdlTypeFull::Primitive {
-                                            primitive:
-                                                ToolboxIdlTypePrimitive::F32
-                                        }
-                                    )
                                 },
-                            ),
-                        ])
+                            ])
+                        }
                     },
-                    ToolboxIdlTypeFull::Array {
-                        items: Box::new(ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::I8
-                        }),
-                        length: 4
+                    ToolboxIdlTypeFullFieldUnnamed {
+                        type_full: ToolboxIdlTypeFull::Array {
+                            items: Box::new(ToolboxIdlTypeFull::Primitive {
+                                primitive: ToolboxIdlTypePrimitive::I8
+                            }),
+                            length: 4
+                        }
                     }
                 ])
             }

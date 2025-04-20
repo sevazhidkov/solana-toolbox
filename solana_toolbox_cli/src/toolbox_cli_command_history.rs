@@ -9,20 +9,26 @@ use crate::toolbox_cli_context::ToolboxCliContext;
 #[command(about = "Search signatures that involve a specific account")]
 pub struct ToolboxCliCommandHistoryArgs {
     #[arg(
-        default_value = "KEYPAIR",
         value_name = "PUBKEY",
         help = "The account pubkey that is involved in transactions"
     )]
     address: String,
     #[arg(
         value_name = "COUNT",
-        help = "How much signature we'll search for before stopping"
+        help = "How many signature we'll read for before stopping"
     )]
-    limit: Option<usize>,
+    limit: usize,
     #[arg(value_name = "SIGNATURE")]
     start_before_signature: Option<String>,
     #[arg(value_name = "SIGNATURE")]
     rewind_until_signature: Option<String>,
+    #[arg(
+        display_order = 11,
+        long = "name",
+        value_name = "INSTRUCTION_NAME",
+        help = "Expect matching parsed IDL instruction name"
+    )]
+    name: Option<String>,
 }
 
 impl ToolboxCliCommandHistoryArgs {
@@ -41,34 +47,38 @@ impl ToolboxCliCommandHistoryArgs {
             .map(|signature| context.parse_signature(signature))
             .transpose()?;
         let signatures = endpoint
-            .search_signatures(
-                &address,
-                start_before,
-                rewind_until,
-                self.limit.unwrap_or(5),
-            )
+            .search_signatures(&address, start_before, rewind_until, self.limit)
             .await?;
         let mut json_history = vec![];
         for signature in signatures {
             let mut json_instructions = vec![];
             let execution = endpoint.get_execution(&signature).await?;
+            let mut filtered_out = self.name.is_some();
             for instruction in execution.instructions {
                 let instruction_decoded = idl_service
                     .decode_instruction(&mut endpoint, &instruction)
                     .await?;
+                let instruction_name = context.compute_instruction_name(
+                    &instruction_decoded.program,
+                    &instruction_decoded.instruction,
+                );
+                if let Some(name) = &self.name {
+                    if instruction_name.contains(name) {
+                        filtered_out = false;
+                    }
+                }
                 json_instructions.push(json!({
                     "program_id": instruction.program_id.to_string(),
-                    "name": context.compute_instruction_name(
-                        &instruction_decoded.program,
-                        &instruction_decoded.instruction,
-                    ),
+                    "name": instruction_name,
                 }));
             }
-            json_history.push(json!({
-                "signature": signature.to_string(),
-                "instructions": json_instructions,
-                "explorer": context.compute_explorer_signature_link(&signature),
-            }));
+            if !filtered_out {
+                json_history.push(json!({
+                    "signature": signature.to_string(),
+                    "instructions": json_instructions,
+                    "explorer": context.compute_explorer_signature_link(&signature),
+                }));
+            }
         }
         Ok(json!(json_history))
     }

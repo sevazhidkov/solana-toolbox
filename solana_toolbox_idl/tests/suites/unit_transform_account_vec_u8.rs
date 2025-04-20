@@ -45,9 +45,9 @@ pub async fn run() {
         }))
         .unwrap();
     let case4 = idl_account.encode(&json!({
-        "bytes": {"hex": "43 6F 6F 72 64 69 6E 61 74 6F 72 4A 6F 69 6E 52 75 6E"},
-        "vec_u8_1": {"hex": "436F6F7264696E61746F724A6F696E52756E"},
-        "vec_u8_2": {"hex": "\"436F6F7264696E61746F724A6F696E52756E\""},
+        "bytes": {"base16": "43 6F 6F 72 64 69 6E 61 74 6F 72 4A 6F 69 6E 52 75 6E"},
+        "vec_u8_1": {"base16": "436F6F7264696E61746F724A6F696E52756E"},
+        "vec_u8_2": {"base16": "\"436F6F7264696E61746F724A6F696E52756E\""},
     })).unwrap();
     let case5 = idl_account
         .encode(&json!({

@@ -18,6 +18,7 @@ pub async fn run() {
                     },
                     {
                         "name": "C",
+                        "code": 42,
                         "fields": [{"name": "v", "type": "u8"}]
                     },
                 ],
@@ -43,6 +44,7 @@ pub async fn run() {
                         },
                         {
                             "name": "C",
+                            "code": 42,
                             "fields": [{"name": "v", "type": "u8"}]
                         },
                     ],
@@ -73,6 +75,7 @@ pub async fn run() {
                             },
                             {
                                 "name": "C",
+                                "code": 42,
                                 "fields": [{"name": "v", "type": "u8"}]
                             },
                         ]
@@ -104,6 +107,7 @@ pub async fn run() {
                             },
                             {
                                 "name": "C",
+                                "code": 42,
                                 "fields": [{"name": "v", "type": "u8"}]
                             },
                         ]

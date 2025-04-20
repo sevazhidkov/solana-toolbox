@@ -8,7 +8,9 @@ use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_as_array_or_else;
 use crate::toolbox_idl_utils::idl_as_bool_or_else;
@@ -21,7 +23,6 @@ use crate::toolbox_idl_utils::idl_as_u64_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
-use crate::toolbox_idl_utils::idl_prefix_write;
 
 impl ToolboxIdlTypeFull {
     pub fn try_serialize(
@@ -32,26 +33,24 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         match self {
-            ToolboxIdlTypeFull::Option {
-                prefix_bytes,
-                content,
-            } => ToolboxIdlTypeFull::try_serialize_option(
-                prefix_bytes,
-                content,
-                value,
-                data,
-                deserializable,
-            ),
-            ToolboxIdlTypeFull::Vec {
-                prefix_bytes,
-                items,
-            } => ToolboxIdlTypeFull::try_serialize_vec(
-                prefix_bytes,
-                items,
-                value,
-                data,
-                deserializable,
-            ),
+            ToolboxIdlTypeFull::Option { prefix, content } => {
+                ToolboxIdlTypeFull::try_serialize_option(
+                    prefix,
+                    content,
+                    value,
+                    data,
+                    deserializable,
+                )
+            },
+            ToolboxIdlTypeFull::Vec { prefix, items } => {
+                ToolboxIdlTypeFull::try_serialize_vec(
+                    prefix,
+                    items,
+                    value,
+                    data,
+                    deserializable,
+                )
+            },
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_serialize_array(
                     items,
@@ -69,16 +68,15 @@ impl ToolboxIdlTypeFull {
                     deserializable,
                 )
             },
-            ToolboxIdlTypeFull::Enum {
-                prefix_bytes,
-                variants,
-            } => ToolboxIdlTypeFull::try_serialize_enum(
-                prefix_bytes,
-                variants,
-                value,
-                data,
-                deserializable,
-            ),
+            ToolboxIdlTypeFull::Enum { prefix, variants } => {
+                ToolboxIdlTypeFull::try_serialize_enum(
+                    prefix,
+                    variants,
+                    value,
+                    data,
+                    deserializable,
+                )
+            },
             ToolboxIdlTypeFull::Padded {
                 size_bytes,
                 content,
@@ -104,23 +102,23 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_option(
-        option_prefix_bytes: &u8,
+        option_prefix: &ToolboxIdlTypePrefix,
         option_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
         if value.is_null() {
-            idl_prefix_write(option_prefix_bytes, 0, data)?;
+            option_prefix.write(0, data)?;
             Ok(())
         } else {
-            idl_prefix_write(option_prefix_bytes, 1, data)?;
+            option_prefix.write(1, data)?;
             option_content.try_serialize(value, data, deserializable)
         }
     }
 
     fn try_serialize_vec(
-        vec_prefix_bytes: &u8,
+        vec_prefix: &ToolboxIdlTypePrefix,
         vec_items: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
@@ -129,14 +127,14 @@ impl ToolboxIdlTypeFull {
         if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if deserializable {
-                idl_prefix_write(vec_prefix_bytes, bytes.len(), data)?;
+                vec_prefix.write(bytes.len().try_into()?, data)?;
             }
             data.extend_from_slice(&bytes);
             return Ok(());
         }
         let values = idl_as_array_or_else(value)?;
         if deserializable {
-            idl_prefix_write(vec_prefix_bytes, values.len(), data)?;
+            vec_prefix.write(values.len().try_into()?, data)?;
         }
         for (index, value_item) in values.iter().enumerate() {
             vec_items
@@ -192,51 +190,79 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_enum(
-        enum_prefix_bytes: &u8,
-        enum_variants: &[(String, ToolboxIdlTypeFullFields)],
+        enum_prefix: &ToolboxIdlTypePrefix,
+        enum_variants: &[ToolboxIdlTypeFullEnumVariant],
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        // TODO (FAR) - support non-sequential enums ?
-        if let Some(value_string) = value.as_str() {
-            for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
-                let (enum_variant_name, enum_variant_fields) = enum_variant;
-                if enum_variant_name == value_string {
-                    idl_prefix_write(enum_prefix_bytes, enum_code, data)?;
-                    return enum_variant_fields
-                        .try_serialize(&Value::Null, data, deserializable)
-                        .with_context(|| {
-                            format!(
-                                "Serialize Enum Variant: {}",
-                                enum_variant_name
-                            )
-                        });
+        if let Some(value_number) = value.as_u64() {
+            for enum_variant in enum_variants {
+                if enum_variant.code == value_number {
+                    return ToolboxIdlTypeFull::try_serialize_enum_variant(
+                        enum_prefix,
+                        enum_variant,
+                        &Value::Null,
+                        data,
+                        deserializable,
+                    );
                 }
             }
             return Err(anyhow!(
-                "Could not guess enum string: {}",
+                "Could not find enum variant with code: {}",
+                value_number
+            ));
+        }
+        if let Some(value_string) = value.as_str() {
+            for enum_variant in enum_variants {
+                if enum_variant.name == value_string {
+                    return ToolboxIdlTypeFull::try_serialize_enum_variant(
+                        enum_prefix,
+                        enum_variant,
+                        &Value::Null,
+                        data,
+                        deserializable,
+                    );
+                }
+            }
+            return Err(anyhow!(
+                "Could not find enum variant with name: {}",
                 value_string
             ));
         }
         if let Some(value_object) = value.as_object() {
-            for (enum_code, enum_variant) in enum_variants.iter().enumerate() {
-                let (enum_variant_name, enum_variant_fields) = enum_variant;
-                if let Some(enum_value) = value_object.get(enum_variant_name) {
-                    idl_prefix_write(enum_prefix_bytes, enum_code, data)?;
-                    return enum_variant_fields
-                        .try_serialize(enum_value, data, deserializable)
-                        .with_context(|| {
-                            format!(
-                                "Serialize Enum Variant: {}",
-                                enum_variant_name
-                            )
-                        });
+            for enum_variant in enum_variants {
+                if let Some(enum_value) = value_object.get(&enum_variant.name) {
+                    return ToolboxIdlTypeFull::try_serialize_enum_variant(
+                        enum_prefix,
+                        enum_variant,
+                        enum_value,
+                        data,
+                        deserializable,
+                    );
                 }
             }
-            return Err(anyhow!("Could not guess enum object key"));
+            return Err(anyhow!("Could not guess enum from object keys"));
         }
-        Err(anyhow!("Expected enum value to be: object or string"))
+        Err(anyhow!(
+            "Expected enum value to be: number/string or object"
+        ))
+    }
+
+    fn try_serialize_enum_variant(
+        enum_prefix: &ToolboxIdlTypePrefix,
+        enum_variant: &ToolboxIdlTypeFullEnumVariant,
+        value: &Value,
+        data: &mut Vec<u8>,
+        deserializable: bool,
+    ) -> Result<()> {
+        enum_prefix.write(enum_variant.code, data)?;
+        enum_variant
+            .fields
+            .try_serialize(value, data, deserializable)
+            .with_context(|| {
+                format!("Serialize Enum Variant: {}", enum_variant.name)
+            })
     }
 
     fn try_serialize_padded(
@@ -347,13 +373,14 @@ impl ToolboxIdlTypeFullFields {
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let value = idl_as_object_or_else(value)?;
-                for (field_name, field_type) in fields {
+                for field in fields {
                     let value_field =
-                        idl_object_get_key_or_else(value, field_name)?;
-                    field_type
+                        idl_object_get_key_or_else(value, &field.name)?;
+                    field
+                        .type_full
                         .try_serialize(value_field, data, deserializable)
                         .with_context(|| {
-                            format!("Serialize Field: {}", field_name)
+                            format!("Serialize Field: {}", field.name)
                         })?;
                 }
             },
@@ -364,8 +391,11 @@ impl ToolboxIdlTypeFullFields {
                 }
                 for (index, field) in fields.iter().enumerate() {
                     field
+                        .type_full
                         .try_serialize(&values[index], data, deserializable)
-                        .with_context(|| format!("Serialize Field: {}", index))?;
+                        .with_context(|| {
+                            format!("Serialize Field: {}", index)
+                        })?;
                 }
             },
             ToolboxIdlTypeFullFields::None => {},
@@ -379,8 +409,8 @@ fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
         return idl_as_bytes_or_else(value_array);
     }
     if let Some(value_object) = value.as_object() {
-        if let Some(data) = idl_object_get_key_as_str(value_object, "hex") {
-            return try_read_hex_to_bytes(data);
+        if let Some(data) = idl_object_get_key_as_str(value_object, "base16") {
+            return ToolboxEndpoint::sanitize_and_decode_base16(data);
         }
         if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
             return ToolboxEndpoint::sanitize_and_decode_base58(data);
@@ -396,15 +426,4 @@ fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
         }
     }
     Err(anyhow!("Could not read bytes, expected an array/object"))
-}
-
-fn try_read_hex_to_bytes(data: &str) -> Result<Vec<u8>> {
-    let hex = data.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-    let mut bytes = vec![];
-    for byte in 0..(hex.len() / 2) {
-        let byte_idx = byte * 2;
-        let byte_hex = &hex[byte_idx..byte_idx + 2];
-        bytes.push(u8::from_str_radix(byte_hex, 16)?);
-    }
-    Ok(bytes)
 }

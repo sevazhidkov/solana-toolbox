@@ -4,6 +4,7 @@ use clap::Args;
 use serde_json::json;
 use serde_json::Value;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
@@ -18,18 +19,21 @@ pub struct ToolboxCliCommandFindArgs {
     )]
     program_id: String,
     #[arg(
+        display_order = 11,
         long = "limit",
         value_name = "COUNT",
         help = "The max amount of accounts being searched (to avoid rate limiting)"
     )]
     limit: Option<usize>,
     #[arg(
+        display_order = 12,
         long = "space",
         value_name = "LENGTH",
         help = "Expect exact data byte size of the searched accounts"
     )]
     space: Option<usize>,
     #[arg(
+        display_order = 13,
         long = "chunk",
         alias = "chunks",
         value_name = "OFFSET:JSON_BYTES",
@@ -37,12 +41,14 @@ pub struct ToolboxCliCommandFindArgs {
     )]
     chunks: Vec<String>,
     #[arg(
+        display_order = 14,
         long = "name",
         value_name = "ACCOUNT_NAME",
         help = "Expect parsed IDL account name"
     )]
     name: Option<String>,
     #[arg(
+        display_order = 15,
         long = "state",
         alias = "states",
         value_name = "JSON_VALUE",
@@ -61,7 +67,7 @@ impl ToolboxCliCommandFindArgs {
             if let Some((offset, encoded)) = chunk.split_once(":") {
                 let mut bytes = vec![];
                 ToolboxIdlTypeFull::Vec {
-                    prefix_bytes: 4,
+                    prefix: ToolboxIdlTypePrefix::U32,
                     items: Box::new(ToolboxIdlTypeFull::Primitive {
                         primitive: ToolboxIdlTypePrimitive::U8,
                     }),
@@ -90,17 +96,28 @@ impl ToolboxCliCommandFindArgs {
             if json_accounts.len() >= self.limit.unwrap_or(5) {
                 break;
             }
-            let account_decoded = idl_service
-                .get_and_decode_account(&mut endpoint, &address)
-                .await?;
+            let account =
+                endpoint.get_account(&address).await?.unwrap_or_default();
+            let idl_program = idl_service
+                .resolve_program(&mut endpoint, &account.owner)
+                .await?
+                .unwrap_or_default();
+            let idl_account =
+                idl_program.guess_account(&account.data).unwrap_or_default();
+            let account_name =
+                context.compute_account_name(&idl_program, &idl_account);
             if let Some(name) = &self.name {
-                if &account_decoded.account.name != name {
+                if !account_name.contains(name) {
                     continue;
                 }
             }
+            let account_state = match idl_account.decode(&account.data) {
+                Ok(account_state) => account_state,
+                Err(error) => json!(error.to_string()),
+            };
             for state in &self.states {
                 if !cli_json_value_fit(
-                    &account_decoded.state,
+                    &account_state,
                     &context.parse_hjson(state)?,
                 ) {
                     continue;
@@ -108,11 +125,8 @@ impl ToolboxCliCommandFindArgs {
             }
             json_accounts.push(json!({
                 "address": address.to_string(),
-                "name": context.compute_account_name(
-                    &account_decoded.program,
-                    &account_decoded.account,
-                ),
-                "state": account_decoded.state,
+                "name": account_name,
+                "state": account_state,
                 "explorer": context.compute_explorer_address_link(&address)
             }));
         }

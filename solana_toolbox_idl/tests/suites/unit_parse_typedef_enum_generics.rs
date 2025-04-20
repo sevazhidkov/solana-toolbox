@@ -1,6 +1,7 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypedef;
 
 #[tokio::test]
@@ -74,9 +75,10 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
             docs: None,
+            repr: None,
             generics: vec!["A".to_string(), "B".to_string()],
             type_flat: ToolboxIdlTypeFlat::Enum {
-                prefix_bytes: 1,
+                prefix: ToolboxIdlTypePrefix::U8,
                 variants: vec![]
             }
         }

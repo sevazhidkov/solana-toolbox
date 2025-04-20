@@ -8,9 +8,10 @@ use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_prefix_from_bytes_at;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
@@ -24,24 +25,22 @@ impl ToolboxIdlTypeFull {
         // TODO (FAR) - support deserializing bytes into custom stuff like base64 ?
     ) -> Result<(usize, Value)> {
         match self {
-            ToolboxIdlTypeFull::Option {
-                prefix_bytes,
-                content,
-            } => ToolboxIdlTypeFull::try_deserialize_option(
-                prefix_bytes,
-                content,
-                data,
-                data_offset,
-            ),
-            ToolboxIdlTypeFull::Vec {
-                prefix_bytes,
-                items,
-            } => ToolboxIdlTypeFull::try_deserialize_vec(
-                prefix_bytes,
-                items,
-                data,
-                data_offset,
-            ),
+            ToolboxIdlTypeFull::Option { prefix, content } => {
+                ToolboxIdlTypeFull::try_deserialize_option(
+                    prefix,
+                    content,
+                    data,
+                    data_offset,
+                )
+            },
+            ToolboxIdlTypeFull::Vec { prefix, items } => {
+                ToolboxIdlTypeFull::try_deserialize_vec(
+                    prefix,
+                    items,
+                    data,
+                    data_offset,
+                )
+            },
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_deserialize_array(
                     items,
@@ -57,15 +56,14 @@ impl ToolboxIdlTypeFull {
                     data_offset,
                 )
             },
-            ToolboxIdlTypeFull::Enum {
-                prefix_bytes,
-                variants,
-            } => ToolboxIdlTypeFull::try_deserialize_enum(
-                prefix_bytes,
-                variants,
-                data,
-                data_offset,
-            ),
+            ToolboxIdlTypeFull::Enum { prefix, variants } => {
+                ToolboxIdlTypeFull::try_deserialize_enum(
+                    prefix,
+                    variants,
+                    data,
+                    data_offset,
+                )
+            },
             ToolboxIdlTypeFull::Padded {
                 size_bytes,
                 content,
@@ -89,14 +87,13 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_deserialize_option(
-        option_prefix_bytes: &u8,
+        option_prefix: &ToolboxIdlTypePrefix,
         option_content: &ToolboxIdlTypeFull,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_flag =
-            idl_prefix_from_bytes_at(option_prefix_bytes, data, data_offset)?;
-        let mut data_size = usize::from(*option_prefix_bytes);
+        let data_flag = option_prefix.from_bytes_at(data, data_offset)?;
+        let mut data_size = option_prefix.size_of();
         if data_flag > 0 {
             let (data_content_size, data_content) = option_content
                 .try_deserialize(data, data_offset + data_size)?;
@@ -108,14 +105,13 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_deserialize_vec(
-        vec_prefix_bytes: &u8,
+        vec_prefix: &ToolboxIdlTypePrefix,
         vec_items: &ToolboxIdlTypeFull,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_length =
-            idl_prefix_from_bytes_at(vec_prefix_bytes, data, data_offset)?;
-        let mut data_size = usize::from(*vec_prefix_bytes);
+        let data_length = vec_prefix.from_bytes_at(data, data_offset)?;
+        let mut data_size = vec_prefix.size_of();
         let mut data_items = vec![];
         for index in 0..data_length {
             let (data_item_size, data_item) = vec_items
@@ -155,37 +151,46 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_deserialize_enum(
-        enum_prefix_bytes: &u8,
-        enum_variants: &[(String, ToolboxIdlTypeFullFields)],
+        enum_prefix: &ToolboxIdlTypePrefix,
+        enum_variants: &[ToolboxIdlTypeFullEnumVariant],
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_code = usize::try_from(idl_prefix_from_bytes_at(
-            enum_prefix_bytes,
-            data,
-            data_offset,
-        )?)?;
-        if data_code >= enum_variants.len() {
-            return Err(anyhow!(
-                "Unknown enum value index: {} (max: {})",
-                data_code,
-                enum_variants.len()
-            ));
+        let data_code = enum_prefix.from_bytes_at(data, data_offset)?;
+        for enum_variant in enum_variants {
+            if enum_variant.code == data_code {
+                let mut data_size = enum_prefix.size_of();
+                let (data_fields_size, data_fields) = enum_variant
+                    .fields
+                    .try_deserialize(data, data_offset + data_size)
+                    .with_context(|| {
+                        format!(
+                            "Decode Enum Variant Name: {}",
+                            enum_variant.name
+                        )
+                    })?;
+                data_size += data_fields_size;
+                if data_fields.is_null() {
+                    return Ok((data_size, json!(enum_variant.name)));
+                } else {
+                    return Ok((
+                        data_size,
+                        json!({ enum_variant.name.to_string(): data_fields }),
+                    ));
+                }
+            }
         }
-        let mut data_size = usize::from(*enum_prefix_bytes);
-        let enum_variant = &enum_variants[data_code];
-        let (enum_variant_name, enum_variant_fields) = enum_variant;
-        let (data_fields_size, data_fields) = enum_variant_fields
-            .try_deserialize(data, data_offset + data_size)
-            .with_context(|| {
-                format!("Decode Enum Variant Name: {}", enum_variant_name)
-            })?;
-        data_size += data_fields_size;
-        if data_fields.is_null() {
-            Ok((data_size, json!(enum_variant_name)))
-        } else {
-            Ok((data_size, json!({ enum_variant_name: data_fields })))
-        }
+        Err(anyhow!(
+            "Unknown enum code: {}, known variants: {:?}",
+            data_code,
+            enum_variants
+                .iter()
+                .map(|enum_variant| format!(
+                    "{} ({})",
+                    enum_variant.name, enum_variant.code
+                ))
+                .collect::<Vec<_>>(),
+        ))
     }
 
     fn try_deserialize_padded(
@@ -312,22 +317,24 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let mut data_size = 0;
                 let mut data_fields = Map::new();
-                for (field_name, field_type) in fields {
-                    let (data_field_size, data_field) = field_type
+                for field in fields {
+                    let (data_field_size, data_field) = field
+                        .type_full
                         .try_deserialize(data, data_offset + data_size)
                         .with_context(|| {
-                            format!("Decode Field: {}", field_name)
+                            format!("Decode Field: {}", field.name)
                         })?;
                     data_size += data_field_size;
-                    data_fields.insert(field_name.to_string(), data_field);
+                    data_fields.insert(field.name.to_string(), data_field);
                 }
                 (data_size, json!(data_fields))
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut data_size = 0;
                 let mut data_fields = vec![];
-                for (index, field_type) in fields.iter().enumerate() {
-                    let (data_field_size, data_field) = field_type
+                for (index, field) in fields.iter().enumerate() {
+                    let (data_field_size, data_field) = field
+                        .type_full
                         .try_deserialize(data, data_offset + data_size)
                         .with_context(|| format!("Decode Field: {}", index))?;
                     data_size += data_field_size;

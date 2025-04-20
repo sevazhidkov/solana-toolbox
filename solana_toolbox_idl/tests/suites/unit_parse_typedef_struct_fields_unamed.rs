@@ -1,7 +1,9 @@
 use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
+use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 use solana_toolbox_idl::ToolboxIdlTypedef;
 
@@ -66,48 +68,49 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             docs: None,
+            repr: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Primitive {
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U8
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Primitive {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U64
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Primitive {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::String
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Vec {
-                            prefix_bytes: 4,
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Vec {
+                            prefix: ToolboxIdlTypePrefix::U32,
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Vec {
-                            prefix_bytes: 4,
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Vec {
+                            prefix: ToolboxIdlTypePrefix::U32,
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Array {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Array {
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U32,
                             }),
@@ -115,10 +118,10 @@ pub async fn run() {
                                 literal: 4
                             }),
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Array {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Array {
                             items: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U32,
                             }),
@@ -126,71 +129,71 @@ pub async fn run() {
                                 literal: 4
                             }),
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Struct {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Struct {
                             fields: ToolboxIdlTypeFlatFields::None
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Enum {
-                            prefix_bytes: 1,
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Enum {
+                            prefix: ToolboxIdlTypePrefix::U8,
                             variants: vec![]
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Defined {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Defined {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Defined {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Generic {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Generic {
                             symbol: "G".to_string()
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Option {
-                            prefix_bytes: 1,
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Option {
+                            prefix: ToolboxIdlTypePrefix::U8,
                             content: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
-                    ),
-                    (
-                        None,
-                        ToolboxIdlTypeFlat::Option {
-                            prefix_bytes: 4,
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Option {
+                            prefix: ToolboxIdlTypePrefix::U32,
                             content: Box::new(ToolboxIdlTypeFlat::Primitive {
                                 primitive: ToolboxIdlTypePrimitive::U8,
                             }),
                         }
-                    ),
-                    (
-                        Some(json!(["Hello"])),
-                        ToolboxIdlTypeFlat::Struct {
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: Some(json!(["Hello"])),
+                        type_flat: ToolboxIdlTypeFlat::Struct {
                             fields: ToolboxIdlTypeFlatFields::None
                         }
-                    ),
+                    },
                 ]),
             }
         }

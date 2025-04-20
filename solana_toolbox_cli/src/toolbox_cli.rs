@@ -19,14 +19,14 @@ use crate::toolbox_cli_context::ToolboxCliContext;
 #[command(version, about = "Tooling to interact with a solana endpoint")]
 pub struct ToolboxCliArgs {
     #[arg(
-        global = true,
+        display_order = 1,
         long = "config",
         value_name = "CONFIG_FILE_PATH",
         help = "To use a different path for the solana's config YAML file"
     )]
     config: Option<String>,
     #[arg(
-        global = true,
+        display_order = 2,
         short = 'u',
         short_alias = 'r',
         short_alias = 'c',
@@ -40,14 +40,14 @@ pub struct ToolboxCliArgs {
     )]
     url: Option<String>,
     #[arg(
-        global = true,
+        display_order = 3,
         long = "commitment",
         value_name = "COMMITMENT_LEVEL",
         help = "Commitment level used for RPC endpoint"
     )]
     commitment: Option<String>,
     #[arg(
-        global = true,
+        display_order = 4,
         short,
         long = "keypair",
         alias = "wallet",
@@ -56,7 +56,7 @@ pub struct ToolboxCliArgs {
     )]
     keypair: Option<String>,
     #[arg(
-        global = true,
+        display_order = 5,
         short,
         long = "idl",
         alias = "idls",
@@ -65,7 +65,7 @@ pub struct ToolboxCliArgs {
     )]
     idls: Vec<String>,
     #[arg(
-        global = true,
+        display_order = 6,
         long = "minify",
         alias = "compact",
         alias = "ugly",
@@ -121,6 +121,7 @@ pub enum ToolboxCliCommand {
 }
 
 // TODO (MEDIUM) - some type of lookup system for addresses by name or smthg
+// TODO (MEDIUM) - PDA command for generating pubkeys from manually specified seeds
 
 impl ToolboxCliCommand {
     pub async fn process(&self, context: &ToolboxCliContext) -> Result<Value> {

@@ -3,6 +3,7 @@ use anyhow::Context;
 use anyhow::Result;
 
 use crate::toolbox_idl_path::ToolboxIdlPath;
+use crate::toolbox_idl_path::ToolboxIdlPathPart;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 
@@ -19,11 +20,11 @@ impl ToolboxIdlPath {
                 self.try_get_type_full(content)
             },
             ToolboxIdlTypeFull::Vec { items, .. } => {
-                let _index = current.index().context("Vec index")?;
+                let _index = current.code().context("Vec index")?;
                 next.try_get_type_full(items)
             },
             ToolboxIdlTypeFull::Array { items, length } => {
-                let index = current.index().context("Array index")?;
+                let index = current.code().context("Array index")?;
                 if u64::try_from(index)? >= *length {
                     return Err(anyhow!(
                         "Invalid array index: {} (length: {})",
@@ -36,25 +37,36 @@ impl ToolboxIdlPath {
             ToolboxIdlTypeFull::Struct { fields } => {
                 self.try_get_type_full_fields(fields)
             },
-            ToolboxIdlTypeFull::Enum { variants, .. } => {
-                let key = current.key().context("Enum variant")?;
-                for (variant_name, variant_fields) in variants {
-                    if variant_name == key {
-                        return next.try_get_type_full_fields(variant_fields);
+            ToolboxIdlTypeFull::Enum { variants, .. } => match &current {
+                ToolboxIdlPathPart::Key(key) => {
+                    for variant in variants {
+                        if &variant.name == key {
+                            return next
+                                .try_get_type_full_fields(&variant.fields);
+                        }
                     }
-                }
-                Err(anyhow!("Could not find enum variant: {}", key))
+                    Err(anyhow!("Could not find enum variant: {}", key))
+                },
+                ToolboxIdlPathPart::Code(code) => {
+                    for variant in variants {
+                        if &variant.code == code {
+                            return next
+                                .try_get_type_full_fields(&variant.fields);
+                        }
+                    }
+                    Err(anyhow!("Could not find enum variant: {}", code))
+                },
             },
             ToolboxIdlTypeFull::Padded { content, .. } => {
                 self.try_get_type_full(content)
             },
             ToolboxIdlTypeFull::Const { .. } => Err(anyhow!(
                 "Type literal does not contain path: {}",
-                self.export()
+                self.to_string()
             )),
             ToolboxIdlTypeFull::Primitive { .. } => Err(anyhow!(
                 "Type primitive does not contain path: {}",
-                self.export()
+                self.to_string()
             )),
         }
     }
@@ -71,20 +83,21 @@ impl ToolboxIdlPath {
         match type_full_fields {
             ToolboxIdlTypeFullFields::None => Err(anyhow!(
                 "Empty fields does not contain path: {}",
-                self.export()
+                self.to_string()
             )),
             ToolboxIdlTypeFullFields::Named(fields) => {
-                let key = current.key().context("Field name")?;
-                for (field_name, field_type) in fields {
-                    if field_name == key {
-                        return next.try_get_type_full(field_type);
+                let key = current.to_string();
+                for field in fields {
+                    if field.name == key {
+                        return next.try_get_type_full(&field.type_full);
                     }
                 }
-                Err(anyhow!("Could not find named field: {}", current.export()))
+                Err(anyhow!("Could not find named field: {}", key))
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let length = fields.len();
-                let index = current.index().context("Field index")?;
+                let index =
+                    usize::try_from(current.code().context("Field index")?)?;
                 if index >= length {
                     return Err(anyhow!(
                         "Invalid field index: {} (length: {})",
@@ -92,7 +105,7 @@ impl ToolboxIdlPath {
                         length
                     ));
                 }
-                next.try_get_type_full(&fields[index])
+                next.try_get_type_full(&fields[index].type_full)
             },
         }
     }

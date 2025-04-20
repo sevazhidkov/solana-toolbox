@@ -23,8 +23,8 @@ impl ToolboxIdlInstruction {
     pub fn try_parse(
         idl_instruction_name: &str,
         idl_instruction: &Value,
-        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstruction> {
         let idl_instruction = idl_as_object_or_else(idl_instruction)?;
         let discriminator = ToolboxIdlInstruction::try_parse_discriminator(
@@ -51,6 +51,7 @@ impl ToolboxIdlInstruction {
             idl_instruction,
             &args_type_full_fields,
             accounts,
+            typedefs,
         )
         .context("Parse Accounts")?;
         Ok(ToolboxIdlInstruction {
@@ -84,6 +85,7 @@ impl ToolboxIdlInstruction {
         idl_instruction: &Map<String, Value>,
         args: &ToolboxIdlTypeFullFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<Vec<ToolboxIdlInstructionAccount>> {
         let idl_instruction_accounts_array =
             idl_object_get_key_as_array_or_else(idl_instruction, "accounts")?;
@@ -96,6 +98,7 @@ impl ToolboxIdlInstruction {
                     idl_instruction_account,
                     args,
                     accounts,
+                    typedefs,
                 )
                 .with_context(|| format!("Parse Account: {}", index))?,
             );

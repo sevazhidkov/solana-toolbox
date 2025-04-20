@@ -5,8 +5,10 @@ use solana_toolbox_idl::ToolboxIdlInstruction;
 use solana_toolbox_idl::ToolboxIdlInstructionAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldNamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
+use solana_toolbox_idl::ToolboxIdlTypeFullFieldNamed;
 use solana_toolbox_idl::ToolboxIdlTypeFullFields;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 
@@ -121,34 +123,34 @@ pub async fn run() {
                 }
             ],
             args_type_flat_fields: ToolboxIdlTypeFlatFields::Named(vec![
-                (
-                    "index".to_string(),
-                    None,
-                    ToolboxIdlTypeFlat::Primitive {
+                ToolboxIdlTypeFlatFieldNamed {
+                    name: "index".to_string(),
+                    docs: None,
+                    type_flat: ToolboxIdlTypeFlat::Primitive {
                         primitive: ToolboxIdlTypePrimitive::U32
                     }
-                ),
-                (
-                    "id".to_string(),
-                    None,
-                    ToolboxIdlTypeFlat::Primitive {
+                },
+                ToolboxIdlTypeFlatFieldNamed {
+                    name: "id".to_string(),
+                    docs: None,
+                    type_flat: ToolboxIdlTypeFlat::Primitive {
                         primitive: ToolboxIdlTypePrimitive::I64
                     }
-                ),
+                },
             ]),
             args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![
-                (
-                    "index".to_string(),
-                    ToolboxIdlTypeFull::Primitive {
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "index".to_string(),
+                    type_full: ToolboxIdlTypeFull::Primitive {
                         primitive: ToolboxIdlTypePrimitive::U32
                     }
-                ),
-                (
-                    "id".to_string(),
-                    ToolboxIdlTypeFull::Primitive {
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "id".to_string(),
+                    type_full: ToolboxIdlTypeFull::Primitive {
                         primitive: ToolboxIdlTypePrimitive::I64
                     }
-                ),
+                },
             ]),
             return_type_flat: ToolboxIdlTypeFlat::nothing(),
             return_type_full: ToolboxIdlTypeFull::nothing()
@@ -166,36 +168,36 @@ pub async fn run() {
             discriminator: vec![246, 28, 6, 87, 251, 45, 50, 42],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Named(vec![
-                    (
-                        "field1".to_string(),
-                        None,
-                        ToolboxIdlTypeFlat::Primitive {
+                    ToolboxIdlTypeFlatFieldNamed {
+                        name: "field1".to_string(),
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U64
                         }
-                    ),
-                    (
-                        "field2".to_string(),
-                        None,
-                        ToolboxIdlTypeFlat::Primitive {
+                    },
+                    ToolboxIdlTypeFlatFieldNamed {
+                        name: "field2".to_string(),
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U32
                         }
-                    )
+                    }
                 ])
             },
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Named(vec![
-                    (
-                        "field1".to_string(),
-                        ToolboxIdlTypeFull::Primitive {
+                    ToolboxIdlTypeFullFieldNamed {
+                        name: "field1".to_string(),
+                        type_full: ToolboxIdlTypeFull::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U64
                         }
-                    ),
-                    (
-                        "field2".to_string(),
-                        ToolboxIdlTypeFull::Primitive {
+                    },
+                    ToolboxIdlTypeFullFieldNamed {
+                        name: "field2".to_string(),
+                        type_full: ToolboxIdlTypeFull::Primitive {
                             primitive: ToolboxIdlTypePrimitive::U32
                         }
-                    )
+                    }
                 ])
             }
         }

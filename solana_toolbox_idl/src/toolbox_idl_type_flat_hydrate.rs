@@ -8,10 +8,14 @@ use anyhow::Result;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFieldNamed;
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFieldUnnamed;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
+// TODO (FAR) - support passing missing symbols
 impl ToolboxIdlTypeFlat {
     pub fn try_hydrate(
         &self,
@@ -60,19 +64,19 @@ impl ToolboxIdlTypeFlat {
                     .clone()
             },
             ToolboxIdlTypeFlat::Option {
-                prefix_bytes,
+                prefix,
                 content: content_flat,
             } => ToolboxIdlTypeFull::Option {
-                prefix_bytes: *prefix_bytes,
+                prefix: prefix.clone(),
                 content: Box::new(
                     content_flat.try_hydrate(generics_by_symbol, typedefs)?,
                 ),
             },
             ToolboxIdlTypeFlat::Vec {
-                prefix_bytes,
+                prefix,
                 items: items_flat,
             } => ToolboxIdlTypeFull::Vec {
-                prefix_bytes: *prefix_bytes,
+                prefix: prefix.clone(),
                 items: Box::new(
                     items_flat.try_hydrate(generics_by_symbol, typedefs)?,
                 ),
@@ -96,24 +100,27 @@ impl ToolboxIdlTypeFlat {
                     .try_hydrate(generics_by_symbol, typedefs)?,
             },
             ToolboxIdlTypeFlat::Enum {
-                prefix_bytes,
+                prefix,
                 variants: variants_flat,
             } => {
                 let mut variants_full = vec![];
-                for (variant_name, _variant_docs, variant_flat_fields) in
-                    variants_flat
-                {
-                    variants_full.push((
-                        variant_name.to_string(),
-                        variant_flat_fields
+                for variant in variants_flat {
+                    variants_full.push(ToolboxIdlTypeFullEnumVariant {
+                        name: variant.name.to_string(),
+                        code: variant.code.clone(),
+                        fields: variant
+                            .fields
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Variant: {}", variant_name)
+                                format!(
+                                    "Variant: {}({})",
+                                    variant.name, variant.code
+                                )
                             })?,
-                    ));
+                    });
                 }
                 ToolboxIdlTypeFull::Enum {
-                    prefix_bytes: *prefix_bytes,
+                    prefix: prefix.clone(),
                     variants: variants_full,
                 }
             },
@@ -147,28 +154,28 @@ impl ToolboxIdlTypeFlatFields {
         Ok(match self {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut fields_full = vec![];
-                for (field_name, _field_docs, field_type_flat) in fields {
-                    fields_full.push((
-                        field_name.to_string(),
-                        field_type_flat
+                for field in fields {
+                    fields_full.push(ToolboxIdlTypeFullFieldNamed {
+                        name: field.name.to_string(),
+                        type_full: field
+                            .type_flat
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Field: {}", field_name)
+                                format!("Field: {}", field.name)
                             })?,
-                    ));
+                    });
                 }
                 ToolboxIdlTypeFullFields::Named(fields_full)
             },
             ToolboxIdlTypeFlatFields::Unnamed(fields) => {
                 let mut fields_type_full = vec![];
-                for (index, (_field_docs, field_type_flat)) in
-                    fields.iter().enumerate()
-                {
-                    fields_type_full.push(
-                        field_type_flat
+                for (index, field) in fields.iter().enumerate() {
+                    fields_type_full.push(ToolboxIdlTypeFullFieldUnnamed {
+                        type_full: field
+                            .type_flat
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| format!("Field: {}", index))?,
-                    );
+                    });
                 }
                 ToolboxIdlTypeFullFields::Unnamed(fields_type_full)
             },

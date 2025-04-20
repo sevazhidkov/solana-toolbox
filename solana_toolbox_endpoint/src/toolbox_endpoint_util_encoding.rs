@@ -11,6 +11,14 @@ use solana_sdk::signature::Signature;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 
 impl ToolboxEndpoint {
+    pub fn encode_base16(data: &[u8]) -> String {
+        let mut bytes = vec![];
+        for byte in data {
+            bytes.push(format!("{:02X}", byte));
+        }
+        bytes.join("")
+    }
+
     pub fn encode_base58(data: &[u8]) -> String {
         bs58::encode(data).into_string()
     }
@@ -31,6 +39,17 @@ impl ToolboxEndpoint {
     pub fn encode_keypair_json_array(keypair: &Keypair) -> String {
         let bytes = keypair.to_bytes().to_vec();
         serde_json::to_string(&bytes).unwrap()
+    }
+
+    pub fn sanitize_and_decode_base16(raw: &str) -> Result<Vec<u8>> {
+        let sanitized = raw.replace(|c| !char::is_ascii_alphanumeric(&c), "");
+        let mut bytes = vec![];
+        for byte in 0..(sanitized.len() / 2) {
+            let byte_idx = byte * 2;
+            let byte_hex = &sanitized[byte_idx..byte_idx + 2];
+            bytes.push(u8::from_str_radix(byte_hex, 16)?);
+        }
+        Ok(bytes)
     }
 
     pub fn sanitize_and_decode_base58(raw: &str) -> Result<Vec<u8>> {
