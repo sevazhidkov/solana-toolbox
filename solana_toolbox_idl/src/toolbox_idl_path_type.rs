@@ -25,7 +25,7 @@ impl ToolboxIdlPath {
             },
             ToolboxIdlTypeFull::Array { items, length } => {
                 let index = current.code().context("Array index")?;
-                if u64::try_from(index)? >= *length {
+                if index >= *length {
                     return Err(anyhow!(
                         "Invalid array index: {} (length: {})",
                         index,
@@ -62,11 +62,11 @@ impl ToolboxIdlPath {
             },
             ToolboxIdlTypeFull::Const { .. } => Err(anyhow!(
                 "Type literal does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
             ToolboxIdlTypeFull::Primitive { .. } => Err(anyhow!(
                 "Type primitive does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
         }
     }
@@ -83,10 +83,10 @@ impl ToolboxIdlPath {
         match type_full_fields {
             ToolboxIdlTypeFullFields::None => Err(anyhow!(
                 "Empty fields does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
             ToolboxIdlTypeFullFields::Named(fields) => {
-                let key = current.to_string();
+                let key = current.value();
                 for field in fields {
                     if field.name == key {
                         return next.try_get_type_full(&field.type_full);

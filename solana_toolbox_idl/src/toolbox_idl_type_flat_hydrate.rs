@@ -107,7 +107,7 @@ impl ToolboxIdlTypeFlat {
                 for variant in variants_flat {
                     variants_full.push(ToolboxIdlTypeFullEnumVariant {
                         name: variant.name.to_string(),
-                        code: variant.code.clone(),
+                        code: variant.code,
                         fields: variant
                             .fields
                             .try_hydrate(generics_by_symbol, typedefs)

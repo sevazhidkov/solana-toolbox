@@ -68,9 +68,7 @@ impl ToolboxCliCommandFindArgs {
                 let mut bytes = vec![];
                 ToolboxIdlTypeFull::Vec {
                     prefix: ToolboxIdlTypePrefix::U32,
-                    items: Box::new(ToolboxIdlTypeFull::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U8,
-                    }),
+                    items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                 }
                 .try_serialize(
                     &serde_hjson::from_str(encoded)?,

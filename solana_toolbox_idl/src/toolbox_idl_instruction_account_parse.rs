@@ -16,7 +16,6 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_path::ToolboxIdlPath;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
-use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
@@ -280,9 +279,7 @@ impl ToolboxIdlInstructionAccount {
                 }
             })
             .transpose()?
-            .unwrap_or(ToolboxIdlTypeFull::Primitive {
-                primitive: ToolboxIdlTypePrimitive::PublicKey,
-            });
+            .unwrap_or(ToolboxIdlTypePrimitive::PublicKey.into());
         let type_flat = type_full.flattened();
         Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
             path,

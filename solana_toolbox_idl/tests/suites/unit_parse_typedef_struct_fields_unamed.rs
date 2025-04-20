@@ -74,46 +74,36 @@ pub async fn run() {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U8.into()
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U64
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U64.into()
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::String
+                        type_flat: ToolboxIdlTypePrimitive::String.into()
+                    },
+                    ToolboxIdlTypeFlatFieldUnamed {
+                        docs: None,
+                        type_flat: ToolboxIdlTypeFlat::Vec {
+                            prefix: ToolboxIdlTypePrefix::U32,
+                            items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Vec {
                             prefix: ToolboxIdlTypePrefix::U32,
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U8,
-                            }),
-                        }
-                    },
-                    ToolboxIdlTypeFlatFieldUnamed {
-                        docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Vec {
-                            prefix: ToolboxIdlTypePrefix::U32,
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U8,
-                            }),
+                            items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Array {
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U32,
-                            }),
+                            items: Box::new(
+                                ToolboxIdlTypePrimitive::U32.into()
+                            ),
                             length: Box::new(ToolboxIdlTypeFlat::Const {
                                 literal: 4
                             }),
@@ -122,9 +112,9 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Array {
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U32,
-                            }),
+                            items: Box::new(
+                                ToolboxIdlTypePrimitive::U32.into()
+                            ),
                             length: Box::new(ToolboxIdlTypeFlat::Const {
                                 literal: 4
                             }),
@@ -174,18 +164,18 @@ pub async fn run() {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U8,
-                            content: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U8,
-                            }),
+                            content: Box::new(
+                                ToolboxIdlTypePrimitive::U8.into()
+                            ),
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U32,
-                            content: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U8,
-                            }),
+                            content: Box::new(
+                                ToolboxIdlTypePrimitive::U8.into()
+                            ),
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {

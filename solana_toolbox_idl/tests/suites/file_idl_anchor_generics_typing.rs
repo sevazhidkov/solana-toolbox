@@ -243,21 +243,15 @@ fn make_type_full_array(
 }
 
 fn make_type_full_u8() -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Primitive {
-        primitive: ToolboxIdlTypePrimitive::U8,
-    }
+    ToolboxIdlTypePrimitive::U8.into()
 }
 
 fn make_type_full_u32() -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Primitive {
-        primitive: ToolboxIdlTypePrimitive::U32,
-    }
+    ToolboxIdlTypePrimitive::U32.into()
 }
 
 fn make_type_full_u64() -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Primitive {
-        primitive: ToolboxIdlTypePrimitive::U64,
-    }
+    ToolboxIdlTypePrimitive::U64.into()
 }
 
 fn make_type_full_const(literal: u64) -> ToolboxIdlTypeFull {

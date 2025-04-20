@@ -96,10 +96,7 @@ pub async fn run() {
                                 type_flat: ToolboxIdlTypeFlat::Vec {
                                     prefix: ToolboxIdlTypePrefix::U32,
                                     items: Box::new(
-                                        ToolboxIdlTypeFlat::Primitive {
-                                            primitive:
-                                                ToolboxIdlTypePrimitive::U8,
-                                        }
+                                        ToolboxIdlTypePrimitive::U8.into()
                                     )
                                 }
                             },
@@ -119,19 +116,14 @@ pub async fn run() {
                         fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
                             ToolboxIdlTypeFlatFieldUnamed {
                                 docs: None,
-                                type_flat: ToolboxIdlTypeFlat::Primitive {
-                                    primitive: ToolboxIdlTypePrimitive::U64,
-                                }
+                                type_flat: ToolboxIdlTypePrimitive::U64.into()
                             },
                             ToolboxIdlTypeFlatFieldUnamed {
                                 docs: None,
                                 type_flat: ToolboxIdlTypeFlat::Vec {
                                     prefix: ToolboxIdlTypePrefix::U32,
                                     items: Box::new(
-                                        ToolboxIdlTypeFlat::Primitive {
-                                            primitive:
-                                                ToolboxIdlTypePrimitive::U8,
-                                        }
+                                        ToolboxIdlTypePrimitive::U8.into()
                                     )
                                 }
                             },
@@ -140,10 +132,7 @@ pub async fn run() {
                                 type_flat: ToolboxIdlTypeFlat::Vec {
                                     prefix: ToolboxIdlTypePrefix::U32,
                                     items: Box::new(
-                                        ToolboxIdlTypeFlat::Primitive {
-                                            primitive:
-                                                ToolboxIdlTypePrimitive::U8,
-                                        }
+                                        ToolboxIdlTypePrimitive::U8.into()
                                     )
                                 }
                             },

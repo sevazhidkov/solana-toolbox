@@ -43,6 +43,12 @@ pub enum ToolboxIdlTypeFlat {
     },
 }
 
+impl From<ToolboxIdlTypePrimitive> for ToolboxIdlTypeFlat {
+    fn from(primitive: ToolboxIdlTypePrimitive) -> ToolboxIdlTypeFlat {
+        ToolboxIdlTypeFlat::Primitive { primitive }
+    }
+}
+
 impl ToolboxIdlTypeFlat {
     pub fn nothing() -> ToolboxIdlTypeFlat {
         ToolboxIdlTypeFlat::Struct {

@@ -16,19 +16,19 @@ impl ToolboxIdlPath {
         match value {
             Value::Null => Err(anyhow!(
                 "Null value does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
             Value::Bool(_) => Err(anyhow!(
                 "Bool value does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
             Value::Number(_) => Err(anyhow!(
                 "Number value does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
             Value::String(_) => Err(anyhow!(
                 "String value does not contain path: {}",
-                self.to_string()
+                self.value()
             )),
             Value::Array(values) => {
                 let length = values.len();
@@ -44,7 +44,7 @@ impl ToolboxIdlPath {
                 next.try_get_json_value(&values[index])
             },
             Value::Object(map) => {
-                let key = current.to_string();
+                let key = current.value();
                 for (object_key, object_value) in map {
                     if object_key == &key {
                         return next.try_get_json_value(object_value);

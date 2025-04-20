@@ -43,7 +43,7 @@ impl ToolboxIdlTypeFull {
                 for variant_full in variants_full {
                     variants_flat.push(ToolboxIdlTypeFlatEnumVariant {
                         name: variant_full.name.to_string(),
-                        code: variant_full.code.clone(),
+                        code: variant_full.code,
                         docs: None,
                         fields: variant_full.fields.flattened(),
                     });

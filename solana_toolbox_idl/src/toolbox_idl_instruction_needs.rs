@@ -63,12 +63,12 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 path,
                 type_full,
                 ..
-            } => Some(("arg", path.to_string(), type_full.explain())),
+            } => Some(("arg", path.value(), type_full.explain())),
             ToolboxIdlInstructionAccountPdaBlob::Account {
                 path,
                 type_full,
                 ..
-            } => Some(("account", path.to_string(), type_full.explain())),
+            } => Some(("account", path.value(), type_full.explain())),
         }
     }
 }

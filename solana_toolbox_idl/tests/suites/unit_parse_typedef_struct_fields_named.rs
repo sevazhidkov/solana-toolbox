@@ -54,32 +54,24 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "u8".to_string(),
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U8.into()
                     },
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "u64".to_string(),
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U64
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U64.into()
                     },
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "string".to_string(),
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::String
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::String.into()
                     },
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "vec1_u8".to_string(),
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Vec {
                             prefix: ToolboxIdlTypePrefix::U32,
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U8,
-                            }),
+                            items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
@@ -87,9 +79,7 @@ pub async fn run() {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Vec {
                             prefix: ToolboxIdlTypePrefix::U32,
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U8,
-                            }),
+                            items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
@@ -100,9 +90,7 @@ pub async fn run() {
                             items: Box::new(ToolboxIdlTypeFlat::Vec {
                                 prefix: ToolboxIdlTypePrefix::U32,
                                 items: Box::new(
-                                    ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlTypePrimitive::U8,
-                                    }
+                                    ToolboxIdlTypePrimitive::U8.into()
                                 ),
                             }),
                         }
@@ -115,9 +103,7 @@ pub async fn run() {
                             items: Box::new(ToolboxIdlTypeFlat::Vec {
                                 prefix: ToolboxIdlTypePrefix::U32,
                                 items: Box::new(
-                                    ToolboxIdlTypeFlat::Primitive {
-                                        primitive: ToolboxIdlTypePrimitive::U8,
-                                    }
+                                    ToolboxIdlTypePrimitive::U8.into()
                                 ),
                             }),
                         }
@@ -126,9 +112,9 @@ pub async fn run() {
                         name: "array1_u32_4".to_string(),
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Array {
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U32,
-                            }),
+                            items: Box::new(
+                                ToolboxIdlTypePrimitive::U32.into()
+                            ),
                             length: Box::new(ToolboxIdlTypeFlat::Const {
                                 literal: 4
                             }),
@@ -138,9 +124,9 @@ pub async fn run() {
                         name: "array2_u32_4".to_string(),
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Array {
-                            items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::U32,
-                            }),
+                            items: Box::new(
+                                ToolboxIdlTypePrimitive::U32.into()
+                            ),
                             length: Box::new(ToolboxIdlTypeFlat::Const {
                                 literal: 4
                             }),
@@ -213,9 +199,9 @@ pub async fn run() {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U8,
-                            content: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::F32,
-                            })
+                            content: Box::new(
+                                ToolboxIdlTypePrimitive::F32.into(),
+                            )
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
@@ -223,9 +209,9 @@ pub async fn run() {
                         docs: None,
                         type_flat: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U8,
-                            content: Box::new(ToolboxIdlTypeFlat::Primitive {
-                                primitive: ToolboxIdlTypePrimitive::F32,
-                            })
+                            content: Box::new(
+                                ToolboxIdlTypePrimitive::F32.into(),
+                            )
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
@@ -245,9 +231,7 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "docs".to_string(),
                         docs: Some(json!(["Hello"])),
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U8.into()
                     }
                 ])
             }

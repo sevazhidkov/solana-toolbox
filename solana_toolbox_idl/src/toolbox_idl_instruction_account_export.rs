@@ -114,7 +114,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                         json!(type_flat.export(format)),
                     );
                 }
-                json_arg.insert("path".to_string(), json!(path.to_string()));
+                json_arg.insert("path".to_string(), json!(path.value()));
                 json!(json_arg)
             },
             ToolboxIdlInstructionAccountPdaBlob::Account {
@@ -134,8 +134,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                 if let Some(account) = account {
                     json_account.insert("account".to_string(), json!(account));
                 }
-                json_account
-                    .insert("path".to_string(), json!(path.to_string()));
+                json_account.insert("path".to_string(), json!(path.value()));
                 json!(json_account)
             },
         }

@@ -43,7 +43,7 @@ impl ToolboxIdlTypePrefix {
                 data.extend_from_slice(&u32::try_from(value)?.to_le_bytes())
             },
             ToolboxIdlTypePrefix::U64 => {
-                data.extend_from_slice(&u64::try_from(value)?.to_le_bytes())
+                data.extend_from_slice(&value.to_le_bytes())
             },
         }
         Ok(())

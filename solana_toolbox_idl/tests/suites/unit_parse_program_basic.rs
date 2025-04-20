@@ -126,30 +126,22 @@ pub async fn run() {
                 ToolboxIdlTypeFlatFieldNamed {
                     name: "index".to_string(),
                     docs: None,
-                    type_flat: ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U32
-                    }
+                    type_flat: ToolboxIdlTypePrimitive::U32.into()
                 },
                 ToolboxIdlTypeFlatFieldNamed {
                     name: "id".to_string(),
                     docs: None,
-                    type_flat: ToolboxIdlTypeFlat::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::I64
-                    }
+                    type_flat: ToolboxIdlTypePrimitive::I64.into()
                 },
             ]),
             args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![
                 ToolboxIdlTypeFullFieldNamed {
                     name: "index".to_string(),
-                    type_full: ToolboxIdlTypeFull::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::U32
-                    }
+                    type_full: ToolboxIdlTypePrimitive::U32.into()
                 },
                 ToolboxIdlTypeFullFieldNamed {
                     name: "id".to_string(),
-                    type_full: ToolboxIdlTypeFull::Primitive {
-                        primitive: ToolboxIdlTypePrimitive::I64
-                    }
+                    type_full: ToolboxIdlTypePrimitive::I64.into()
                 },
             ]),
             return_type_flat: ToolboxIdlTypeFlat::nothing(),
@@ -171,16 +163,12 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "field1".to_string(),
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U64
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U64.into()
                     },
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "field2".to_string(),
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U32
-                        }
+                        type_flat: ToolboxIdlTypePrimitive::U32.into()
                     }
                 ])
             },
@@ -188,15 +176,11 @@ pub async fn run() {
                 fields: ToolboxIdlTypeFullFields::Named(vec![
                     ToolboxIdlTypeFullFieldNamed {
                         name: "field1".to_string(),
-                        type_full: ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U64
-                        }
+                        type_full: ToolboxIdlTypePrimitive::U64.into()
                     },
                     ToolboxIdlTypeFullFieldNamed {
                         name: "field2".to_string(),
-                        type_full: ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U32
-                        }
+                        type_full: ToolboxIdlTypePrimitive::U32.into()
                     }
                 ])
             }

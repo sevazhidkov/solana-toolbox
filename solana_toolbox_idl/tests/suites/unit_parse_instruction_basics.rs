@@ -143,9 +143,7 @@ pub async fn run() {
                     docs: None,
                     type_flat: ToolboxIdlTypeFlat::Vec {
                         prefix: ToolboxIdlTypePrefix::U32,
-                        items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }),
+                        items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                     }
                 }
             ]),
@@ -154,18 +152,12 @@ pub async fn run() {
                     name: "arg".to_string(),
                     type_full: ToolboxIdlTypeFull::Vec {
                         prefix: ToolboxIdlTypePrefix::U32,
-                        items: Box::new(ToolboxIdlTypeFull::Primitive {
-                            primitive: ToolboxIdlTypePrimitive::U8
-                        }),
+                        items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                     },
                 }
             ]),
-            return_type_flat: ToolboxIdlTypeFlat::Primitive {
-                primitive: ToolboxIdlTypePrimitive::I8
-            },
-            return_type_full: ToolboxIdlTypeFull::Primitive {
-                primitive: ToolboxIdlTypePrimitive::I8
-            }
+            return_type_flat: ToolboxIdlTypePrimitive::I8.into(),
+            return_type_full: ToolboxIdlTypePrimitive::I8.into(),
         }
         .into()
     )

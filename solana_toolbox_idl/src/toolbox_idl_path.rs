@@ -40,10 +40,10 @@ impl ToolboxIdlPath {
         None
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn value(&self) -> String {
         let mut parts = vec![];
         for part in &self.parts {
-            parts.push(part.to_string());
+            parts.push(part.value());
         }
         parts.join(".")
     }
@@ -64,7 +64,7 @@ impl ToolboxIdlPathPart {
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn value(&self) -> String {
         match self {
             ToolboxIdlPathPart::Key(key) => key.to_string(),
             ToolboxIdlPathPart::Code(index) => index.to_string(),
