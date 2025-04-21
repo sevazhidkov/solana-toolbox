@@ -94,22 +94,26 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn simulate_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution> {
-        self.simulate_transaction_using_rpc(versioned_transaction)
-            .await
+        self.simulate_transaction_using_rpc(
+            versioned_transaction,
+            verify_signatures,
+        )
+        .await
     }
 
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-        skip_preflight: bool,
+        process_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let signature = self
             .inner
             .send_transaction_with_config(
                 &versioned_transaction,
                 RpcSendTransactionConfig {
-                    skip_preflight,
+                    skip_preflight: !process_preflight,
                     preflight_commitment: Some(
                         self.get_commitment().commitment,
                     ),
@@ -244,7 +248,7 @@ impl ToolboxEndpointProxyRpcClient {
                 }
             }
             if timer.elapsed() > WAIT_TIMEOUT_DURATION {
-                return Err(anyhow!("Clock forwarding"));
+                return Err(anyhow!("Clock forwarding timeout"));
             }
             sleep(WAIT_SLEEP_DURATION)
         }

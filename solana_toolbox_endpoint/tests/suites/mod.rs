@@ -18,6 +18,7 @@ pub mod program_test_preflight;
 pub mod program_test_program;
 pub mod program_test_search_addresses;
 pub mod program_test_search_signatures;
+pub mod program_test_signature_verify;
 pub mod program_test_simulate;
 pub mod program_test_spl_token;
 pub mod program_test_sysvars;

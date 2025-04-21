@@ -28,12 +28,13 @@ pub trait ToolboxEndpointProxy {
     async fn simulate_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution>;
 
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-        skip_preflight: bool,
+        verify_prelight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)>;
 
     async fn request_airdrop(

@@ -57,6 +57,7 @@ pub use toolbox_idl_instruction::ToolboxIdlInstruction;
 pub use toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 pub use toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 pub use toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
+pub use toolbox_idl_path::ToolboxIdlPath;
 pub use toolbox_idl_program::ToolboxIdlProgram;
 pub use toolbox_idl_service::ToolboxIdlService;
 pub use toolbox_idl_service_account::ToolboxIdlServiceAccountDecoded;

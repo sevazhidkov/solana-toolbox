@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::anyhow;
 use anyhow::Result;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::Instruction;
@@ -11,7 +12,7 @@ use solana_sdk::transaction::Transaction;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 
 impl ToolboxEndpoint {
-    pub async fn compile_transaction(
+    pub fn compile_transaction(
         payer: &Keypair,
         instructions: &[Instruction],
         signers: &[&Keypair],
@@ -61,5 +62,41 @@ impl ToolboxEndpoint {
             &transaction.message.instructions,
         )?;
         Ok((payer, instructions))
+    }
+
+    pub fn verify_transaction_length(transaction: &Transaction) -> Result<()> {
+        let transaction_length = bincode::serialize(transaction)?.len();
+        let limit_length = ToolboxEndpoint::TRANSACTION_LENGTH_LIMIT;
+        if transaction_length > limit_length {
+            return Err(anyhow!(
+                "Transaction of size {} exceeds the limit of {} bytes",
+                transaction_length,
+                limit_length
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn verify_transaction_signatures(
+        transaction: &Transaction,
+    ) -> Result<()> {
+        let verified_signatures = transaction.verify_with_results();
+        let found_signatures = verified_signatures.len();
+        let expected_signatures =
+            usize::from(transaction.message.header.num_required_signatures);
+        if found_signatures != expected_signatures {
+            return Err(anyhow!(
+                "Transaction has {} signatures, but requires {}",
+                found_signatures,
+                expected_signatures
+            ));
+        }
+        if !verified_signatures
+            .iter()
+            .all(|verify_result| *verify_result)
+        {
+            return Err(anyhow!("Transaction signatures are invalid"));
+        }
+        Ok(())
     }
 }

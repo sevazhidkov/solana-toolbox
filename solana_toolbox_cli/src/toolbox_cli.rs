@@ -29,12 +29,9 @@ pub struct ToolboxCliArgs {
         display_order = 2,
         short = 'u',
         short_alias = 'r',
-        short_alias = 'c',
-        short_alias = 'm',
         long = "url",
         alias = "rpc",
         alias = "cluster",
-        alias = "moniker",
         value_name = "URL_OR_MONIKER",
         help = "The solana RPC endpoint's URL used"
     )]
@@ -48,7 +45,7 @@ pub struct ToolboxCliArgs {
     commitment: Option<String>,
     #[arg(
         display_order = 4,
-        short,
+        short = 'k',
         long = "keypair",
         alias = "wallet",
         value_name = "KEYPAIR_FILE_PATH",
@@ -57,7 +54,7 @@ pub struct ToolboxCliArgs {
     keypair: Option<String>,
     #[arg(
         display_order = 5,
-        short,
+        short = 'i',
         long = "idl",
         alias = "idls",
         value_name = "PROGRAM_ID:IDL_FILE_PATH",
@@ -68,7 +65,6 @@ pub struct ToolboxCliArgs {
         display_order = 6,
         long = "minify",
         alias = "compact",
-        alias = "ugly",
         help = "Output minified JSON"
     )]
     compact: bool,

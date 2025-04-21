@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use solana_sdk::account::Account;
 use solana_sdk::bpf_loader;
@@ -100,22 +101,27 @@ impl ToolboxEndpoint {
         let program_bytecode_len = program_bytecode.len();
         let rent_space =
             UpgradeableLoaderState::size_of_buffer(program_bytecode_len);
-        let rent_minimum_lamports =
-            self.get_sysvar_rent().await?.minimum_balance(rent_space);
+        let rent_minimum_lamports = self
+            .get_sysvar_rent()
+            .await
+            .context("Get Sysvar Rent")?
+            .minimum_balance(rent_space);
         let instructions_create = create_buffer(
             &payer.pubkey(),
             &program_buffer.pubkey(),
             &program_buffer_authority.pubkey(),
             rent_minimum_lamports,
             program_bytecode_len,
-        )?;
+        )
+        .context("Build Create Buffer Instructions")?;
         self.process_instructions_with_signers(
             payer,
             &instructions_create,
             &[&program_buffer],
         )
-        .await?;
-        let write_packing = 1024;
+        .await
+        .context("Process Create Buffer Instructions")?;
+        let write_packing = 914;
         let write_count = program_bytecode_len.div_ceil(write_packing);
         for write_index in 0..write_count {
             let write_before = write_index * write_packing;
@@ -132,7 +138,8 @@ impl ToolboxEndpoint {
                 instruction_write,
                 &[&program_buffer_authority],
             )
-            .await?;
+            .await
+            .context("Process Write Buffer Instruction")?;
         }
         let instruction_set_authority = set_buffer_authority(
             &program_buffer.pubkey(),
@@ -144,7 +151,8 @@ impl ToolboxEndpoint {
             instruction_set_authority,
             &[&program_buffer_authority],
         )
-        .await?;
+        .await
+        .context("Process Set Authority Instruction")?;
         Ok(program_buffer.pubkey())
     }
 
@@ -229,7 +237,11 @@ impl ToolboxEndpoint {
         program_authority: &Keypair,
         program_bytecode: &[u8],
     ) -> Result<()> {
-        if self.get_account_exists(&program_id.pubkey()).await? {
+        if self
+            .get_account_exists(&program_id.pubkey())
+            .await
+            .context("Get ProgramId Account")?
+        {
             return Err(anyhow!(
                 "Cannot deploy on a program that already exist (need to upgrade)",
             ));
@@ -240,7 +252,8 @@ impl ToolboxEndpoint {
                 program_bytecode,
                 &program_authority.pubkey(),
             )
-            .await?;
+            .await
+            .context("Program Buffer New")?;
         self.process_program_buffer_deploy(
             payer,
             program_id,
@@ -248,7 +261,8 @@ impl ToolboxEndpoint {
             program_authority,
             program_bytecode.len(),
         )
-        .await?;
+        .await
+        .context("Process Program Buffer Deploy")?;
         Ok(())
     }
 
@@ -287,7 +301,8 @@ impl ToolboxEndpoint {
                 program_id,
                 program_bytecode_len_after - program_bytecode_len_before,
             )
-            .await?;
+            .await
+            .context("Process Program Extend")?;
         }
         let program_buffer = self
             .process_program_buffer_new(
@@ -295,7 +310,8 @@ impl ToolboxEndpoint {
                 program_bytecode,
                 &program_authority.pubkey(),
             )
-            .await?;
+            .await
+            .context("Process Program Buffer New")?;
         self.process_program_buffer_upgrade(
             payer,
             program_id,
@@ -303,7 +319,8 @@ impl ToolboxEndpoint {
             program_authority,
             spill,
         )
-        .await?;
+        .await
+        .context("Process Program Buffer Upgrade")?;
         Ok(())
     }
 

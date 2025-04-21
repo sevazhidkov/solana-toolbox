@@ -78,7 +78,16 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn simulate_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution> {
+        ToolboxEndpoint::verify_versioned_transaction_length(
+            &versioned_transaction,
+        )?;
+        if verify_signatures {
+            ToolboxEndpoint::verify_versioned_transaction_signatures(
+                &versioned_transaction,
+            )?;
+        }
         let current_slot =
             self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
         let outcome = self
@@ -120,19 +129,15 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn process_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-        skip_preflight: bool,
+        process_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
-        let transaction_message_serialized =
-            versioned_transaction.message.serialize();
-        if transaction_message_serialized.len()
-            > ToolboxEndpoint::TRANSACTION_DATA_SIZE_LIMIT
-        {
-            return Err(anyhow!(
-                "Serialized transaction size is too large: {} bytes",
-                transaction_message_serialized.len()
-            ));
-        }
-        if !skip_preflight {
+        ToolboxEndpoint::verify_versioned_transaction_length(
+            &versioned_transaction,
+        )?;
+        ToolboxEndpoint::verify_versioned_transaction_signatures(
+            &versioned_transaction,
+        )?;
+        if process_preflight {
             if let Some(Err(error)) = self
                 .inner
                 .banks_client

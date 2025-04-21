@@ -18,7 +18,7 @@ impl ToolboxEndpoint {
             &[instruction],
             &[],
             &[],
-            false,
+            true,
         )
         .await
     }
@@ -34,7 +34,7 @@ impl ToolboxEndpoint {
             &[instruction],
             signers,
             &[],
-            false,
+            true,
         )
         .await
     }
@@ -50,7 +50,7 @@ impl ToolboxEndpoint {
             instructions,
             signers,
             &[],
-            false,
+            true,
         )
         .await
     }
@@ -61,7 +61,7 @@ impl ToolboxEndpoint {
         instructions: &[Instruction],
         signers: &[&Keypair],
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
-        skip_preflight: bool,
+        verify_prelight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let versioned_transaction =
             ToolboxEndpoint::compile_versioned_transaction(
@@ -73,7 +73,7 @@ impl ToolboxEndpoint {
             )?;
         self.process_versioned_transaction(
             versioned_transaction,
-            skip_preflight,
+            verify_prelight,
         )
         .await
     }

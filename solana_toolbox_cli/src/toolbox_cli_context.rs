@@ -89,13 +89,22 @@ impl ToolboxCliContext {
         {
             return Ok(ToolboxCliKey::Keypair(self.get_keypair()));
         }
-        // TODO - support from_base58_string
         if exists(key)? {
             return Ok(ToolboxCliKey::Keypair(self.load_keypair(key)));
         }
-        Ok(ToolboxCliKey::Pubkey(Pubkey::from_str(
-            key.trim_matches(|c| !char::is_alphanumeric(c)),
-        )?))
+        if let Ok(keypair) =
+            ToolboxEndpoint::sanitize_and_decode_keypair_base58(key)
+        {
+            return Ok(ToolboxCliKey::Keypair(keypair));
+        }
+        if let Ok(keypair) =
+            ToolboxEndpoint::sanitize_and_decode_keypair_json_array(key)
+        {
+            return Ok(ToolboxCliKey::Keypair(keypair));
+        }
+        Ok(ToolboxCliKey::Pubkey(
+            ToolboxEndpoint::sanitize_and_decode_pubkey(key)?,
+        ))
     }
 
     pub fn parse_signature(&self, value: &str) -> Result<Signature> {

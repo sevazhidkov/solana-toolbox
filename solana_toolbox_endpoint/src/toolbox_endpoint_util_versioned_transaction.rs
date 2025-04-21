@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use anyhow::anyhow;
 use anyhow::Result;
 use solana_sdk::address_lookup_table::AddressLookupTableAccount;
 use solana_sdk::hash::Hash;
@@ -23,13 +24,6 @@ impl ToolboxEndpoint {
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
         recent_blockhash: Hash,
     ) -> Result<VersionedTransaction> {
-        let mut address_lookup_table_accounts = vec![];
-        for resolved_address_lookup_table in resolved_address_lookup_tables {
-            address_lookup_table_accounts.push(AddressLookupTableAccount {
-                key: resolved_address_lookup_table.0,
-                addresses: resolved_address_lookup_table.1.to_vec(),
-            });
-        }
         let mut needed_signers_pubkeys = HashSet::new();
         for instruction in instructions {
             for instruction_account in &instruction.accounts {
@@ -53,15 +47,36 @@ impl ToolboxEndpoint {
             }
         }
         let versioned_transaction = VersionedTransaction::try_new(
-            VersionedMessage::V0(Message::try_compile(
+            ToolboxEndpoint::compile_versioned_transaction_message(
                 &payer.pubkey(),
                 instructions,
-                &address_lookup_table_accounts,
+                resolved_address_lookup_tables,
                 recent_blockhash,
-            )?),
+            )?,
             &signers_keypairs,
         )?;
         Ok(versioned_transaction)
+    }
+
+    pub fn compile_versioned_transaction_message(
+        payer: &Pubkey,
+        instructions: &[Instruction],
+        resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
+        recent_blockhash: Hash,
+    ) -> Result<VersionedMessage> {
+        let mut address_lookup_table_accounts = vec![];
+        for resolved_address_lookup_table in resolved_address_lookup_tables {
+            address_lookup_table_accounts.push(AddressLookupTableAccount {
+                key: resolved_address_lookup_table.0,
+                addresses: resolved_address_lookup_table.1.to_vec(),
+            });
+        }
+        Ok(VersionedMessage::V0(Message::try_compile(
+            payer,
+            instructions,
+            &address_lookup_table_accounts,
+            recent_blockhash,
+        )?))
     }
 
     pub fn decompile_versioned_transaction(
@@ -140,5 +155,48 @@ impl ToolboxEndpoint {
             versioned_transaction.message.instructions(),
         )?;
         Ok((payer, instructions))
+    }
+
+    pub fn verify_versioned_transaction_length(
+        versioned_transaction: &VersionedTransaction,
+    ) -> Result<()> {
+        let transaction_length =
+            bincode::serialize(versioned_transaction)?.len();
+        let limit_length = ToolboxEndpoint::TRANSACTION_LENGTH_LIMIT;
+        if transaction_length > limit_length {
+            return Err(anyhow!(
+                "VersionedTransaction of size {} exceeds the limit of {} bytes",
+                transaction_length,
+                limit_length
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn verify_versioned_transaction_signatures(
+        versioned_transaction: &VersionedTransaction,
+    ) -> Result<()> {
+        let verified_signatures = versioned_transaction.verify_with_results();
+        let found_signatures = verified_signatures.len();
+        let expected_signatures = usize::from(
+            versioned_transaction
+                .message
+                .header()
+                .num_required_signatures,
+        );
+        if found_signatures != expected_signatures {
+            return Err(anyhow!(
+                "VersionedTransaction has {} signatures, but requires {}",
+                found_signatures,
+                expected_signatures
+            ));
+        }
+        if !verified_signatures
+            .iter()
+            .all(|verify_result| *verify_result)
+        {
+            return Err(anyhow!("VersionedTransaction signatures are invalid"));
+        }
+        Ok(())
     }
 }

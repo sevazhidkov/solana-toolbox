@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use clap::Args;
 use serde_json::json;
@@ -8,9 +9,9 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::transaction::Transaction;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_idl::ToolboxIdlPath;
 
 use crate::toolbox_cli_context::ToolboxCliContext;
-use crate::toolbox_cli_json::cli_json_object_set_value_at_path;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Prepare an instruction using its program's IDL")]
@@ -105,17 +106,19 @@ impl ToolboxCliCommandInstructionArgs {
             },
         };
 
-        let mut instruction_payload_object = Map::new();
+        let mut instruction_payload = json!({});
         for arg in &self.args {
             if let Some((path, json)) = arg.split_once(":") {
-                cli_json_object_set_value_at_path(
-                    &mut instruction_payload_object,
-                    path,
-                    context.parse_hjson(json)?,
-                );
+                let path = ToolboxIdlPath::try_parse(path)
+                    .context("Parse Arg JSON path")?;
+                instruction_payload = path
+                    .try_set_json_value(
+                        Some(instruction_payload),
+                        context.parse_hjson(json)?,
+                    )
+                    .context("Set Arg JSON value")?;
             }
         }
-        let instruction_payload = json!(instruction_payload_object);
 
         let mut instruction_keys = HashMap::new();
         for account in &self.accounts {
@@ -249,6 +252,7 @@ impl ToolboxCliCommandInstructionArgs {
                             match endpoint
                                 .simulate_versioned_transaction(
                                     versioned_transaction.clone(),
+                                    true, // TODO - configurable ?
                                 )
                                 .await
                             {

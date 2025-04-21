@@ -7,6 +7,7 @@ pub struct ToolboxIdlPath {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlPathPart {
+    Empty,
     Key(String),
     Code(u64),
 }
@@ -15,11 +16,16 @@ impl ToolboxIdlPath {
     pub fn try_parse(value: &str) -> Result<ToolboxIdlPath> {
         let mut parts = vec![];
         for part in value.split(".") {
-            if part.contains(|c: char| !c.is_ascii_digit()) {
+            if part.is_empty() {
+                parts.push(ToolboxIdlPathPart::Empty)
+            } else if part.contains(|c: char| !c.is_ascii_digit()) {
                 parts.push(ToolboxIdlPathPart::Key(part.to_string()))
             } else {
                 parts.push(ToolboxIdlPathPart::Code(part.parse()?))
             }
+        }
+        if parts[0] == ToolboxIdlPathPart::Empty {
+            parts.remove(0);
         }
         Ok(ToolboxIdlPath { parts })
     }
@@ -52,6 +58,7 @@ impl ToolboxIdlPath {
 impl ToolboxIdlPathPart {
     pub fn key(&self) -> Option<&str> {
         match self {
+            ToolboxIdlPathPart::Empty => None,
             ToolboxIdlPathPart::Key(key) => Some(key),
             ToolboxIdlPathPart::Code(_) => None,
         }
@@ -59,6 +66,7 @@ impl ToolboxIdlPathPart {
 
     pub fn code(&self) -> Option<u64> {
         match self {
+            ToolboxIdlPathPart::Empty => None,
             ToolboxIdlPathPart::Key(_) => None,
             ToolboxIdlPathPart::Code(index) => Some(*index),
         }
@@ -66,6 +74,7 @@ impl ToolboxIdlPathPart {
 
     pub fn value(&self) -> String {
         match self {
+            ToolboxIdlPathPart::Empty => "".to_string(),
             ToolboxIdlPathPart::Key(key) => key.to_string(),
             ToolboxIdlPathPart::Code(index) => index.to_string(),
         }

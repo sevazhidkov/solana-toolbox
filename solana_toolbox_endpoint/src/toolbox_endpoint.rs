@@ -56,36 +56,42 @@ impl ToolboxEndpoint {
     pub async fn simulate_transaction(
         &mut self,
         transaction: Transaction,
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution> {
-        self.simulate_versioned_transaction(transaction.into())
-            .await
+        self.simulate_versioned_transaction(
+            transaction.into(),
+            verify_signatures,
+        )
+        .await
     }
 
-    // TODO (FAR) - should this support no-sig-verify somehow ?
     pub async fn simulate_versioned_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution> {
-        self.proxy.simulate_transaction(versioned_transaction).await
+        self.proxy
+            .simulate_transaction(versioned_transaction, verify_signatures)
+            .await
     }
 
     pub async fn process_transaction(
         &mut self,
         transaction: Transaction,
-        skip_preflight: bool,
+        verify_prelight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
-        self.process_versioned_transaction(transaction.into(), skip_preflight)
+        self.process_versioned_transaction(transaction.into(), verify_prelight)
             .await
     }
 
     pub async fn process_versioned_transaction(
         &mut self,
         versioned_transaction: VersionedTransaction,
-        skip_preflight: bool,
+        verify_prelight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let processed = self
             .proxy
-            .process_transaction(versioned_transaction, skip_preflight)
+            .process_transaction(versioned_transaction, verify_prelight)
             .await?;
         for logger in &self.loggers {
             logger.on_processed(&processed).await;

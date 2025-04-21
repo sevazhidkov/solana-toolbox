@@ -1,31 +1,4 @@
-use serde_json::json;
-use serde_json::Map;
 use serde_json::Value;
-
-pub fn cli_json_object_set_value_at_path(
-    object: &mut Map<String, Value>,
-    path: &str,
-    value: Value,
-) {
-    // TODO (MEDIUM) - support unamed append (index array)
-    if let Some((key, path_child)) = path.split_once(".") {
-        if let Some(object_value) = object.get_mut(key) {
-            if let Some(object_child) = object_value.as_object_mut() {
-                cli_json_object_set_value_at_path(
-                    object_child,
-                    path_child,
-                    value,
-                );
-                return;
-            }
-        }
-        let mut object_child = Map::new();
-        cli_json_object_set_value_at_path(&mut object_child, path_child, value);
-        object.insert(key.to_string(), json!(object_child));
-        return;
-    }
-    object.insert(path.to_string(), value);
-}
 
 pub fn cli_json_value_fit(
     superset_value: &Value,

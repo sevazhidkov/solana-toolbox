@@ -31,7 +31,7 @@ pub async fn run() {
             ),
             &[&payer],
             &[],
-            false,
+            true,
         )
         .await
         .unwrap();

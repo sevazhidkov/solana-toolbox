@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use anyhow::anyhow;
+use anyhow::Context;
 use anyhow::Result;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
@@ -72,12 +74,14 @@ impl ToolboxEndpoint {
 
     pub fn sanitize_and_decode_signature(raw: &str) -> Result<Signature> {
         let sanitized = raw.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-        Ok(Signature::from_str(&sanitized)?)
+        Ok(Signature::from_str(&sanitized)
+            .with_context(|| anyhow!("Decoding Signature: {}", sanitized))?)
     }
 
     pub fn sanitize_and_decode_pubkey(raw: &str) -> Result<Pubkey> {
         let sanitized = raw.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-        Ok(Pubkey::from_str(&sanitized)?)
+        Ok(Pubkey::from_str(&sanitized)
+            .with_context(|| anyhow!("Decoding Pubkey: {}", sanitized))?)
     }
 
     pub fn sanitize_and_decode_keypair_json_array(
@@ -92,12 +96,20 @@ impl ToolboxEndpoint {
             },
             "",
         );
-        let decoded = serde_json::from_str::<Vec<u8>>(&sanitized)?;
-        Ok(Keypair::from_bytes(&decoded)?)
+        let decoded = serde_json::from_str::<Vec<u8>>(&sanitized)
+            .with_context(|| anyhow!("Decoding Keypair Json Array: {}", raw))?;
+        Ok(Keypair::from_bytes(&decoded).with_context(|| {
+            anyhow!("Decoding Keypair Bytes: {:?}", decoded)
+        })?)
     }
 
     pub fn sanitize_and_decode_keypair_base58(raw: &str) -> Result<Keypair> {
-        let decoded = ToolboxEndpoint::sanitize_and_decode_base58(raw)?;
-        Ok(Keypair::from_bytes(&decoded)?)
+        let decoded = ToolboxEndpoint::sanitize_and_decode_base58(raw)
+            .with_context(|| {
+                anyhow!("Decoding Keypair Base58 String: {}", raw)
+            })?;
+        Ok(Keypair::from_bytes(&decoded).with_context(|| {
+            anyhow!("Decoding Keypair Bytes: {:?}", decoded)
+        })?)
     }
 }

@@ -20,27 +20,36 @@ impl ToolboxIdlPath {
                 self.try_get_type_full(content)
             },
             ToolboxIdlTypeFull::Vec { items, .. } => {
-                let _index = current.code().context("Vec index")?;
+                if let ToolboxIdlPathPart::Key(key) = current {
+                    return Err(anyhow!("Invalid Vec Index: {}", key));
+                }
                 next.try_get_type_full(items)
             },
             ToolboxIdlTypeFull::Array { items, length } => {
-                let index = current.code().context("Array index")?;
-                if index >= *length {
-                    return Err(anyhow!(
-                        "Invalid array index: {} (length: {})",
-                        index,
-                        length
-                    ));
+                if let ToolboxIdlPathPart::Key(key) = current {
+                    return Err(anyhow!("Invalid Array Index: {}", key));
+                }
+                if let ToolboxIdlPathPart::Code(code) = current {
+                    if code >= *length {
+                        return Err(anyhow!(
+                            "Invalid Array index: {} (length: {})",
+                            code,
+                            length
+                        ));
+                    }
                 }
                 next.try_get_type_full(items)
             },
             ToolboxIdlTypeFull::Struct { fields } => {
                 self.try_get_type_full_fields(fields)
             },
-            ToolboxIdlTypeFull::Enum { variants, .. } => match &current {
+            ToolboxIdlTypeFull::Enum { variants, .. } => match current {
+                ToolboxIdlPathPart::Empty => {
+                    Err(anyhow!("Invalid Enum Variant: Empty String"))
+                },
                 ToolboxIdlPathPart::Key(key) => {
                     for variant in variants {
-                        if &variant.name == key {
+                        if variant.name == key {
                             return next
                                 .try_get_type_full_fields(&variant.fields);
                         }
@@ -49,7 +58,7 @@ impl ToolboxIdlPath {
                 },
                 ToolboxIdlPathPart::Code(code) => {
                     for variant in variants {
-                        if &variant.code == code {
+                        if variant.code == code {
                             return next
                                 .try_get_type_full_fields(&variant.fields);
                         }

@@ -13,6 +13,7 @@ impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn simulate_transaction_using_rpc(
         &mut self,
         versioned_transaction: VersionedTransaction,
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution> {
         let mut resolved_address_lookup_tables = vec![];
         if let Some(address_table_lookups) =
@@ -49,7 +50,7 @@ impl ToolboxEndpointProxyRpcClient {
             .simulate_transaction_with_config(
                 &versioned_transaction,
                 RpcSimulateTransactionConfig {
-                    sig_verify: true,
+                    sig_verify: verify_signatures,
                     replace_recent_blockhash: false,
                     commitment: Some(self.get_commitment()),
                     encoding: Some(UiTransactionEncoding::Base64),

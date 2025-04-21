@@ -12,8 +12,14 @@ impl ToolboxEndpoint {
         payer: &Keypair,
         instruction: Instruction,
     ) -> Result<ToolboxEndpointExecution> {
-        self.simulate_instructions_with_options(payer, &[instruction], &[], &[])
-            .await
+        self.simulate_instructions_with_options(
+            payer,
+            &[instruction],
+            &[],
+            &[],
+            true,
+        )
+        .await
     }
 
     pub async fn simulate_instruction_with_signers(
@@ -27,6 +33,7 @@ impl ToolboxEndpoint {
             &[instruction],
             signers,
             &[],
+            true,
         )
         .await
     }
@@ -42,6 +49,7 @@ impl ToolboxEndpoint {
             instructions,
             signers,
             &[],
+            true,
         )
         .await
     }
@@ -52,6 +60,7 @@ impl ToolboxEndpoint {
         instructions: &[Instruction],
         signers: &[&Keypair],
         resolved_address_lookup_tables: &[(Pubkey, Vec<Pubkey>)],
+        verify_signatures: bool,
     ) -> Result<ToolboxEndpointExecution> {
         let versioned_transaction =
             ToolboxEndpoint::compile_versioned_transaction(
@@ -61,7 +70,10 @@ impl ToolboxEndpoint {
                 resolved_address_lookup_tables,
                 self.get_latest_blockhash().await?,
             )?;
-        self.simulate_versioned_transaction(versioned_transaction)
-            .await
+        self.simulate_versioned_transaction(
+            versioned_transaction,
+            verify_signatures,
+        )
+        .await
     }
 }
