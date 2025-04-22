@@ -5855,11 +5855,9 @@ name = "solana_toolbox_idl"
 version = "0.3.11-solana-2.1.4"
 dependencies = [
  "anyhow",
- "bytemuck",
  "convert_case",
  "inflate",
  "serde_json",
- "sha2 0.10.8",
  "solana-sdk",
  "solana_toolbox_endpoint",
 ]

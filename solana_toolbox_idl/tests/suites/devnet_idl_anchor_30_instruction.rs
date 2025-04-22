@@ -4,7 +4,6 @@ use serde_json::json;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
@@ -54,9 +53,10 @@ pub async fn run() {
         .0
     );
     // Addresses we'll be using for our instructions
-    let payer =
-        Keypair::from_seed(b"Hello world, this is a dummy payer for devnet")
-            .unwrap();
+    let payer = ToolboxEndpoint::keypair_from_seed_string_hash(
+        "Dummy devnet payer used to pay for testing IDL generated transactions",
+    )
+    .unwrap();
     let collateral_mint =
         pubkey!("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3");
     let user = Keypair::new();

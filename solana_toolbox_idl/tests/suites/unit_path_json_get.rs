@@ -1,4 +1,5 @@
-use serde_json::{json, Value};
+use serde_json::json;
+use serde_json::Value;
 use solana_toolbox_idl::ToolboxIdlPath;
 
 #[tokio::test]

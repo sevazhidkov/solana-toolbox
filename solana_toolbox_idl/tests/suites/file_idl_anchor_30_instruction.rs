@@ -76,10 +76,10 @@ pub async fn run() {
     assert_eq!(program_id, instruction.program_id);
     // Check instruction data
     assert_eq!(8 + 8 + 8 + 4 + 2 + 512, instruction.data.len());
-    assert_eq!(bytemuck::bytes_of::<u64>(&11), &instruction.data[8..16]);
-    assert_eq!(bytemuck::bytes_of::<u64>(&41), &instruction.data[16..24]);
-    assert_eq!(bytemuck::bytes_of::<u32>(&42), &instruction.data[24..28]);
-    assert_eq!(bytemuck::bytes_of::<u16>(&22), &instruction.data[28..30]);
+    assert_eq!(11u64.to_le_bytes(), &instruction.data[8..16]);
+    assert_eq!(41u64.to_le_bytes(), &instruction.data[16..24]);
+    assert_eq!(42u32.to_le_bytes(), &instruction.data[24..28]);
+    assert_eq!(22u16.to_le_bytes(), &instruction.data[28..30]);
     // Check instruction accounts
     assert_eq!(9, instruction.accounts.len());
     assert_account(payer, true, true, instruction.accounts.first());

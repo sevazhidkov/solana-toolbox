@@ -4,6 +4,7 @@ pub mod devnet_preflight;
 pub mod devnet_program;
 pub mod devnet_search_addresses;
 pub mod devnet_search_signatures;
+pub mod devnet_signature_verify;
 pub mod devnet_simulate;
 pub mod devnet_spl_token_metadata;
 pub mod devnet_sysvars;

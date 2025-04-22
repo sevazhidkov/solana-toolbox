@@ -2,7 +2,6 @@ use solana_sdk::instruction::InstructionError;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
 use solana_sdk::transaction::TransactionError;
@@ -14,9 +13,10 @@ pub async fn run() {
     // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Make a payer
-    let payer =
-        Keypair::from_seed(b"This is a dummy devnet payer used for simulation")
-            .unwrap();
+    let payer = ToolboxEndpoint::keypair_from_seed_string_hash(
+        "Dummy devnet payer used to test simulations outcomes",
+    )
+    .unwrap();
     // Simulate an instruction that should succeed
     let account_success = Keypair::new();
     let instruction_success = create_account(

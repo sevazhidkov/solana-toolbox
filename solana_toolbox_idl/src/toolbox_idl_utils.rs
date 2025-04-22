@@ -8,8 +8,7 @@ use convert_case::Case;
 use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
-use sha2::Digest;
-use sha2::Sha256;
+use solana_sdk::hash::Hasher;
 use solana_sdk::pubkey::Pubkey;
 
 pub(crate) fn idl_object_get_key_as_array<'a>(
@@ -283,7 +282,7 @@ pub(crate) fn idl_convert_to_camel_case(name: &str) -> String {
 }
 
 pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {
-    let mut hasher = Sha256::new();
-    hasher.update(value);
-    hasher.finalize()[..8].to_vec()
+    let mut hasher = Hasher::default();
+    hasher.hash(value.as_bytes());
+    hasher.result().to_bytes()[..8].to_vec()
 }

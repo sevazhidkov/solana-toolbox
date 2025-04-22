@@ -13,12 +13,16 @@ use solana_sdk::signature::Signature;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 
 impl ToolboxEndpoint {
-    pub fn encode_base16(data: &[u8]) -> String {
+    pub fn encode_base16_bytes(data: &[u8]) -> Vec<String> {
         let mut bytes = vec![];
         for byte in data {
             bytes.push(format!("{:02X}", byte));
         }
-        bytes.join("")
+        bytes
+    }
+
+    pub fn encode_base16(data: &[u8]) -> String {
+        ToolboxEndpoint::encode_base16_bytes(data).join("")
     }
 
     pub fn encode_base58(data: &[u8]) -> String {
@@ -74,14 +78,14 @@ impl ToolboxEndpoint {
 
     pub fn sanitize_and_decode_signature(raw: &str) -> Result<Signature> {
         let sanitized = raw.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-        Ok(Signature::from_str(&sanitized)
-            .with_context(|| anyhow!("Decoding Signature: {}", sanitized))?)
+        Signature::from_str(&sanitized)
+            .with_context(|| anyhow!("Decoding Signature: {}", sanitized))
     }
 
     pub fn sanitize_and_decode_pubkey(raw: &str) -> Result<Pubkey> {
         let sanitized = raw.replace(|c| !char::is_ascii_alphanumeric(&c), "");
-        Ok(Pubkey::from_str(&sanitized)
-            .with_context(|| anyhow!("Decoding Pubkey: {}", sanitized))?)
+        Pubkey::from_str(&sanitized)
+            .with_context(|| anyhow!("Decoding Pubkey: {}", sanitized))
     }
 
     pub fn sanitize_and_decode_keypair_json_array(
@@ -98,9 +102,8 @@ impl ToolboxEndpoint {
         );
         let decoded = serde_json::from_str::<Vec<u8>>(&sanitized)
             .with_context(|| anyhow!("Decoding Keypair Json Array: {}", raw))?;
-        Ok(Keypair::from_bytes(&decoded).with_context(|| {
-            anyhow!("Decoding Keypair Bytes: {:?}", decoded)
-        })?)
+        Keypair::from_bytes(&decoded)
+            .with_context(|| anyhow!("Decoding Keypair Bytes: {:?}", decoded))
     }
 
     pub fn sanitize_and_decode_keypair_base58(raw: &str) -> Result<Keypair> {
@@ -108,8 +111,7 @@ impl ToolboxEndpoint {
             .with_context(|| {
                 anyhow!("Decoding Keypair Base58 String: {}", raw)
             })?;
-        Ok(Keypair::from_bytes(&decoded).with_context(|| {
-            anyhow!("Decoding Keypair Bytes: {:?}", decoded)
-        })?)
+        Keypair::from_bytes(&decoded)
+            .with_context(|| anyhow!("Decoding Keypair Bytes: {:?}", decoded))
     }
 }

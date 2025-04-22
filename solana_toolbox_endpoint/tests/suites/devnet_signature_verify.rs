@@ -7,13 +7,12 @@ use solana_toolbox_endpoint::ToolboxEndpoint;
 #[tokio::test]
 pub async fn run() {
     // Initialize the endpoint
-    let mut endpoint = ToolboxEndpoint::new_program_test().await;
-    // Make a payer
-    let payer = Keypair::new();
-    endpoint
-        .request_airdrop(&payer.pubkey(), 2_000_000_000)
-        .await
-        .unwrap();
+    let mut endpoint = ToolboxEndpoint::new_devnet().await;
+    // Prepare a payer
+    let payer = ToolboxEndpoint::keypair_from_seed_string_hash(
+        "Dummy devnet payer used to test signatures verifications",
+    )
+    .unwrap();
     // Dummy key
     let account = Keypair::new();
     // Generate an instruction that requires a signature

@@ -9,7 +9,7 @@ pub async fn run() {
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
-    // Make sure invalid transactions return an error
+    // Make sure invalid transactions return an error (and not a signature)
     let user = Keypair::new();
     endpoint
         .process_system_transfer(&user, &user, &user.pubkey(), 1_000_000_000)

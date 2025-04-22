@@ -12,6 +12,7 @@ use crate::toolbox_cli_command_execution::ToolboxCliCommandExecutionArgs;
 use crate::toolbox_cli_command_find::ToolboxCliCommandFindArgs;
 use crate::toolbox_cli_command_history::ToolboxCliCommandHistoryArgs;
 use crate::toolbox_cli_command_instruction::ToolboxCliCommandInstructionArgs;
+use crate::toolbox_cli_command_pda::ToolboxCliCommandPdaArgs;
 use crate::toolbox_cli_command_program::ToolboxCliCommandProgramArgs;
 use crate::toolbox_cli_context::ToolboxCliContext;
 
@@ -113,11 +114,11 @@ pub enum ToolboxCliCommand {
     Find(ToolboxCliCommandFindArgs),
     History(ToolboxCliCommandHistoryArgs),
     Instruction(ToolboxCliCommandInstructionArgs),
+    Pda(ToolboxCliCommandPdaArgs),
     Program(ToolboxCliCommandProgramArgs),
 }
 
 // TODO (MEDIUM) - some type of lookup system for addresses by name or smthg
-// TODO (MEDIUM) - PDA command for generating pubkeys from manually specified seeds
 
 impl ToolboxCliCommand {
     pub async fn process(&self, context: &ToolboxCliContext) -> Result<Value> {
@@ -127,6 +128,7 @@ impl ToolboxCliCommand {
             ToolboxCliCommand::Find(args) => args.process(context).await,
             ToolboxCliCommand::History(args) => args.process(context).await,
             ToolboxCliCommand::Instruction(args) => args.process(context).await,
+            ToolboxCliCommand::Pda(args) => args.process(context).await,
             ToolboxCliCommand::Program(args) => args.process(context).await,
         }
     }

@@ -1,6 +1,5 @@
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::transfer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
@@ -13,9 +12,9 @@ pub async fn run() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Prepare a payer
-    let payer = Keypair::from_seed(
-        b"This is a dummy devnet payer for address lookup table testing",
-    ) // 8sQEYJA7f5k3LrTDDkRDj46tWayc1fAdhurh61BtfUxF
+    let payer = ToolboxEndpoint::keypair_from_seed_string_hash(
+        "Dummy devnet payer used to create test lookup address tables",
+    )
     .unwrap();
     // Compute minimum rent amount
     let rent = endpoint.get_sysvar_rent().await.unwrap();

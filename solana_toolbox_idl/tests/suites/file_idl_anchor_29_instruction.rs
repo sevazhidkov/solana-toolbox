@@ -52,9 +52,9 @@ pub async fn run() {
     assert_eq!(program_id, instruction.program_id);
     // Check instruction data
     assert_eq!(8 + 8 + 8 + 8, instruction.data.len());
-    assert_eq!(bytemuck::bytes_of::<u64>(&41), &instruction.data[8..16]);
-    assert_eq!(bytemuck::bytes_of::<u64>(&42), &instruction.data[16..24]);
-    assert_eq!(bytemuck::bytes_of::<u64>(&43), &instruction.data[24..32]);
+    assert_eq!(41u64.to_le_bytes(), &instruction.data[8..16]);
+    assert_eq!(42u64.to_le_bytes(), &instruction.data[16..24]);
+    assert_eq!(43u64.to_le_bytes(), &instruction.data[24..32]);
     // Check instruction accounts
     assert_eq!(12, instruction.accounts.len());
     assert_account(payer, true, true, instruction.accounts.first());

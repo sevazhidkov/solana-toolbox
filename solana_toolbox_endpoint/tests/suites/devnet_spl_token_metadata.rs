@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::signer::SeedDerivable;
 use solana_sdk::signer::Signer;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
@@ -14,9 +13,10 @@ pub async fn run() {
     // Create a print logger
     endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Make a payer
-    let payer =
-        Keypair::from_seed(b"This is a dummy devnet payer for paying rent")
-            .unwrap();
+    let payer = ToolboxEndpoint::keypair_from_seed_string_hash(
+        "Dummy devnet payer used to create test dummy token mints",
+    )
+    .unwrap();
     // Make a mint
     let mint_authority = Keypair::new();
     let mint = endpoint
