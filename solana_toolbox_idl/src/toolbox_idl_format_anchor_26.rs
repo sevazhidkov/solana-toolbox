@@ -11,7 +11,7 @@ impl ToolboxIdlFormat {
             use_camel_case_type_primitive_names: true,
             use_camel_case_type_fields_names: true,
             can_skip_defined_name_object_wrap: true,
-            can_skip_unamed_field_type_object_wrap: false,
+            can_skip_unnamed_field_type_object_wrap: false,
             can_skip_typedef_type_object_wrap: false,
             can_skip_typedef_generic_kind_key: false,
             can_skip_type_kind_key: false,

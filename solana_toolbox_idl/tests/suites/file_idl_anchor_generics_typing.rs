@@ -24,7 +24,7 @@ pub async fn run() {
             fields: ToolboxIdlTypeFullFields::Named(vec![
                 ToolboxIdlTypeFullFieldNamed {
                     name: "data".to_string(),
-                    type_full: make_type_full_generic_type(
+                    content: make_type_full_generic_type(
                         make_type_full_u32(),
                         make_type_full_u64(),
                         make_type_full_const(10)
@@ -39,7 +39,7 @@ pub async fn run() {
         idl_instruction.args_type_full_fields,
         ToolboxIdlTypeFullFields::Named(vec![ToolboxIdlTypeFullFieldNamed {
             name: "generic_field".to_string(),
-            type_full: make_type_full_generic_type(
+            content: make_type_full_generic_type(
                 make_type_full_u32(),
                 make_type_full_u64(),
                 make_type_full_const(10)
@@ -57,61 +57,61 @@ fn make_type_full_generic_type(
         fields: ToolboxIdlTypeFullFields::Named(vec![
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen1".to_string(),
-                type_full: t.clone(),
+                content: t.clone(),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen2".to_string(),
-                type_full: u.clone(),
+                content: u.clone(),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen3".to_string(),
-                type_full: make_type_full_generic_nested(
+                content: make_type_full_generic_nested(
                     make_type_full_u32(),
                     u.clone(),
                 ),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen4".to_string(),
-                type_full: make_type_full_generic_nested(
+                content: make_type_full_generic_nested(
                     t.clone(),
                     make_type_full_my_struct(),
                 ),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen5".to_string(),
-                type_full: make_type_full_generic_nested(t.clone(), u.clone()),
+                content: make_type_full_generic_nested(t.clone(), u.clone()),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen6".to_string(),
-                type_full: make_type_full_generic_nested(
+                content: make_type_full_generic_nested(
                     make_type_full_u32(),
                     make_type_full_u64(),
                 ),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen7".to_string(),
-                type_full: make_type_full_generic_nested(
+                content: make_type_full_generic_nested(
                     t.clone(),
                     make_type_full_generic_nested(t.clone(), u.clone()),
                 ),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "arr".to_string(),
-                type_full: make_type_full_array(make_type_full_u8(), n.clone()),
+                content: make_type_full_array(make_type_full_u8(), n.clone()),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "warr".to_string(),
-                type_full: make_type_full_wrapped_u8_array(n.clone()),
+                content: make_type_full_wrapped_u8_array(n.clone()),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "warrval".to_string(),
-                type_full: make_type_full_wrapped_u8_array(
-                    make_type_full_const(10),
-                ),
+                content: make_type_full_wrapped_u8_array(make_type_full_const(
+                    10,
+                )),
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "enm1".to_string(),
-                type_full: make_type_full_generic_enum(
+                content: make_type_full_generic_enum(
                     t.clone(),
                     u.clone(),
                     n.clone(),
@@ -119,7 +119,7 @@ fn make_type_full_generic_type(
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "enm2".to_string(),
-                type_full: make_type_full_generic_enum(
+                content: make_type_full_generic_enum(
                     make_type_full_generic_nested(
                         t.clone(),
                         make_type_full_u64(),
@@ -144,12 +144,8 @@ fn make_type_full_generic_enum(
                 name: "Unnamed".to_string(),
                 code: 0,
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-                    ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: t.clone(),
-                    },
-                    ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: u.clone(),
-                    },
+                    ToolboxIdlTypeFullFieldUnnamed { content: t.clone() },
+                    ToolboxIdlTypeFullFieldUnnamed { content: u.clone() },
                 ]),
             },
             ToolboxIdlTypeFullEnumVariant {
@@ -158,11 +154,11 @@ fn make_type_full_generic_enum(
                 fields: ToolboxIdlTypeFullFields::Named(vec![
                     ToolboxIdlTypeFullFieldNamed {
                         name: "gen1".to_string(),
-                        type_full: t.clone(),
+                        content: t.clone(),
                     },
                     ToolboxIdlTypeFullFieldNamed {
                         name: "gen2".to_string(),
-                        type_full: u.clone(),
+                        content: u.clone(),
                     },
                 ]),
             },
@@ -171,7 +167,7 @@ fn make_type_full_generic_enum(
                 code: 2,
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                     ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: make_type_full_generic_nested(
+                        content: make_type_full_generic_nested(
                             t.clone(),
                             u.clone(),
                         ),
@@ -183,7 +179,7 @@ fn make_type_full_generic_enum(
                 code: 3,
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                     ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: make_type_full_array(t.clone(), n.clone()),
+                        content: make_type_full_array(t.clone(), n.clone()),
                     },
                 ]),
             },
@@ -196,7 +192,7 @@ fn make_type_full_my_struct() -> ToolboxIdlTypeFull {
         fields: ToolboxIdlTypeFullFields::Named(vec![
             ToolboxIdlTypeFullFieldNamed {
                 name: "some_field".to_string(),
-                type_full: make_type_full_u8(),
+                content: make_type_full_u8(),
             },
         ]),
     }
@@ -210,11 +206,11 @@ fn make_type_full_generic_nested(
         fields: ToolboxIdlTypeFullFields::Named(vec![
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen1".to_string(),
-                type_full: v,
+                content: v,
             },
             ToolboxIdlTypeFullFieldNamed {
                 name: "gen2".to_string(),
-                type_full: z,
+                content: z,
             },
         ]),
     }
@@ -226,7 +222,7 @@ fn make_type_full_wrapped_u8_array(
     ToolboxIdlTypeFull::Struct {
         fields: ToolboxIdlTypeFullFields::Unnamed(vec![
             ToolboxIdlTypeFullFieldUnnamed {
-                type_full: make_type_full_u8(),
+                content: make_type_full_u8(),
             },
         ]),
     }

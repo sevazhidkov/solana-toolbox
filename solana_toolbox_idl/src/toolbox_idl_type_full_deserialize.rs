@@ -25,15 +25,15 @@ impl ToolboxIdlTypeFull {
         // TODO (FAR) - support deserializing bytes into custom stuff like base64 ?
     ) -> Result<(usize, Value)> {
         match self {
-            ToolboxIdlTypeFull::Option { prefix, content } => {
-                ToolboxIdlTypeFull::try_deserialize_option(
-                    prefix,
-                    content,
-                    data,
-                    data_offset,
-                )
-            },
-            ToolboxIdlTypeFull::Vec { prefix, items } => {
+            ToolboxIdlTypeFull::Option {
+                prefix, content, ..
+            } => ToolboxIdlTypeFull::try_deserialize_option(
+                prefix,
+                content,
+                data,
+                data_offset,
+            ),
+            ToolboxIdlTypeFull::Vec { prefix, items, .. } => {
                 ToolboxIdlTypeFull::try_deserialize_vec(
                     prefix,
                     items,
@@ -49,26 +49,30 @@ impl ToolboxIdlTypeFull {
                     data_offset,
                 )
             },
-            ToolboxIdlTypeFull::Struct { fields } => {
+            ToolboxIdlTypeFull::Struct { fields, .. } => {
                 ToolboxIdlTypeFull::try_deserialize_struct(
                     fields,
                     data,
                     data_offset,
                 )
             },
-            ToolboxIdlTypeFull::Enum { prefix, variants } => {
-                ToolboxIdlTypeFull::try_deserialize_enum(
-                    prefix,
-                    variants,
-                    data,
-                    data_offset,
-                )
-            },
+            ToolboxIdlTypeFull::Enum {
+                prefix, variants, ..
+            } => ToolboxIdlTypeFull::try_deserialize_enum(
+                prefix,
+                variants,
+                data,
+                data_offset,
+            ),
             ToolboxIdlTypeFull::Padded {
-                size_bytes,
+                before,
+                size,
+                after,
                 content,
             } => ToolboxIdlTypeFull::try_deserialize_padded(
-                size_bytes,
+                before,
+                size,
+                after,
                 content,
                 data,
                 data_offset,
@@ -93,7 +97,7 @@ impl ToolboxIdlTypeFull {
         data_offset: usize,
     ) -> Result<(usize, Value)> {
         let data_flag = option_prefix.from_bytes_at(data, data_offset)?;
-        let mut data_size = option_prefix.size_of();
+        let mut data_size = option_prefix.size();
         if data_flag > 0 {
             let (data_content_size, data_content) = option_content
                 .try_deserialize(data, data_offset + data_size)?;
@@ -111,7 +115,7 @@ impl ToolboxIdlTypeFull {
         data_offset: usize,
     ) -> Result<(usize, Value)> {
         let data_length = vec_prefix.from_bytes_at(data, data_offset)?;
-        let mut data_size = vec_prefix.size_of();
+        let mut data_size = vec_prefix.size();
         let mut data_items = vec![];
         for index in 0..data_length {
             let (data_item_size, data_item) = vec_items
@@ -159,7 +163,7 @@ impl ToolboxIdlTypeFull {
         let data_code = enum_prefix.from_bytes_at(data, data_offset)?;
         for enum_variant in enum_variants {
             if enum_variant.code == data_code {
-                let mut data_size = enum_prefix.size_of();
+                let mut data_size = enum_prefix.size();
                 let (data_fields_size, data_fields) = enum_variant
                     .fields
                     .try_deserialize(data, data_offset + data_size)
@@ -193,16 +197,27 @@ impl ToolboxIdlTypeFull {
         ))
     }
 
+    // TODO - test padded mode ?
     fn try_deserialize_padded(
-        padded_size_bytes: &u64,
+        padded_before: &Option<u64>,
+        padded_size: &Option<u64>,
+        padded_after: &Option<u64>,
         padded_content: &ToolboxIdlTypeFull,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let padded_size_bytes = usize::try_from(*padded_size_bytes)?;
+        let data_offset_before =
+            data_offset + usize::try_from(padded_before.unwrap_or(0))?;
         let (data_content_size, data_content) =
-            padded_content.try_deserialize(data, data_offset)?;
-        Ok((max(data_content_size, padded_size_bytes), data_content))
+            padded_content.try_deserialize(data, data_offset_before)?;
+        let data_offset_after = data_offset_before
+            + max(
+                usize::try_from(padded_size.unwrap_or(0))?,
+                data_content_size,
+            )
+            + usize::try_from(padded_after.unwrap_or(0))?;
+        let data_size = data_offset_after - data_offset_before;
+        Ok((data_size, data_content))
     }
 
     fn try_deserialize_primitive(
@@ -212,74 +227,88 @@ impl ToolboxIdlTypeFull {
     ) -> Result<(usize, Value)> {
         Ok(match primitive {
             ToolboxIdlTypePrimitive::U8 => {
-                let int = idl_u8_from_bytes_at(data, data_offset)?;
-                (std::mem::size_of_val(&int), json!(int))
+                let data_size = std::mem::size_of::<u8>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = u8::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::U16 => {
-                let size = std::mem::size_of::<u16>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = u16::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<u16>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = u16::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::U32 => {
-                let size = std::mem::size_of::<u32>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = u32::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<u32>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = u32::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::U64 => {
-                let size = std::mem::size_of::<u64>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = u64::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<u64>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = u64::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::U128 => {
-                let size = std::mem::size_of::<u128>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = u128::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<u128>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = u128::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::I8 => {
-                let size = std::mem::size_of::<i8>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = i8::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<i8>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = i8::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::I16 => {
-                let size = std::mem::size_of::<i16>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = i16::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<i16>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = i16::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::I32 => {
-                let size = std::mem::size_of::<i32>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = i32::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<i32>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = i32::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::I64 => {
-                let size = std::mem::size_of::<i64>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = i64::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<i64>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = i64::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::I128 => {
-                let size = std::mem::size_of::<i128>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = i128::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<i128>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = i128::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::F32 => {
-                let size = std::mem::size_of::<f32>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = f32::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<f32>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = f32::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::F64 => {
-                let size = std::mem::size_of::<f64>();
-                let slice = idl_slice_from_bytes(data, data_offset, size)?;
-                let num = f64::from_le_bytes(slice.try_into()?);
-                (size, json!(num))
+                let data_size = std::mem::size_of::<f64>();
+                let data_slice =
+                    idl_slice_from_bytes(data, data_offset, data_size)?;
+                let data_num = f64::from_le_bytes(data_slice.try_into()?);
+                (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::Boolean => {
                 let data_flag = idl_u8_from_bytes_at(data, data_offset)?;
@@ -307,6 +336,7 @@ impl ToolboxIdlTypeFull {
     }
 }
 
+// TODO - serialize deserialize impl separatated for field named/unnamed ?
 impl ToolboxIdlTypeFullFields {
     pub fn try_deserialize(
         &self,
@@ -319,7 +349,7 @@ impl ToolboxIdlTypeFullFields {
                 let mut data_fields = Map::new();
                 for field in fields {
                     let (data_field_size, data_field) = field
-                        .type_full
+                        .content
                         .try_deserialize(data, data_offset + data_size)
                         .with_context(|| {
                             format!("Decode Field: {}", field.name)
@@ -334,7 +364,7 @@ impl ToolboxIdlTypeFullFields {
                 let mut data_fields = vec![];
                 for (index, field) in fields.iter().enumerate() {
                     let (data_field_size, data_field) = field
-                        .type_full
+                        .content
                         .try_deserialize(data, data_offset + data_size)
                         .with_context(|| format!("Decode Field: {}", index))?;
                     data_size += data_field_size;

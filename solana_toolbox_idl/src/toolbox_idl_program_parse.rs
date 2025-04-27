@@ -28,6 +28,7 @@ use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_key_as_str_or_else;
 
+// TODO (FAR) - support passing missing symbols (typedefs overrides at program parsing level ??)
 impl ToolboxIdlProgram {
     pub const DISCRIMINATOR: &[u8] =
         &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];

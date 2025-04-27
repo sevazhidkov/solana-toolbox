@@ -49,7 +49,7 @@ impl ToolboxIdlTypePrefix {
         Ok(())
     }
 
-    pub fn size_of(&self) -> usize {
+    pub fn size(&self) -> usize {
         match self {
             ToolboxIdlTypePrefix::U8 => std::mem::size_of::<u8>(),
             ToolboxIdlTypePrefix::U16 => std::mem::size_of::<u16>(),

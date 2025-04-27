@@ -8,7 +8,7 @@ pub struct ToolboxIdlFormat {
     pub use_camel_case_type_primitive_names: bool,
     pub use_camel_case_type_fields_names: bool,
     pub can_skip_defined_name_object_wrap: bool,
-    pub can_skip_unamed_field_type_object_wrap: bool,
+    pub can_skip_unnamed_field_type_object_wrap: bool,
     pub can_skip_typedef_type_object_wrap: bool,
     pub can_skip_typedef_generic_kind_key: bool,
     pub can_skip_type_kind_key: bool,

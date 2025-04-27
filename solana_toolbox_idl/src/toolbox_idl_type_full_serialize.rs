@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::str::FromStr;
 
 use anyhow::anyhow;
@@ -33,16 +34,16 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         match self {
-            ToolboxIdlTypeFull::Option { prefix, content } => {
-                ToolboxIdlTypeFull::try_serialize_option(
-                    prefix,
-                    content,
-                    value,
-                    data,
-                    deserializable,
-                )
-            },
-            ToolboxIdlTypeFull::Vec { prefix, items } => {
+            ToolboxIdlTypeFull::Option {
+                prefix, content, ..
+            } => ToolboxIdlTypeFull::try_serialize_option(
+                prefix,
+                content,
+                value,
+                data,
+                deserializable,
+            ),
+            ToolboxIdlTypeFull::Vec { prefix, items, .. } => {
                 ToolboxIdlTypeFull::try_serialize_vec(
                     prefix,
                     items,
@@ -60,7 +61,7 @@ impl ToolboxIdlTypeFull {
                     deserializable,
                 )
             },
-            ToolboxIdlTypeFull::Struct { fields } => {
+            ToolboxIdlTypeFull::Struct { fields, .. } => {
                 ToolboxIdlTypeFull::try_serialize_struct(
                     fields,
                     value,
@@ -68,20 +69,24 @@ impl ToolboxIdlTypeFull {
                     deserializable,
                 )
             },
-            ToolboxIdlTypeFull::Enum { prefix, variants } => {
-                ToolboxIdlTypeFull::try_serialize_enum(
-                    prefix,
-                    variants,
-                    value,
-                    data,
-                    deserializable,
-                )
-            },
+            ToolboxIdlTypeFull::Enum {
+                prefix, variants, ..
+            } => ToolboxIdlTypeFull::try_serialize_enum(
+                prefix,
+                variants,
+                value,
+                data,
+                deserializable,
+            ),
             ToolboxIdlTypeFull::Padded {
-                size_bytes,
+                before,
+                size,
+                after,
                 content,
             } => ToolboxIdlTypeFull::try_serialize_padded(
-                size_bytes,
+                before,
+                size,
+                after,
                 content,
                 value,
                 data,
@@ -108,13 +113,14 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
+        // TODO - support undefined fields ?
         if value.is_null() {
             option_prefix.write(0, data)?;
-            Ok(())
         } else {
             option_prefix.write(1, data)?;
-            option_content.try_serialize(value, data, deserializable)
+            option_content.try_serialize(value, data, deserializable)?;
         }
+        Ok(())
     }
 
     fn try_serialize_vec(
@@ -266,16 +272,28 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_padded(
-        padded_size_bytes: &u64,
+        padded_before: &Option<u64>,
+        padded_size: &Option<u64>,
+        padded_after: &Option<u64>,
         padded_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let padded_size_bytes = usize::try_from(*padded_size_bytes)?;
-        let data_len_enforced = data.len() + padded_size_bytes;
+        let data_offset_before =
+            data.len() + usize::try_from(padded_before.unwrap_or(0))?;
+        while data.len() < data_offset_before {
+            data.push(0);
+        }
         padded_content.try_serialize(value, data, deserializable)?;
-        while data.len() < data_len_enforced {
+        let data_content_size = data.len() - data_offset_before;
+        let data_offset_after = data_offset_before
+            + max(
+                usize::try_from(padded_size.unwrap_or(0))?,
+                data_content_size,
+            )
+            + usize::try_from(padded_after.unwrap_or(0))?;
+        while data.len() < data_offset_after {
             data.push(0);
         }
         Ok(())
@@ -370,14 +388,14 @@ impl ToolboxIdlTypeFullFields {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        match self {
+        Ok(match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let value = idl_as_object_or_else(value)?;
                 for field in fields {
                     let value_field =
                         idl_object_get_key_or_else(value, &field.name)?;
                     field
-                        .type_full
+                        .content
                         .try_serialize(value_field, data, deserializable)
                         .with_context(|| {
                             format!("Serialize Field: {}", field.name)
@@ -387,20 +405,20 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let values = idl_as_array_or_else(value)?;
                 if values.len() != fields.len() {
-                    return Err(anyhow!("Wrong number of unamed fields, expected: {}, found: {}", fields.len(), values.len()));
+                    return Err(anyhow!("Wrong number of unnamed fields, expected: {}, found: {}", fields.len(), values.len()));
                 }
                 for (index, field) in fields.iter().enumerate() {
+                    let value_field = &values[index];
                     field
-                        .type_full
-                        .try_serialize(&values[index], data, deserializable)
+                        .content
+                        .try_serialize(value_field, data, deserializable)
                         .with_context(|| {
                             format!("Serialize Field: {}", index)
                         })?;
                 }
             },
             ToolboxIdlTypeFullFields::None => {},
-        }
-        Ok(())
+        })
     }
 }
 

@@ -42,7 +42,7 @@ pub mod unit_parse_typedef_enum_variants;
 pub mod unit_parse_typedef_enum_variants_fields;
 pub mod unit_parse_typedef_struct;
 pub mod unit_parse_typedef_struct_fields_named;
-pub mod unit_parse_typedef_struct_fields_unamed;
+pub mod unit_parse_typedef_struct_fields_unnamed;
 pub mod unit_parse_typedef_struct_generics;
 pub mod unit_path_json_get;
 pub mod unit_path_json_set;

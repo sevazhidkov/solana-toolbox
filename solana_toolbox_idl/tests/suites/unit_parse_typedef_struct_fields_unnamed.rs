@@ -74,33 +74,33 @@ pub async fn run() {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypePrimitive::U8.into()
+                        content: ToolboxIdlTypePrimitive::U8.into()
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypePrimitive::U64.into()
+                        content: ToolboxIdlTypePrimitive::U64.into()
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypePrimitive::String.into()
+                        content: ToolboxIdlTypePrimitive::String.into()
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Vec {
+                        content: ToolboxIdlTypeFlat::Vec {
                             prefix: ToolboxIdlTypePrefix::U32,
                             items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Vec {
+                        content: ToolboxIdlTypeFlat::Vec {
                             prefix: ToolboxIdlTypePrefix::U32,
                             items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Array {
+                        content: ToolboxIdlTypeFlat::Array {
                             items: Box::new(
                                 ToolboxIdlTypePrimitive::U32.into()
                             ),
@@ -111,7 +111,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Array {
+                        content: ToolboxIdlTypeFlat::Array {
                             items: Box::new(
                                 ToolboxIdlTypePrimitive::U32.into()
                             ),
@@ -122,47 +122,47 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Struct {
+                        content: ToolboxIdlTypeFlat::Struct {
                             fields: ToolboxIdlTypeFlatFields::None
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Enum {
+                        content: ToolboxIdlTypeFlat::Enum {
                             prefix: ToolboxIdlTypePrefix::U8,
                             variants: vec![]
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Defined {
+                        content: ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Defined {
+                        content: ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Defined {
+                        content: ToolboxIdlTypeFlat::Defined {
                             name: "Other".to_string(),
                             generics: vec![]
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Generic {
+                        content: ToolboxIdlTypeFlat::Generic {
                             symbol: "G".to_string()
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Option {
+                        content: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U8,
                             content: Box::new(
                                 ToolboxIdlTypePrimitive::U8.into()
@@ -171,7 +171,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Option {
+                        content: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U32,
                             content: Box::new(
                                 ToolboxIdlTypePrimitive::U8.into()
@@ -180,7 +180,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: Some(json!(["Hello"])),
-                        type_flat: ToolboxIdlTypeFlat::Struct {
+                        content: ToolboxIdlTypeFlat::Struct {
                             fields: ToolboxIdlTypeFlatFields::None
                         }
                     },

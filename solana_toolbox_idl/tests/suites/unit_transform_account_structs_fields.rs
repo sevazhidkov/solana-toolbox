@@ -19,8 +19,8 @@ pub async fn run() {
                         },
                     },
                     {
-                        "name": "unamed",
-                        "type": "MyStructUnamed"
+                        "name": "unnamed",
+                        "type": "MyStructUnnamed"
                     },
                 ]
             },
@@ -33,7 +33,7 @@ pub async fn run() {
                     { "name": "field2", "type": [{"generic": "T"}, 2]},
                 ],
             },
-            "MyStructUnamed": {
+            "MyStructUnnamed": {
                 "fields": ["u16", "u8"],
             },
         },
@@ -46,7 +46,7 @@ pub async fn run() {
             "field1": 42,
             "field2": [66, 67],
         },
-        "unamed": [22, 23],
+        "unnamed": [22, 23],
     });
     // Check that we can use the manual IDL to encode/decode our account
     let account_data = idl_account.encode(&account_state).unwrap();

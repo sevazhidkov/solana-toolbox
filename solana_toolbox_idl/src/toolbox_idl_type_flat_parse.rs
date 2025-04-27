@@ -15,7 +15,7 @@ use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_u64;
@@ -33,13 +33,11 @@ impl ToolboxIdlTypeFlat {
             || idl_object.contains_key("option16")
             || idl_object.contains_key("option32")
             || idl_object.contains_key("option64")
-            || idl_object.contains_key("option128")
             || idl_object.contains_key("vec")
             || idl_object.contains_key("vec8")
             || idl_object.contains_key("vec16")
             || idl_object.contains_key("vec32")
             || idl_object.contains_key("vec64")
-            || idl_object.contains_key("vec128")
             || idl_object.contains_key("array")
             || idl_object.contains_key("fields")
             || idl_object.contains_key("variants")
@@ -47,7 +45,6 @@ impl ToolboxIdlTypeFlat {
             || idl_object.contains_key("variants16")
             || idl_object.contains_key("variants32")
             || idl_object.contains_key("variants64")
-            || idl_object.contains_key("variants128")
             || idl_object.contains_key("padded")
         {
             return true;
@@ -376,53 +373,61 @@ impl ToolboxIdlTypeFlat {
         idl_enum_prefix: ToolboxIdlTypePrefix,
         idl_enum_variants: &[Value],
     ) -> Result<ToolboxIdlTypeFlat> {
-        let mut enum_variants = vec![];
+        let mut variants = vec![];
         for (index, idl_enum_variant) in idl_enum_variants.iter().enumerate() {
-            let enum_variant_name =
-                idl_value_as_str_or_object_with_key_as_str_or_else(
-                    idl_enum_variant,
-                    "name",
-                )
-                .with_context(|| format!("Parse Enum Variant Name: {}", index))?
-                .to_string();
-            let enum_variant_code =
-                idl_value_as_object_get_key_as_u64(idl_enum_variant, "code")
-                    .unwrap_or(u64::try_from(index)?);
-            let enum_variant_docs =
-                idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
-            let enum_variant_fields = if let Some(idl_enum_variant_fields) =
-                idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
-            {
-                ToolboxIdlTypeFlatFields::try_parse(idl_enum_variant_fields)
-                    .with_context(|| {
-                        format!(
-                            "Parse Enum Variant Type: {}",
-                            enum_variant_name
-                        )
-                    })?
-            } else {
-                ToolboxIdlTypeFlatFields::None
-            };
-            enum_variants.push(ToolboxIdlTypeFlatEnumVariant {
-                name: enum_variant_name,
-                code: enum_variant_code,
-                docs: enum_variant_docs,
-                fields: enum_variant_fields,
-            });
+            variants.push(ToolboxIdlTypeFlat::try_parse_enum_variant(
+                index,
+                idl_enum_variant,
+            )?);
         }
         Ok(ToolboxIdlTypeFlat::Enum {
             prefix: idl_enum_prefix,
-            variants: enum_variants,
+            variants,
+        })
+    }
+
+    fn try_parse_enum_variant(
+        idl_enum_variant_index: usize,
+        idl_enum_variant: &Value,
+    ) -> Result<ToolboxIdlTypeFlatEnumVariant> {
+        let name = idl_value_as_str_or_object_with_key_as_str_or_else(
+            idl_enum_variant,
+            "name",
+        )
+        .with_context(|| {
+            format!("Parse Enum Variant Name: {}", idl_enum_variant_index)
+        })?
+        .to_string();
+        let code = idl_value_as_object_get_key_as_u64(idl_enum_variant, "code")
+            .unwrap_or(u64::try_from(idl_enum_variant_index)?);
+        let docs =
+            idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
+        let fields = if let Some(idl_enum_variant_fields) =
+            idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
+        {
+            ToolboxIdlTypeFlatFields::try_parse(idl_enum_variant_fields)
+                .with_context(|| format!("Parse Enum Variant Type: {}", name))?
+        } else {
+            ToolboxIdlTypeFlatFields::None
+        };
+        Ok(ToolboxIdlTypeFlatEnumVariant {
+            name,
+            code,
+            docs,
+            fields,
         })
     }
 
     fn try_parse_padded(
         idl_padded: &Map<String, Value>,
     ) -> Result<ToolboxIdlTypeFlat> {
-        let idl_padded_size =
-            idl_object_get_key_as_u64_or_else(idl_padded, "size")?;
+        let before = idl_object_get_key_as_u64(idl_padded, "before");
+        let size = idl_object_get_key_as_u64(idl_padded, "size");
+        let after = idl_object_get_key_as_u64(idl_padded, "after");
         Ok(ToolboxIdlTypeFlat::Padded {
-            size_bytes: idl_padded_size,
+            before,
+            size,
+            after,
             content: Box::new(ToolboxIdlTypeFlat::try_parse_object(
                 idl_padded,
             )?),
@@ -455,7 +460,7 @@ impl ToolboxIdlTypeFlatFields {
             fields_info.push(ToolboxIdlTypeFlatFieldNamed {
                 name: field_name_or_index,
                 docs: field_docs,
-                type_flat: field_type_flat,
+                content: field_type_flat,
             });
         }
         if !fields_named {
@@ -463,7 +468,7 @@ impl ToolboxIdlTypeFlatFields {
             for field in fields_info {
                 fields.push(ToolboxIdlTypeFlatFieldUnamed {
                     docs: field.docs,
-                    type_flat: field.type_flat,
+                    content: field.content,
                 });
             }
             Ok(ToolboxIdlTypeFlatFields::Unnamed(fields))

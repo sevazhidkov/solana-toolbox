@@ -16,7 +16,7 @@ use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
 use crate::toolbox_idl_path::ToolboxIdlPath;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
-use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_as_object_or_else;
@@ -30,7 +30,7 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str_or_else;
 impl ToolboxIdlInstructionAccount {
     pub fn try_parse(
         idl_instruction_account: &Value,
-        args: &ToolboxIdlTypeFullFields,
+        args_type_flat_fields: &ToolboxIdlTypeFlatFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstructionAccount> {
@@ -68,7 +68,7 @@ impl ToolboxIdlInstructionAccount {
         .with_context(|| format!("Parse {} Address", name))?;
         let pda = ToolboxIdlInstructionAccount::try_parse_pda(
             idl_instruction_account,
-            args,
+            args_type_flat_fields,
             accounts,
             typedefs,
         )
@@ -95,7 +95,7 @@ impl ToolboxIdlInstructionAccount {
 
     fn try_parse_pda(
         idl_instruction_account: &Map<String, Value>,
-        args: &ToolboxIdlTypeFullFields,
+        args_type_flat_fields: &ToolboxIdlTypeFlatFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<Option<ToolboxIdlInstructionAccountPda>> {
@@ -116,7 +116,7 @@ impl ToolboxIdlInstructionAccount {
                 seeds.push(
                     ToolboxIdlInstructionAccount::try_parse_pda_blob(
                         idl_instruction_account_pda_seed,
-                        args,
+                        args_type_flat_fields,
                         accounts,
                         typedefs,
                     )
@@ -131,7 +131,7 @@ impl ToolboxIdlInstructionAccount {
             program = Some(
                 ToolboxIdlInstructionAccount::try_parse_pda_blob(
                     idl_instruction_account_pda_program,
-                    args,
+                    args_type_flat_fields,
                     accounts,
                     typedefs,
                 )
@@ -143,7 +143,7 @@ impl ToolboxIdlInstructionAccount {
 
     fn try_parse_pda_blob(
         idl_instruction_account_pda_blob: &Value,
-        args: &ToolboxIdlTypeFullFields,
+        args_type_flat_fields: &ToolboxIdlTypeFlatFields,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
@@ -175,9 +175,10 @@ impl ToolboxIdlInstructionAccount {
             ) == Some("arg")
             {
                 return ToolboxIdlInstructionAccount::try_parse_pda_blob_arg_path(
-                        idl_instruction_account_pda_blob_path,
-                        args,
-                    ).context("Blob arg");
+                    idl_instruction_account_pda_blob_path,
+                    args_type_flat_fields,
+                    typedefs,
+                ).context("Blob arg");
             }
             let idl_instruction_account_pda_blob_account =
                 idl_object_get_key_as_str(
@@ -187,7 +188,8 @@ impl ToolboxIdlInstructionAccount {
             return ToolboxIdlInstructionAccount::try_parse_pda_blob_account_path(
                 idl_instruction_account_pda_blob_path,
                 &idl_instruction_account_pda_blob_account,
-                accounts
+                accounts,
+                typedefs,
             ).context("Blob account");
         }
         if let Some(idl_instruction_account_pda_blob) =
@@ -234,14 +236,21 @@ impl ToolboxIdlInstructionAccount {
 
     fn try_parse_pda_blob_arg_path(
         idl_instruction_account_pda_blob_path: &str,
-        args: &ToolboxIdlTypeFullFields,
+        args_type_flat_fields: &ToolboxIdlTypeFlatFields,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
         let path =
             ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path)?;
-        let type_full = path
-            .try_get_type_full_fields(args)
+        let type_flat = path
+            .try_get_type_flat_fields(
+                args_type_flat_fields,
+                &HashMap::new(),
+                typedefs,
+            )
             .context("Extract arg type")?;
-        let type_flat = type_full.flattened();
+        let type_full = type_flat
+            .try_hydrate(&HashMap::new(), typedefs)
+            .context("Hydrate arg type")?;
         Ok(ToolboxIdlInstructionAccountPdaBlob::Arg {
             path,
             type_flat,
@@ -253,6 +262,7 @@ impl ToolboxIdlInstructionAccount {
         idl_instruction_account_pda_blob_path: &str,
         idl_instruction_account_pda_blob_account: &Option<&str>,
         accounts: &HashMap<String, Arc<ToolboxIdlAccount>>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
         let path =
             ToolboxIdlPath::try_parse(idl_instruction_account_pda_blob_path)
@@ -265,7 +275,7 @@ impl ToolboxIdlInstructionAccount {
             .to_string();
         let account = idl_instruction_account_pda_blob_account
             .map(|account| account.to_string());
-        let type_full = idl_instruction_account_pda_blob_account
+        let type_flat = idl_instruction_account_pda_blob_account
             .and_then(|account| accounts.get(account))
             .and_then(|account| {
                 if account_content_path.is_empty() {
@@ -273,14 +283,20 @@ impl ToolboxIdlInstructionAccount {
                 } else {
                     Some(
                         account_content_path
-                            .try_get_type_full(&account.content_type_full)
+                            .try_get_type_flat(
+                                &account.content_type_flat,
+                                &HashMap::new(),
+                                typedefs,
+                            )
                             .context("Extract account content type"),
                     )
                 }
             })
             .transpose()?
             .unwrap_or(ToolboxIdlTypePrimitive::PublicKey.into());
-        let type_flat = type_full.flattened();
+        let type_full = type_flat
+            .try_hydrate(&HashMap::new(), typedefs)
+            .context("Hydrate account content type")?;
         Ok(ToolboxIdlInstructionAccountPdaBlob::Account {
             path,
             instruction_account_name,

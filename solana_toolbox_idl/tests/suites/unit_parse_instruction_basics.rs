@@ -141,7 +141,7 @@ pub async fn run() {
                 ToolboxIdlTypeFlatFieldNamed {
                     name: "arg".to_string(),
                     docs: None,
-                    type_flat: ToolboxIdlTypeFlat::Vec {
+                    content: ToolboxIdlTypeFlat::Vec {
                         prefix: ToolboxIdlTypePrefix::U32,
                         items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                     }
@@ -150,7 +150,7 @@ pub async fn run() {
             args_type_full_fields: ToolboxIdlTypeFullFields::Named(vec![
                 ToolboxIdlTypeFullFieldNamed {
                     name: "arg".to_string(),
-                    type_full: ToolboxIdlTypeFull::Vec {
+                    content: ToolboxIdlTypeFull::Vec {
                         prefix: ToolboxIdlTypePrefix::U32,
                         items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
                     },

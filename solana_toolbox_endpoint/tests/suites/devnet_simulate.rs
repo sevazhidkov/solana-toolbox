@@ -78,7 +78,7 @@ pub async fn run() {
         simulation_failure.logs,
         Some(vec![
             "Program 11111111111111111111111111111111 invoke [1]".to_string(),
-            "Transfer: insufficient lamports 10064209200, need 100000000000".to_string(),
+            "Transfer: insufficient lamports 9999990000, need 100000000000".to_string(),
             "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
         ])
     );

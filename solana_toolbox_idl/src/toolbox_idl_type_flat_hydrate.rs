@@ -6,6 +6,9 @@ use anyhow::Context;
 use anyhow::Result;
 
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatEnumVariant;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldNamed;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnamed;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
@@ -15,7 +18,6 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
-// TODO (FAR) - support passing missing symbols
 impl ToolboxIdlTypeFlat {
     pub fn try_hydrate(
         &self,
@@ -33,12 +35,15 @@ impl ToolboxIdlTypeFlat {
                         generic_flat
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Defined's Generic: {}", index)
+                                format!(
+                                    "Defined Typedef: {}, Hydration of Generic[{}]",
+                                    name, index
+                                )
                             })?,
                     );
                 }
                 let typedef = idl_map_get_key_or_else(typedefs, name)
-                    .context("Defined type")?;
+                    .context("Defined typedef lookup")?;
                 if generics_full.len() < typedef.generics.len() {
                     return Err(anyhow!(
                         "Insufficient number of generic parameter: expected: {}, found: {}",
@@ -53,10 +58,26 @@ impl ToolboxIdlTypeFlat {
                     generics_by_symbol
                         .insert(generic_name.to_string(), generic_full);
                 }
-                typedef
+                let type_full = typedef
                     .type_flat
                     .try_hydrate(&generics_by_symbol, typedefs)
-                    .with_context(|| format!("Defined: {}", name))?
+                    .with_context(|| {
+                        format!("Defined Typedef Hydration: {}", name)
+                    })?;
+                if let Some(repr) = &typedef.repr {
+                    if repr == "c" {
+                        return Ok(type_full
+                            .structured_repr_c()
+                            .with_context(|| {
+                                format!(
+                                    "Defined Typedef Structuring Repr C: {}",
+                                    name
+                                )
+                            })?
+                            .2);
+                    }
+                }
+                type_full
             },
             ToolboxIdlTypeFlat::Generic { symbol } => {
                 idl_map_get_key_or_else(generics_by_symbol, symbol)
@@ -104,20 +125,11 @@ impl ToolboxIdlTypeFlat {
                 variants: variants_flat,
             } => {
                 let mut variants_full = vec![];
-                for variant in variants_flat {
-                    variants_full.push(ToolboxIdlTypeFullEnumVariant {
-                        name: variant.name.to_string(),
-                        code: variant.code,
-                        fields: variant
-                            .fields
-                            .try_hydrate(generics_by_symbol, typedefs)
-                            .with_context(|| {
-                                format!(
-                                    "Variant: {}({})",
-                                    variant.name, variant.code
-                                )
-                            })?,
-                    });
+                for variant_flat in variants_flat {
+                    variants_full.push(
+                        variant_flat
+                            .try_hydrate(generics_by_symbol, typedefs)?,
+                    );
                 }
                 ToolboxIdlTypeFull::Enum {
                     prefix: prefix.clone(),
@@ -125,10 +137,14 @@ impl ToolboxIdlTypeFlat {
                 }
             },
             ToolboxIdlTypeFlat::Padded {
-                size_bytes,
+                before,
+                size,
+                after,
                 content: content_flat,
             } => ToolboxIdlTypeFull::Padded {
-                size_bytes: *size_bytes,
+                before: *before,
+                size: *size,
+                after: *after,
                 content: Box::new(
                     content_flat.try_hydrate(generics_by_symbol, typedefs)?,
                 ),
@@ -145,6 +161,26 @@ impl ToolboxIdlTypeFlat {
     }
 }
 
+impl ToolboxIdlTypeFlatEnumVariant {
+    pub fn try_hydrate(
+        &self,
+        generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+    ) -> Result<ToolboxIdlTypeFullEnumVariant> {
+        let variant_full_fields = self
+            .fields
+            .try_hydrate(generics_by_symbol, typedefs)
+            .with_context(|| {
+                format!("Variant: {}({})", self.name, self.code)
+            })?;
+        Ok(ToolboxIdlTypeFullEnumVariant {
+            name: self.name.to_string(),
+            code: self.code,
+            fields: variant_full_fields,
+        })
+    }
+}
+
 impl ToolboxIdlTypeFlatFields {
     pub fn try_hydrate(
         &self,
@@ -155,31 +191,55 @@ impl ToolboxIdlTypeFlatFields {
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let mut fields_full = vec![];
                 for field in fields {
-                    fields_full.push(ToolboxIdlTypeFullFieldNamed {
-                        name: field.name.to_string(),
-                        type_full: field
-                            .type_flat
+                    fields_full.push(
+                        field
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Field: {}", field.name)
+                                format!("Named Field: {}", field.name)
                             })?,
-                    });
+                    );
                 }
                 ToolboxIdlTypeFullFields::Named(fields_full)
             },
             ToolboxIdlTypeFlatFields::Unnamed(fields) => {
                 let mut fields_type_full = vec![];
                 for (index, field) in fields.iter().enumerate() {
-                    fields_type_full.push(ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: field
-                            .type_flat
+                    fields_type_full.push(
+                        field
                             .try_hydrate(generics_by_symbol, typedefs)
-                            .with_context(|| format!("Field: {}", index))?,
-                    });
+                            .with_context(|| {
+                                format!("Unamed Field: {}", index)
+                            })?,
+                    );
                 }
                 ToolboxIdlTypeFullFields::Unnamed(fields_type_full)
             },
             ToolboxIdlTypeFlatFields::None => ToolboxIdlTypeFullFields::None,
+        })
+    }
+}
+
+impl ToolboxIdlTypeFlatFieldNamed {
+    pub fn try_hydrate(
+        &self,
+        generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+    ) -> Result<ToolboxIdlTypeFullFieldNamed> {
+        Ok(ToolboxIdlTypeFullFieldNamed {
+            name: self.name.to_string(),
+            content: self.content.try_hydrate(generics_by_symbol, typedefs)?,
+        })
+    }
+}
+
+impl ToolboxIdlTypeFlatFieldUnamed {
+    pub fn try_hydrate(
+        &self,
+        generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
+        typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
+    ) -> Result<ToolboxIdlTypeFullFieldUnnamed> {
+        Ok(ToolboxIdlTypeFullFieldUnnamed {
+            content: self.content.try_hydrate(generics_by_symbol, typedefs)?,
         })
     }
 }

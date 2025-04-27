@@ -96,14 +96,14 @@ pub async fn run() {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Defined {
+                        content: ToolboxIdlTypeFlat::Defined {
                             name: "MyDefinedEnum".to_string(),
                             generics: vec![ToolboxIdlTypePrimitive::U8.into()]
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Defined {
+                        content: ToolboxIdlTypeFlat::Defined {
                             name: "MyDefinedStruct".to_string(),
                             generics: vec![
                                 ToolboxIdlTypePrimitive::F32.into(),
@@ -113,7 +113,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatFieldUnamed {
                         docs: None,
-                        type_flat: ToolboxIdlTypeFlat::Defined {
+                        content: ToolboxIdlTypeFlat::Defined {
                             name: "MyArray".to_string(),
                             generics: vec![
                                 ToolboxIdlTypePrimitive::I8.into(),
@@ -126,7 +126,7 @@ pub async fn run() {
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                     ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: ToolboxIdlTypeFull::Enum {
+                        content: ToolboxIdlTypeFull::Enum {
                             prefix: ToolboxIdlTypePrefix::U8,
                             variants: vec![
                                 ToolboxIdlTypeFullEnumVariant {
@@ -134,9 +134,13 @@ pub async fn run() {
                                     code: 0,
                                     fields: ToolboxIdlTypeFullFields::Unnamed(
                                         vec![ToolboxIdlTypeFullFieldUnnamed {
-                                            type_full: ToolboxIdlTypeFull::Vec {
-                                                prefix: ToolboxIdlTypePrefix::U32,
-                                                items: Box::new(ToolboxIdlTypePrimitive::U8.into())
+                                            content: ToolboxIdlTypeFull::Vec {
+                                                prefix:
+                                                    ToolboxIdlTypePrefix::U32,
+                                                items: Box::new(
+                                                    ToolboxIdlTypePrimitive::U8
+                                                        .into()
+                                                )
                                             }
                                         }]
                                     )
@@ -146,7 +150,9 @@ pub async fn run() {
                                     code: 1,
                                     fields: ToolboxIdlTypeFullFields::Unnamed(
                                         vec![ToolboxIdlTypeFullFieldUnnamed {
-                                            type_full: ToolboxIdlTypePrimitive::U8.into()
+                                            content:
+                                                ToolboxIdlTypePrimitive::U8
+                                                    .into()
                                         }]
                                     )
                                 },
@@ -154,27 +160,31 @@ pub async fn run() {
                         }
                     },
                     ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: ToolboxIdlTypeFull::Struct {
+                        content: ToolboxIdlTypeFull::Struct {
                             fields: ToolboxIdlTypeFullFields::Named(vec![
                                 ToolboxIdlTypeFullFieldNamed {
                                     name: "field_a".to_string(),
-                                    type_full: ToolboxIdlTypeFull::Option {
+                                    content: ToolboxIdlTypeFull::Option {
                                         prefix: ToolboxIdlTypePrefix::U8,
-                                        content: Box::new(ToolboxIdlTypePrimitive::F64.into())
+                                        content: Box::new(
+                                            ToolboxIdlTypePrimitive::F64.into()
+                                        )
                                     }
                                 },
                                 ToolboxIdlTypeFullFieldNamed {
                                     name: "field_b".to_string(),
-                                    type_full: ToolboxIdlTypeFull::Vec {
+                                    content: ToolboxIdlTypeFull::Vec {
                                         prefix: ToolboxIdlTypePrefix::U32,
-                                        items: Box::new(ToolboxIdlTypePrimitive::F32.into())
+                                        items: Box::new(
+                                            ToolboxIdlTypePrimitive::F32.into()
+                                        )
                                     },
                                 },
                             ])
                         }
                     },
                     ToolboxIdlTypeFullFieldUnnamed {
-                        type_full: ToolboxIdlTypeFull::Array {
+                        content: ToolboxIdlTypeFull::Array {
                             items: Box::new(ToolboxIdlTypePrimitive::I8.into()),
                             length: 4
                         }

@@ -32,7 +32,9 @@ pub enum ToolboxIdlTypeFlat {
         variants: Vec<ToolboxIdlTypeFlatEnumVariant>,
     },
     Padded {
-        size_bytes: u64,
+        before: Option<u64>, // TODO - this doesnt need to be an Option (it can be 0)
+        size: Option<u64>,
+        after: Option<u64>,
         content: Box<ToolboxIdlTypeFlat>,
     },
     Const {
@@ -41,20 +43,6 @@ pub enum ToolboxIdlTypeFlat {
     Primitive {
         primitive: ToolboxIdlTypePrimitive,
     },
-}
-
-impl From<ToolboxIdlTypePrimitive> for ToolboxIdlTypeFlat {
-    fn from(primitive: ToolboxIdlTypePrimitive) -> ToolboxIdlTypeFlat {
-        ToolboxIdlTypeFlat::Primitive { primitive }
-    }
-}
-
-impl ToolboxIdlTypeFlat {
-    pub fn nothing() -> ToolboxIdlTypeFlat {
-        ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlatFields::None,
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -72,21 +60,35 @@ pub enum ToolboxIdlTypeFlatFields {
     Unnamed(Vec<ToolboxIdlTypeFlatFieldUnamed>),
 }
 
-impl ToolboxIdlTypeFlatFields {
-    pub fn nothing() -> ToolboxIdlTypeFlatFields {
-        ToolboxIdlTypeFlatFields::None
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlTypeFlatFieldNamed {
     pub name: String,
     pub docs: Option<Value>,
-    pub type_flat: ToolboxIdlTypeFlat,
+    pub content: ToolboxIdlTypeFlat,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlTypeFlatFieldUnamed {
     pub docs: Option<Value>,
-    pub type_flat: ToolboxIdlTypeFlat,
+    pub content: ToolboxIdlTypeFlat,
+}
+
+impl From<ToolboxIdlTypePrimitive> for ToolboxIdlTypeFlat {
+    fn from(primitive: ToolboxIdlTypePrimitive) -> ToolboxIdlTypeFlat {
+        ToolboxIdlTypeFlat::Primitive { primitive }
+    }
+}
+
+impl ToolboxIdlTypeFlat {
+    pub fn nothing() -> ToolboxIdlTypeFlat {
+        ToolboxIdlTypeFlat::Struct {
+            fields: ToolboxIdlTypeFlatFields::None,
+        }
+    }
+}
+
+impl ToolboxIdlTypeFlatFields {
+    pub fn nothing() -> ToolboxIdlTypeFlatFields {
+        ToolboxIdlTypeFlatFields::None
+    }
 }
