@@ -23,9 +23,9 @@ pub enum ToolboxIdlTypeFull {
         variants: Vec<ToolboxIdlTypeFullEnumVariant>,
     },
     Padded {
-        before: Option<u64>,
-        size: Option<u64>,
-        after: Option<u64>,
+        before: u64,
+        size: u64,
+        after: u64,
         content: Box<ToolboxIdlTypeFull>,
     },
     Const {

@@ -113,7 +113,6 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        // TODO - support undefined fields ?
         if value.is_null() {
             option_prefix.write(0, data)?;
         } else {
@@ -272,27 +271,23 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_padded(
-        padded_before: &Option<u64>,
-        padded_size: &Option<u64>,
-        padded_after: &Option<u64>,
+        padded_before: &u64,
+        padded_size: &u64,
+        padded_after: &u64,
         padded_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let data_offset_before =
-            data.len() + usize::try_from(padded_before.unwrap_or(0))?;
+        let data_offset_before = data.len() + usize::try_from(*padded_before)?;
         while data.len() < data_offset_before {
             data.push(0);
         }
         padded_content.try_serialize(value, data, deserializable)?;
         let data_content_size = data.len() - data_offset_before;
         let data_offset_after = data_offset_before
-            + max(
-                usize::try_from(padded_size.unwrap_or(0))?,
-                data_content_size,
-            )
-            + usize::try_from(padded_after.unwrap_or(0))?;
+            + max(usize::try_from(*padded_size)?, data_content_size)
+            + usize::try_from(*padded_after)?;
         while data.len() < data_offset_after {
             data.push(0);
         }

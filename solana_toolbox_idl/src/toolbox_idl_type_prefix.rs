@@ -14,7 +14,7 @@ pub enum ToolboxIdlTypePrefix {
 }
 
 impl ToolboxIdlTypePrefix {
-    pub fn from_bytes_at(&self, bytes: &[u8], offset: usize) -> Result<u64> {
+    pub fn read_at(&self, bytes: &[u8], offset: usize) -> Result<u64> {
         match self {
             ToolboxIdlTypePrefix::U8 => {
                 Ok(idl_u8_from_bytes_at(bytes, offset)?.into())

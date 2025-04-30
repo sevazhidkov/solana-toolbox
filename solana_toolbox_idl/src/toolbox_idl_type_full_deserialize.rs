@@ -96,15 +96,15 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_flag = option_prefix.from_bytes_at(data, data_offset)?;
+        let data_flag = option_prefix.read_at(data, data_offset)?;
         let mut data_size = option_prefix.size();
-        if data_flag > 0 {
+        if (data_flag & 1) == 0 {
+            Ok((data_size, Value::Null))
+        } else {
             let (data_content_size, data_content) = option_content
                 .try_deserialize(data, data_offset + data_size)?;
             data_size += data_content_size;
             Ok((data_size, data_content))
-        } else {
-            Ok((data_size, Value::Null))
         }
     }
 
@@ -114,7 +114,7 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_length = vec_prefix.from_bytes_at(data, data_offset)?;
+        let data_length = vec_prefix.read_at(data, data_offset)?;
         let mut data_size = vec_prefix.size();
         let mut data_items = vec![];
         for index in 0..data_length {
@@ -160,9 +160,23 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_code = enum_prefix.from_bytes_at(data, data_offset)?;
+        let mut enum_mask = 0;
         for enum_variant in enum_variants {
-            if enum_variant.code == data_code {
+            enum_mask = max(enum_mask, {
+                if enum_variant.code <= u8::MAX.into() {
+                    0xFFu64
+                } else if enum_variant.code <= u16::MAX.into() {
+                    0xFFFFu64
+                } else if enum_variant.code <= u32::MAX.into() {
+                    0xFFFFFFFFu64
+                } else {
+                    0xFFFFFFFFFFFFFFFFu64
+                }
+            });
+        }
+        let data_code = enum_prefix.read_at(data, data_offset)?;
+        for enum_variant in enum_variants {
+            if enum_variant.code == (data_code & enum_mask) {
                 let mut data_size = enum_prefix.size();
                 let (data_fields_size, data_fields) = enum_variant
                     .fields
@@ -185,38 +199,34 @@ impl ToolboxIdlTypeFull {
             }
         }
         Err(anyhow!(
-            "Unknown enum code: {}, known variants: {:?}",
+            "Unknown enum code: {}, known variants: {}",
             data_code,
             enum_variants
                 .iter()
                 .map(|enum_variant| format!(
-                    "{} ({})",
+                    "{} = {}",
                     enum_variant.name, enum_variant.code
                 ))
-                .collect::<Vec<_>>(),
+                .collect::<Vec<_>>()
+                .join(", "),
         ))
     }
 
-    // TODO - test padded mode ?
     fn try_deserialize_padded(
-        padded_before: &Option<u64>,
-        padded_size: &Option<u64>,
-        padded_after: &Option<u64>,
+        padded_before: &u64,
+        padded_size: &u64,
+        padded_after: &u64,
         padded_content: &ToolboxIdlTypeFull,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_offset_before =
-            data_offset + usize::try_from(padded_before.unwrap_or(0))?;
+        let data_offset_before = data_offset + usize::try_from(*padded_before)?;
         let (data_content_size, data_content) =
             padded_content.try_deserialize(data, data_offset_before)?;
         let data_offset_after = data_offset_before
-            + max(
-                usize::try_from(padded_size.unwrap_or(0))?,
-                data_content_size,
-            )
-            + usize::try_from(padded_after.unwrap_or(0))?;
-        let data_size = data_offset_after - data_offset_before;
+            + max(usize::try_from(*padded_size)?, data_content_size)
+            + usize::try_from(*padded_after)?;
+        let data_size = data_offset_after - data_offset;
         Ok((data_size, data_content))
     }
 

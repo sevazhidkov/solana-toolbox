@@ -12,8 +12,8 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_map_get_key_or_else;
 
+// TODO - add test for path+type getters
 impl ToolboxIdlPath {
-    // TODO - could return a reference if the fields were nicer ?
     pub fn try_get_type_flat(
         &self,
         type_flat: &ToolboxIdlTypeFlat,

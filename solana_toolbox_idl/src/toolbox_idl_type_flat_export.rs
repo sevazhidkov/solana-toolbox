@@ -118,13 +118,13 @@ impl ToolboxIdlTypeFlat {
                 content,
             } => {
                 let mut json_padded = Map::new();
-                if let Some(before) = before {
+                if *before != 0 {
                     json_padded.insert("before".to_string(), json!(before));
                 }
-                if let Some(size) = size {
+                if *size != 0 {
                     json_padded.insert("size".to_string(), json!(size));
                 }
-                if let Some(after) = after {
+                if *after != 0 {
                     json_padded.insert("after".to_string(), json!(after));
                 }
                 json_padded.insert("type".to_string(), content.export(format));

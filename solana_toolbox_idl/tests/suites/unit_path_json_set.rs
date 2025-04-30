@@ -14,90 +14,88 @@ pub async fn run() {
         "object1": original_object1,
         "array1": original_array1,
     });
-    // Check root swap
-    assert_set_to_null(Some(original.clone()), "", json!(null));
     // Check root insert
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "new",
         json!({
             "object1": original_object1,
             "array1": original_array1,
-            "new": null,
+            "new": 42,
         }),
     );
     // Check root replace
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "object1",
         json!({
-            "object1": null,
+            "object1": 42,
             "array1": original_array1,
         }),
     );
     // Check root.object1 insert
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "object1.new",
         json!({
             "object1": {
                 "object2": {},
                 "array2": [],
-                "new": null,
+                "new": 42,
             },
             "array1": original_array1,
         }),
     );
     // Check root.object1 replace
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "object1.object2",
         json!({
             "object1": {
-                "object2": null,
+                "object2": 42,
                 "array2": [],
             },
             "array1": original_array1,
         }),
     );
     // Check root.object1.object2 insert
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "object1.object2.new",
         json!({
             "object1": {
-                "object2": { "new": null },
+                "object2": { "new": 42 },
                 "array2": [],
             },
             "array1": original_array1,
         }),
     );
     // Check root.object1.array2[0] replace
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "object1.array2.0",
         json!({
             "object1": {
                 "object2": {},
-                "array2": [null],
+                "array2": [42],
             },
             "array1": original_array1,
         }),
     );
     // Check root.array1[1] replace
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "array1.1",
         json!({
             "object1": original_object1,
             "array1": [
                 {},
-                null,
+                42,
             ],
         }),
     );
     // Check root.array1[] append
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "array1.",
         json!({
@@ -105,53 +103,54 @@ pub async fn run() {
             "array1": [
                 {},
                 [],
-                null,
+                42,
             ],
         }),
     );
     // Check root.array1[0] insert
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "array1.0.new",
         json!({
             "object1": original_object1,
             "array1": [
-                { "new": null },
+                { "new": 42 },
                 [],
             ],
         }),
     );
     // Check root.array1[1][0] insert
-    assert_set_to_null(
+    assert_path_set_to_42(
         Some(original.clone()),
         "array1.1.0",
         json!({
             "object1": original_object1,
             "array1": [
                 {},
-                [null],
+                [42],
             ],
         }),
     );
     // Check specials
-    assert_set_to_null(Some(json!({})), "", json!(null));
-    assert_set_to_null(Some(json!({})), ".", json!({ "": null }));
-    assert_set_to_null(Some(json!({})), "a", json!({ "a": null }));
-    assert_set_to_null(Some(json!([])), "", json!(null));
-    assert_set_to_null(Some(json!([])), ".", json!([null]));
-    assert_set_to_null(Some(json!([])), "0", json!([null]));
-    assert_set_to_null(None, "", json!(null));
-    assert_set_to_null(None, ".", json!([null])); // weird, but valid ?
-    assert_set_to_null(None, "a", json!({ "a": null }));
-    assert_set_to_null(None, "0", json!([null]));
-    assert_set_to_null(None, "a..b.0", json!({ "a": [{ "b": [null] }] }));
+    assert_path_set_to_42(Some(json!({})), "", json!(42));
+    assert_path_set_to_42(Some(json!({})), ".", json!({ "": 42 }));
+    assert_path_set_to_42(Some(json!({})), "a", json!({ "a": 42 }));
+    assert_path_set_to_42(Some(json!([])), "", json!(42));
+    assert_path_set_to_42(Some(json!([])), ".", json!([42]));
+    assert_path_set_to_42(Some(json!([])), "0", json!([42]));
+    assert_path_set_to_42(None, "", json!(42));
+    assert_path_set_to_42(None, ".", json!([42]));
+    assert_path_set_to_42(None, "0", json!([42]));
+    assert_path_set_to_42(None, "a", json!({ "a": 42 }));
+    assert_path_set_to_42(None, "a.b.c", json!({ "a": { "b": { "c": 42 } } }));
+    assert_path_set_to_42(None, "a..b.0", json!({ "a": [{ "b": [42] }] }));
 }
 
-fn assert_set_to_null(node: Option<Value>, path: &str, expected: Value) {
+fn assert_path_set_to_42(node: Option<Value>, path: &str, expected: Value) {
     assert_eq!(
         ToolboxIdlPath::try_parse(path)
             .unwrap()
-            .try_set_json_value(node, json!(null))
+            .try_set_json_value(node, json!(42))
             .unwrap(),
         expected
     );

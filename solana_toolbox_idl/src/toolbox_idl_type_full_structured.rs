@@ -69,9 +69,9 @@ impl ToolboxIdlTypeFull {
             alignment,
             size,
             ToolboxIdlTypeFull::Padded {
-                before: None,
-                size: Some(u64::try_from(size)?),
-                after: None,
+                before: 0,
+                size: u64::try_from(size)?,
+                after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Option {
                     prefix: prefix_from_alignment(alignment)?,
                     content: Box::new(content_structured),
@@ -130,9 +130,9 @@ impl ToolboxIdlTypeFull {
             alignment,
             size,
             ToolboxIdlTypeFull::Padded {
-                before: None,
-                size: Some(u64::try_from(size)?),
-                after: None,
+                before: 0,
+                size: u64::try_from(size)?,
+                after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Enum {
                     prefix: prefix_from_alignment(alignment)?,
                     variants: variants_structured,
@@ -142,40 +142,34 @@ impl ToolboxIdlTypeFull {
     }
 
     fn structured_repr_c_padded(
-        before: Option<u64>,
-        size: Option<u64>,
-        after: Option<u64>,
+        before: u64,
+        size: u64,
+        after: u64,
         content: ToolboxIdlTypeFull,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         let (content_alignment, content_size, content_structured) = content
             .structured_repr_c()
             .context("Structuring Padded Content")?;
-        if let Some(before) = before {
-            if usize::try_from(before)? % content_alignment != 0 {
-                return Err(anyhow!(
-                    "Padded before {} is not aligned to content alignment of {} in structured_repr_c",
-                    before,
-                    content_alignment
-                ));
-            }
+        if usize::try_from(before)? % content_alignment != 0 {
+            return Err(anyhow!(
+                "Padded before {} is not aligned to content alignment of {} in structured_repr_c",
+                before,
+                content_alignment
+            ));
         }
-        if let Some(size) = size {
-            if usize::try_from(size)? % content_alignment != 0 {
-                return Err(anyhow!(
-                    "Padded size {} is not aligned to content alignment of {} in structured_repr_c",
-                    size,
-                    content_alignment
-                ));
-            }
+        if usize::try_from(size)? % content_alignment != 0 {
+            return Err(anyhow!(
+                "Padded size {} is not aligned to content alignment of {} in structured_repr_c",
+                size,
+                content_alignment
+            ));
         }
-        if let Some(after) = after {
-            if usize::try_from(after)? % content_alignment != 0 {
-                return Err(anyhow!(
-                    "Padded after {} is not aligned to content alignment of {} in structured_repr_c",
-                    after,
-                    content_alignment
-                ));
-            }
+        if usize::try_from(after)? % content_alignment != 0 {
+            return Err(anyhow!(
+                "Padded after {} is not aligned to content alignment of {} in structured_repr_c",
+                after,
+                content_alignment
+            ));
         }
         Ok((
             content_alignment,
@@ -216,6 +210,7 @@ impl ToolboxIdlTypeFullFields {
     ) -> Result<(usize, usize, ToolboxIdlTypeFullFields)> {
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
+                // TODO - this is duplicated with the unnamed case
                 let mut alignment = 1;
                 let mut size = 0;
                 let mut last_field_info: Option<(
@@ -385,9 +380,9 @@ fn field_content_padded(
     Ok((
         size,
         ToolboxIdlTypeFull::Padded {
-            before: None,
-            size: Some(u64::try_from(size)?),
-            after: None,
+            before: 0,
+            size: u64::try_from(size)?,
+            after: 0,
             content: Box::new(field_content_structured),
         },
     ))

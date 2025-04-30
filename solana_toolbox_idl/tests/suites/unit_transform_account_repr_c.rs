@@ -1,8 +1,10 @@
 use bytemuck::Pod;
 use bytemuck::Zeroable;
 use serde_json::json;
+use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[derive(Clone, Copy, Debug, Zeroable, PartialEq)]
@@ -76,6 +78,7 @@ pub async fn run() {
     // Choose the instruction
     let idl_account = idl_program.accounts.get("MyAccount").unwrap();
     eprintln!("idl_account: {:#?}", idl_account.content_type_full);
+    // TODO - investigate double wrapping in some fields
     // Dummy constants
     let key_f2 = Pubkey::new_from_array([
         0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
@@ -94,7 +97,7 @@ pub async fn run() {
         "field3": 0xF3F3F3F3u32,
         "field4": 0xF4u8,
     });
-    let json_enum_repr_c_0 = json!({ "Case0": [] });
+    let json_enum_repr_c_0 = json!("Case0");
     let json_enum_repr_c_1 = json!({ "Case1": [0xC1C1u16] });
     let json_enum_repr_c_2 = json!({ "Case2": [key_c2.to_string()] });
     let json_enum_repr_c_3 = json!({ "Case3": [0xC3C3C3C3u32] });
@@ -155,86 +158,59 @@ pub async fn run() {
         struct_repr_c: raw_struct_repr_c,
         enum_repr_c: raw_enum_repr_c_4,
     };
-    // Compute the expected bytes
-    let bytes_expected_container_repr_c_0 =
-        bytemuck::bytes_of(&raw_container_repr_c_0);
-    let bytes_expected_container_repr_c_1 =
-        bytemuck::bytes_of(&raw_container_repr_c_1);
-    let bytes_expected_container_repr_c_2 =
-        bytemuck::bytes_of(&raw_container_repr_c_2);
-    let bytes_expected_container_repr_c_3 =
-        bytemuck::bytes_of(&raw_container_repr_c_3);
-    let bytes_expected_container_repr_c_4 =
-        bytemuck::bytes_of(&raw_container_repr_c_4);
-    // Compute the found bytes
-    let bytes_found_container_repr_c_0 =
-        &idl_account.encode(&json_container_repr_c_0).unwrap();
-    let bytes_found_container_repr_c_1 =
-        &idl_account.encode(&json_container_repr_c_1).unwrap();
-    let bytes_found_container_repr_c_2 =
-        &idl_account.encode(&json_container_repr_c_2).unwrap();
-    let bytes_found_container_repr_c_3 =
-        &idl_account.encode(&json_container_repr_c_3).unwrap();
-    let bytes_found_container_repr_c_4 =
-        &idl_account.encode(&json_container_repr_c_4).unwrap();
     // Compare and check results
-    print_pretty_bytes_compare(
+    assert_case_round_trip(
         "case0",
-        bytes_expected_container_repr_c_0,
-        bytes_found_container_repr_c_0,
+        &idl_account,
+        &json_container_repr_c_0,
+        &raw_container_repr_c_0,
     );
-    print_pretty_bytes_compare(
+    assert_case_round_trip(
         "case1",
-        bytes_expected_container_repr_c_1,
-        bytes_found_container_repr_c_1,
+        &idl_account,
+        &json_container_repr_c_1,
+        &raw_container_repr_c_1,
     );
-    print_pretty_bytes_compare(
+    assert_case_round_trip(
         "case2",
-        bytes_expected_container_repr_c_2,
-        bytes_found_container_repr_c_2,
+        &idl_account,
+        &json_container_repr_c_2,
+        &raw_container_repr_c_2,
     );
-    print_pretty_bytes_compare(
+    assert_case_round_trip(
         "case3",
-        bytes_expected_container_repr_c_3,
-        bytes_found_container_repr_c_3,
+        &idl_account,
+        &json_container_repr_c_3,
+        &raw_container_repr_c_3,
     );
-    print_pretty_bytes_compare(
+    assert_case_round_trip(
         "case4",
-        bytes_expected_container_repr_c_4,
-        bytes_found_container_repr_c_4,
-    );
-    // Assert everything is well
-    assert_eq!(
-        bytes_expected_container_repr_c_0,
-        bytes_found_container_repr_c_0,
-    );
-    assert_eq!(
-        bytes_expected_container_repr_c_1,
-        bytes_found_container_repr_c_1,
-    );
-    assert_eq!(
-        bytes_expected_container_repr_c_2,
-        bytes_found_container_repr_c_2,
-    );
-    assert_eq!(
-        bytes_expected_container_repr_c_3,
-        bytes_found_container_repr_c_3,
-    );
-    assert_eq!(
-        bytes_expected_container_repr_c_4,
-        bytes_found_container_repr_c_4,
+        &idl_account,
+        &json_container_repr_c_4,
+        &raw_container_repr_c_4,
     );
 }
 
-fn print_pretty_bytes_compare(name: &str, expected: &[u8], found: &[u8]) {
-    let expected_base16_array = ToolboxEndpoint::encode_base16_bytes(expected);
-    let found_base16_array = ToolboxEndpoint::encode_base16_bytes(found);
+fn assert_case_round_trip(
+    name: &str,
+    idl_account: &ToolboxIdlAccount,
+    json: &Value,
+    raw: &DummyContainerReprC,
+) {
+    let expected = bytemuck::bytes_of(raw);
+    let found = idl_account.encode(json).unwrap();
     println!("-- {} --", name);
     println!("> expected:");
-    print_pretty_bytes(&expected_base16_array);
+    print_pretty_bytes(&ToolboxEndpoint::encode_base16_bytes(expected));
     println!("> found:");
-    print_pretty_bytes(&found_base16_array);
+    print_pretty_bytes(&ToolboxEndpoint::encode_base16_bytes(&found));
     println!();
+    assert_eq!(
+        bytemuck::try_from_bytes::<DummyContainerReprC>(&found).unwrap(),
+        raw
+    );
+    assert_eq!(&idl_account.decode(expected).unwrap(), json);
+    assert_eq!(&idl_account.decode(&found).unwrap(), json);
 }
 
 fn print_pretty_bytes(bytes_base16_array: &[String]) {
