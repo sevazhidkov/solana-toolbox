@@ -7,7 +7,7 @@ use serde_json::Value;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatEnumVariant;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldNamed;
-use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnamed;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnnamed;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
@@ -268,18 +268,14 @@ impl ToolboxIdlTypeFlat {
         if idl_str == "bytes" {
             return Ok(ToolboxIdlTypeFlat::Vec {
                 prefix: ToolboxIdlTypePrefix::U32,
-                items: Box::new(ToolboxIdlTypeFlat::Primitive {
-                    primitive: ToolboxIdlTypePrimitive::U8,
-                }),
+                items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
             });
         }
         if idl_str == "publicKey" {
-            return Ok(ToolboxIdlTypeFlat::Primitive {
-                primitive: ToolboxIdlTypePrimitive::PublicKey,
-            });
+            return Ok(ToolboxIdlTypePrimitive::PublicKey.into());
         }
         Ok(match ToolboxIdlTypePrimitive::try_parse(idl_str) {
-            Some(primitive) => ToolboxIdlTypeFlat::Primitive { primitive },
+            Some(primitive) => primitive.into(),
             None => ToolboxIdlTypeFlat::Defined {
                 name: idl_str.to_string(),
                 generics: vec![],
@@ -467,7 +463,7 @@ impl ToolboxIdlTypeFlatFields {
         if !fields_named {
             let mut fields = vec![];
             for field in fields_info {
-                fields.push(ToolboxIdlTypeFlatFieldUnamed {
+                fields.push(ToolboxIdlTypeFlatFieldUnnamed {
                     docs: field.docs,
                     content: field.content,
                 });

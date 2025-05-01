@@ -65,7 +65,7 @@ pub use toolbox_idl_service_instruction::ToolboxIdlServiceInstructionDecoded;
 pub use toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 pub use toolbox_idl_type_flat::ToolboxIdlTypeFlatEnumVariant;
 pub use toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldNamed;
-pub use toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnamed;
+pub use toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnnamed;
 pub use toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 pub use toolbox_idl_type_full::ToolboxIdlTypeFull;
 pub use toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;

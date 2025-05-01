@@ -189,6 +189,7 @@ pub async fn run() {
         &json_container_repr_c_4,
         &raw_container_repr_c_4,
     );
+    panic!("LOL");
 }
 
 fn assert_case_round_trip(

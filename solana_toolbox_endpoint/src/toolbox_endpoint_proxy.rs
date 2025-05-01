@@ -13,6 +13,8 @@ use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 pub trait ToolboxEndpointProxy {
     async fn get_latest_blockhash(&mut self) -> Result<Hash>;
 
+    async fn get_slot_unix_timestamp(&mut self, slot: u64) -> Result<i64>;
+
     async fn get_balance(&mut self, address: &Pubkey) -> Result<u64>;
 
     async fn get_account(

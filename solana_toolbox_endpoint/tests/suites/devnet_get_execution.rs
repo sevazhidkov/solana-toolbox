@@ -63,7 +63,6 @@ pub async fn run() {
                 ],
             }],
             steps: Some(vec![
-
                 ToolboxEndpointExecutionStep::Call(
                     ToolboxEndpointExecutionStepCall {
                         program_id: Pubkey::from_str(

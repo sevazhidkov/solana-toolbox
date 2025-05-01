@@ -8,7 +8,7 @@ use anyhow::Result;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatEnumVariant;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldNamed;
-use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnamed;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnnamed;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
@@ -153,9 +153,7 @@ impl ToolboxIdlTypeFlat {
                 ToolboxIdlTypeFull::Const { literal: *literal }
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
-                ToolboxIdlTypeFull::Primitive {
-                    primitive: primitive.clone(),
-                }
+                primitive.clone().into()
             },
         })
     }
@@ -208,7 +206,7 @@ impl ToolboxIdlTypeFlatFields {
                         field
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Unamed Field: {}", index)
+                                format!("Unnamed Field: {}", index)
                             })?,
                     );
                 }
@@ -232,7 +230,7 @@ impl ToolboxIdlTypeFlatFieldNamed {
     }
 }
 
-impl ToolboxIdlTypeFlatFieldUnamed {
+impl ToolboxIdlTypeFlatFieldUnnamed {
     pub fn try_hydrate(
         &self,
         generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,

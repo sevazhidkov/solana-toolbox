@@ -11,7 +11,6 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 
 impl ToolboxIdlTypeFull {
-    // TODO - should the repr be a struct/enum?
     pub fn structured_repr_c(
         self,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
@@ -210,15 +209,7 @@ impl ToolboxIdlTypeFullFields {
     ) -> Result<(usize, usize, ToolboxIdlTypeFullFields)> {
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
-                // TODO - this is duplicated with the unnamed case
-                let mut alignment = 1;
-                let mut size = 0;
-                let mut last_field_info: Option<(
-                    String,
-                    usize,
-                    ToolboxIdlTypeFull,
-                )> = None;
-                let mut fields_structured = vec![];
+                let mut fields_infos = vec![];
                 for field in fields {
                     let (
                         field_content_alignment,
@@ -227,119 +218,63 @@ impl ToolboxIdlTypeFullFields {
                     ) = field.content.structured_repr_c().with_context(
                         || anyhow!("Structuring field: {}", field.name),
                     )?;
-                    alignment = max(alignment, field_content_alignment);
-                    if let Some((
-                        last_field_name,
-                        last_field_content_size,
-                        last_field_content_structured,
-                    )) = last_field_info
-                    {
-                        let (
-                            last_field_content_size,
-                            last_field_content_padded,
-                        ) = field_content_padded(
-                            size,
-                            field_content_alignment,
-                            last_field_content_size,
-                            last_field_content_structured,
-                        )?;
-                        size += last_field_content_size;
-                        fields_structured.push(ToolboxIdlTypeFullFieldNamed {
-                            name: last_field_name,
-                            content: last_field_content_padded,
-                        });
-                    }
-                    last_field_info = Some((
+                    fields_infos.push((
                         field.name,
+                        field_content_alignment,
                         field_content_size,
                         field_content_structured,
                     ));
                 }
-                if let Some((
-                    last_field_name,
-                    last_field_content_size,
-                    last_field_content_structured,
-                )) = last_field_info
-                {
-                    let (last_field_content_size, last_field_content_padded) =
-                        field_content_padded(
-                            size,
-                            alignment,
-                            last_field_content_size,
-                            last_field_content_structured,
-                        )?;
-                    size += last_field_content_size;
-                    fields_structured.push(ToolboxIdlTypeFullFieldNamed {
-                        name: last_field_name,
-                        content: last_field_content_padded,
-                    });
-                }
+                let (alignment, size, fields_infos_padded) =
+                    fields_infos_padded(fields_infos)?;
                 Ok((
                     alignment,
                     size,
-                    ToolboxIdlTypeFullFields::Named(fields_structured),
+                    ToolboxIdlTypeFullFields::Named(
+                        fields_infos_padded
+                            .into_iter()
+                            .map(|field_info_padded| {
+                                ToolboxIdlTypeFullFieldNamed {
+                                    name: field_info_padded.0,
+                                    content: field_info_padded.1,
+                                }
+                            })
+                            .collect(),
+                    ),
                 ))
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
-                let mut alignment = 1;
-                let mut size = 0;
-                let mut last_field_info: Option<(usize, ToolboxIdlTypeFull)> =
-                    None;
-                let mut fields_structured = vec![];
+                let mut fields_infos = vec![];
                 for (index, field) in fields.into_iter().enumerate() {
                     let (
                         field_content_alignment,
                         field_content_size,
                         field_content_structured,
                     ) = field.content.structured_repr_c().with_context(
-                        || anyhow!("Structuring Field: {}", index),
+                        || anyhow!("Structuring field: {}", index),
                     )?;
-                    alignment = max(alignment, field_content_alignment);
-                    if let Some((
-                        last_field_content_size,
-                        last_field_content_structured,
-                    )) = last_field_info
-                    {
-                        let (
-                            last_field_content_size,
-                            last_field_content_padded,
-                        ) = field_content_padded(
-                            size,
-                            field_content_alignment,
-                            last_field_content_size,
-                            last_field_content_structured,
-                        )?;
-                        size += last_field_content_size;
-                        fields_structured.push(
-                            ToolboxIdlTypeFullFieldUnnamed {
-                                content: last_field_content_padded,
-                            },
-                        );
-                    }
-                    last_field_info =
-                        Some((field_content_size, field_content_structured));
+                    fields_infos.push((
+                        index,
+                        field_content_alignment,
+                        field_content_size,
+                        field_content_structured,
+                    ));
                 }
-                if let Some((
-                    last_field_content_size,
-                    last_field_content_structured,
-                )) = last_field_info
-                {
-                    let (last_field_content_size, last_field_content_padded) =
-                        field_content_padded(
-                            size,
-                            alignment,
-                            last_field_content_size,
-                            last_field_content_structured,
-                        )?;
-                    size += last_field_content_size;
-                    fields_structured.push(ToolboxIdlTypeFullFieldUnnamed {
-                        content: last_field_content_padded,
-                    });
-                }
+                let (alignment, size, fields_infos_padded) =
+                    fields_infos_padded(fields_infos)?;
                 Ok((
                     alignment,
                     size,
-                    ToolboxIdlTypeFullFields::Unnamed(fields_structured),
+                    ToolboxIdlTypeFullFields::Unnamed(
+                        fields_infos_padded
+                            .into_iter()
+                            .map(|field_info_padded| {
+                                ToolboxIdlTypeFullFieldUnnamed {
+                                    content: field_info_padded.1,
+                                }
+                            })
+                            .collect(),
+                    ),
                 ))
             },
             ToolboxIdlTypeFullFields::None => {
@@ -364,6 +299,60 @@ fn prefix_from_alignment(alignment: usize) -> Result<ToolboxIdlTypePrefix> {
     })
 }
 
+fn fields_infos_padded<T>(
+    fields_infos: Vec<(T, usize, usize, ToolboxIdlTypeFull)>,
+) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
+    let mut alignment = 1;
+    let mut size = 0;
+    let mut last_field_info = None;
+    let mut fields_infos_padded = vec![];
+    for field_info in fields_infos {
+        let (
+            field_meta,
+            field_content_alignment,
+            field_content_size,
+            field_content_structured,
+        ) = field_info;
+        alignment = max(alignment, field_content_alignment);
+        if let Some((
+            last_field_meta,
+            last_field_content_size,
+            last_field_content_structured,
+        )) = last_field_info
+        {
+            let (last_field_content_size, last_field_content_padded) =
+                field_content_padded(
+                    size,
+                    field_content_alignment,
+                    last_field_content_size,
+                    last_field_content_structured,
+                )?;
+            size += last_field_content_size;
+            fields_infos_padded
+                .push((last_field_meta, last_field_content_padded));
+        }
+        last_field_info =
+            Some((field_meta, field_content_size, field_content_structured));
+    }
+    if let Some((
+        last_field_meta,
+        last_field_content_size,
+        last_field_content_structured,
+    )) = last_field_info
+    {
+        let (last_field_content_size, last_field_content_padded) =
+            field_content_padded(
+                size,
+                alignment,
+                last_field_content_size,
+                last_field_content_structured,
+            )?;
+        size += last_field_content_size;
+        fields_infos_padded.push((last_field_meta, last_field_content_padded));
+    }
+    Ok((alignment, size, fields_infos_padded))
+}
+
 fn field_content_padded(
     offset_before: usize,
     desired_alignment: usize,
@@ -377,6 +366,7 @@ fn field_content_padded(
     }
     let padding = desired_alignment - missalignment;
     let size = field_content_size + padding;
+    // TODO - nested padded is a problem (for each typedef lookup its re-computed)
     Ok((
         size,
         ToolboxIdlTypeFull::Padded {

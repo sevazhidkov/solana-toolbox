@@ -28,18 +28,27 @@ const SLOTS_PER_SECOND: u64 = 2;
 const SECONDS_PER_EPOCH: u64 = SLOTS_PER_EPOCH / SLOTS_PER_SECOND;
 
 pub struct ToolboxEndpointProxyProgramTestContext {
-    inner: ProgramTestContext,
+    program_test_context: ProgramTestContext,
+    unix_timestamp_by_slot: HashMap<u64, i64>,
     addresses_by_program_id: HashMap<Pubkey, HashSet<Pubkey>>,
     signatures_by_address: HashMap<Pubkey, Vec<Signature>>,
     execution_by_signature: HashMap<Signature, ToolboxEndpointExecution>,
 }
 
 impl ToolboxEndpointProxyProgramTestContext {
-    pub fn new(
+    pub async fn new(
         program_test_context: ProgramTestContext,
     ) -> ToolboxEndpointProxyProgramTestContext {
+        let clock = program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await
+            .unwrap();
+        let mut unix_timestamp_by_slot = HashMap::new();
+        unix_timestamp_by_slot.insert(clock.slot, clock.unix_timestamp);
         ToolboxEndpointProxyProgramTestContext {
-            inner: program_test_context,
+            program_test_context,
+            unix_timestamp_by_slot,
             addresses_by_program_id: Default::default(),
             signatures_by_address: Default::default(),
             execution_by_signature: Default::default(),
@@ -50,18 +59,33 @@ impl ToolboxEndpointProxyProgramTestContext {
 #[async_trait::async_trait]
 impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn get_latest_blockhash(&mut self) -> Result<Hash> {
-        Ok(self.inner.last_blockhash)
+        Ok(self.program_test_context.last_blockhash)
+    }
+
+    async fn get_slot_unix_timestamp(&mut self, slot: u64) -> Result<i64> {
+        self.unix_timestamp_by_slot
+            .get(&slot)
+            .ok_or_else(|| anyhow!("Could not find slot: {}", slot))
+            .cloned()
     }
 
     async fn get_balance(&mut self, address: &Pubkey) -> Result<u64> {
-        Ok(self.inner.banks_client.get_balance(*address).await?)
+        Ok(self
+            .program_test_context
+            .banks_client
+            .get_balance(*address)
+            .await?)
     }
 
     async fn get_account(
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<Account>> {
-        Ok(self.inner.banks_client.get_account(*address).await?)
+        Ok(self
+            .program_test_context
+            .banks_client
+            .get_account(*address)
+            .await?)
     }
 
     async fn get_accounts(
@@ -70,7 +94,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     ) -> Result<Vec<Option<Account>>> {
         let mut accounts = vec![];
         for address in addresses {
-            accounts.push(self.inner.banks_client.get_account(*address).await?)
+            accounts.push(
+                self.program_test_context
+                    .banks_client
+                    .get_account(*address)
+                    .await?,
+            )
         }
         Ok(accounts)
     }
@@ -88,10 +117,14 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 &versioned_transaction,
             )?;
         }
-        let current_slot =
-            self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
+        let current_slot = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await?
+            .slot;
         let outcome = self
-            .inner
+            .program_test_context
             .banks_client
             .simulate_transaction(versioned_transaction.clone())
             .await?;
@@ -139,7 +172,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         )?;
         if process_preflight {
             if let Some(Err(error)) = self
-                .inner
+                .program_test_context
                 .banks_client
                 .simulate_transaction(versioned_transaction.clone())
                 .await?
@@ -149,7 +182,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             }
         }
         let outcome = self
-            .inner
+            .program_test_context
             .banks_client
             .process_transaction_with_metadata(versioned_transaction.clone())
             .await?;
@@ -168,8 +201,12 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 );
             }
         }
-        let current_slot =
-            self.inner.banks_client.get_sysvar::<Clock>().await?.slot;
+        let current_slot = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await?
+            .slot;
         let signature = Signature::new_unique();
         for transaction_account in transaction_accounts {
             self.push_signature_for_address(transaction_account, signature);
@@ -210,13 +247,17 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         to: &Pubkey,
         lamports: u64,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
-        let instruction = transfer(&self.inner.payer.pubkey(), to, lamports);
+        let instruction =
+            transfer(&self.program_test_context.payer.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
         let mut transaction = Transaction::new_with_payer(
             &[instruction.clone()],
-            Some(&self.inner.payer.pubkey()),
+            Some(&self.program_test_context.payer.pubkey()),
         );
-        transaction.partial_sign(&[&self.inner.payer], latest_blockhash);
+        transaction.partial_sign(
+            &[&self.program_test_context.payer],
+            latest_blockhash,
+        );
         self.process_transaction(transaction.into(), false).await
     }
 
@@ -242,7 +283,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         if let Some(addresses) = self.addresses_by_program_id.get(program_id) {
             for address in addresses {
                 let account = self
-                    .inner
+                    .program_test_context
                     .banks_client
                     .get_account(*address)
                     .await?
@@ -313,8 +354,11 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         if unix_timestamp_delta == 0 {
             return Ok(());
         }
-        let current_clock =
-            self.inner.banks_client.get_sysvar::<Clock>().await?;
+        let current_clock = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await?;
         let mut forwarded_clock = current_clock;
         forwarded_clock.slot += unix_timestamp_delta * SLOTS_PER_SECOND;
         forwarded_clock.unix_timestamp += i64::try_from(unix_timestamp_delta)?;
@@ -326,8 +370,11 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         if slot_delta == 0 {
             return Ok(());
         }
-        let current_clock =
-            self.inner.banks_client.get_sysvar::<Clock>().await?;
+        let current_clock = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await?;
         let mut forwarded_clock = current_clock;
         forwarded_clock.slot += slot_delta;
         forwarded_clock.unix_timestamp +=
@@ -340,8 +387,11 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
         if epoch_delta == 0 {
             return Ok(());
         }
-        let current_clock =
-            self.inner.banks_client.get_sysvar::<Clock>().await?;
+        let current_clock = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await?;
         let mut forwarded_clock = current_clock;
         forwarded_clock.slot += epoch_delta * SLOTS_PER_EPOCH;
         forwarded_clock.unix_timestamp +=
@@ -353,19 +403,28 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
 
 impl ToolboxEndpointProxyProgramTestContext {
     async fn update_slot(&mut self, new_clock: &Clock) -> Result<()> {
-        let old_hash = self.inner.last_blockhash;
-        let old_clock = self.inner.banks_client.get_sysvar::<Clock>().await?;
+        let old_hash = self.program_test_context.last_blockhash;
+        let old_clock = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await?;
         let new_hash = self
-            .inner
+            .program_test_context
             .banks_client
             .get_new_latest_blockhash(&old_hash)
             .await?;
-        let mut slot_hashes =
-            self.inner.banks_client.get_sysvar::<SlotHashes>().await?;
+        let mut slot_hashes = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<SlotHashes>()
+            .await?;
         slot_hashes.add(old_clock.slot, old_hash);
-        self.inner.set_sysvar(&slot_hashes);
-        self.inner.set_sysvar(new_clock);
-        self.inner.last_blockhash = new_hash;
+        self.program_test_context.set_sysvar(&slot_hashes);
+        self.program_test_context.set_sysvar(new_clock);
+        self.program_test_context.last_blockhash = new_hash;
+        self.unix_timestamp_by_slot
+            .insert(new_clock.slot, new_clock.unix_timestamp);
         Ok(())
     }
 

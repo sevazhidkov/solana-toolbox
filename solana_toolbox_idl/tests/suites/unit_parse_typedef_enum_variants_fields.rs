@@ -3,7 +3,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
 use solana_toolbox_idl::ToolboxIdlTypeFlatEnumVariant;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFieldNamed;
-use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnamed;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnnamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
@@ -114,11 +114,11 @@ pub async fn run() {
                         code: 1,
                         docs: None,
                         fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
-                            ToolboxIdlTypeFlatFieldUnamed {
+                            ToolboxIdlTypeFlatFieldUnnamed {
                                 docs: None,
                                 content: ToolboxIdlTypePrimitive::U64.into()
                             },
-                            ToolboxIdlTypeFlatFieldUnamed {
+                            ToolboxIdlTypeFlatFieldUnnamed {
                                 docs: None,
                                 content: ToolboxIdlTypeFlat::Vec {
                                     prefix: ToolboxIdlTypePrefix::U32,
@@ -127,7 +127,7 @@ pub async fn run() {
                                     )
                                 }
                             },
-                            ToolboxIdlTypeFlatFieldUnamed {
+                            ToolboxIdlTypeFlatFieldUnnamed {
                                 docs: None,
                                 content: ToolboxIdlTypeFlat::Vec {
                                     prefix: ToolboxIdlTypePrefix::U32,

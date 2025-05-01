@@ -2,7 +2,7 @@ use serde_json::json;
 use solana_toolbox_idl::ToolboxIdlAccount;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlTypeFlat;
-use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnamed;
+use solana_toolbox_idl::ToolboxIdlTypeFlatFieldUnnamed;
 use solana_toolbox_idl::ToolboxIdlTypeFlatFields;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypeFullEnumVariant;
@@ -94,14 +94,14 @@ pub async fn run() {
             discriminator: vec![77],
             content_type_flat: ToolboxIdlTypeFlat::Struct {
                 fields: ToolboxIdlTypeFlatFields::Unnamed(vec![
-                    ToolboxIdlTypeFlatFieldUnamed {
+                    ToolboxIdlTypeFlatFieldUnnamed {
                         docs: None,
                         content: ToolboxIdlTypeFlat::Defined {
                             name: "MyDefinedEnum".to_string(),
                             generics: vec![ToolboxIdlTypePrimitive::U8.into()]
                         }
                     },
-                    ToolboxIdlTypeFlatFieldUnamed {
+                    ToolboxIdlTypeFlatFieldUnnamed {
                         docs: None,
                         content: ToolboxIdlTypeFlat::Defined {
                             name: "MyDefinedStruct".to_string(),
@@ -111,7 +111,7 @@ pub async fn run() {
                             ]
                         }
                     },
-                    ToolboxIdlTypeFlatFieldUnamed {
+                    ToolboxIdlTypeFlatFieldUnnamed {
                         docs: None,
                         content: ToolboxIdlTypeFlat::Defined {
                             name: "MyArray".to_string(),

@@ -33,7 +33,7 @@ impl ToolboxEndpointProxyRpcClient {
             )));
         }
         Ok(HashSet::from_iter(
-            self.inner
+            self.rpc_client
                 .get_program_accounts_with_config(
                     program_id,
                     make_program_accounts_config(

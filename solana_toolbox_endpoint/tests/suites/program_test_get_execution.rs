@@ -5,6 +5,9 @@ use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
 use solana_sdk::transaction::TransactionError;
 use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointExecution;
+use solana_toolbox_endpoint::ToolboxEndpointExecutionStep;
+use solana_toolbox_endpoint::ToolboxEndpointExecutionStepCall;
 
 #[tokio::test]
 pub async fn run() {
@@ -38,19 +41,31 @@ pub async fn run() {
     let execution_success =
         endpoint.get_execution(&processed_success.0).await.unwrap();
     assert_eq!(execution_success, processed_success.1);
-    assert_eq!(execution_success.payer, payer.pubkey());
-    assert_eq!(execution_success.instructions, vec![instruction_success]);
-    assert_eq!(execution_success.slot, 1);
-    assert_eq!(execution_success.error, None);
     assert_eq!(
-        execution_success.logs,
-        Some(vec![
-            "Program 11111111111111111111111111111111 invoke [1]".to_string(),
-            "Program 11111111111111111111111111111111 success".to_string(),
-        ])
+        execution_success,
+        ToolboxEndpointExecution {
+            slot: 1,
+            payer: payer.pubkey(),
+            instructions: vec![instruction_success],
+            steps: Some(vec![ToolboxEndpointExecutionStep::Call(
+                ToolboxEndpointExecutionStepCall {
+                    program_id: ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+                    steps: vec![],
+                    consumed: None,
+                    returns: None,
+                    failure: None,
+                }
+            )]),
+            logs: Some(vec![
+                "Program 11111111111111111111111111111111 invoke [1]"
+                    .to_string(),
+                "Program 11111111111111111111111111111111 success".to_string(),
+            ]),
+            error: None,
+            return_data: None,
+            units_consumed: Some(150),
+        }
     );
-    assert_eq!(execution_success.return_data, None);
-    assert_eq!(execution_success.units_consumed, Some(150));
     // Run an instruction that should fail
     let account_failure = Keypair::new();
     let program_failure = Pubkey::new_unique();
@@ -75,22 +90,33 @@ pub async fn run() {
     let execution_failure =
         endpoint.get_execution(&processed_failure.0).await.unwrap();
     assert_eq!(execution_failure, processed_failure.1);
-    assert_eq!(execution_failure.payer, payer.pubkey());
-    assert_eq!(execution_failure.instructions, vec![instruction_failure]);
-    assert_eq!(execution_failure.slot, 1);
-    assert_eq!(
-        execution_failure.error,
-        Some(TransactionError::InstructionError(
-            0,
-            InstructionError::Custom(1)
-        ))
-    );
-    assert_eq!(
-        execution_failure.logs,
-        Some(vec![
+    assert_eq!(execution_failure, ToolboxEndpointExecution {
+        slot: 1,
+        payer: payer.pubkey(),
+        instructions: vec![instruction_failure],
+        steps: Some(vec![ToolboxEndpointExecutionStep::Call(
+            ToolboxEndpointExecutionStepCall {
+                program_id: ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+                steps: vec![
+                    ToolboxEndpointExecutionStep::Unknown(
+                        "Transfer: insufficient lamports 1899980000, need 10000000000".to_string()
+                    ),
+                ],
+                consumed: None,
+                returns: None,
+                failure: Some("custom program error: 0x1".to_string()),
+            }
+        )]),
+        logs: Some(vec![
             "Program 11111111111111111111111111111111 invoke [1]".to_string(),
             "Transfer: insufficient lamports 1899980000, need 10000000000".to_string(),
             "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
-        ])
-    );
+        ]),
+        error: Some(TransactionError::InstructionError(
+            0,
+            InstructionError::Custom(1)
+        )),
+        return_data: None,
+        units_consumed: Some(150),
+    });
 }

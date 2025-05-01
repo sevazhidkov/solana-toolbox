@@ -37,7 +37,7 @@ impl ToolboxEndpointProxyRpcClient {
             );
             retries += 1;
             let signatures = self
-                .inner
+                .rpc_client
                 .get_signatures_for_address_with_config(
                     address,
                     GetConfirmedSignaturesForAddress2Config {

@@ -8,7 +8,7 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatEnumVariant;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldNamed;
-use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnamed;
+use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFieldUnnamed;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlatFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
@@ -65,9 +65,7 @@ impl ToolboxIdlTypeFlat {
                 if format.can_shortcut_type_vec_notation {
                     return json!([items.export(format)]);
                 }
-                if items.deref().eq(&ToolboxIdlTypeFlat::Primitive {
-                    primitive: ToolboxIdlTypePrimitive::U8,
-                }) {
+                if items.deref().eq(&ToolboxIdlTypePrimitive::U8.into()) {
                     return json!("bytes");
                 }
                 json!({ "vec": items.export(format) })
@@ -221,7 +219,7 @@ impl ToolboxIdlTypeFlatFieldNamed {
     }
 }
 
-impl ToolboxIdlTypeFlatFieldUnamed {
+impl ToolboxIdlTypeFlatFieldUnnamed {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         if let Some(docs) = &self.docs {
             return json!({

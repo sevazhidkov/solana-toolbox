@@ -46,7 +46,7 @@ impl ToolboxEndpointProxyRpcClient {
                 &resolved_address_lookup_tables,
             )?;
         let outcome = self
-            .inner
+            .rpc_client
             .simulate_transaction_with_config(
                 &versioned_transaction,
                 RpcSimulateTransactionConfig {

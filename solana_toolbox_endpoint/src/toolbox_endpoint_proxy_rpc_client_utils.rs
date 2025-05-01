@@ -9,7 +9,7 @@ use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) fn get_commitment(&self) -> CommitmentConfig {
-        self.inner.commitment()
+        self.rpc_client.commitment()
     }
 
     pub(crate) fn decode_transaction_return_data(

@@ -26,12 +26,12 @@ const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
 const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(30);
 
 pub struct ToolboxEndpointProxyRpcClient {
-    pub(crate) inner: RpcClient,
+    pub(crate) rpc_client: RpcClient,
 }
 
 impl ToolboxEndpointProxyRpcClient {
     pub fn new(rpc_client: RpcClient) -> ToolboxEndpointProxyRpcClient {
-        ToolboxEndpointProxyRpcClient { inner: rpc_client }
+        ToolboxEndpointProxyRpcClient { rpc_client }
     }
 }
 
@@ -39,15 +39,19 @@ impl ToolboxEndpointProxyRpcClient {
 impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn get_latest_blockhash(&mut self) -> Result<Hash> {
         Ok(self
-            .inner
+            .rpc_client
             .get_latest_blockhash_with_commitment(self.get_commitment())
             .await?
             .0)
     }
 
+    async fn get_slot_unix_timestamp(&mut self, slot: u64) -> Result<i64> {
+        Ok(self.rpc_client.get_block_time(slot).await?)
+    }
+
     async fn get_balance(&mut self, address: &Pubkey) -> Result<u64> {
         Ok(self
-            .inner
+            .rpc_client
             .get_balance_with_commitment(address, self.get_commitment())
             .await?
             .value)
@@ -58,7 +62,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         address: &Pubkey,
     ) -> Result<Option<Account>> {
         Ok(self
-            .inner
+            .rpc_client
             .get_account_with_config(
                 address,
                 RpcAccountInfoConfig {
@@ -77,7 +81,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         addresses: &[Pubkey],
     ) -> Result<Vec<Option<Account>>> {
         Ok(self
-            .inner
+            .rpc_client
             .get_multiple_accounts_with_config(
                 addresses,
                 RpcAccountInfoConfig {
@@ -109,7 +113,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         process_preflight: bool,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let signature = self
-            .inner
+            .rpc_client
             .send_transaction_with_config(
                 &versioned_transaction,
                 RpcSendTransactionConfig {
@@ -132,7 +136,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
         lamports: u64,
     ) -> Result<(Signature, ToolboxEndpointExecution)> {
         let signature = self
-            .inner
+            .rpc_client
             .request_airdrop_with_config(
                 to,
                 lamports,

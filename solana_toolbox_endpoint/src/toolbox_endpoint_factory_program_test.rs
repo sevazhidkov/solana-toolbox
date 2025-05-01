@@ -1,6 +1,5 @@
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
-use solana_program_test::ProgramTestContext;
 use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
@@ -95,14 +94,8 @@ impl ToolboxEndpoint {
             );
         }
         let context = program_test.start_with_context().await;
-        context.into()
-    }
-}
-
-impl From<ProgramTestContext> for ToolboxEndpoint {
-    fn from(program_test_context: ProgramTestContext) -> ToolboxEndpoint {
         let proxy: Box<dyn ToolboxEndpointProxy> = Box::new(
-            ToolboxEndpointProxyProgramTestContext::new(program_test_context),
+            ToolboxEndpointProxyProgramTestContext::new(context).await,
         );
         ToolboxEndpoint::from(proxy)
     }

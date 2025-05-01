@@ -346,7 +346,6 @@ impl ToolboxIdlTypeFull {
     }
 }
 
-// TODO - serialize deserialize impl separatated for field named/unnamed ?
 impl ToolboxIdlTypeFullFields {
     pub fn try_deserialize(
         &self,

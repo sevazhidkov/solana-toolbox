@@ -35,6 +35,10 @@ impl ToolboxEndpoint {
         self.proxy.get_latest_blockhash().await
     }
 
+    pub async fn get_slot_unix_timestamp(&mut self, slot: u64) -> Result<i64> {
+        self.proxy.get_slot_unix_timestamp(slot).await
+    }
+
     pub async fn get_balance(&mut self, address: &Pubkey) -> Result<u64> {
         self.proxy.get_balance(address).await
     }

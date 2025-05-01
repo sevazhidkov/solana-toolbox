@@ -57,7 +57,7 @@ pub struct ToolboxIdlTypeFlatEnumVariant {
 pub enum ToolboxIdlTypeFlatFields {
     None,
     Named(Vec<ToolboxIdlTypeFlatFieldNamed>),
-    Unnamed(Vec<ToolboxIdlTypeFlatFieldUnamed>),
+    Unnamed(Vec<ToolboxIdlTypeFlatFieldUnnamed>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -68,7 +68,7 @@ pub struct ToolboxIdlTypeFlatFieldNamed {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ToolboxIdlTypeFlatFieldUnamed {
+pub struct ToolboxIdlTypeFlatFieldUnnamed {
     pub docs: Option<Value>,
     pub content: ToolboxIdlTypeFlat,
 }

@@ -73,7 +73,7 @@ impl ToolboxEndpointProxyRpcClient {
         signature: &Signature,
     ) -> Result<Option<ToolboxEndpointExecution>> {
         let response = match self
-            .inner
+            .rpc_client
             .send::<Option<GetTransactionResponse>>(
                 RpcRequest::GetTransaction,
                 json!([
