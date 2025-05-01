@@ -138,12 +138,12 @@ impl ToolboxIdlTypeFlat {
             },
             ToolboxIdlTypeFlat::Padded {
                 before,
-                size,
+                min_size,
                 after,
                 content: content_flat,
             } => ToolboxIdlTypeFull::Padded {
                 before: *before,
-                size: *size,
+                min_size: *min_size,
                 after: *after,
                 content: Box::new(
                     content_flat.try_hydrate(generics_by_symbol, typedefs)?,

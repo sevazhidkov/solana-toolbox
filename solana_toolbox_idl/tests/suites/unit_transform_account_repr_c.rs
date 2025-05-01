@@ -77,8 +77,6 @@ pub async fn run() {
     .unwrap();
     // Choose the instruction
     let idl_account = idl_program.accounts.get("MyAccount").unwrap();
-    eprintln!("idl_account: {:#?}", idl_account.content_type_full);
-    // TODO - investigate double wrapping in some fields
     // Dummy constants
     let key_f2 = Pubkey::new_from_array([
         0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2, 0xF2,
@@ -189,7 +187,6 @@ pub async fn run() {
         &json_container_repr_c_4,
         &raw_container_repr_c_4,
     );
-    panic!("LOL");
 }
 
 fn assert_case_round_trip(
@@ -202,9 +199,9 @@ fn assert_case_round_trip(
     let found = idl_account.encode(json).unwrap();
     println!("-- {} --", name);
     println!("> expected:");
-    print_pretty_bytes(&ToolboxEndpoint::encode_base16_bytes(expected));
+    print_pretty_bytes(&expected);
     println!("> found:");
-    print_pretty_bytes(&ToolboxEndpoint::encode_base16_bytes(&found));
+    print_pretty_bytes(&found);
     println!();
     assert_eq!(
         bytemuck::try_from_bytes::<DummyContainerReprC>(&found).unwrap(),
@@ -214,12 +211,13 @@ fn assert_case_round_trip(
     assert_eq!(&idl_account.decode(&found).unwrap(), json);
 }
 
-fn print_pretty_bytes(bytes_base16_array: &[String]) {
-    println!("len: {}", bytes_base16_array.len());
-    for (index, bytes_16) in bytes_base16_array.chunks(16).enumerate() {
+fn print_pretty_bytes(bytes: &[u8]) {
+    let bytes_base16 = ToolboxEndpoint::encode_base16_bytes(bytes);
+    println!("len: {}", bytes_base16.len());
+    for (index, chunk16_base16) in bytes_base16.chunks(16).enumerate() {
         let mut blobs = vec![];
-        for byte_4 in bytes_16.chunks(4) {
-            blobs.push(byte_4.join(" "));
+        for chunk4_base16 in chunk16_base16.chunks(4) {
+            blobs.push(chunk4_base16.join(" "));
         }
         println!("{:04X}:  {}", index * 16, blobs.join("  "));
     }

@@ -35,11 +35,11 @@ impl ToolboxIdlTypeFull {
             } => ToolboxIdlTypeFull::structured_repr_c_enum(prefix, variants)?,
             ToolboxIdlTypeFull::Padded {
                 before,
-                size,
+                min_size,
                 after,
                 content,
             } => ToolboxIdlTypeFull::structured_repr_c_padded(
-                before, size, after, *content,
+                before, min_size, after, *content,
             )?,
             ToolboxIdlTypeFull::Const { .. } => {
                 return Err(anyhow!(
@@ -69,7 +69,7 @@ impl ToolboxIdlTypeFull {
             size,
             ToolboxIdlTypeFull::Padded {
                 before: 0,
-                size: u64::try_from(size)?,
+                min_size: u64::try_from(size)?,
                 after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Option {
                     prefix: prefix_from_alignment(alignment)?,
@@ -130,7 +130,7 @@ impl ToolboxIdlTypeFull {
             size,
             ToolboxIdlTypeFull::Padded {
                 before: 0,
-                size: u64::try_from(size)?,
+                min_size: u64::try_from(size)?,
                 after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Enum {
                     prefix: prefix_from_alignment(alignment)?,
@@ -142,40 +142,50 @@ impl ToolboxIdlTypeFull {
 
     fn structured_repr_c_padded(
         before: u64,
-        size: u64,
+        min_size: u64,
         after: u64,
         content: ToolboxIdlTypeFull,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         let (content_alignment, content_size, content_structured) = content
             .structured_repr_c()
             .context("Structuring Padded Content")?;
-        if usize::try_from(before)? % content_alignment != 0 {
+        let alignment = content_alignment;
+        let size = usize::try_from(min_size)?;
+        if before == 0 && size == content_size && after == 0 {
+            return Ok((content_alignment, content_size, content_structured));
+        }
+        if before != 0 {
             return Err(anyhow!(
-                "Padded before {} is not aligned to content alignment of {} in structured_repr_c",
+                "Padded before {} is not supported in structured_repr_c",
                 before,
-                content_alignment
             ));
         }
-        if usize::try_from(size)? % content_alignment != 0 {
+        if size % alignment != 0 {
             return Err(anyhow!(
-                "Padded size {} is not aligned to content alignment of {} in structured_repr_c",
-                size,
-                content_alignment
+                "Padded min_size {} is not aligned to content alignment of {} in structured_repr_c",
+                min_size,
+                alignment
             ));
         }
-        if usize::try_from(after)? % content_alignment != 0 {
+        if size < content_size {
             return Err(anyhow!(
-                "Padded after {} is not aligned to content alignment of {} in structured_repr_c",
+                "Padded min_size {} is too small for content size of {} in structured_repr_c",
+                min_size,
+                content_size
+            ));
+        }
+        if after != 0 {
+            return Err(anyhow!(
+                "Padded after {} is not supported in structured_repr_c",
                 after,
-                content_alignment
             ));
         }
         Ok((
-            content_alignment,
-            content_size,
+            alignment,
+            size,
             ToolboxIdlTypeFull::Padded {
                 before,
-                size,
+                min_size,
                 after,
                 content: Box::new(content_structured),
             },
@@ -366,12 +376,11 @@ fn field_content_padded(
     }
     let padding = desired_alignment - missalignment;
     let size = field_content_size + padding;
-    // TODO - nested padded is a problem (for each typedef lookup its re-computed)
     Ok((
         size,
         ToolboxIdlTypeFull::Padded {
             before: 0,
-            size: u64::try_from(size)?,
+            min_size: u64::try_from(size)?,
             after: 0,
             content: Box::new(field_content_structured),
         },

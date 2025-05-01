@@ -33,7 +33,7 @@ pub enum ToolboxIdlTypeFlat {
     },
     Padded {
         before: u64,
-        size: u64,
+        min_size: u64,
         after: u64,
         content: Box<ToolboxIdlTypeFlat>,
     },

@@ -104,13 +104,15 @@ fn assert_get(
     path: &str,
     expected: ToolboxIdlTypePrimitive,
 ) {
-    let idl_account = idl_program.accounts.get("MyAccount").unwrap();
-    let idl_type_flat = &idl_account.content_type_flat;
     assert_eq!(
         ToolboxIdlPath::try_parse(path)
             .unwrap()
             .try_get_type_flat(
-                idl_type_flat,
+                &idl_program
+                    .accounts
+                    .get("MyAccount")
+                    .unwrap()
+                    .content_type_flat,
                 &HashMap::new(),
                 &idl_program.typedefs
             )

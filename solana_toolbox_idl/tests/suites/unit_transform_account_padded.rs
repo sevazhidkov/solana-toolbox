@@ -10,8 +10,8 @@ pub async fn run() {
                 "discriminator": [22],
                 "fields": [
                     { "name": "padded_before", "padded": { "before": 3, "type": "u8" }},
-                    { "name": "padded_size1", "padded": { "size": 3, "type": ["u8", 2] }},
-                    { "name": "padded_size2", "padded": { "size": 3, "type": ["u8", 4] }},
+                    { "name": "padded_size1", "padded": { "min_size": 3, "type": ["u8", 2] }},
+                    { "name": "padded_size2", "padded": { "min_size": 3, "type": ["u8", 4] }},
                     { "name": "padded_after", "padded": { "after": 3, "type": "u8" }},
                 ]
             }
@@ -24,8 +24,8 @@ pub async fn run() {
                 "discriminator": [22],
                 "fields": [
                     { "name": "padded_before", "padded": { "before": 3, "type": "u8" }},
-                    { "name": "padded_size1", "padded": { "size": 3, "array": ["u8", 2] }},
-                    { "name": "padded_size2", "padded": { "size": 3, "array": ["u8", 4] }},
+                    { "name": "padded_size1", "padded": { "min_size": 3, "array": ["u8", 2] }},
+                    { "name": "padded_size2", "padded": { "min_size": 3, "array": ["u8", 4] }},
                     { "name": "padded_after", "padded": { "after": 3, "type": "u8" }},
                 ]
             }

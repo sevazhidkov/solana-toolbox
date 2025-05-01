@@ -111,7 +111,7 @@ impl ToolboxIdlTypeFlat {
             },
             ToolboxIdlTypeFlat::Padded {
                 before,
-                size,
+                min_size,
                 after,
                 content,
             } => {
@@ -119,8 +119,8 @@ impl ToolboxIdlTypeFlat {
                 if *before != 0 {
                     json_padded.insert("before".to_string(), json!(before));
                 }
-                if *size != 0 {
-                    json_padded.insert("size".to_string(), json!(size));
+                if *min_size != 0 {
+                    json_padded.insert("min_size".to_string(), json!(min_size));
                 }
                 if *after != 0 {
                     json_padded.insert("after".to_string(), json!(after));

@@ -419,11 +419,12 @@ impl ToolboxIdlTypeFlat {
     ) -> Result<ToolboxIdlTypeFlat> {
         let before =
             idl_object_get_key_as_u64(idl_padded, "before").unwrap_or(0);
-        let size = idl_object_get_key_as_u64(idl_padded, "size").unwrap_or(0);
+        let min_size =
+            idl_object_get_key_as_u64(idl_padded, "min_size").unwrap_or(0);
         let after = idl_object_get_key_as_u64(idl_padded, "after").unwrap_or(0);
         Ok(ToolboxIdlTypeFlat::Padded {
             before,
-            size,
+            min_size,
             after,
             content: Box::new(ToolboxIdlTypeFlat::try_parse_object(
                 idl_padded,

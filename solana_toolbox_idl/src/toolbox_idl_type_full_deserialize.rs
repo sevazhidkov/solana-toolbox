@@ -66,12 +66,12 @@ impl ToolboxIdlTypeFull {
             ),
             ToolboxIdlTypeFull::Padded {
                 before,
-                size,
+                min_size,
                 after,
                 content,
             } => ToolboxIdlTypeFull::try_deserialize_padded(
                 before,
-                size,
+                min_size,
                 after,
                 content,
                 data,
@@ -214,7 +214,7 @@ impl ToolboxIdlTypeFull {
 
     fn try_deserialize_padded(
         padded_before: &u64,
-        padded_size: &u64,
+        padded_min_size: &u64,
         padded_after: &u64,
         padded_content: &ToolboxIdlTypeFull,
         data: &[u8],
@@ -224,7 +224,7 @@ impl ToolboxIdlTypeFull {
         let (data_content_size, data_content) =
             padded_content.try_deserialize(data, data_offset_before)?;
         let data_offset_after = data_offset_before
-            + max(usize::try_from(*padded_size)?, data_content_size)
+            + max(usize::try_from(*padded_min_size)?, data_content_size)
             + usize::try_from(*padded_after)?;
         let data_size = data_offset_after - data_offset;
         Ok((data_size, data_content))
