@@ -28,7 +28,7 @@ impl ToolboxCliCommandExecutionArgs {
         for instruction in execution.instructions {
             let instruction_decoded = idl_service
                 .decode_instruction(&mut endpoint, &instruction)
-                .await?;
+                .await?; // TODO - better error handling
             let mut json_addresses = Map::new();
             for (name, address) in instruction_decoded.addresses {
                 let instruction_account_decoded = idl_service

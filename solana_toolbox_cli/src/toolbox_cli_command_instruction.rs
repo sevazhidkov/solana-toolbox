@@ -213,20 +213,16 @@ impl ToolboxCliCommandInstructionArgs {
                         self.compute_budget,
                         self.compute_price,
                     );
-                match ToolboxEndpoint::compile_versioned_transaction(
+                match ToolboxEndpoint::compile_transaction(
                     &context.get_keypair(),
                     &instructions,
                     &signers,
-                    &[],
                     endpoint.get_latest_blockhash().await?,
                 ) {
-                    Ok(versioned_transaction) => {
+                    Ok(transaction) => {
                         if self.execute {
                             let (signature, _) = endpoint
-                                .process_versioned_transaction(
-                                    versioned_transaction.clone(),
-                                    true,
-                                )
+                                .process_transaction(transaction.clone(), true)
                                 .await?;
                             json_outcome.insert(
                                 "signature".to_string(),
@@ -243,15 +239,13 @@ impl ToolboxCliCommandInstructionArgs {
                                 "explorer".to_string(),
                                 json!(context
                                     .compute_explorer_simulation_link(
-                                        &versioned_transaction.signatures,
-                                        &versioned_transaction
-                                            .message
-                                            .serialize()
+                                        &transaction.signatures,
+                                        &transaction.message.serialize()
                                     )),
                             );
                             match endpoint
-                                .simulate_versioned_transaction(
-                                    versioned_transaction.clone(),
+                                .simulate_transaction(
+                                    transaction.clone(),
                                     true, // TODO - configurable ?
                                 )
                                 .await
@@ -270,7 +264,7 @@ impl ToolboxCliCommandInstructionArgs {
                                 Err(error) => {
                                     json_outcome.insert(
                                         "simulation_error".to_string(),
-                                        json!(format!("{:?}", error)),
+                                        context.compute_error_json(error),
                                     );
                                 },
                             }
@@ -279,7 +273,7 @@ impl ToolboxCliCommandInstructionArgs {
                     Err(error) => {
                         json_outcome.insert(
                             "transaction_compile_error".to_string(),
-                            json!(format!("{:?}", error)),
+                            context.compute_error_json(error),
                         );
                     },
                 }
@@ -287,9 +281,7 @@ impl ToolboxCliCommandInstructionArgs {
             Err(error) => {
                 json_outcome.insert(
                     "instruction_compile_error".to_string(),
-                    json!(format!("{:?}", error)
-                        .split("\n")
-                        .collect::<Vec<_>>()),
+                    context.compute_error_json(error),
                 );
             },
         };

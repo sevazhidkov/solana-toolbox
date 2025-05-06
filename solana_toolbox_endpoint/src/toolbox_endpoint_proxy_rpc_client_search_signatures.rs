@@ -25,14 +25,11 @@ impl ToolboxEndpointProxyRpcClient {
                 1000,
                 match rewind_until {
                     None => limit,
-                    Some(_) => min(
-                        limit,
-                        match retries {
-                            0 => 10,
-                            1 => 100,
-                            _ => usize::MAX,
-                        },
-                    ),
+                    Some(_) => match retries {
+                        0 => 10,
+                        1 => 100,
+                        _ => usize::MAX,
+                    },
                 },
             );
             retries += 1;

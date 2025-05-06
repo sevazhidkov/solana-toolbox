@@ -39,7 +39,7 @@ mod toolbox_idl_type_full;
 mod toolbox_idl_type_full_deserialize;
 mod toolbox_idl_type_full_explain;
 mod toolbox_idl_type_full_serialize;
-mod toolbox_idl_type_full_structured;
+mod toolbox_idl_type_full_structured_repr_c;
 mod toolbox_idl_type_prefix;
 mod toolbox_idl_type_primitive;
 mod toolbox_idl_typedef;

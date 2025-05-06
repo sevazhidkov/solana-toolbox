@@ -2,15 +2,12 @@ use serde_json::json;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdlService;
 
 #[tokio::test]
 pub async fn run() {
     // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
-    // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Find an account we can read from the endpoint
     let campaign_index = 0u64;
     let campaign_pda = Pubkey::find_program_address(

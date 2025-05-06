@@ -5,7 +5,6 @@ use serde_json::Value;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlService;
 use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
@@ -14,8 +13,6 @@ use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
 pub async fn run() {
     // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
-    // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Choosing our program_id
     let program_id = pubkey!("crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu");
     // Parse and load IDL from file JSON directly (since it's not available onchain)

@@ -95,32 +95,26 @@ pub async fn run() {
         "field3": 0xF3F3F3F3u32,
         "field4": 0xF4u8,
     });
-    let json_enum_repr_c_0 = json!("Case0");
-    let json_enum_repr_c_1 = json!({ "Case1": [0xC1C1u16] });
-    let json_enum_repr_c_2 = json!({ "Case2": [key_c2.to_string()] });
-    let json_enum_repr_c_3 = json!({ "Case3": [0xC3C3C3C3u32] });
-    let json_enum_repr_c_4 =
-        json!({ "Case4": [0xC4u8, 0xC5C5C5C5C5C5C5C5u64] });
     // Generate account JSON combos
     let json_container_repr_c_0 = json!({
         "struct_repr_c": json_struct_repr_c,
-        "enum_repr_c": json_enum_repr_c_0,
+        "enum_repr_c": "Case0",
     });
     let json_container_repr_c_1 = json!({
         "struct_repr_c": json_struct_repr_c,
-        "enum_repr_c": json_enum_repr_c_1,
+        "enum_repr_c": { "Case1": [0xC1C1u16] },
     });
     let json_container_repr_c_2 = json!({
         "struct_repr_c": json_struct_repr_c,
-        "enum_repr_c": json_enum_repr_c_2,
+        "enum_repr_c": { "Case2": [key_c2.to_string()] },
     });
     let json_container_repr_c_3 = json!({
         "struct_repr_c": json_struct_repr_c,
-        "enum_repr_c": json_enum_repr_c_3,
+        "enum_repr_c": { "Case3": [0xC3C3C3C3u32] },
     });
     let json_container_repr_c_4 = json!({
         "struct_repr_c": json_struct_repr_c,
-        "enum_repr_c": json_enum_repr_c_4,
+        "enum_repr_c": { "Case4": [0xC4u8, 0xC5C5C5C5C5C5C5C5u64] },
     });
     // Define dummy raw data
     let raw_struct_repr_c = DummyStructReprC {
@@ -129,32 +123,26 @@ pub async fn run() {
         field3: 0xF3F3F3F3u32,
         field4: 0xF4u8,
     };
-    let raw_enum_repr_c_0 = DummyEnumReprC::Case0;
-    let raw_enum_repr_c_1 = DummyEnumReprC::Case1(0xC1C1u16);
-    let raw_enum_repr_c_2 = DummyEnumReprC::Case2(key_c2);
-    let raw_enum_repr_c_3 = DummyEnumReprC::Case3(0xC3C3C3C3u32);
-    let raw_enum_repr_c_4 =
-        DummyEnumReprC::Case4(0xC4u8, 0xC5C5C5C5C5C5C5C5u64);
     // Generate container raw combos
     let raw_container_repr_c_0 = DummyContainerReprC {
         struct_repr_c: raw_struct_repr_c,
-        enum_repr_c: raw_enum_repr_c_0,
+        enum_repr_c: DummyEnumReprC::Case0,
     };
     let raw_container_repr_c_1 = DummyContainerReprC {
         struct_repr_c: raw_struct_repr_c,
-        enum_repr_c: raw_enum_repr_c_1,
+        enum_repr_c: DummyEnumReprC::Case1(0xC1C1u16),
     };
     let raw_container_repr_c_2 = DummyContainerReprC {
         struct_repr_c: raw_struct_repr_c,
-        enum_repr_c: raw_enum_repr_c_2,
+        enum_repr_c: DummyEnumReprC::Case2(key_c2),
     };
     let raw_container_repr_c_3 = DummyContainerReprC {
         struct_repr_c: raw_struct_repr_c,
-        enum_repr_c: raw_enum_repr_c_3,
+        enum_repr_c: DummyEnumReprC::Case3(0xC3C3C3C3u32),
     };
     let raw_container_repr_c_4 = DummyContainerReprC {
         struct_repr_c: raw_struct_repr_c,
-        enum_repr_c: raw_enum_repr_c_4,
+        enum_repr_c: DummyEnumReprC::Case4(0xC4u8, 0xC5C5C5C5C5C5C5C5u64),
     };
     // Compare and check results
     assert_case_round_trip(

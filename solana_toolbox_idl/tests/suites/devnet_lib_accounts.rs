@@ -4,7 +4,6 @@ use serde_json::json;
 use serde_json::Value;
 use solana_sdk::pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdlService;
 use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
 
@@ -12,8 +11,6 @@ use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
 pub async fn run() {
     // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
-    // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // Prepare known accounts available on devnet
     let program_id = pubkey!("UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j");
     let program_data = pubkey!("9rtcXuviJngSZTRSCXxsHyd6qaWpqWSQ56SNumXAuLJ1");

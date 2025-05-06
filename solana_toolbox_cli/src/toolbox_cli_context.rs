@@ -3,7 +3,9 @@ use std::fs::read_to_string;
 use std::str::FromStr;
 
 use anyhow::anyhow;
+use anyhow::Error;
 use anyhow::Result;
+use serde_json::json;
 use serde_json::Value;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
@@ -121,6 +123,13 @@ impl ToolboxCliContext {
 
     pub fn load_keypair(&self, path: &str) -> Keypair {
         read_keypair_file(path).unwrap()
+    }
+
+    pub fn compute_error_json(&self, error: Error) -> Value {
+        json!(error
+            .chain()
+            .map(|error| error.to_string())
+            .collect::<Vec<_>>())
     }
 
     pub fn compute_account_name(

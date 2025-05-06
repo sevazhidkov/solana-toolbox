@@ -55,22 +55,33 @@ impl ToolboxCliCommandHistoryArgs {
             let execution = endpoint.get_execution(&signature).await?;
             let mut filtered_out = self.name.is_some();
             for instruction in execution.instructions {
-                let instruction_decoded = idl_service
+                match idl_service
                     .decode_instruction(&mut endpoint, &instruction)
-                    .await?;
-                let instruction_name = context.compute_instruction_name(
-                    &instruction_decoded.program,
-                    &instruction_decoded.instruction,
-                );
-                if let Some(name) = &self.name {
-                    if instruction_name.contains(name) {
-                        filtered_out = false;
-                    }
-                }
-                json_instructions.push(json!({
-                    "program_id": instruction.program_id.to_string(),
-                    "name": instruction_name,
-                }));
+                    .await
+                {
+                    Ok(instruction_decoded) => {
+                        let instruction_name = context
+                            .compute_instruction_name(
+                                &instruction_decoded.program,
+                                &instruction_decoded.instruction,
+                            );
+                        if let Some(name) = &self.name {
+                            if instruction_name.contains(name) {
+                                filtered_out = false;
+                            }
+                        }
+                        json_instructions.push(json!({
+                            "program_id": instruction.program_id.to_string(),
+                            "name": instruction_name,
+                        }))
+                    },
+                    Err(error) => {
+                        json_instructions.push(json!({
+                            "program_id": instruction.program_id.to_string(),
+                            "decode_error": context.compute_error_json(error),
+                        }));
+                    },
+                };
             }
             if !filtered_out {
                 json_history.push(json!({

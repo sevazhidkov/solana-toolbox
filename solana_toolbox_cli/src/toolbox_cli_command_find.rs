@@ -111,7 +111,9 @@ impl ToolboxCliCommandFindArgs {
             }
             let account_state = match idl_account.decode(&account.data) {
                 Ok(account_state) => account_state,
-                Err(error) => json!(error.to_string()),
+                Err(error) => json!({
+                    "decode_error": context.compute_error_json(error),
+                }),
             };
             for state in &self.states {
                 if !cli_json_value_fit(
