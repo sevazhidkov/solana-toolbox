@@ -29,6 +29,16 @@ impl ToolboxIdlTypeFlat {
                 name,
                 generics: generics_flat,
             } => {
+                let typedef = idl_map_get_key_or_else(typedefs, name)
+                    .context("Hydrate Defined: Lookup")?;
+                if generics_flat.len() < typedef.generics.len() {
+                    return Err(anyhow!(
+                        "Insufficient number of generic parameter for {}: expected: {}, found: {}",
+                        typedef.name,
+                        typedef.generics.len(),
+                        generics_flat.len()
+                    ));
+                }
                 let mut generics_full = vec![];
                 for (index, generic_flat) in generics_flat.iter().enumerate() {
                     generics_full.push(
@@ -36,20 +46,11 @@ impl ToolboxIdlTypeFlat {
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
                                 format!(
-                                    "Defined Typedef: {}, Hydration of Generic[{}]",
+                                    "Hydrate Defined: {}, Generic[{}]",
                                     name, index
                                 )
                             })?,
                     );
-                }
-                let typedef = idl_map_get_key_or_else(typedefs, name)
-                    .context("Defined typedef lookup")?;
-                if generics_full.len() < typedef.generics.len() {
-                    return Err(anyhow!(
-                        "Insufficient number of generic parameter: expected: {}, found: {}",
-                        typedef.generics.len(),
-                        generics_full.len()
-                    ));
                 }
                 let mut generics_by_symbol = HashMap::new();
                 for (generic_name, generic_full) in
@@ -62,26 +63,33 @@ impl ToolboxIdlTypeFlat {
                     .type_flat
                     .try_hydrate(&generics_by_symbol, typedefs)
                     .with_context(|| {
-                        format!("Defined Typedef Hydration: {}", name)
+                        format!("Hydrate Defined: {}, Content", name)
                     })?;
-                if let Some(repr) = &typedef.repr {
-                    if repr == "c" {
-                        return Ok(type_full
-                            .structured_repr_c()
+                if let Some(serialization) = &typedef.serialization {
+                    if serialization == "bytemuck" {
+                        let (pod_alignment, pod_size, pod_content) = type_full
+                            .bytemuck_typedef(&typedef.name, &typedef.repr)
                             .with_context(|| {
-                                format!(
-                                    "Defined Typedef Structuring Repr C: {}",
-                                    name
-                                )
-                            })?
-                            .2);
+                                format!("Hydrate Defined: {}, Bytemuck", name)
+                            })?;
+                        return Ok(ToolboxIdlTypeFull::Pod {
+                            alignment: pod_alignment,
+                            size: pod_size,
+                            content: Box::new(pod_content),
+                        });
                     }
                 }
-                type_full
+                ToolboxIdlTypeFull::Typedef {
+                    name: typedef.name.clone(),
+                    repr: typedef.repr.clone(),
+                    content: Box::new(type_full),
+                }
             },
             ToolboxIdlTypeFlat::Generic { symbol } => {
                 idl_map_get_key_or_else(generics_by_symbol, symbol)
-                    .with_context(|| format!("Generic: {}", symbol))?
+                    .with_context(|| {
+                        format!("Hydrate Generic Lookup: {}", symbol)
+                    })?
                     .clone()
             },
             ToolboxIdlTypeFlat::Option {
@@ -193,7 +201,7 @@ impl ToolboxIdlTypeFlatFields {
                         field
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Named Field: {}", field.name)
+                                format!("Hydrate Named Field: {}", field.name)
                             })?,
                     );
                 }
@@ -206,7 +214,7 @@ impl ToolboxIdlTypeFlatFields {
                         field
                             .try_hydrate(generics_by_symbol, typedefs)
                             .with_context(|| {
-                                format!("Unnamed Field: {}", index)
+                                format!("Hydrate Unnamed Field: {}", index)
                             })?,
                     );
                 }

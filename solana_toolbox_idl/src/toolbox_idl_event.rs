@@ -17,7 +17,7 @@ pub struct ToolboxIdlEvent {
 impl Default for ToolboxIdlEvent {
     fn default() -> ToolboxIdlEvent {
         ToolboxIdlEvent {
-            name: "UnknownEvent".to_string(),
+            name: "Unknown".to_string(),
             docs: None,
             discriminator: vec![],
             info_type_flat: ToolboxIdlTypeFlat::nothing(),

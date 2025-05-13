@@ -34,6 +34,28 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         match self {
+            ToolboxIdlTypeFull::Typedef { name, content, .. } => {
+                ToolboxIdlTypeFull::try_serialize(
+                    content,
+                    value,
+                    data,
+                    deserializable,
+                )
+                .with_context(|| format!("Serialize Typedef, name: {}", name))
+            },
+            ToolboxIdlTypeFull::Pod {
+                alignment,
+                size,
+                content,
+            } => ToolboxIdlTypeFull::try_serialize(
+                content,
+                value,
+                data,
+                deserializable,
+            )
+            .with_context(|| {
+                format!("Serialize Pod, layout: {}/{}", alignment, size)
+            }),
             ToolboxIdlTypeFull::Option {
                 prefix, content, ..
             } => ToolboxIdlTypeFull::try_serialize_option(
@@ -261,6 +283,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
+        // TODO - support variable prefix sizes
         enum_prefix.write(enum_variant.code, data)?;
         enum_variant
             .fields

@@ -135,26 +135,24 @@ impl ToolboxCliCommandInstructionArgs {
             instruction_signers.push(context.load_keypair(signer));
         }
 
-        let (instruction_specs_payload, instruction_specs_addresses) =
-            idl_instruction.get_needs();
-        let json_specs_payload = instruction_specs_payload.clone();
-        let mut json_specs_addresses = Map::new();
-        for (instruction_specs_address_name, instruction_specs_address_value) in
-            &instruction_specs_addresses
+        let (explained_payload, explained_addresses) =
+            idl_instruction.explained();
+        let json_explained_payload = explained_payload.clone();
+        let mut json_explained_addresses = Map::new();
+        for (explained_address_name, explained_address_value) in
+            &explained_addresses
         {
-            if instruction_addresses
-                .contains_key(instruction_specs_address_name)
-            {
+            if instruction_addresses.contains_key(explained_address_name) {
                 continue;
             }
-            json_specs_addresses.insert(
-                instruction_specs_address_name.to_string(),
-                json!(instruction_specs_address_value),
+            json_explained_addresses.insert(
+                explained_address_name.to_string(),
+                json!(explained_address_value),
             );
         }
-        let json_specs = json!({
-            "payload": json_specs_payload,
-            "addresses": json_specs_addresses,
+        let json_explained = json!({
+            "payload": json_explained_payload,
+            "addresses": json_explained_addresses,
         });
 
         let instruction_addresses = idl_service
@@ -287,7 +285,7 @@ impl ToolboxCliCommandInstructionArgs {
         };
 
         Ok(json!({
-            "specs": json_specs,
+            "explained": json_explained,
             "resolved": json_resolved,
             "outcome": json_outcome,
         }))

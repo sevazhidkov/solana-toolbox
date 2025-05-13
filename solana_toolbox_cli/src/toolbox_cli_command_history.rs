@@ -73,6 +73,7 @@ impl ToolboxCliCommandHistoryArgs {
                         json_instructions.push(json!({
                             "program_id": instruction.program_id.to_string(),
                             "name": instruction_name,
+                            "payload": instruction_decoded.payload,
                         }))
                     },
                     Err(error) => {

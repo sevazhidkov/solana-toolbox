@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use anyhow::Result;
 
 use crate::toolbox_idl_utils::idl_u16_from_bytes_at;
@@ -14,6 +15,16 @@ pub enum ToolboxIdlTypePrefix {
 }
 
 impl ToolboxIdlTypePrefix {
+    pub fn from_size(size: usize) -> Result<ToolboxIdlTypePrefix> {
+        Ok(match size {
+            1 => ToolboxIdlTypePrefix::U8,
+            2 => ToolboxIdlTypePrefix::U16,
+            4 => ToolboxIdlTypePrefix::U32,
+            8 => ToolboxIdlTypePrefix::U64,
+            _ => return Err(anyhow!("Prefix size {} is not supported", size)),
+        })
+    }
+
     pub fn read_at(&self, bytes: &[u8], offset: usize) -> Result<u64> {
         match self {
             ToolboxIdlTypePrefix::U8 => {
@@ -49,12 +60,21 @@ impl ToolboxIdlTypePrefix {
         Ok(())
     }
 
-    pub fn size(&self) -> usize {
+    pub fn to_size(&self) -> usize {
         match self {
-            ToolboxIdlTypePrefix::U8 => std::mem::size_of::<u8>(),
-            ToolboxIdlTypePrefix::U16 => std::mem::size_of::<u16>(),
-            ToolboxIdlTypePrefix::U32 => std::mem::size_of::<u32>(),
-            ToolboxIdlTypePrefix::U64 => std::mem::size_of::<u64>(),
+            ToolboxIdlTypePrefix::U8 => 1,
+            ToolboxIdlTypePrefix::U16 => 2,
+            ToolboxIdlTypePrefix::U32 => 4,
+            ToolboxIdlTypePrefix::U64 => 8,
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        match self {
+            ToolboxIdlTypePrefix::U8 => "u8",
+            ToolboxIdlTypePrefix::U16 => "u16",
+            ToolboxIdlTypePrefix::U32 => "u32",
+            ToolboxIdlTypePrefix::U64 => "u64",
         }
     }
 }

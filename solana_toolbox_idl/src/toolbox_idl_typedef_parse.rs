@@ -5,6 +5,7 @@ use serde_json::Value;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_key_as_str_or_else;
 
 impl ToolboxIdlTypedef {
@@ -13,6 +14,9 @@ impl ToolboxIdlTypedef {
         idl_typedef: &Value,
     ) -> Result<ToolboxIdlTypedef> {
         let docs = idl_typedef.get("docs").cloned();
+        let serialization =
+            idl_value_as_object_get_key_as_str(idl_typedef, "serialization")
+                .map(String::from);
         let repr = ToolboxIdlTypedef::try_parse_repr(idl_typedef)?;
         let generics = ToolboxIdlTypedef::try_parse_generics(idl_typedef)?;
         let type_flat = ToolboxIdlTypeFlat::try_parse_value(idl_typedef)
@@ -20,6 +24,7 @@ impl ToolboxIdlTypedef {
         Ok(ToolboxIdlTypedef {
             name: idl_typedef_name.to_string(),
             docs,
+            serialization,
             repr,
             generics,
             type_flat,

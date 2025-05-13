@@ -127,6 +127,16 @@ pub(crate) fn idl_value_as_object_get_key_as_array<'a>(
         .and_then(|item| item.as_array())
 }
 
+pub(crate) fn idl_value_as_object_get_key_as_str<'a>(
+    value: &'a Value,
+    key: &str,
+) -> Option<&'a str> {
+    value
+        .as_object()
+        .and_then(|object| object.get(key))
+        .and_then(|item| item.as_str())
+}
+
 pub(crate) fn idl_value_as_object_get_key_as_u64(
     value: &Value,
     key: &str,
@@ -189,32 +199,19 @@ pub(crate) fn idl_slice_from_bytes(
 ) -> Result<&[u8]> {
     let end = offset.checked_add(length).with_context(|| {
         format!(
-            "Invalid slice length: offset: {}, length: {}",
+            "Invalid slice length: offset: 0x{:X}, length: {}",
             offset, length,
         )
     })?;
     if bytes.len() < end {
         return Err(anyhow!(
-            "Invalid slice read: offset: {}, length: {}, from bytes: {}",
+            "Invalid slice read at offset: 0x{:X}, length: {}, from bytes: {}",
             offset,
             length,
             bytes.len(),
         ));
     }
     Ok(&bytes[offset..end])
-}
-
-pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
-    map: &'a HashMap<String, V>,
-    key: &str,
-) -> Result<&'a V> {
-    map.get(key).with_context(|| {
-        format!(
-            "Expected value at key: {}. Found keys: {:?}",
-            key,
-            map.keys().collect::<Vec<_>>()
-        )
-    })
 }
 
 pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
@@ -257,6 +254,19 @@ pub(crate) fn idl_pubkey_from_bytes_at(
     let size = std::mem::size_of::<Pubkey>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(Pubkey::new_from_array(slice.try_into()?))
+}
+
+pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(
+    map: &'a HashMap<String, V>,
+    key: &str,
+) -> Result<&'a V> {
+    map.get(key).with_context(|| {
+        format!(
+            "Expected value at key: {}. Found keys: {:?}",
+            key,
+            map.keys().collect::<Vec<_>>()
+        )
+    })
 }
 
 pub(crate) fn idl_convert_to_snake_case(name: &str) -> String {

@@ -1,7 +1,8 @@
+use std::cmp::max;
+
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use std::cmp::max;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
@@ -11,39 +12,52 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 
 impl ToolboxIdlTypeFull {
-    pub fn structured_repr_c(
+    pub fn bytemuck_repr_rust(
         self,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         Ok(match self {
+            ToolboxIdlTypeFull::Typedef {
+                name,
+                repr,
+                content,
+            } => content.bytemuck_typedef(&name, &repr)?,
+            ToolboxIdlTypeFull::Pod {
+                alignment,
+                size,
+                content,
+            } => (alignment, size, *content),
             ToolboxIdlTypeFull::Option { prefix, content } => {
-                ToolboxIdlTypeFull::structured_repr_c_option(prefix, *content)?
+                ToolboxIdlTypeFull::bytemuck_repr_rust_option(prefix, *content)?
             },
             ToolboxIdlTypeFull::Vec { .. } => {
                 return Err(anyhow!(
-                    "Vec is not supported in structured_repr_c"
+                    "Bytemuck: Repr(Rust): Vec is not supported"
                 ));
             },
             ToolboxIdlTypeFull::Array { items, length } => {
-                ToolboxIdlTypeFull::structured_repr_c_array(*items, length)
-                    .context("Structuring Array")?
+                ToolboxIdlTypeFull::bytemuck_repr_rust_array(*items, length)?
             },
             ToolboxIdlTypeFull::Struct { fields } => {
-                ToolboxIdlTypeFull::structured_repr_c_struct(fields)?
+                ToolboxIdlTypeFull::bytemuck_repr_rust_struct(fields)?
             },
             ToolboxIdlTypeFull::Enum {
                 prefix, variants, ..
-            } => ToolboxIdlTypeFull::structured_repr_c_enum(prefix, variants)?,
-            ToolboxIdlTypeFull::Padded {
-                before,
-                min_size,
-                after,
-                content,
-            } => ToolboxIdlTypeFull::structured_repr_c_padded(
-                before, min_size, after, *content,
-            )?,
+            } => {
+                // TODO - this is not correct
+                (
+                    prefix.to_size(),
+                    prefix.to_size(),
+                    ToolboxIdlTypeFull::Enum { prefix, variants },
+                )
+            },
+            ToolboxIdlTypeFull::Padded { .. } => {
+                return Err(anyhow!(
+                    "Bytemuck: Repr(Rust): Padded is not supported"
+                ));
+            },
             ToolboxIdlTypeFull::Const { .. } => {
                 return Err(anyhow!(
-                    "Const is not supported in structured_repr_c"
+                    "Bytemuck: Repr(Rust): Const is not supported"
                 ));
             },
             ToolboxIdlTypeFull::Primitive { primitive } => (
@@ -54,15 +68,13 @@ impl ToolboxIdlTypeFull {
         })
     }
 
-    fn structured_repr_c_option(
+    fn bytemuck_repr_rust_option(
         option_prefix: ToolboxIdlTypePrefix,
         option_content: ToolboxIdlTypeFull,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (content_alignment, content_size, content_structured) =
-            option_content
-                .structured_repr_c()
-                .context("Structuring Option Content")?;
-        let alignment = max(option_prefix.size(), content_alignment);
+        let (content_alignment, content_size, content_repr_rust) =
+            option_content.bytemuck_repr_rust()?;
+        let alignment = max(option_prefix.to_size(), content_alignment);
         let size = alignment + content_size;
         Ok((
             alignment,
@@ -72,149 +84,46 @@ impl ToolboxIdlTypeFull {
                 min_size: u64::try_from(size)?,
                 after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Option {
-                    prefix: prefix_from_alignment(alignment)?,
-                    content: Box::new(content_structured),
+                    prefix: ToolboxIdlTypePrefix::from_size(alignment)?,
+                    content: Box::new(content_repr_rust),
                 }),
             },
         ))
     }
 
-    fn structured_repr_c_array(
+    fn bytemuck_repr_rust_array(
         items: ToolboxIdlTypeFull,
         length: u64,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (items_alignment, items_size, items_structured) = items
-            .structured_repr_c()
-            .context("Structuring Array Items")?;
+        let (items_alignment, items_size, items_repr_rust) =
+            items.bytemuck_repr_rust()?;
         Ok((
             items_alignment,
             items_size * usize::try_from(length)?,
             ToolboxIdlTypeFull::Array {
-                items: Box::new(items_structured),
+                items: Box::new(items_repr_rust),
                 length,
             },
         ))
     }
 
-    fn structured_repr_c_struct(
+    fn bytemuck_repr_rust_struct(
         fields: ToolboxIdlTypeFullFields,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (fields_alignment, fields_size, fields_structured) =
-            fields.structured_repr_c()?;
+        let (fields_alignment, fields_size, fields_repr_rust) =
+            fields.bytemuck_repr_rust()?;
         Ok((
             fields_alignment,
             fields_size,
             ToolboxIdlTypeFull::Struct {
-                fields: fields_structured,
-            },
-        ))
-    }
-
-    fn structured_repr_c_enum(
-        prefix: ToolboxIdlTypePrefix,
-        variants: Vec<ToolboxIdlTypeFullEnumVariant>,
-    ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let mut alignment = prefix.size();
-        let mut size = 0;
-        let mut variants_structured = vec![];
-        for variant in variants {
-            let (variant_alignment, variant_size, variant_structured) =
-                variant.structured_repr_c()?;
-            alignment = max(alignment, variant_alignment);
-            size = max(size, variant_size);
-            variants_structured.push(variant_structured);
-        }
-        size += alignment;
-        Ok((
-            alignment,
-            size,
-            ToolboxIdlTypeFull::Padded {
-                before: 0,
-                min_size: u64::try_from(size)?,
-                after: 0,
-                content: Box::new(ToolboxIdlTypeFull::Enum {
-                    prefix: prefix_from_alignment(alignment)?,
-                    variants: variants_structured,
-                }),
-            },
-        ))
-    }
-
-    fn structured_repr_c_padded(
-        before: u64,
-        min_size: u64,
-        after: u64,
-        content: ToolboxIdlTypeFull,
-    ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (content_alignment, content_size, content_structured) = content
-            .structured_repr_c()
-            .context("Structuring Padded Content")?;
-        let alignment = content_alignment;
-        let size = usize::try_from(min_size)?;
-        if before == 0 && size == content_size && after == 0 {
-            return Ok((content_alignment, content_size, content_structured));
-        }
-        if before != 0 {
-            return Err(anyhow!(
-                "Padded before {} is not supported in structured_repr_c",
-                before,
-            ));
-        }
-        if size % alignment != 0 {
-            return Err(anyhow!(
-                "Padded min_size {} is not aligned to content alignment of {} in structured_repr_c",
-                min_size,
-                alignment
-            ));
-        }
-        if size < content_size {
-            return Err(anyhow!(
-                "Padded min_size {} is too small for content size of {} in structured_repr_c",
-                min_size,
-                content_size
-            ));
-        }
-        if after != 0 {
-            return Err(anyhow!(
-                "Padded after {} is not supported in structured_repr_c",
-                after,
-            ));
-        }
-        Ok((
-            alignment,
-            size,
-            ToolboxIdlTypeFull::Padded {
-                before,
-                min_size,
-                after,
-                content: Box::new(content_structured),
-            },
-        ))
-    }
-}
-
-impl ToolboxIdlTypeFullEnumVariant {
-    pub fn structured_repr_c(
-        self,
-    ) -> Result<(usize, usize, ToolboxIdlTypeFullEnumVariant)> {
-        let (fields_alignment, fields_size, fields_structured) =
-            self.fields.structured_repr_c().with_context(|| {
-                anyhow!("Structuring Enum Variant Fields: {}", self.name)
-            })?;
-        Ok((
-            fields_alignment,
-            fields_size,
-            ToolboxIdlTypeFullEnumVariant {
-                name: self.name,
-                code: self.code,
-                fields: fields_structured,
+                fields: fields_repr_rust,
             },
         ))
     }
 }
 
 impl ToolboxIdlTypeFullFields {
-    pub fn structured_repr_c(
+    pub fn bytemuck_repr_rust(
         self,
     ) -> Result<(usize, usize, ToolboxIdlTypeFullFields)> {
         match self {
@@ -224,15 +133,15 @@ impl ToolboxIdlTypeFullFields {
                     let (
                         field_content_alignment,
                         field_content_size,
-                        field_content_structured,
-                    ) = field.content.structured_repr_c().with_context(
-                        || anyhow!("Structuring field: {}", field.name),
+                        field_content_repr_rust,
+                    ) = field.content.bytemuck_repr_rust().with_context(
+                        || anyhow!("Bytemuck: Repr(C): Field: {}", field.name),
                     )?;
                     fields_infos.push((
                         field.name,
                         field_content_alignment,
                         field_content_size,
-                        field_content_structured,
+                        field_content_repr_rust,
                     ));
                 }
                 let (alignment, size, fields_infos_padded) =
@@ -259,15 +168,15 @@ impl ToolboxIdlTypeFullFields {
                     let (
                         field_content_alignment,
                         field_content_size,
-                        field_content_structured,
-                    ) = field.content.structured_repr_c().with_context(
-                        || anyhow!("Structuring field: {}", index),
+                        field_content_repr_rust,
+                    ) = field.content.bytemuck_repr_rust().with_context(
+                        || anyhow!("Bytemuck: Repr(C): Field: {}", index),
                     )?;
                     fields_infos.push((
                         index,
                         field_content_alignment,
                         field_content_size,
-                        field_content_structured,
+                        field_content_repr_rust,
                     ));
                 }
                 let (alignment, size, fields_infos_padded) =
@@ -294,21 +203,7 @@ impl ToolboxIdlTypeFullFields {
     }
 }
 
-fn prefix_from_alignment(alignment: usize) -> Result<ToolboxIdlTypePrefix> {
-    Ok(match alignment {
-        1 => ToolboxIdlTypePrefix::U8,
-        2 => ToolboxIdlTypePrefix::U16,
-        4 => ToolboxIdlTypePrefix::U32,
-        8 => ToolboxIdlTypePrefix::U64,
-        _ => {
-            return Err(anyhow!(
-                "Prefix alignment {} is not supported",
-                alignment
-            ))
-        },
-    })
-}
-
+// TODO - put this in a common place
 fn fields_infos_padded<T>(
     fields_infos: Vec<(T, usize, usize, ToolboxIdlTypeFull)>,
 ) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
@@ -321,13 +216,13 @@ fn fields_infos_padded<T>(
             field_meta,
             field_content_alignment,
             field_content_size,
-            field_content_structured,
+            field_content_repr_rust,
         ) = field_info;
         alignment = max(alignment, field_content_alignment);
         if let Some((
             last_field_meta,
             last_field_content_size,
-            last_field_content_structured,
+            last_field_content_repr_rust,
         )) = last_field_info
         {
             let (last_field_content_size, last_field_content_padded) =
@@ -335,19 +230,19 @@ fn fields_infos_padded<T>(
                     size,
                     field_content_alignment,
                     last_field_content_size,
-                    last_field_content_structured,
+                    last_field_content_repr_rust,
                 )?;
             size += last_field_content_size;
             fields_infos_padded
                 .push((last_field_meta, last_field_content_padded));
         }
         last_field_info =
-            Some((field_meta, field_content_size, field_content_structured));
+            Some((field_meta, field_content_size, field_content_repr_rust));
     }
     if let Some((
         last_field_meta,
         last_field_content_size,
-        last_field_content_structured,
+        last_field_content_repr_rust,
     )) = last_field_info
     {
         let (last_field_content_size, last_field_content_padded) =
@@ -355,7 +250,7 @@ fn fields_infos_padded<T>(
                 size,
                 alignment,
                 last_field_content_size,
-                last_field_content_structured,
+                last_field_content_repr_rust,
             )?;
         size += last_field_content_size;
         fields_infos_padded.push((last_field_meta, last_field_content_padded));
@@ -367,12 +262,12 @@ fn field_content_padded(
     offset_before: usize,
     desired_alignment: usize,
     field_content_size: usize,
-    field_content_structured: ToolboxIdlTypeFull,
+    field_content_repr_rust: ToolboxIdlTypeFull,
 ) -> Result<(usize, ToolboxIdlTypeFull)> {
     let offset_after = offset_before + field_content_size;
     let missalignment = offset_after % desired_alignment;
     if missalignment == 0 {
-        return Ok((field_content_size, field_content_structured));
+        return Ok((field_content_size, field_content_repr_rust));
     }
     let padding = desired_alignment - missalignment;
     let size = field_content_size + padding;
@@ -382,7 +277,7 @@ fn field_content_padded(
             before: 0,
             min_size: u64::try_from(size)?,
             after: 0,
-            content: Box::new(field_content_structured),
+            content: Box::new(field_content_repr_rust),
         },
     ))
 }

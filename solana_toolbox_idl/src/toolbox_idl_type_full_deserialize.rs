@@ -25,6 +25,28 @@ impl ToolboxIdlTypeFull {
         // TODO (FAR) - support deserializing bytes into custom stuff like base64 ?
     ) -> Result<(usize, Value)> {
         match self {
+            ToolboxIdlTypeFull::Typedef { name, content, .. } => {
+                ToolboxIdlTypeFull::try_deserialize(content, data, data_offset)
+                    .with_context(|| {
+                        format!(
+                            "Deserialize Typedef, name: {} (offset: {})",
+                            name, data_offset
+                        )
+                    })
+            },
+            ToolboxIdlTypeFull::Pod {
+                alignment,
+                size,
+                content,
+            } => {
+                ToolboxIdlTypeFull::try_deserialize(content, data, data_offset)
+                    .with_context(|| {
+                        format!(
+                            "Deserialize Pod, layout: {}/{} (offset: {})",
+                            alignment, size, data_offset
+                        )
+                    })
+            },
             ToolboxIdlTypeFull::Option {
                 prefix, content, ..
             } => ToolboxIdlTypeFull::try_deserialize_option(
@@ -32,7 +54,14 @@ impl ToolboxIdlTypeFull {
                 content,
                 data,
                 data_offset,
-            ),
+            )
+            .with_context(|| {
+                format!(
+                    "Deserialize Option, prefix: {} (offset: {})",
+                    prefix.as_str(),
+                    data_offset
+                )
+            }),
             ToolboxIdlTypeFull::Vec { prefix, items, .. } => {
                 ToolboxIdlTypeFull::try_deserialize_vec(
                     prefix,
@@ -40,7 +69,14 @@ impl ToolboxIdlTypeFull {
                     data,
                     data_offset,
                 )
-            },
+            }
+            .with_context(|| {
+                format!(
+                    "Deserialize Vec, prefix: {} (offset: {})",
+                    prefix.as_str(),
+                    data_offset
+                )
+            }),
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_deserialize_array(
                     items,
@@ -48,14 +84,23 @@ impl ToolboxIdlTypeFull {
                     data,
                     data_offset,
                 )
-            },
+            }
+            .with_context(|| {
+                format!(
+                    "Deserialize Array, length: {} (offset: {})",
+                    length, data_offset
+                )
+            }),
             ToolboxIdlTypeFull::Struct { fields, .. } => {
                 ToolboxIdlTypeFull::try_deserialize_struct(
                     fields,
                     data,
                     data_offset,
                 )
-            },
+            }
+            .with_context(|| {
+                format!("Deserialize Struct (offset: {})", data_offset)
+            }),
             ToolboxIdlTypeFull::Enum {
                 prefix, variants, ..
             } => ToolboxIdlTypeFull::try_deserialize_enum(
@@ -63,7 +108,14 @@ impl ToolboxIdlTypeFull {
                 variants,
                 data,
                 data_offset,
-            ),
+            )
+            .with_context(|| {
+                format!(
+                    "Deserialize Enum, prefix: {} (offset: {})",
+                    prefix.as_str(),
+                    data_offset
+                )
+            }),
             ToolboxIdlTypeFull::Padded {
                 before,
                 min_size,
@@ -76,17 +128,31 @@ impl ToolboxIdlTypeFull {
                 content,
                 data,
                 data_offset,
-            ),
-            ToolboxIdlTypeFull::Const { literal } => {
-                Err(anyhow!("Can't use a const literal directly: {}", literal))
-            },
+            )
+            .with_context(|| {
+                format!(
+                    "Deserialize Padded, spaces: {}/{}/{} (offset: {})",
+                    before, min_size, after, data_offset
+                )
+            }),
+            ToolboxIdlTypeFull::Const { literal } => Err(anyhow!(
+                "Deserialize Const: Can't use a const literal directly: {}",
+                literal
+            )),
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 ToolboxIdlTypeFull::try_deserialize_primitive(
                     primitive,
                     data,
                     data_offset,
                 )
-            },
+            }
+            .with_context(|| {
+                format!(
+                    "Deserialize Primitive: {} (offset: {})",
+                    primitive.as_str(),
+                    data_offset
+                )
+            }),
         }
     }
 
@@ -96,16 +162,21 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_flag = option_prefix.read_at(data, data_offset)?;
-        let mut data_size = option_prefix.size();
-        if (data_flag & 1) == 0 {
-            Ok((data_size, Value::Null))
-        } else {
-            let (data_content_size, data_content) = option_content
-                .try_deserialize(data, data_offset + data_size)?;
-            data_size += data_content_size;
-            Ok((data_size, data_content))
+        let mut data_size = option_prefix.to_size();
+        if (option_prefix.read_at(data, data_offset)? & 1) == 0 {
+            return Ok((data_size, Value::Null));
         }
+        let data_content_offset = data_offset + data_size;
+        let (data_content_size, data_content) = option_content
+            .try_deserialize(data, data_content_offset)
+            .with_context(|| {
+                format!(
+                    "Deserialize Option Content (offset: {})",
+                    data_content_offset
+                )
+            })?;
+        data_size += data_content_size;
+        Ok((data_size, data_content))
     }
 
     fn try_deserialize_vec(
@@ -115,12 +186,18 @@ impl ToolboxIdlTypeFull {
         data_offset: usize,
     ) -> Result<(usize, Value)> {
         let data_length = vec_prefix.read_at(data, data_offset)?;
-        let mut data_size = vec_prefix.size();
+        let mut data_size = vec_prefix.to_size();
         let mut data_items = vec![];
         for index in 0..data_length {
+            let data_item_offset = data_offset + data_size;
             let (data_item_size, data_item) = vec_items
-                .try_deserialize(data, data_offset + data_size)
-                .with_context(|| format!("Decode Vec Item: {}", index))?;
+                .try_deserialize(data, data_item_offset)
+                .with_context(|| {
+                    format!(
+                        "Deserialize Vec Item: {} (offset: {})",
+                        index, data_item_offset
+                    )
+                })?;
             data_size += data_item_size;
             data_items.push(data_item);
         }
@@ -137,9 +214,15 @@ impl ToolboxIdlTypeFull {
         let mut data_size = 0;
         let mut data_items = vec![];
         for index in 0..array_length {
+            let data_item_offset = data_offset + data_size;
             let (data_item_size, data_item) = array_items
-                .try_deserialize(data, data_offset + data_size)
-                .with_context(|| format!("Decode Array Item: {}", index))?;
+                .try_deserialize(data, data_item_offset)
+                .with_context(|| {
+                    format!(
+                        "Deserialize Array Item: {} (offset: {})",
+                        index, data_item_offset
+                    )
+                })?;
             data_size += data_item_size;
             data_items.push(data_item);
         }
@@ -160,55 +243,73 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
+        // TODO - support variable prefix size
         let mut enum_mask = 0;
         for enum_variant in enum_variants {
             enum_mask = max(enum_mask, {
-                if enum_variant.code <= u8::MAX.into() {
-                    0xFFu64
-                } else if enum_variant.code <= u16::MAX.into() {
-                    0xFFFFu64
-                } else if enum_variant.code <= u32::MAX.into() {
-                    0xFFFFFFFFu64
+                if enum_variant.code <= u64::from(u8::MAX) {
+                    u64::from(u8::MAX)
+                } else if enum_variant.code <= u64::from(u16::MAX) {
+                    u64::from(u16::MAX)
+                } else if enum_variant.code <= u64::from(u32::MAX) {
+                    u64::from(u32::MAX)
                 } else {
-                    0xFFFFFFFFFFFFFFFFu64
+                    u64::MAX
                 }
             });
         }
         let data_code = enum_prefix.read_at(data, data_offset)?;
         for enum_variant in enum_variants {
             if enum_variant.code == (data_code & enum_mask) {
-                let mut data_size = enum_prefix.size();
-                let (data_fields_size, data_fields) = enum_variant
-                    .fields
-                    .try_deserialize(data, data_offset + data_size)
-                    .with_context(|| {
-                        format!(
-                            "Decode Enum Variant Name: {}",
-                            enum_variant.name
-                        )
-                    })?;
-                data_size += data_fields_size;
-                if data_fields.is_null() {
-                    return Ok((data_size, json!(enum_variant.name)));
-                } else {
-                    return Ok((
-                        data_size,
-                        json!({ enum_variant.name.to_string(): data_fields }),
-                    ));
-                }
+                return ToolboxIdlTypeFull::try_deserialize_enum_variant(
+                    enum_prefix,
+                    enum_variant,
+                    data,
+                    data_offset,
+                );
             }
         }
         Err(anyhow!(
-            "Unknown enum code: {}, known variants: {}",
+            "Deserialize Enum Unknown Code: {} (offset: {}), known variants: {}",
             data_code,
+            data_offset,
             enum_variants
                 .iter()
                 .map(|enum_variant| format!(
-                    "{} = {}",
+                    "{}={}",
                     enum_variant.name, enum_variant.code
                 ))
                 .collect::<Vec<_>>()
                 .join(", "),
+        ))
+    }
+
+    fn try_deserialize_enum_variant(
+        enum_prefix: &ToolboxIdlTypePrefix,
+        enum_variant: &ToolboxIdlTypeFullEnumVariant,
+        data: &[u8],
+        data_offset: usize,
+    ) -> Result<(usize, Value)> {
+        let mut data_size = enum_prefix.to_size();
+        let data_fields_offset = data_offset + data_size;
+        let (data_fields_size, data_fields) = enum_variant
+            .fields
+            .try_deserialize(data, data_fields_offset)
+            .with_context(|| {
+                format!(
+                    "Deserialize Enum Variant Name: {} (offset: {})",
+                    enum_variant.name, data_fields_offset
+                )
+            })?;
+        data_size += data_fields_size;
+        if data_fields.is_null() {
+            return Ok((data_size, json!(enum_variant.name)));
+        }
+        Ok((
+            data_size,
+            json!({
+                enum_variant.name.to_string(): data_fields
+            }),
         ))
     }
 
@@ -220,13 +321,18 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let data_offset_before = data_offset + usize::try_from(*padded_before)?;
-        let (data_content_size, data_content) =
-            padded_content.try_deserialize(data, data_offset_before)?;
-        let data_offset_after = data_offset_before
-            + max(usize::try_from(*padded_min_size)?, data_content_size)
-            + usize::try_from(*padded_after)?;
-        let data_size = data_offset_after - data_offset;
+        let mut data_size = usize::try_from(*padded_before)?;
+        let data_content_offset = data_offset + data_size;
+        let (data_content_size, data_content) = padded_content
+            .try_deserialize(data, data_content_offset)
+            .with_context(|| {
+                format!(
+                    "Deserialize Padded Content (offset: {})",
+                    data_content_offset
+                )
+            })?;
+        data_size += max(data_content_size, usize::try_from(*padded_min_size)?);
+        data_size += usize::try_from(*padded_after)?;
         Ok((data_size, data_content))
     }
 
@@ -326,7 +432,7 @@ impl ToolboxIdlTypeFull {
                 (data_size, json!(data_flag != 0))
             },
             ToolboxIdlTypePrimitive::String => {
-                let data_length = idl_u32_from_bytes_at(data, data_offset)?;
+                let data_length = idl_u32_from_bytes_at(data, data_offset)?; // TODO - remove this in favor of a prefix
                 let mut data_size = std::mem::size_of_val(&data_length);
                 let data_bytes = idl_slice_from_bytes(
                     data,
@@ -357,11 +463,15 @@ impl ToolboxIdlTypeFullFields {
                 let mut data_size = 0;
                 let mut data_fields = Map::new();
                 for field in fields {
+                    let data_field_offset = data_offset + data_size;
                     let (data_field_size, data_field) = field
                         .content
-                        .try_deserialize(data, data_offset + data_size)
+                        .try_deserialize(data, data_field_offset)
                         .with_context(|| {
-                            format!("Decode Field: {}", field.name)
+                            format!(
+                                "Deserialize Field: {} (offset: {})",
+                                field.name, data_field_offset
+                            )
                         })?;
                     data_size += data_field_size;
                     data_fields.insert(field.name.to_string(), data_field);
@@ -372,10 +482,16 @@ impl ToolboxIdlTypeFullFields {
                 let mut data_size = 0;
                 let mut data_fields = vec![];
                 for (index, field) in fields.iter().enumerate() {
+                    let data_field_offset = data_offset + data_size;
                     let (data_field_size, data_field) = field
                         .content
-                        .try_deserialize(data, data_offset + data_size)
-                        .with_context(|| format!("Decode Field: {}", index))?;
+                        .try_deserialize(data, data_field_offset)
+                        .with_context(|| {
+                            format!(
+                                "Deserialize Field: {} (offset: {})",
+                                index, data_field_offset
+                            )
+                        })?;
                     data_size += data_field_size;
                     data_fields.push(data_field);
                 }

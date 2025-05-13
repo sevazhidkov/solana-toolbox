@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use anyhow::Context;
 use anyhow::Result;
 use serde_json::json;
 use serde_json::Value;
@@ -34,8 +33,13 @@ impl ToolboxIdlPath {
             )),
             Value::Array(values) => {
                 let length = values.len();
-                let index =
-                    usize::try_from(current.code().context("Array index")?)?;
+                let index = match current {
+                    ToolboxIdlPathPart::Empty => 0,
+                    ToolboxIdlPathPart::Key(key) => {
+                        return Err(anyhow!("Invalid Array Index: {}", key));
+                    },
+                    ToolboxIdlPathPart::Code(code) => usize::try_from(code)?,
+                };
                 if index >= length {
                     return Err(anyhow!(
                         "Invalid array index: {} (length: {})",

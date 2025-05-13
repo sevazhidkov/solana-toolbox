@@ -28,7 +28,8 @@ impl ToolboxIdlPath {
                     .context("Defined type")?;
                 if generics.len() < typedef.generics.len() {
                     return Err(anyhow!(
-                        "Insufficient number of generic parameter: expected: {}, found: {}",
+                        "Insufficient number of generic parameter for {}: expected: {}, found: {}",
+                        typedef.name,
                         typedef.generics.len(),
                         generics.len()
                     ));

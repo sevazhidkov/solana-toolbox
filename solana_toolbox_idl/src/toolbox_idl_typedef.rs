@@ -6,6 +6,7 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 pub struct ToolboxIdlTypedef {
     pub name: String,
     pub docs: Option<Value>,
+    pub serialization: Option<String>,
     pub repr: Option<String>,
     pub generics: Vec<String>,
     pub type_flat: ToolboxIdlTypeFlat,

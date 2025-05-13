@@ -72,6 +72,7 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyEnum".to_string(),
             docs: None,
+            serialization: None,
             repr: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Enum {

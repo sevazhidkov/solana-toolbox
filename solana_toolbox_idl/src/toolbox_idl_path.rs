@@ -30,6 +30,17 @@ impl ToolboxIdlPath {
         Ok(ToolboxIdlPath { parts })
     }
 
+    pub fn concat(&self, other: &ToolboxIdlPath) -> ToolboxIdlPath {
+        ToolboxIdlPath {
+            parts: self
+                .parts
+                .iter()
+                .chain(other.parts.iter())
+                .cloned()
+                .collect::<Vec<_>>(),
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.parts.is_empty()
     }

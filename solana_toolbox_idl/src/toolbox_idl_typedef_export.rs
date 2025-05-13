@@ -8,6 +8,7 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 impl ToolboxIdlTypedef {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         if format.can_skip_typedef_type_object_wrap
+            && self.serialization.is_none()
             && self.repr.is_none()
             && self.generics.is_empty()
             && self.docs.is_none()
@@ -15,6 +16,10 @@ impl ToolboxIdlTypedef {
             return self.type_flat.export(format);
         }
         let mut json_object = Map::new();
+        if let Some(serialization) = &self.serialization {
+            json_object
+                .insert("serialization".to_string(), json!(serialization));
+        }
         if let Some(repr) = &self.repr {
             json_object.insert(
                 "repr".to_string(),

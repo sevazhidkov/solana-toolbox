@@ -55,6 +55,7 @@ pub async fn run() {
         ToolboxIdlTypedef {
             name: "MyStruct".to_string(),
             docs: Some(json!(vec!["Hello world!"])),
+            serialization: None,
             repr: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {

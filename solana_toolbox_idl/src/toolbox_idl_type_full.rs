@@ -3,6 +3,16 @@ use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFull {
+    Typedef {
+        name: String,
+        repr: Option<String>,
+        content: Box<ToolboxIdlTypeFull>,
+    },
+    Pod {
+        alignment: usize,
+        size: usize,
+        content: Box<ToolboxIdlTypeFull>,
+    },
     Option {
         prefix: ToolboxIdlTypePrefix,
         content: Box<ToolboxIdlTypeFull>,
@@ -23,13 +33,13 @@ pub enum ToolboxIdlTypeFull {
         variants: Vec<ToolboxIdlTypeFullEnumVariant>,
     },
     Padded {
-        before: u64,
+        before: u64, // TODO - im frustrated by usize vs u64 ?
         min_size: u64,
         after: u64,
         content: Box<ToolboxIdlTypeFull>,
     },
     Const {
-        literal: u64,
+        literal: u64, // TODO - this should not be needed
     },
     Primitive {
         primitive: ToolboxIdlTypePrimitive,

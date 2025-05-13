@@ -11,7 +11,7 @@ pub struct ToolboxIdlAccount {
     pub docs: Option<Value>,
     pub space: Option<usize>,
     pub blobs: Vec<(usize, Vec<u8>)>,
-    pub discriminator: Vec<u8>,
+    pub discriminator: Vec<u8>, // TODO - support for "discriminant" object
     pub content_type_flat: ToolboxIdlTypeFlat,
     pub content_type_full: ToolboxIdlTypeFull,
 }

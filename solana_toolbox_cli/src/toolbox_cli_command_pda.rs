@@ -75,8 +75,8 @@ impl ToolboxCliCommandPdaArgs {
                     false,
                 )?;
                 json_seeds.push(json!({
-                    "type": seed_type_full.explain(),
                     "value": seed_value,
+                    "type": seed_type_full.explained(),
                     "bytes": {
                         "base16": ToolboxEndpoint::encode_base16(&seed_bytes),
                         "base58": ToolboxEndpoint::encode_base58(&seed_bytes),
