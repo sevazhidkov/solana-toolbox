@@ -68,8 +68,12 @@ pub async fn run() {
                 name: "MyAccount".to_string(),
                 generics: vec![]
             },
-            content_type_full: ToolboxIdlTypeFull::Struct {
-                fields: ToolboxIdlTypeFullFields::None
+            content_type_full: ToolboxIdlTypeFull::Typedef {
+                name: "MyAccount".to_string(),
+                repr: None,
+                content: Box::new(ToolboxIdlTypeFull::Struct {
+                    fields: ToolboxIdlTypeFullFields::None
+                })
             },
         }
         .into()

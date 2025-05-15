@@ -283,7 +283,6 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        // TODO - support variable prefix sizes
         enum_prefix.write(enum_variant.code, data)?;
         enum_variant
             .fields
@@ -294,23 +293,23 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_padded(
-        padded_before: &u64,
-        padded_min_size: &u64,
-        padded_after: &u64,
+        padded_before: &usize,
+        padded_min_size: &usize,
+        padded_after: &usize,
         padded_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let data_offset_before = data.len() + usize::try_from(*padded_before)?;
+        let data_offset_before = data.len() + *padded_before;
         while data.len() < data_offset_before {
             data.push(0);
         }
         padded_content.try_serialize(value, data, deserializable)?;
         let data_content_size = data.len() - data_offset_before;
         let data_offset_after = data_offset_before
-            + max(usize::try_from(*padded_min_size)?, data_content_size)
-            + usize::try_from(*padded_after)?;
+            + max(*padded_min_size, data_content_size)
+            + *padded_after;
         while data.len() < data_offset_after {
             data.push(0);
         }
@@ -325,6 +324,7 @@ impl ToolboxIdlTypeFull {
     ) -> Result<()> {
         match primitive {
             ToolboxIdlTypePrimitive::U8 => {
+                // TODO - support for numbers in string format
                 let value_integer = idl_as_u64_or_else(value)?;
                 let value_typed = u8::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
@@ -379,6 +379,7 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(&value_floating.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::Boolean => {
+                // TODO - this could be improved maybe add support for numbers or strings ??
                 data.push(if idl_as_bool_or_else(value)? { 1 } else { 0 });
             },
             ToolboxIdlTypePrimitive::String => {

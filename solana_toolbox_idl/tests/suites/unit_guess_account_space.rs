@@ -70,7 +70,11 @@ pub async fn run() {
                 name: "MyAccount2_x6".to_string(),
                 generics: vec![]
             },
-            content_type_full: ToolboxIdlTypeFull::nothing()
+            content_type_full: ToolboxIdlTypeFull::Typedef {
+                name: "MyAccount2_x6".to_string(),
+                repr: None,
+                content: Box::new(ToolboxIdlTypeFull::nothing())
+            }
         }
         .into()
     );

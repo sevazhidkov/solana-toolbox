@@ -32,9 +32,9 @@ pub enum ToolboxIdlTypeFlat {
         variants: Vec<ToolboxIdlTypeFlatEnumVariant>,
     },
     Padded {
-        before: u64,
-        min_size: u64,
-        after: u64,
+        before: usize,
+        min_size: usize,
+        after: usize,
         content: Box<ToolboxIdlTypeFlat>,
     },
     Const {

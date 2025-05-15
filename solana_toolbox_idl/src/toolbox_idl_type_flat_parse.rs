@@ -417,11 +417,15 @@ impl ToolboxIdlTypeFlat {
     fn try_parse_padded(
         idl_padded: &Map<String, Value>,
     ) -> Result<ToolboxIdlTypeFlat> {
-        let before =
-            idl_object_get_key_as_u64(idl_padded, "before").unwrap_or(0);
-        let min_size =
-            idl_object_get_key_as_u64(idl_padded, "min_size").unwrap_or(0);
-        let after = idl_object_get_key_as_u64(idl_padded, "after").unwrap_or(0);
+        let before = usize::try_from(
+            idl_object_get_key_as_u64(idl_padded, "before").unwrap_or(0),
+        )?;
+        let min_size = usize::try_from(
+            idl_object_get_key_as_u64(idl_padded, "min_size").unwrap_or(0),
+        )?;
+        let after = usize::try_from(
+            idl_object_get_key_as_u64(idl_padded, "after").unwrap_or(0),
+        )?;
         Ok(ToolboxIdlTypeFlat::Padded {
             before,
             min_size,

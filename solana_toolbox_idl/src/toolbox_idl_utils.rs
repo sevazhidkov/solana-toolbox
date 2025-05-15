@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 
 use anyhow::anyhow;
@@ -10,6 +11,8 @@ use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::hash::Hasher;
 use solana_sdk::pubkey::Pubkey;
+
+use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 
 pub(crate) fn idl_object_get_key_as_array<'a>(
     object: &'a Map<String, Value>,
@@ -295,4 +298,49 @@ pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {
     let mut hasher = Hasher::default();
     hasher.hash(value.as_bytes());
     hasher.result().to_bytes()[..8].to_vec()
+}
+
+pub(crate) fn idl_padding_entries<T: std::fmt::Debug>(
+    start_alignment: usize,
+    start_size: usize,
+    entries: Vec<(T, usize, usize, ToolboxIdlTypeFull)>,
+) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
+    let mut alignment = start_alignment;
+    let mut size = start_size;
+    let last_entry_index = entries.len() - 1;
+    let mut entries_padded = vec![];
+    for (entry_index, entry_info) in entries.into_iter().enumerate() {
+        let (entry_meta, entry_alignment, entry_size, entry_type) = entry_info;
+        alignment = max(alignment, entry_alignment);
+        let padding_before = idl_padding_needed(size, entry_alignment);
+        size += padding_before + entry_size;
+        let padding_after = if entry_index == last_entry_index {
+            idl_padding_needed(size, alignment)
+        } else {
+            0
+        };
+        size += padding_after;
+        if padding_before == 0 && padding_after == 0 {
+            entries_padded.push((entry_meta, entry_type));
+        } else {
+            entries_padded.push((
+                entry_meta,
+                ToolboxIdlTypeFull::Padded {
+                    before: padding_before,
+                    min_size: entry_size,
+                    after: padding_after,
+                    content: Box::new(entry_type),
+                },
+            ));
+        }
+    }
+    Ok((alignment, size, entries_padded))
+}
+
+pub(crate) fn idl_padding_needed(offset: usize, alignment: usize) -> usize {
+    let missalignment = offset % alignment;
+    if missalignment == 0 {
+        return 0;
+    }
+    alignment - missalignment
 }

@@ -20,17 +20,21 @@ pub async fn run() {
     let idl_account = idl_program.accounts.get("GenericAccount").unwrap();
     assert_eq!(
         idl_account.content_type_full,
-        ToolboxIdlTypeFull::Struct {
-            fields: ToolboxIdlTypeFullFields::Named(vec![
-                ToolboxIdlTypeFullFieldNamed {
-                    name: "data".to_string(),
-                    content: make_type_full_generic_type(
-                        make_type_full_u32(),
-                        make_type_full_u64(),
-                        10
-                    ),
-                },
-            ]),
+        ToolboxIdlTypeFull::Typedef {
+            name: "GenericAccount".to_string(),
+            repr: None,
+            content: Box::new(ToolboxIdlTypeFull::Struct {
+                fields: ToolboxIdlTypeFullFields::Named(vec![
+                    ToolboxIdlTypeFullFieldNamed {
+                        name: "data".to_string(),
+                        content: make_type_full_generic_type(
+                            make_type_full_u32(),
+                            make_type_full_u64(),
+                            10
+                        ),
+                    },
+                ]),
+            })
         }
     );
     // Check that the instruction was parsed correctly
@@ -53,80 +57,87 @@ fn make_type_full_generic_type(
     u: ToolboxIdlTypeFull,
     n: u64,
 ) -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Struct {
-        fields: ToolboxIdlTypeFullFields::Named(vec![
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen1".to_string(),
-                content: t.clone(),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen2".to_string(),
-                content: u.clone(),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen3".to_string(),
-                content: make_type_full_generic_nested(
-                    make_type_full_u32(),
-                    u.clone(),
-                ),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen4".to_string(),
-                content: make_type_full_generic_nested(
-                    t.clone(),
-                    make_type_full_my_struct(),
-                ),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen5".to_string(),
-                content: make_type_full_generic_nested(t.clone(), u.clone()),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen6".to_string(),
-                content: make_type_full_generic_nested(
-                    make_type_full_u32(),
-                    make_type_full_u64(),
-                ),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen7".to_string(),
-                content: make_type_full_generic_nested(
-                    t.clone(),
-                    make_type_full_generic_nested(t.clone(), u.clone()),
-                ),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "arr".to_string(),
-                content: make_type_full_array(make_type_full_u8(), n),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "warr".to_string(),
-                content: make_type_full_wrapped_u8_array(n),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "warrval".to_string(),
-                content: make_type_full_wrapped_u8_array(10),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "enm1".to_string(),
-                content: make_type_full_generic_enum(
-                    t.clone(),
-                    u.clone(),
-                    n.clone(),
-                ),
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "enm2".to_string(),
-                content: make_type_full_generic_enum(
-                    make_type_full_generic_nested(
+    ToolboxIdlTypeFull::Typedef {
+        name: "GenericType".to_string(),
+        repr: None,
+        content: Box::new(ToolboxIdlTypeFull::Struct {
+            fields: ToolboxIdlTypeFullFields::Named(vec![
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen1".to_string(),
+                    content: t.clone(),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen2".to_string(),
+                    content: u.clone(),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen3".to_string(),
+                    content: make_type_full_generic_nested(
+                        make_type_full_u32(),
+                        u.clone(),
+                    ),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen4".to_string(),
+                    content: make_type_full_generic_nested(
                         t.clone(),
+                        make_type_full_my_struct(),
+                    ),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen5".to_string(),
+                    content: make_type_full_generic_nested(
+                        t.clone(),
+                        u.clone(),
+                    ),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen6".to_string(),
+                    content: make_type_full_generic_nested(
+                        make_type_full_u32(),
                         make_type_full_u64(),
                     ),
-                    make_type_full_u32(),
-                    30,
-                ),
-            },
-        ]),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen7".to_string(),
+                    content: make_type_full_generic_nested(
+                        t.clone(),
+                        make_type_full_generic_nested(t.clone(), u.clone()),
+                    ),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "arr".to_string(),
+                    content: make_type_full_array(make_type_full_u8(), n),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "warr".to_string(),
+                    content: make_type_full_wrapped_u8_array(n),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "warrval".to_string(),
+                    content: make_type_full_wrapped_u8_array(10),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "enm1".to_string(),
+                    content: make_type_full_generic_enum(
+                        t.clone(),
+                        u.clone(),
+                        n.clone(),
+                    ),
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "enm2".to_string(),
+                    content: make_type_full_generic_enum(
+                        make_type_full_generic_nested(
+                            t.clone(),
+                            make_type_full_u64(),
+                        ),
+                        make_type_full_u32(),
+                        30,
+                    ),
+                },
+            ]),
+        }),
     }
 }
 
@@ -135,64 +146,72 @@ fn make_type_full_generic_enum(
     u: ToolboxIdlTypeFull,
     n: u64,
 ) -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Enum {
-        prefix: ToolboxIdlTypePrefix::U8,
-        variants: vec![
-            ToolboxIdlTypeFullEnumVariant {
-                name: "Unnamed".to_string(),
-                code: 0,
-                fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-                    ToolboxIdlTypeFullFieldUnnamed { content: t.clone() },
-                    ToolboxIdlTypeFullFieldUnnamed { content: u.clone() },
-                ]),
-            },
-            ToolboxIdlTypeFullEnumVariant {
-                name: "Named".to_string(),
-                code: 1,
-                fields: ToolboxIdlTypeFullFields::Named(vec![
-                    ToolboxIdlTypeFullFieldNamed {
-                        name: "gen1".to_string(),
-                        content: t.clone(),
-                    },
-                    ToolboxIdlTypeFullFieldNamed {
-                        name: "gen2".to_string(),
-                        content: u.clone(),
-                    },
-                ]),
-            },
-            ToolboxIdlTypeFullEnumVariant {
-                name: "Struct".to_string(),
-                code: 2,
-                fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-                    ToolboxIdlTypeFullFieldUnnamed {
-                        content: make_type_full_generic_nested(
-                            t.clone(),
-                            u.clone(),
-                        ),
-                    },
-                ]),
-            },
-            ToolboxIdlTypeFullEnumVariant {
-                name: "Arr".to_string(),
-                code: 3,
-                fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-                    ToolboxIdlTypeFullFieldUnnamed {
-                        content: make_type_full_array(t.clone(), n),
-                    },
-                ]),
-            },
-        ],
+    ToolboxIdlTypeFull::Typedef {
+        name: "GenericEnum".to_string(),
+        repr: None,
+        content: Box::new(ToolboxIdlTypeFull::Enum {
+            prefix: ToolboxIdlTypePrefix::U8,
+            variants: vec![
+                ToolboxIdlTypeFullEnumVariant {
+                    name: "Unnamed".to_string(),
+                    code: 0,
+                    fields: ToolboxIdlTypeFullFields::Unnamed(vec![
+                        ToolboxIdlTypeFullFieldUnnamed { content: t.clone() },
+                        ToolboxIdlTypeFullFieldUnnamed { content: u.clone() },
+                    ]),
+                },
+                ToolboxIdlTypeFullEnumVariant {
+                    name: "Named".to_string(),
+                    code: 1,
+                    fields: ToolboxIdlTypeFullFields::Named(vec![
+                        ToolboxIdlTypeFullFieldNamed {
+                            name: "gen1".to_string(),
+                            content: t.clone(),
+                        },
+                        ToolboxIdlTypeFullFieldNamed {
+                            name: "gen2".to_string(),
+                            content: u.clone(),
+                        },
+                    ]),
+                },
+                ToolboxIdlTypeFullEnumVariant {
+                    name: "Struct".to_string(),
+                    code: 2,
+                    fields: ToolboxIdlTypeFullFields::Unnamed(vec![
+                        ToolboxIdlTypeFullFieldUnnamed {
+                            content: make_type_full_generic_nested(
+                                t.clone(),
+                                u.clone(),
+                            ),
+                        },
+                    ]),
+                },
+                ToolboxIdlTypeFullEnumVariant {
+                    name: "Arr".to_string(),
+                    code: 3,
+                    fields: ToolboxIdlTypeFullFields::Unnamed(vec![
+                        ToolboxIdlTypeFullFieldUnnamed {
+                            content: make_type_full_array(t.clone(), n),
+                        },
+                    ]),
+                },
+            ],
+        }),
     }
 }
 
 fn make_type_full_my_struct() -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Struct {
-        fields: ToolboxIdlTypeFullFields::Named(vec![
-            ToolboxIdlTypeFullFieldNamed {
-                name: "some_field".to_string(),
-                content: make_type_full_u8(),
-            },
-        ]),
+    ToolboxIdlTypeFull::Typedef {
+        name: "MyStruct".to_string(),
+        repr: None,
+        content: Box::new(ToolboxIdlTypeFull::Struct {
+            fields: ToolboxIdlTypeFullFields::Named(vec![
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "some_field".to_string(),
+                    content: make_type_full_u8(),
+                },
+            ]),
+        }),
     }
 }
 
@@ -200,27 +219,35 @@ fn make_type_full_generic_nested(
     v: ToolboxIdlTypeFull,
     z: ToolboxIdlTypeFull,
 ) -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Struct {
-        fields: ToolboxIdlTypeFullFields::Named(vec![
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen1".to_string(),
-                content: v,
-            },
-            ToolboxIdlTypeFullFieldNamed {
-                name: "gen2".to_string(),
-                content: z,
-            },
-        ]),
+    ToolboxIdlTypeFull::Typedef {
+        name: "GenericNested".to_string(),
+        repr: None,
+        content: Box::new(ToolboxIdlTypeFull::Struct {
+            fields: ToolboxIdlTypeFullFields::Named(vec![
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen1".to_string(),
+                    content: v,
+                },
+                ToolboxIdlTypeFullFieldNamed {
+                    name: "gen2".to_string(),
+                    content: z,
+                },
+            ]),
+        }),
     }
 }
 
 fn make_type_full_wrapped_u8_array(_n: u64) -> ToolboxIdlTypeFull {
-    ToolboxIdlTypeFull::Struct {
-        fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-            ToolboxIdlTypeFullFieldUnnamed {
-                content: make_type_full_u8(),
-            },
-        ]),
+    ToolboxIdlTypeFull::Typedef {
+        name: "WrappedU8Array".to_string(),
+        repr: None,
+        content: Box::new(ToolboxIdlTypeFull::Struct {
+            fields: ToolboxIdlTypeFullFields::Unnamed(vec![
+                ToolboxIdlTypeFullFieldUnnamed {
+                    content: make_type_full_u8(),
+                },
+            ]),
+        }),
     }
 }
 

@@ -13,7 +13,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 #[repr(C)]
 struct BytemuckContainer {
     pub bytemuck_struct_c: BytemuckStructC,
-    // pub bytemuck_struct_regular: BytemuckStructRegular,
+    pub bytemuck_struct_regular: BytemuckStructRegular,
     pub bytemuck_enum_c: BytemuckEnumC,
     pub bytemuck_enum_u8: BytemuckEnumU8,
     pub bytemuck_discriminant_c: BytemuckDiscriminantC,
@@ -96,7 +96,7 @@ pub async fn run() {
                 "repr": "c",
                 "fields": [
                     { "name": "bytemuck_struct_c", "type": "BytemuckStructC" },
-                    // { "name": "bytemuck_struct_regular", "type": "BytemuckStructRegular" },
+                    { "name": "bytemuck_struct_regular", "type": "BytemuckStructRegular" },
                     { "name": "bytemuck_enum_c", "type": "BytemuckEnumC" },
                     { "name": "bytemuck_enum_u8", "type": "BytemuckEnumU8" },
                     { "name": "bytemuck_discriminant_c", "type": "BytemuckDiscriminantC" },
@@ -115,7 +115,6 @@ pub async fn run() {
                 ],
             },
             "BytemuckStructRegular": {
-                "repr": "c", // TODO - fix
                 "fields": [
                     { "name": "field1", "type": "u16" },
                     { "name": "field2", "type": "pubkey" },
@@ -207,7 +206,7 @@ pub async fn run() {
             "Case0",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                // bytemuck_struct_regular: raw_bytemuck_struct_regular,
+                bytemuck_struct_regular: raw_bytemuck_struct_regular,
                 bytemuck_enum_c: BytemuckEnumC::Case0,
                 bytemuck_enum_u8: BytemuckEnumU8::Case0,
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseA,
@@ -216,7 +215,7 @@ pub async fn run() {
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                // "bytemuck_struct_regular": json_bytemuck_struct,
+                "bytemuck_struct_regular": json_bytemuck_struct,
                 "bytemuck_enum_c": "Case0",
                 "bytemuck_enum_u8": "Case0",
                 "bytemuck_discriminant_c": "CaseA",
@@ -228,7 +227,7 @@ pub async fn run() {
             "Case1",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                // bytemuck_struct_regular: raw_bytemuck_struct_regular,
+                bytemuck_struct_regular: raw_bytemuck_struct_regular,
                 bytemuck_enum_c: BytemuckEnumC::Case1(0xC1C1u16),
                 bytemuck_enum_u8: BytemuckEnumU8::Case1(0xC1C1u16),
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseB,
@@ -237,7 +236,7 @@ pub async fn run() {
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                // "bytemuck_struct_regular": json_bytemuck_struct,
+                "bytemuck_struct_regular": json_bytemuck_struct,
                 "bytemuck_enum_c": { "Case1": [0xC1C1u16] },
                 "bytemuck_enum_u8": { "Case1": [0xC1C1u16] },
                 "bytemuck_discriminant_c": "CaseB",
@@ -249,7 +248,7 @@ pub async fn run() {
             "Case2",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                // bytemuck_struct_regular: raw_bytemuck_struct_regular,
+                bytemuck_struct_regular: raw_bytemuck_struct_regular,
                 bytemuck_enum_c: BytemuckEnumC::Case2(key_c2),
                 bytemuck_enum_u8: BytemuckEnumU8::Case2(key_c2),
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseC,
@@ -258,7 +257,7 @@ pub async fn run() {
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                // "bytemuck_struct_regular": json_bytemuck_struct,
+                "bytemuck_struct_regular": json_bytemuck_struct,
                 "bytemuck_enum_c": { "Case2": [key_c2.to_string()] },
                 "bytemuck_enum_u8": { "Case2": [key_c2.to_string()] },
                 "bytemuck_discriminant_c": "CaseC",
@@ -270,7 +269,7 @@ pub async fn run() {
             "Case3",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                // bytemuck_struct_regular: raw_bytemuck_struct_regular,
+                bytemuck_struct_regular: raw_bytemuck_struct_regular,
                 bytemuck_enum_c: BytemuckEnumC::Case3(0xC3C3C3C3C3C3C3C3u64),
                 bytemuck_enum_u8: BytemuckEnumU8::Case3(0xC3C3C3C3C3C3C3C3u64),
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseA,
@@ -279,7 +278,7 @@ pub async fn run() {
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                // "bytemuck_struct_regular": json_bytemuck_struct,
+                "bytemuck_struct_regular": json_bytemuck_struct,
                 "bytemuck_enum_c": { "Case3": [0xC3C3C3C3C3C3C3C3u64] },
                 "bytemuck_enum_u8": { "Case3": [0xC3C3C3C3C3C3C3C3u64] },
                 "bytemuck_discriminant_c": "CaseA",
@@ -291,7 +290,7 @@ pub async fn run() {
             "Case4",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                // bytemuck_struct_regular: raw_bytemuck_struct_regular,
+                bytemuck_struct_regular: raw_bytemuck_struct_regular,
                 bytemuck_enum_c: BytemuckEnumC::Case4(0xC4u8),
                 bytemuck_enum_u8: BytemuckEnumU8::Case4(0xC4u8),
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseB,
@@ -300,7 +299,7 @@ pub async fn run() {
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                // "bytemuck_struct_regular": json_bytemuck_struct,
+                "bytemuck_struct_regular": json_bytemuck_struct,
                 "bytemuck_enum_c": { "Case4": [0xC4u8] },
                 "bytemuck_enum_u8": { "Case4": [0xC4u8] },
                 "bytemuck_discriminant_c": "CaseB",
@@ -312,7 +311,7 @@ pub async fn run() {
             "Case5",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                // bytemuck_struct_regular: raw_bytemuck_struct_regular,
+                bytemuck_struct_regular: raw_bytemuck_struct_regular,
                 bytemuck_enum_c: BytemuckEnumC::Case5(0xC5C5u16, 0xC5C5C5C5u32),
                 bytemuck_enum_u8: BytemuckEnumU8::Case5(
                     0xC5C5u16,
@@ -324,7 +323,7 @@ pub async fn run() {
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                // "bytemuck_struct_regular": json_bytemuck_struct,
+                "bytemuck_struct_regular": json_bytemuck_struct,
                 "bytemuck_enum_c": { "Case5": [0xC5C5u16, 0xC5C5C5C5u32] },
                 "bytemuck_enum_u8": { "Case5": [0xC5C5u16, 0xC5C5C5C5u32] },
                 "bytemuck_discriminant_c": "CaseC",
@@ -345,7 +344,6 @@ pub async fn run() {
         case_assert_round_trip(idl_account, &case.1, &case.2);
         println!();
     }
-    panic!("LOL");
 }
 
 fn case_assert_round_trip(

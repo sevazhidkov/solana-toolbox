@@ -33,9 +33,9 @@ pub enum ToolboxIdlTypeFull {
         variants: Vec<ToolboxIdlTypeFullEnumVariant>,
     },
     Padded {
-        before: u64, // TODO - im frustrated by usize vs u64 ?
-        min_size: u64,
-        after: u64,
+        before: usize,
+        min_size: usize,
+        after: usize,
         content: Box<ToolboxIdlTypeFull>,
     },
     Const {

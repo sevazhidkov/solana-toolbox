@@ -126,68 +126,88 @@ pub async fn run() {
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                     ToolboxIdlTypeFullFieldUnnamed {
-                        content: ToolboxIdlTypeFull::Enum {
-                            prefix: ToolboxIdlTypePrefix::U8,
-                            variants: vec![
-                                ToolboxIdlTypeFullEnumVariant {
-                                    name: "CaseA".to_string(),
-                                    code: 0,
-                                    fields: ToolboxIdlTypeFullFields::Unnamed(
-                                        vec![ToolboxIdlTypeFullFieldUnnamed {
-                                            content: ToolboxIdlTypeFull::Vec {
-                                                prefix:
-                                                    ToolboxIdlTypePrefix::U32,
-                                                items: Box::new(
-                                                    ToolboxIdlTypePrimitive::U8
-                                                        .into()
-                                                )
-                                            }
-                                        }]
-                                    )
-                                },
-                                ToolboxIdlTypeFullEnumVariant {
-                                    name: "CaseB".to_string(),
-                                    code: 1,
-                                    fields: ToolboxIdlTypeFullFields::Unnamed(
-                                        vec![ToolboxIdlTypeFullFieldUnnamed {
-                                            content:
-                                                ToolboxIdlTypePrimitive::U8
+                        content: ToolboxIdlTypeFull::Typedef {
+                            name: "MyDefinedEnum".to_string(),
+                            repr: None,
+                            content: Box::new(ToolboxIdlTypeFull::Typedef {
+                                name: "MyEnum".to_string(),
+                                repr: None,
+                                content: Box::new(ToolboxIdlTypeFull::Enum {
+                                    prefix: ToolboxIdlTypePrefix::U8,
+                                    variants: vec![
+                                        ToolboxIdlTypeFullEnumVariant {
+                                            name: "CaseA".to_string(),
+                                            code: 0,
+                                            fields: ToolboxIdlTypeFullFields::Unnamed(
+                                                vec![ToolboxIdlTypeFullFieldUnnamed {
+                                                    content: ToolboxIdlTypeFull::Vec {
+                                                        prefix:
+                                                            ToolboxIdlTypePrefix::U32,
+                                                        items: Box::new(
+                                                            ToolboxIdlTypePrimitive::U8
+                                                                .into()
+                                                        )
+                                                    }
+                                                }]
+                                            )
+                                        },
+                                        ToolboxIdlTypeFullEnumVariant {
+                                            name: "CaseB".to_string(),
+                                            code: 1,
+                                            fields: ToolboxIdlTypeFullFields::Unnamed(
+                                                vec![ToolboxIdlTypeFullFieldUnnamed {
+                                                    content:
+                                                        ToolboxIdlTypePrimitive::U8
+                                                            .into()
+                                                }]
+                                            )
+                                        },
+                                    ]
+                                })
+                            })
+                        }
+                    },
+                    ToolboxIdlTypeFullFieldUnnamed {
+                        content: ToolboxIdlTypeFull::Typedef {
+                            name: "MyDefinedStruct".to_string(),
+                            repr: None,
+                            content: Box::new(ToolboxIdlTypeFull::Typedef {
+                            name: "MyStruct".to_string(),
+                            repr: None,
+                            content: Box::new(ToolboxIdlTypeFull::Struct {
+                                fields: ToolboxIdlTypeFullFields::Named(vec![
+                                    ToolboxIdlTypeFullFieldNamed {
+                                        name: "field_a".to_string(),
+                                        content: ToolboxIdlTypeFull::Option {
+                                            prefix: ToolboxIdlTypePrefix::U8,
+                                            content: Box::new(
+                                                ToolboxIdlTypePrimitive::F64
                                                     .into()
-                                        }]
-                                    )
-                                },
-                            ]
-                        }
-                    },
-                    ToolboxIdlTypeFullFieldUnnamed {
-                        content: ToolboxIdlTypeFull::Struct {
-                            fields: ToolboxIdlTypeFullFields::Named(vec![
-                                ToolboxIdlTypeFullFieldNamed {
-                                    name: "field_a".to_string(),
-                                    content: ToolboxIdlTypeFull::Option {
-                                        prefix: ToolboxIdlTypePrefix::U8,
-                                        content: Box::new(
-                                            ToolboxIdlTypePrimitive::F64.into()
-                                        )
-                                    }
-                                },
-                                ToolboxIdlTypeFullFieldNamed {
-                                    name: "field_b".to_string(),
-                                    content: ToolboxIdlTypeFull::Vec {
-                                        prefix: ToolboxIdlTypePrefix::U32,
-                                        items: Box::new(
-                                            ToolboxIdlTypePrimitive::F32.into()
-                                        )
+                                            )
+                                        }
                                     },
-                                },
-                            ])
-                        }
+                                    ToolboxIdlTypeFullFieldNamed {
+                                        name: "field_b".to_string(),
+                                        content: ToolboxIdlTypeFull::Vec {
+                                            prefix: ToolboxIdlTypePrefix::U32,
+                                            items: Box::new(
+                                                ToolboxIdlTypePrimitive::F32
+                                                    .into()
+                                            )
+                                        },
+                                    },
+                                ])
+                            })
+                        })}
                     },
                     ToolboxIdlTypeFullFieldUnnamed {
-                        content: ToolboxIdlTypeFull::Array {
+                        content: ToolboxIdlTypeFull::Typedef {
+                            name: "MyArray".to_string(),
+                            repr: None,
+                            content: Box::new(ToolboxIdlTypeFull::Array {
                             items: Box::new(ToolboxIdlTypePrimitive::I8.into()),
                             length: 4
-                        }
+                        })}
                     }
                 ])
             }

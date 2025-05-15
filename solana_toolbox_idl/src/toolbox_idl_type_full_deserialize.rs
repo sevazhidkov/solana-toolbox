@@ -14,8 +14,6 @@ use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
-use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
-use crate::toolbox_idl_utils::idl_u8_from_bytes_at;
 
 impl ToolboxIdlTypeFull {
     pub fn try_deserialize(
@@ -243,7 +241,6 @@ impl ToolboxIdlTypeFull {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        // TODO - support variable prefix size
         let mut enum_mask = 0;
         for enum_variant in enum_variants {
             enum_mask = max(enum_mask, {
@@ -314,14 +311,14 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_deserialize_padded(
-        padded_before: &u64,
-        padded_min_size: &u64,
-        padded_after: &u64,
+        padded_before: &usize,
+        padded_min_size: &usize,
+        padded_after: &usize,
         padded_content: &ToolboxIdlTypeFull,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let mut data_size = usize::try_from(*padded_before)?;
+        let mut data_size = *padded_before;
         let data_content_offset = data_offset + data_size;
         let (data_content_size, data_content) = padded_content
             .try_deserialize(data, data_content_offset)
@@ -331,8 +328,8 @@ impl ToolboxIdlTypeFull {
                     data_content_offset
                 )
             })?;
-        data_size += max(data_content_size, usize::try_from(*padded_min_size)?);
-        data_size += usize::try_from(*padded_after)?;
+        data_size += max(data_content_size, *padded_min_size);
+        data_size += *padded_after;
         Ok((data_size, data_content))
     }
 
@@ -427,21 +424,22 @@ impl ToolboxIdlTypeFull {
                 (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::Boolean => {
-                let data_flag = idl_u8_from_bytes_at(data, data_offset)?;
-                let data_size = std::mem::size_of_val(&data_flag);
+                let prefix = ToolboxIdlTypePrefix::U8;
+                let data_flag = prefix.read_at(data, data_offset)?;
+                let data_size = prefix.to_size();
                 (data_size, json!(data_flag != 0))
             },
             ToolboxIdlTypePrimitive::String => {
-                let data_length = idl_u32_from_bytes_at(data, data_offset)?; // TODO - remove this in favor of a prefix
-                let mut data_size = std::mem::size_of_val(&data_length);
+                let prefix = ToolboxIdlTypePrefix::U32;
+                let data_length = prefix.read_at(data, data_offset)?;
+                let mut data_size = prefix.to_size();
                 let data_bytes = idl_slice_from_bytes(
                     data,
                     data_offset + data_size,
                     usize::try_from(data_length)?,
                 )?;
                 data_size += data_bytes.len();
-                let data_string = String::from_utf8(data_bytes.to_vec())?;
-                (data_size, json!(data_string))
+                (data_size, json!(String::from_utf8(data_bytes.to_vec())?))
             },
             ToolboxIdlTypePrimitive::PublicKey => {
                 let data_pubkey = idl_pubkey_from_bytes_at(data, data_offset)?;
