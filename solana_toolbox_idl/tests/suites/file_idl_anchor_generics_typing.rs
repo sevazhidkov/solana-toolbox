@@ -156,8 +156,14 @@ fn make_type_full_generic_enum(
                     name: "Unnamed".to_string(),
                     code: 0,
                     fields: ToolboxIdlTypeFullFields::Unnamed(vec![
-                        ToolboxIdlTypeFullFieldUnnamed { content: t.clone() },
-                        ToolboxIdlTypeFullFieldUnnamed { content: u.clone() },
+                        ToolboxIdlTypeFullFieldUnnamed {
+                            position: 0,
+                            content: t.clone(),
+                        },
+                        ToolboxIdlTypeFullFieldUnnamed {
+                            position: 1,
+                            content: u.clone(),
+                        },
                     ]),
                 },
                 ToolboxIdlTypeFullEnumVariant {
@@ -179,6 +185,7 @@ fn make_type_full_generic_enum(
                     code: 2,
                     fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                         ToolboxIdlTypeFullFieldUnnamed {
+                            position: 0,
                             content: make_type_full_generic_nested(
                                 t.clone(),
                                 u.clone(),
@@ -191,6 +198,7 @@ fn make_type_full_generic_enum(
                     code: 3,
                     fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                         ToolboxIdlTypeFullFieldUnnamed {
+                            position: 0,
                             content: make_type_full_array(t.clone(), n),
                         },
                     ]),
@@ -244,6 +252,7 @@ fn make_type_full_wrapped_u8_array(_n: usize) -> ToolboxIdlTypeFull {
         content: Box::new(ToolboxIdlTypeFull::Struct {
             fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                 ToolboxIdlTypeFullFieldUnnamed {
+                    position: 0,
                     content: make_type_full_u8(),
                 },
             ]),

@@ -477,8 +477,8 @@ impl ToolboxIdlTypeFullFields {
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut data_size = 0;
-                let mut data_fields = vec![];
-                for (index, field) in fields.iter().enumerate() {
+                let mut data_fields = vec![json!(null); fields.len()];
+                for field in fields {
                     let data_field_offset = data_offset + data_size;
                     let (data_field_size, data_field) = field
                         .content
@@ -486,11 +486,11 @@ impl ToolboxIdlTypeFullFields {
                         .with_context(|| {
                             format!(
                                 "Deserialize Field: {} (offset: {})",
-                                index, data_field_offset
+                                field.position, data_field_offset
                             )
                         })?;
                     data_size += data_field_size;
-                    data_fields.push(data_field);
+                    data_fields[field.position] = data_field;
                 }
                 (data_size, json!(data_fields))
             },

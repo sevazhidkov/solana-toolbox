@@ -126,6 +126,7 @@ pub async fn run() {
             content_type_full: ToolboxIdlTypeFull::Struct {
                 fields: ToolboxIdlTypeFullFields::Unnamed(vec![
                     ToolboxIdlTypeFullFieldUnnamed {
+                        position: 0,
                         content: ToolboxIdlTypeFull::Typedef {
                             name: "MyDefinedEnum".to_string(),
                             repr: None,
@@ -140,6 +141,7 @@ pub async fn run() {
                                             code: 0,
                                             fields: ToolboxIdlTypeFullFields::Unnamed(
                                                 vec![ToolboxIdlTypeFullFieldUnnamed {
+                                                    position: 0,
                                                     content: ToolboxIdlTypeFull::Vec {
                                                         prefix:
                                                             ToolboxIdlTypePrefix::U32,
@@ -156,6 +158,7 @@ pub async fn run() {
                                             code: 1,
                                             fields: ToolboxIdlTypeFullFields::Unnamed(
                                                 vec![ToolboxIdlTypeFullFieldUnnamed {
+                                                    position: 0,
                                                     content:
                                                         ToolboxIdlTypePrimitive::U8
                                                             .into()
@@ -168,6 +171,7 @@ pub async fn run() {
                         }
                     },
                     ToolboxIdlTypeFullFieldUnnamed {
+                        position: 1,
                         content: ToolboxIdlTypeFull::Typedef {
                             name: "MyDefinedStruct".to_string(),
                             repr: None,
@@ -201,6 +205,7 @@ pub async fn run() {
                         })}
                     },
                     ToolboxIdlTypeFullFieldUnnamed {
+                        position: 2,
                         content: ToolboxIdlTypeFull::Typedef {
                             name: "MyArray".to_string(),
                             repr: None,

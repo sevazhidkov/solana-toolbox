@@ -426,13 +426,13 @@ impl ToolboxIdlTypeFullFields {
                 if values.len() != fields.len() {
                     return Err(anyhow!("Wrong number of unnamed fields, expected: {}, found: {}", fields.len(), values.len()));
                 }
-                for (index, field) in fields.iter().enumerate() {
-                    let value_field = &values[index];
+                for field in fields {
+                    let value_field = &values[field.position];
                     field
                         .content
                         .try_serialize(value_field, data, deserializable)
                         .with_context(|| {
-                            format!("Serialize Field: {}", index)
+                            format!("Serialize Field: {}", field.position)
                         })?;
                 }
             },
