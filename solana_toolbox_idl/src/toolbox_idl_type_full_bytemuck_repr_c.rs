@@ -225,6 +225,7 @@ impl ToolboxIdlTypeFullFields {
                             .into_iter()
                             .map(|field_info_padded| {
                                 ToolboxIdlTypeFullFieldUnnamed {
+                                    position: field_info_padded.0,
                                     content: field_info_padded.1,
                                 }
                             })

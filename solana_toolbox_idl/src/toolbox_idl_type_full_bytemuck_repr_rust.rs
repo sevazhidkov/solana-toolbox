@@ -220,20 +220,24 @@ impl ToolboxIdlTypeFullFields {
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut fields_infos = vec![];
-                for (index, field) in fields.into_iter().enumerate() {
+                for field in fields {
                     let (field_alignment, field_size, field_repr_rust) = field
                         .content
                         .bytemuck_repr_rust()
                         .with_context(|| {
-                            anyhow!("Bytemuck: Repr(Rust): Field: {}", index)
+                            anyhow!(
+                                "Bytemuck: Repr(Rust): Field: {}",
+                                field.position
+                            )
                         })?;
                     fields_infos.push((
                         field_alignment,
                         field_size,
-                        index,
+                        field.position,
                         field_repr_rust,
                     ));
                 }
+                fields_infos.sort_by(|a, b| b.1.cmp(&a.1));
                 let (alignment, size, fields_infos_padded) =
                     idl_padding_entries(
                         prefix_size,
@@ -248,6 +252,7 @@ impl ToolboxIdlTypeFullFields {
                             .into_iter()
                             .map(|field_info_padded| {
                                 ToolboxIdlTypeFullFieldUnnamed {
+                                    position: field_info_padded.0,
                                     content: field_info_padded.1,
                                 }
                             })

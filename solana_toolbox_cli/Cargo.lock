@@ -5891,32 +5891,9 @@ dependencies = [
  "serde_json",
  "solana-cli-config",
  "solana-sdk",
- "solana_toolbox_endpoint 0.4.0-solana-2.1.4",
+ "solana_toolbox_endpoint",
  "solana_toolbox_idl",
  "tokio",
- "urlencoding",
-]
-
-[[package]]
-name = "solana_toolbox_endpoint"
-version = "0.4.0-solana-2.1.4"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "bincode",
- "borsh 1.5.5",
- "bytemuck",
- "serde",
- "serde_json",
- "solana-account-decoder",
- "solana-client",
- "solana-program-runtime",
- "solana-program-test",
- "solana-sdk",
- "solana-transaction-status",
- "spl-associated-token-account 6.0.0",
- "spl-token 4.0.2",
  "urlencoding",
 ]
 
@@ -5948,13 +5925,15 @@ dependencies = [
 [[package]]
 name = "solana_toolbox_idl"
 version = "0.4.0-solana-2.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd9f00136bdce5b9695666d4d727ddaa4bd84a7abd018d3bc960753aed80375b"
 dependencies = [
  "anyhow",
  "convert_case",
  "inflate",
  "serde_json",
  "solana-sdk",
- "solana_toolbox_endpoint 0.4.0-solana-2.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "solana_toolbox_endpoint",
 ]
 
 [[package]]

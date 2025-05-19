@@ -68,6 +68,7 @@ pub struct ToolboxIdlTypeFullFieldNamed {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxIdlTypeFullFieldUnnamed {
+    pub position: usize,
     pub content: ToolboxIdlTypeFull,
 }
 

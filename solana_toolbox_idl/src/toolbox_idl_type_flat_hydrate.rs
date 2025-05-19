@@ -214,7 +214,7 @@ impl ToolboxIdlTypeFlatFields {
                 for (index, field) in fields.iter().enumerate() {
                     fields_type_full.push(
                         field
-                            .try_hydrate(generics_by_symbol, typedefs)
+                            .try_hydrate(index, generics_by_symbol, typedefs)
                             .with_context(|| {
                                 format!("Hydrate Unnamed Field: {}", index)
                             })?,
@@ -243,10 +243,12 @@ impl ToolboxIdlTypeFlatFieldNamed {
 impl ToolboxIdlTypeFlatFieldUnnamed {
     pub fn try_hydrate(
         &self,
+        index: usize,
         generics_by_symbol: &HashMap<String, ToolboxIdlTypeFull>,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlTypeFullFieldUnnamed> {
         Ok(ToolboxIdlTypeFullFieldUnnamed {
+            position: index,
             content: self.content.try_hydrate(generics_by_symbol, typedefs)?,
         })
     }

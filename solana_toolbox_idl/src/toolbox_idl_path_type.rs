@@ -143,9 +143,9 @@ impl ToolboxIdlPath {
                 Err(anyhow!("Could not find named field: {}", key))
             },
             ToolboxIdlTypeFlatFields::Unnamed(fields) => {
-                let length = fields.len();
                 let index =
                     usize::try_from(current.code().context("Field index")?)?;
+                let length = fields.len();
                 if index >= length {
                     return Err(anyhow!(
                         "Invalid field index: {} (length: {})",
