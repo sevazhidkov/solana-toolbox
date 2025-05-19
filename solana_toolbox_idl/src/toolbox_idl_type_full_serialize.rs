@@ -407,7 +407,7 @@ impl ToolboxIdlTypeFullFields {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        Ok(match self {
+        match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let value = idl_as_object_or_else(value)?;
                 for field in fields {
@@ -437,7 +437,8 @@ impl ToolboxIdlTypeFullFields {
                 }
             },
             ToolboxIdlTypeFullFields::None => {},
-        })
+        }
+        Ok(())
     }
 }
 

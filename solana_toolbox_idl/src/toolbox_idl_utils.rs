@@ -300,17 +300,18 @@ pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {
     hasher.result().to_bytes()[..8].to_vec()
 }
 
+#[allow(clippy::type_complexity)]
 pub(crate) fn idl_padding_entries<T: std::fmt::Debug>(
     start_alignment: usize,
     start_size: usize,
-    entries: Vec<(T, usize, usize, ToolboxIdlTypeFull)>,
+    entries: Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
 ) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
     let mut alignment = start_alignment;
     let mut size = start_size;
     let last_entry_index = entries.len() - 1;
     let mut entries_padded = vec![];
     for (entry_index, entry_info) in entries.into_iter().enumerate() {
-        let (entry_meta, entry_alignment, entry_size, entry_type) = entry_info;
+        let (entry_alignment, entry_size, entry_meta, entry_type) = entry_info;
         alignment = max(alignment, entry_alignment);
         let padding_before = idl_padding_needed(size, entry_alignment);
         size += padding_before + entry_size;

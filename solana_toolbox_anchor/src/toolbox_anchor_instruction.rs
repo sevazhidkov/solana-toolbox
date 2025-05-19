@@ -1,12 +1,12 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
+use anyhow::Result;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_anchor::ToolboxAnchor;
-use crate::toolbox_anchor_error::ToolboxAnchorError;
 
 impl ToolboxAnchor {
     pub fn build_instruction<
@@ -33,7 +33,7 @@ impl ToolboxAnchor {
         accounts: Accounts,
         payload: Payload,
         payer: &Keypair,
-    ) -> Result<(), ToolboxAnchorError> {
+    ) -> Result<()> {
         endpoint
             .process_instruction(
                 payer,
@@ -53,7 +53,7 @@ impl ToolboxAnchor {
         payload: Payload,
         payer: &Keypair,
         signers: &[&Keypair],
-    ) -> Result<(), ToolboxAnchorError> {
+    ) -> Result<()> {
         endpoint
             .process_instruction_with_signers(
                 payer,

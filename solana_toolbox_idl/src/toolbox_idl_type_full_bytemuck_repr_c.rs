@@ -91,7 +91,7 @@ impl ToolboxIdlTypeFull {
             items.bytemuck_repr_c()?;
         Ok((
             items_alignment,
-            items_size * usize::try_from(length)?,
+            items_size * length,
             ToolboxIdlTypeFull::Array {
                 items: Box::new(items_repr_c),
                 length,
@@ -177,9 +177,9 @@ impl ToolboxIdlTypeFullFields {
                             anyhow!("Bytemuck: Repr(C): Field: {}", field.name)
                         })?;
                     fields_infos.push((
-                        field.name,
                         field_alignment,
                         field_size,
+                        field.name,
                         field_repr_c,
                     ));
                 }
@@ -209,9 +209,9 @@ impl ToolboxIdlTypeFullFields {
                             anyhow!("Bytemuck: Repr(C): Field: {}", index)
                         })?;
                     fields_infos.push((
-                        index,
                         field_alignment,
                         field_size,
+                        index,
                         field_repr_c,
                     ));
                 }

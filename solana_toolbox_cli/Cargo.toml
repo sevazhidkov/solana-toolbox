@@ -19,6 +19,6 @@ anyhow = "1.0.97"
 
 solana-sdk = "=2.1.4"
 solana-cli-config = "=2.1.4"
-solana_toolbox_endpoint = { path = "../solana_toolbox_endpoint" }
-solana_toolbox_idl = { path = "../solana_toolbox_idl" }
+solana_toolbox_endpoint = "=0.4.0-solana-2.1.4"
+solana_toolbox_idl = "=0.4.0-solana-2.1.4"
 tokio = "1.42.0"

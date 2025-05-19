@@ -321,9 +321,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.95"
+version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
+checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
 name = "aquamarine"
@@ -4931,9 +4931,10 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_anchor"
-version = "0.3.11-solana-1.18.26-anchor-0.30.1"
+version = "0.4.0-solana-1.18.26-anchor-0.30.1"
 dependencies = [
  "anchor-lang",
+ "anyhow",
  "solana-sdk",
  "solana_toolbox_endpoint",
  "tokio",
@@ -4941,10 +4942,11 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.3.11-solana-1.18.26"
+version = "0.4.0-solana-1.18.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "781a6670ad348aa880eb4babd50f632d32da7e64074bfa6f262aff4f62f24ac6"
+checksum = "68d3353215d31f5893dcb365c005ed9c7d21ddd86fea5ceb358e3dfec15987a8"
 dependencies = [
+ "anyhow",
  "async-trait",
  "base64 0.22.1",
  "bincode",

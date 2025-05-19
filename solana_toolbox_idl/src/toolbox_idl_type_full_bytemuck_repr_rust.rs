@@ -94,7 +94,7 @@ impl ToolboxIdlTypeFull {
             items.bytemuck_repr_rust()?;
         Ok((
             items_alignment,
-            items_size * usize::try_from(length)?,
+            items_size * length,
             ToolboxIdlTypeFull::Array {
                 items: Box::new(items_repr_rust),
                 length,
@@ -189,13 +189,13 @@ impl ToolboxIdlTypeFullFields {
                             )
                         })?;
                     fields_infos.push((
-                        field.name,
                         field_alignment,
                         field_size,
+                        field.name,
                         field_repr_rust,
                     ));
                 }
-                fields_infos.sort_by(|a, b| b.2.cmp(&a.2));
+                fields_infos.sort_by(|a, b| b.1.cmp(&a.1));
                 let (alignment, size, fields_infos_padded) =
                     idl_padding_entries(
                         prefix_size,
@@ -228,9 +228,9 @@ impl ToolboxIdlTypeFullFields {
                             anyhow!("Bytemuck: Repr(Rust): Field: {}", index)
                         })?;
                     fields_infos.push((
-                        index,
                         field_alignment,
                         field_size,
+                        index,
                         field_repr_rust,
                     ));
                 }

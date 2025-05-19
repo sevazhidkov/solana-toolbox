@@ -122,7 +122,7 @@ fn make_type_full_generic_type(
                     content: make_type_full_generic_enum(
                         t.clone(),
                         u.clone(),
-                        n.clone(),
+                        n,
                     ),
                 },
                 ToolboxIdlTypeFullFieldNamed {

@@ -367,7 +367,7 @@ fn case_print_layout(
     let expected = bytes_of(raw);
     let computed = idl_account.encode(json).unwrap();
     println!("> Expected (len: {}):", expected.len());
-    print_pretty_bytes(&expected);
+    print_pretty_bytes(expected);
     println!("> Computed (len: {}):", computed.len());
     print_pretty_bytes(&computed);
 }
