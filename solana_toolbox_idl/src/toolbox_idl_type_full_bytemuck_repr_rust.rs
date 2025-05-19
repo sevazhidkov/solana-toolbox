@@ -237,7 +237,6 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_rust,
                     ));
                 }
-                fields_infos.sort_by(|a, b| b.1.cmp(&a.1));
                 let (alignment, size, fields_infos_padded) =
                     idl_padding_entries(
                         prefix_size,
