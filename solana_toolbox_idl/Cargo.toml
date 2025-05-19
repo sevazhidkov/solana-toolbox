@@ -12,7 +12,7 @@ convert_case = "0.7.1"
 anyhow = "1.0.97"
 
 solana-sdk = "=2.1.4"
-solana_toolbox_endpoint = { path = "../solana_toolbox_endpoint" }
+solana_toolbox_endpoint = "=0.4.0-solana-2.1.4"
 
 [dev-dependencies]
 tokio = "1.42.0"
