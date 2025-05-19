@@ -22,7 +22,7 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_proxy::ToolboxEndpointProxy;
 
-const WAIT_SLEEP_DURATION: Duration = Duration::from_millis(100);
+const WAIT_SLEEP_DURATION: Duration = Duration::from_secs(1);
 const WAIT_TIMEOUT_DURATION: Duration = Duration::from_secs(30);
 
 pub struct ToolboxEndpointProxyRpcClient {
