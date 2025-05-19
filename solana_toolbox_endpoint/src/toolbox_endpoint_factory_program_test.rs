@@ -93,10 +93,13 @@ impl ToolboxEndpoint {
                 None,
             );
         }
-        let context = program_test.start_with_context().await;
-        let proxy: Box<dyn ToolboxEndpointProxy> = Box::new(
-            ToolboxEndpointProxyProgramTestContext::new(context).await,
-        );
+        let mut proxy_program_test_context =
+            ToolboxEndpointProxyProgramTestContext::new(
+                program_test.start_with_context().await,
+            );
+        proxy_program_test_context.save_slot_unix_timestamp().await;
+        let proxy: Box<dyn ToolboxEndpointProxy> =
+            Box::new(proxy_program_test_context);
         ToolboxEndpoint::from(proxy)
     }
 }

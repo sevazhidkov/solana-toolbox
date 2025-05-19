@@ -88,7 +88,7 @@ impl ToolboxIdlTypeFull {
 
     fn bytemuck_repr_rust_array(
         items: ToolboxIdlTypeFull,
-        length: u64,
+        length: usize,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         let (items_alignment, items_size, items_repr_rust) =
             items.bytemuck_repr_rust()?;

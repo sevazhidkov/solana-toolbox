@@ -183,7 +183,7 @@ impl ToolboxIdlProgram {
                 })?
                 .into(),
             );
-        } // TODO - support for extracting typedefs from accounts
+        } // TODO - support for extracting typedefs from accounts for re-export to new IDL
         Ok(accounts)
     }
 

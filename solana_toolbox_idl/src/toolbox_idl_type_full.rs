@@ -23,7 +23,7 @@ pub enum ToolboxIdlTypeFull {
     },
     Array {
         items: Box<ToolboxIdlTypeFull>,
-        length: u64,
+        length: usize,
     },
     Struct {
         fields: ToolboxIdlTypeFullFields,

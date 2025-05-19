@@ -204,14 +204,13 @@ impl ToolboxIdlTypeFull {
 
     fn try_deserialize_array(
         array_items: &ToolboxIdlTypeFull,
-        array_length: &u64,
+        array_length: &usize,
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        let array_length = usize::try_from(*array_length)?;
         let mut data_size = 0;
         let mut data_items = vec![];
-        for index in 0..array_length {
+        for index in 0..*array_length {
             let data_item_offset = data_offset + data_size;
             let (data_item_size, data_item) = array_items
                 .try_deserialize(data, data_item_offset)

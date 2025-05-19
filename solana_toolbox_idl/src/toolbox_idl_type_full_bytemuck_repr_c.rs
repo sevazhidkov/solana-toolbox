@@ -1,7 +1,8 @@
+use std::cmp::max;
+
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use std::cmp::max;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
@@ -84,7 +85,7 @@ impl ToolboxIdlTypeFull {
 
     fn bytemuck_repr_c_array(
         items: ToolboxIdlTypeFull,
-        length: u64,
+        length: usize,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         let (items_alignment, items_size, items_repr_c) =
             items.bytemuck_repr_c()?;

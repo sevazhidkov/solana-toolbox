@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use anyhow::Result;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
@@ -12,6 +13,9 @@ impl ToolboxIdlTypeFull {
             Some(repr) if repr == "c" => self.bytemuck_repr_c(),
             Some(repr) if repr == "transparent" => self.bytemuck_repr_rust(),
             Some(repr) if repr == "rust" => self.bytemuck_repr_rust(),
+            Some(repr) if repr == "packed" => {
+                return Err(anyhow!("Bytemuck: Repr(packed) is not supported"))
+            },
             _ => self.bytemuck_repr_rust(),
         }?;
         Ok((

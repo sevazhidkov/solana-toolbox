@@ -117,10 +117,12 @@ impl ToolboxIdlTypeFlat {
                 items: Box::new(
                     items_flat.try_hydrate(generics_by_symbol, typedefs)?,
                 ),
-                length: *length_flat
-                    .try_hydrate(generics_by_symbol, typedefs)?
-                    .as_const_literal()
-                    .context("Expected a const literal")?,
+                length: usize::try_from(
+                    *length_flat
+                        .try_hydrate(generics_by_symbol, typedefs)?
+                        .as_const_literal()
+                        .context("Expected a const literal")?,
+                )?,
             },
             ToolboxIdlTypeFlat::Struct {
                 fields: fields_flat,

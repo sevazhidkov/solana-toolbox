@@ -55,7 +55,7 @@ pub async fn run() {
 fn make_type_full_generic_type(
     t: ToolboxIdlTypeFull,
     u: ToolboxIdlTypeFull,
-    n: u64,
+    n: usize,
 ) -> ToolboxIdlTypeFull {
     ToolboxIdlTypeFull::Typedef {
         name: "GenericType".to_string(),
@@ -144,7 +144,7 @@ fn make_type_full_generic_type(
 fn make_type_full_generic_enum(
     t: ToolboxIdlTypeFull,
     u: ToolboxIdlTypeFull,
-    n: u64,
+    n: usize,
 ) -> ToolboxIdlTypeFull {
     ToolboxIdlTypeFull::Typedef {
         name: "GenericEnum".to_string(),
@@ -237,7 +237,7 @@ fn make_type_full_generic_nested(
     }
 }
 
-fn make_type_full_wrapped_u8_array(_n: u64) -> ToolboxIdlTypeFull {
+fn make_type_full_wrapped_u8_array(_n: usize) -> ToolboxIdlTypeFull {
     ToolboxIdlTypeFull::Typedef {
         name: "WrappedU8Array".to_string(),
         repr: None,
@@ -253,7 +253,7 @@ fn make_type_full_wrapped_u8_array(_n: u64) -> ToolboxIdlTypeFull {
 
 fn make_type_full_array(
     items: ToolboxIdlTypeFull,
-    length: u64,
+    length: usize,
 ) -> ToolboxIdlTypeFull {
     ToolboxIdlTypeFull::Array {
         items: items.into(),

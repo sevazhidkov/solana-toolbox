@@ -36,23 +36,27 @@ pub struct ToolboxEndpointProxyProgramTestContext {
 }
 
 impl ToolboxEndpointProxyProgramTestContext {
-    pub async fn new(
+    pub fn new(
         program_test_context: ProgramTestContext,
     ) -> ToolboxEndpointProxyProgramTestContext {
-        let clock = program_test_context
-            .banks_client
-            .get_sysvar::<Clock>()
-            .await
-            .unwrap();
-        let mut unix_timestamp_by_slot = HashMap::new();
-        unix_timestamp_by_slot.insert(clock.slot, clock.unix_timestamp);
         ToolboxEndpointProxyProgramTestContext {
             program_test_context,
-            unix_timestamp_by_slot,
+            unix_timestamp_by_slot: Default::default(),
             addresses_by_program_id: Default::default(),
             signatures_by_address: Default::default(),
             execution_by_signature: Default::default(),
         }
+    }
+
+    pub async fn save_slot_unix_timestamp(&mut self) {
+        let clock = self
+            .program_test_context
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await
+            .unwrap();
+        self.unix_timestamp_by_slot
+            .insert(clock.slot, clock.unix_timestamp);
     }
 }
 
@@ -423,8 +427,7 @@ impl ToolboxEndpointProxyProgramTestContext {
         self.program_test_context.set_sysvar(&slot_hashes);
         self.program_test_context.set_sysvar(new_clock);
         self.program_test_context.last_blockhash = new_hash;
-        self.unix_timestamp_by_slot
-            .insert(new_clock.slot, new_clock.unix_timestamp);
+        self.save_slot_unix_timestamp().await;
         Ok(())
     }
 

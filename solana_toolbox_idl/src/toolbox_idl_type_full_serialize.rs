@@ -30,7 +30,9 @@ impl ToolboxIdlTypeFull {
         &self,
         value: &Value,
         data: &mut Vec<u8>,
+        // TODO (FAR) - Config object for allowing numbers as string
         // TODO (FAR) - Config object for pubkey hashmap and prefixes and existing
+        // TODO (FAR) - Config object for custom serializers ?
         deserializable: bool,
     ) -> Result<()> {
         match self {
@@ -173,15 +175,14 @@ impl ToolboxIdlTypeFull {
 
     fn try_serialize_array(
         array_items: &ToolboxIdlTypeFull,
-        array_length: &u64,
+        array_length: &usize,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let array_length = usize::try_from(*array_length)?;
         if array_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
-            if bytes.len() != array_length {
+            if bytes.len() != *array_length {
                 return Err(anyhow!(
                     "value byte array is not the correct size: expected {} bytes, found {} bytes",
                     array_length,
@@ -192,7 +193,7 @@ impl ToolboxIdlTypeFull {
             return Ok(());
         }
         let values = idl_as_array_or_else(value)?;
-        if values.len() != array_length {
+        if values.len() != *array_length {
             return Err(anyhow!(
                 "value array is not the correct size: expected {} items, found {} items",
                 array_length,
@@ -324,7 +325,6 @@ impl ToolboxIdlTypeFull {
     ) -> Result<()> {
         match primitive {
             ToolboxIdlTypePrimitive::U8 => {
-                // TODO - support for numbers in string format
                 let value_integer = idl_as_u64_or_else(value)?;
                 let value_typed = u8::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
@@ -379,8 +379,8 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(&value_floating.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::Boolean => {
-                // TODO - this could be improved maybe add support for numbers or strings ??
-                data.push(if idl_as_bool_or_else(value)? { 1 } else { 0 });
+                let value_boolean = idl_as_bool_or_else(value)?;
+                data.push(if value_boolean { 1 } else { 0 });
             },
             ToolboxIdlTypePrimitive::String => {
                 let value_str = idl_as_str_or_else(value)?;
