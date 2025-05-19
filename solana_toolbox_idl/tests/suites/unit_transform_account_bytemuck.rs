@@ -28,7 +28,7 @@ struct BytemuckStructC {
     pub field2: Pubkey,
     pub field3: u64,
     pub field4: u8,
-    pub field5: (u16, u32),
+    pub field5: (u8, u32, u16),
 }
 
 #[derive(Clone, Copy, Debug, Zeroable, PartialEq)]
@@ -37,7 +37,7 @@ struct BytemuckStructRegular {
     pub field2: Pubkey,
     pub field3: u64,
     pub field4: u8,
-    pub field5: (u16, u32),
+    pub field5: (u8, u32, u16),
 }
 
 #[derive(Clone, Copy, Debug, Zeroable, PartialEq)]
@@ -48,7 +48,7 @@ enum BytemuckEnumC {
     Case2(Pubkey),
     Case3(u64),
     Case4(u8),
-    Case5(u16, u32),
+    Case5(u8, u32, u16),
 }
 
 #[derive(Clone, Copy, Debug, Zeroable, PartialEq)]
@@ -59,7 +59,7 @@ enum BytemuckEnumU8 {
     Case2(Pubkey),
     Case3(u64),
     Case4(u8),
-    Case5(u16, u32),
+    Case5(u8, u32, u16),
 }
 
 #[derive(Clone, Copy, Debug, Zeroable, PartialEq)]
@@ -111,7 +111,7 @@ pub async fn run() {
                     { "name": "field2", "type": "pubkey" },
                     { "name": "field3", "type": "u64" },
                     { "name": "field4", "type": "u8" },
-                    { "name": "field5", "fields": ["u16", "u32"] },
+                    { "name": "field5", "fields": ["u8", "u32", "u16"] },
                 ],
             },
             "BytemuckStructRegular": {
@@ -120,7 +120,7 @@ pub async fn run() {
                     { "name": "field2", "type": "pubkey" },
                     { "name": "field3", "type": "u64" },
                     { "name": "field4", "type": "u8" },
-                    { "name": "field5", "fields": ["u16", "u32"] },
+                    { "name": "field5", "fields": ["u8", "u32", "u16"] },
                 ],
             },
             "BytemuckEnumC": {
@@ -131,7 +131,7 @@ pub async fn run() {
                     { "name": "Case2", "fields": ["pubkey"] },
                     { "name": "Case3", "fields": ["u64"] },
                     { "name": "Case4", "fields": ["u8"] },
-                    { "name": "Case5", "fields": ["u16", "u32"] },
+                    { "name": "Case5", "fields": ["u8", "u32", "u16"] },
                 ],
             },
             "BytemuckEnumU8": {
@@ -142,7 +142,7 @@ pub async fn run() {
                     { "name": "Case2", "fields": ["pubkey"] },
                     { "name": "Case3", "fields": ["u64"] },
                     { "name": "Case4", "fields": ["u8"] },
-                    { "name": "Case5", "fields": ["u16", "u32"] },
+                    { "name": "Case5", "fields": ["u8", "u32", "u16"] },
                 ],
             },
             "BytemuckDiscriminantC": {
@@ -183,14 +183,14 @@ pub async fn run() {
         field2: key_f2,
         field3: 0xF3F3F3F3F3F3F3F3u64,
         field4: 0xF4u8,
-        field5: (0xF5F5u16, 0xF5F5F5F5u32),
+        field5: (0xF6u8, 0xF5F5F5F5u32, 0xF5F7u16),
     };
     let raw_bytemuck_struct_regular = BytemuckStructRegular {
         field1: 0xF1F1u16,
         field2: key_f2,
         field3: 0xF3F3F3F3F3F3F3F3u64,
         field4: 0xF4u8,
-        field5: (0xF5F5u16, 0xF5F5F5F5u32),
+        field5: (0xF6u8, 0xF5F5F5F5u32, 0xF5F7u16),
     };
     // Define dummy JSON data
     let json_bytemuck_struct = json!({
@@ -198,7 +198,7 @@ pub async fn run() {
         "field2": key_f2.to_string(),
         "field3": 0xF3F3F3F3F3F3F3F3u64,
         "field4": 0xF4u8,
-        "field5": [0xF5F5u16, 0xF5F5F5F5u32],
+        "field5": [0xF6u8, 0xF5F5F5F5u32, 0xF5F7u16],
     });
     // Generate cases datas
     let cases = vec![
@@ -312,10 +312,15 @@ pub async fn run() {
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
                 bytemuck_struct_regular: raw_bytemuck_struct_regular,
-                bytemuck_enum_c: BytemuckEnumC::Case5(0xC5C5u16, 0xC5C5C5C5u32),
-                bytemuck_enum_u8: BytemuckEnumU8::Case5(
-                    0xC5C5u16,
+                bytemuck_enum_c: BytemuckEnumC::Case5(
+                    0xC6u8,
                     0xC5C5C5C5u32,
+                    0xC5C7u16,
+                ),
+                bytemuck_enum_u8: BytemuckEnumU8::Case5(
+                    0xC6u8,
+                    0xC5C5C5C5u32,
+                    0xC5C7u16,
                 ),
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseC,
                 bytemuck_discriminant_u8: BytemuckDiscriminantU8::CaseC,
@@ -324,8 +329,8 @@ pub async fn run() {
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
                 "bytemuck_struct_regular": json_bytemuck_struct,
-                "bytemuck_enum_c": { "Case5": [0xC5C5u16, 0xC5C5C5C5u32] },
-                "bytemuck_enum_u8": { "Case5": [0xC5C5u16, 0xC5C5C5C5u32] },
+                "bytemuck_enum_c": { "Case5": [0xC6u8, 0xC5C5C5C5u32, 0xC5C7u16] },
+                "bytemuck_enum_u8": { "Case5": [0xC6u8, 0xC5C5C5C5u32, 0xC5C7u16] },
                 "bytemuck_discriminant_c": "CaseC",
                 "bytemuck_discriminant_u8": "CaseC",
                 "bytemuck_field": 0xD5,

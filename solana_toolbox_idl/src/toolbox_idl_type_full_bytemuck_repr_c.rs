@@ -10,7 +10,7 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFieldNamed;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFieldUnnamed;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
-use crate::toolbox_idl_utils::idl_padding_entries;
+use crate::toolbox_idl_utils::idl_fields_infos_aligned;
 
 impl ToolboxIdlTypeFull {
     pub fn bytemuck_repr_c(self) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
@@ -172,9 +172,14 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let mut fields_infos = vec![];
                 for field in fields {
-                    let (field_alignment, field_size, field_repr_c) =
-                        field.content.bytemuck_repr_c().with_context(|| {
-                            anyhow!("Bytemuck: Repr(C): Field: {}", field.name)
+                    let (field_alignment, field_size, field_repr_c) = field
+                        .content
+                        .bytemuck_repr_rust()
+                        .with_context(|| {
+                            anyhow!(
+                                "Bytemuck: Repr(C->Rust): Field: {}",
+                                field.name
+                            )
                         })?;
                     fields_infos.push((
                         field_alignment,
@@ -183,13 +188,13 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_c,
                     ));
                 }
-                let (alignment, size, fields_infos_padded) =
-                    idl_padding_entries(0, 0, fields_infos)?;
+                let (alignment, size, fields_infos) =
+                    idl_fields_infos_aligned(0, fields_infos)?;
                 Ok((
                     alignment,
                     size,
                     ToolboxIdlTypeFullFields::Named(
-                        fields_infos_padded
+                        fields_infos
                             .into_iter()
                             .map(|field_info_padded| {
                                 ToolboxIdlTypeFullFieldNamed {
@@ -204,9 +209,11 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut fields_infos = vec![];
                 for (index, field) in fields.into_iter().enumerate() {
-                    let (field_alignment, field_size, field_repr_c) =
-                        field.content.bytemuck_repr_c().with_context(|| {
-                            anyhow!("Bytemuck: Repr(C): Field: {}", index)
+                    let (field_alignment, field_size, field_repr_c) = field
+                        .content
+                        .bytemuck_repr_rust()
+                        .with_context(|| {
+                            anyhow!("Bytemuck: Repr(C->Rust): Field: {}", index)
                         })?;
                     fields_infos.push((
                         field_alignment,
@@ -215,13 +222,13 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_c,
                     ));
                 }
-                let (alignment, size, fields_infos_padded) =
-                    idl_padding_entries(0, 0, fields_infos)?;
+                let (alignment, size, fields_infos) =
+                    idl_fields_infos_aligned(0, fields_infos)?;
                 Ok((
                     alignment,
                     size,
                     ToolboxIdlTypeFullFields::Unnamed(
-                        fields_infos_padded
+                        fields_infos
                             .into_iter()
                             .map(|field_info_padded| {
                                 ToolboxIdlTypeFullFieldUnnamed {

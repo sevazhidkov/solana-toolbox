@@ -3,7 +3,6 @@ use std::fs::read_to_string;
 
 use serde_json::json;
 use solana_sdk::instruction::AccountMeta;
-use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlProgram;
@@ -68,10 +67,9 @@ pub async fn run() {
             &campaign,
             &collateral_mint,
         );
-    let a_token_program =
-        pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-    let token_program = pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-    let system_program = pubkey!("11111111111111111111111111111111");
+    let a_token_program = ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID;
+    let token_program = ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID;
+    let system_program = ToolboxEndpoint::SYSTEM_PROGRAM_ID;
     // Check instruction content
     assert_eq!(program_id, instruction.program_id);
     // Check instruction data

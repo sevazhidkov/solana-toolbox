@@ -10,8 +10,9 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFieldNamed;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFieldUnnamed;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
-use crate::toolbox_idl_utils::idl_padding_entries;
-use crate::toolbox_idl_utils::idl_padding_needed;
+use crate::toolbox_idl_utils::idl_alignment_padding_needed;
+use crate::toolbox_idl_utils::idl_fields_infos_aligned;
+use crate::toolbox_idl_utils::idl_fields_infos_reorder;
 
 impl ToolboxIdlTypeFull {
     pub fn bytemuck_repr_rust(
@@ -130,7 +131,7 @@ impl ToolboxIdlTypeFull {
             size = max(size, variant_size);
             variants_repr_rust.push(variant_repr_rust);
         }
-        size += idl_padding_needed(size, alignment);
+        size += idl_alignment_padding_needed(size, alignment);
         Ok((
             alignment,
             size,
@@ -195,18 +196,14 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_rust,
                     ));
                 }
-                fields_infos.sort_by(|a, b| b.1.cmp(&a.1));
-                let (alignment, size, fields_infos_padded) =
-                    idl_padding_entries(
-                        prefix_size,
-                        prefix_size,
-                        fields_infos,
-                    )?;
+                idl_fields_infos_reorder(prefix_size, &mut fields_infos);
+                let (alignment, size, fields_infos) =
+                    idl_fields_infos_aligned(prefix_size, fields_infos)?;
                 Ok((
                     alignment,
                     size,
                     ToolboxIdlTypeFullFields::Named(
-                        fields_infos_padded
+                        fields_infos
                             .into_iter()
                             .map(|field_info_padded| {
                                 ToolboxIdlTypeFullFieldNamed {
@@ -237,17 +234,14 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_rust,
                     ));
                 }
-                let (alignment, size, fields_infos_padded) =
-                    idl_padding_entries(
-                        prefix_size,
-                        prefix_size,
-                        fields_infos,
-                    )?;
+                idl_fields_infos_reorder(prefix_size, &mut fields_infos);
+                let (alignment, size, fields_infos) =
+                    idl_fields_infos_aligned(prefix_size, fields_infos)?;
                 Ok((
                     alignment,
                     size,
                     ToolboxIdlTypeFullFields::Unnamed(
-                        fields_infos_padded
+                        fields_infos
                             .into_iter()
                             .map(|field_info_padded| {
                                 ToolboxIdlTypeFullFieldUnnamed {

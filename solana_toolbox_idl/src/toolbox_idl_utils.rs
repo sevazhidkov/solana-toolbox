@@ -300,48 +300,63 @@ pub(crate) fn idl_hash_discriminator_from_string(value: &str) -> Vec<u8> {
     hasher.result().to_bytes()[..8].to_vec()
 }
 
-#[allow(clippy::type_complexity)]
-pub(crate) fn idl_padding_entries<T: std::fmt::Debug>(
-    start_alignment: usize,
-    start_size: usize,
-    entries: Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
-) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
-    let mut alignment = start_alignment;
-    let mut size = start_size;
-    let last_entry_index = entries.len() - 1;
-    let mut entries_padded = vec![];
-    for (entry_index, entry_info) in entries.into_iter().enumerate() {
-        let (entry_alignment, entry_size, entry_meta, entry_type) = entry_info;
-        alignment = max(alignment, entry_alignment);
-        let padding_before = idl_padding_needed(size, entry_alignment);
-        size += padding_before + entry_size;
-        let padding_after = if entry_index == last_entry_index {
-            idl_padding_needed(size, alignment)
-        } else {
-            0
-        };
-        size += padding_after;
-        if padding_before == 0 && padding_after == 0 {
-            entries_padded.push((entry_meta, entry_type));
-        } else {
-            entries_padded.push((
-                entry_meta,
-                ToolboxIdlTypeFull::Padded {
-                    before: padding_before,
-                    min_size: entry_size,
-                    after: padding_after,
-                    content: Box::new(entry_type),
-                },
-            ));
-        }
-    }
-    Ok((alignment, size, entries_padded))
-}
-
-pub(crate) fn idl_padding_needed(offset: usize, alignment: usize) -> usize {
+pub(crate) fn idl_alignment_padding_needed(
+    offset: usize,
+    alignment: usize,
+) -> usize {
     let missalignment = offset % alignment;
     if missalignment == 0 {
         return 0;
     }
     alignment - missalignment
+}
+
+pub(crate) fn idl_fields_infos_reorder<T>(
+    prefix_size: usize,
+    fields_infos: &mut Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
+) {
+    if prefix_size == 0 {
+        if fields_infos.len() <= 2 {
+            return;
+        }
+        return fields_infos.sort_by(|a, b| b.1.cmp(&a.1));
+    }
+}
+
+#[allow(clippy::type_complexity)]
+pub(crate) fn idl_fields_infos_aligned<T>(
+    prefix_size: usize,
+    fields_infos: Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
+) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
+    let mut alignment = prefix_size;
+    let mut size = prefix_size;
+    let last_field_index = fields_infos.len() - 1;
+    let mut fields_infos_padded = vec![];
+    for (field_index, field_info) in fields_infos.into_iter().enumerate() {
+        let (field_alignment, field_size, field_meta, field_type) = field_info;
+        alignment = max(alignment, field_alignment);
+        let padding_before =
+            idl_alignment_padding_needed(size, field_alignment);
+        size += padding_before + field_size;
+        let padding_after = if field_index == last_field_index {
+            idl_alignment_padding_needed(size, alignment)
+        } else {
+            0
+        };
+        size += padding_after;
+        if padding_before == 0 && padding_after == 0 {
+            fields_infos_padded.push((field_meta, field_type));
+        } else {
+            fields_infos_padded.push((
+                field_meta,
+                ToolboxIdlTypeFull::Padded {
+                    before: padding_before,
+                    min_size: field_size,
+                    after: padding_after,
+                    content: Box::new(field_type),
+                },
+            ));
+        }
+    }
+    Ok((alignment, size, fields_infos_padded))
 }
