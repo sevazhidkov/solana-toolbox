@@ -3,6 +3,7 @@ use anyhow::Result;
 use clap::Args;
 use serde_json::json;
 use serde_json::Value;
+use solana_toolbox_idl::ToolboxIdlPath;
 use solana_toolbox_idl::ToolboxIdlTypeFull;
 use solana_toolbox_idl::ToolboxIdlTypePrefix;
 use solana_toolbox_idl::ToolboxIdlTypePrimitive;
@@ -49,12 +50,20 @@ pub struct ToolboxCliCommandFindArgs {
     name: Option<String>,
     #[arg(
         display_order = 15,
-        long = "state",
-        alias = "states",
+        long = "state-fit",
+        alias = "states-fits",
         value_name = "JSON_VALUE",
-        help = "Expect account state to match this value"
+        help = "Expect account state to fit this value (to be a superset of it)"
     )]
-    states: Vec<String>,
+    states_fits: Vec<String>,
+    #[arg(
+        display_order = 16,
+        long = "state-path",
+        alias = "states-pathses",
+        value_name = "JSON_PATH",
+        help = "Expect account state to contain a value at this path"
+    )]
+    states_paths: Vec<String>,
 }
 
 impl ToolboxCliCommandFindArgs {
@@ -113,23 +122,46 @@ impl ToolboxCliCommandFindArgs {
             let account_state = match idl_account.decode(&account.data) {
                 Ok(account_state) => account_state,
                 Err(error) => json!({
-                    "decode_error": context.compute_error_json(error),
+                    "decode_error": context.compute_error_json(error), // TODO - better error handling
                 }),
             };
-            for state in &self.states {
+            let mut ignored = false;
+            for state_fit in &self.states_fits {
                 if !cli_json_value_fit(
                     &account_state,
-                    &context.parse_hjson(state)?,
+                    &context.parse_hjson(state_fit)?,
                 ) {
-                    continue;
+                    ignored = true;
                 }
             }
-            json_accounts.push(json!({
-                "address": address.to_string(),
-                "name": account_name,
-                "state": account_state,
-                "explorer": context.compute_explorer_address_link(&address)
-            }));
+            let account_state = if self.states_paths.is_empty() {
+                account_state
+            } else {
+                let mut account_state_filtered = json!({});
+                for state_path in &self.states_paths {
+                    let path = ToolboxIdlPath::try_parse(state_path)?;
+                    account_state_filtered =
+                        match path.try_get_json_value(&account_state) {
+                            Ok(value) => path.try_set_json_value(
+                                Some(account_state_filtered),
+                                value.clone(),
+                            )?,
+                            Err(_) => {
+                                ignored = true;
+                                continue;
+                            },
+                        };
+                }
+                account_state_filtered
+            };
+            if !ignored {
+                json_accounts.push(json!({
+                    "address": address.to_string(),
+                    "name": account_name,
+                    "state": account_state,
+                    "explorer": context.compute_explorer_address_link(&address)
+                }));
+            }
         }
         Ok(json!(json_accounts))
     }

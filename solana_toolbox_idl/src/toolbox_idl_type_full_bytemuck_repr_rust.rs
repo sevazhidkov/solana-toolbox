@@ -12,7 +12,6 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_utils::idl_alignment_padding_needed;
 use crate::toolbox_idl_utils::idl_fields_infos_aligned;
-use crate::toolbox_idl_utils::idl_fields_infos_reorder;
 
 impl ToolboxIdlTypeFull {
     pub fn bytemuck_repr_rust(
@@ -196,7 +195,7 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_rust,
                     ));
                 }
-                idl_fields_infos_reorder(prefix_size, &mut fields_infos);
+                verify_unstable_fields_infos(prefix_size, &fields_infos)?;
                 let (alignment, size, fields_infos) =
                     idl_fields_infos_aligned(prefix_size, fields_infos)?;
                 Ok((
@@ -234,7 +233,7 @@ impl ToolboxIdlTypeFullFields {
                         field_repr_rust,
                     ));
                 }
-                idl_fields_infos_reorder(prefix_size, &mut fields_infos);
+                verify_unstable_fields_infos(prefix_size, &fields_infos)?;
                 let (alignment, size, fields_infos) =
                     idl_fields_infos_aligned(prefix_size, fields_infos)?;
                 Ok((
@@ -258,4 +257,17 @@ impl ToolboxIdlTypeFullFields {
             },
         }
     }
+}
+
+fn verify_unstable_fields_infos<T>(
+    prefix_size: usize,
+    fields_infos: &Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
+) -> Result<()> {
+    if prefix_size == 0 && fields_infos.len() <= 2 {
+        return Ok(());
+    }
+    if fields_infos.len() <= 1 {
+        return Ok(());
+    }
+    Err(anyhow!("Bytemuck: Repr(Rust): Structs/Enums/Tuples fields ordering is compiler-dependent. Use Repr(C) instead."))
 }

@@ -311,18 +311,6 @@ pub(crate) fn idl_alignment_padding_needed(
     alignment - missalignment
 }
 
-pub(crate) fn idl_fields_infos_reorder<T>(
-    prefix_size: usize,
-    fields_infos: &mut Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
-) {
-    if prefix_size == 0 {
-        if fields_infos.len() <= 2 {
-            return;
-        }
-        return fields_infos.sort_by(|a, b| b.1.cmp(&a.1));
-    }
-}
-
 #[allow(clippy::type_complexity)]
 pub(crate) fn idl_fields_infos_aligned<T>(
     prefix_size: usize,

@@ -176,10 +176,7 @@ impl ToolboxIdlTypeFullFields {
                         .content
                         .bytemuck_repr_rust()
                         .with_context(|| {
-                            anyhow!(
-                                "Bytemuck: Repr(C->Rust): Field: {}",
-                                field.name
-                            )
+                            anyhow!("Bytemuck: Repr(C): Field: {}", field.name)
                         })?;
                     fields_infos.push((
                         field_alignment,
@@ -209,12 +206,10 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut fields_infos = vec![];
                 for (index, field) in fields.into_iter().enumerate() {
-                    let (field_alignment, field_size, field_repr_c) = field
-                        .content
-                        .bytemuck_repr_rust()
-                        .with_context(|| {
-                            anyhow!("Bytemuck: Repr(C->Rust): Field: {}", index)
-                        })?;
+                    let (field_alignment, field_size, field_repr_c) =
+                        field.content.bytemuck_repr_rust().with_context(
+                            || anyhow!("Bytemuck: Repr(C): Field: {}", index),
+                        )?;
                     fields_infos.push((
                         field_alignment,
                         field_size,

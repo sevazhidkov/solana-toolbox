@@ -15,6 +15,7 @@ tasks:
       - task fmt_idl
       - task fmt_anchor
       - task fmt_cli
+      - task fmt_web3
 
   # Testing
   test:
@@ -23,6 +24,7 @@ tasks:
       - task test_idl
       - task test_anchor
       - task test_cli
+      - task test_web3
 
   # Linting (clippy)
   lint:
@@ -31,6 +33,7 @@ tasks:
       - task lint_idl
       - task lint_anchor
       - task lint_cli
+      - task lint_web3
 
   # Publish to cargo
   publish:
@@ -39,6 +42,7 @@ tasks:
       - task publish_idl
       - task publish_anchor
       - task publish_cli
+      # - task publish_web3
 
   # Sub-crate Endpoint
   fmt_endpoint:
@@ -127,6 +131,20 @@ tasks:
         --all-targets
         -- -D warnings
         --allow=clippy::bool_assert_comparison
+
+  # Sub-crate Web3
+  fmt_web3:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_web3"
+    cmds:
+      - npm run fmt
+  test_web3:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_web3"
+    cmds:
+      - npm run test {{ .CLI_ARGS }}
+  lint_web3:
+    dir: "{{ .TASKFILE_DIR }}/solana_toolbox_web3"
+    cmds:
+      - npm run lint
 
   # Publish
   publish_endpoint:
