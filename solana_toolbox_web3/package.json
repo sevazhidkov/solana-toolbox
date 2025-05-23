@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
     "@types/jest": "^29.5.14",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
@@ -23,6 +22,7 @@
   },
   "jest": {
     "preset": "ts-jest",
+    "testTimeout": 10000,
     "testMatch": [
       "**/tests/*.ts"
     ]
@@ -31,5 +31,8 @@
     "semi": true,
     "singleQuote": true,
     "trailingComma": "all"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.2"
   }
 }

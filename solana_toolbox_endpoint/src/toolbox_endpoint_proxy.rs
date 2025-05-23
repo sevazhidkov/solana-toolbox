@@ -60,9 +60,9 @@ pub trait ToolboxEndpointProxy {
     async fn search_signatures(
         &mut self,
         address: &Pubkey,
+        limit: usize,
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
-        limit: usize,
     ) -> Result<Vec<Signature>>;
 
     async fn forward_clock_unix_timestamp(

@@ -80,7 +80,7 @@ impl ToolboxEndpointProxyRpcClient {
                     signature.to_string(),
                     {
                         "commitment": self.get_commitment().commitment.to_string(),
-                        "encoding": "json",
+                        // "encoding": "json",
                         "maxSupportedTransactionVersion": 0,
                     },
                 ]),

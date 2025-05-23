@@ -57,7 +57,7 @@ pub async fn run() {
     // Check that every user has the correct signatures
     for idx in 0..10 {
         let search_user = endpoint
-            .search_signatures(&users[idx].pubkey(), None, None, usize::MAX)
+            .search_signatures(&users[idx].pubkey(), usize::MAX, None, None)
             .await
             .unwrap();
         assert_eq!(search_user.len(), 2);
@@ -71,14 +71,14 @@ pub async fn run() {
         .collect::<Vec<_>>();
     // Check that the payer has the proper signatures
     let search_payer = endpoint
-        .search_signatures(&payer.pubkey(), None, None, usize::MAX)
+        .search_signatures(&payer.pubkey(), usize::MAX, None, None)
         .await
         .unwrap();
     assert_eq!(search_payer.len(), 11);
     assert_eq!(search_payer[..], signatures_newest_to_oldest[10..]);
     // Check that every receiver has all the transfers
     let search_receiver = endpoint
-        .search_signatures(&receiver, None, None, usize::MAX)
+        .search_signatures(&receiver, usize::MAX, None, None)
         .await
         .unwrap();
     assert_eq!(search_receiver, signatures_newest_to_oldest[..10]);
@@ -86,9 +86,9 @@ pub async fn run() {
     let search_system_unfiltered = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
-            None,
-            None,
             usize::MAX,
+            None,
+            None,
         )
         .await
         .unwrap();
@@ -98,9 +98,9 @@ pub async fn run() {
     let search_system_filtered = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+            usize::MAX,
             Some(signatures_newest_to_oldest[6]),
             Some(signatures_newest_to_oldest[18]),
-            usize::MAX,
         )
         .await
         .unwrap();
@@ -113,9 +113,9 @@ pub async fn run() {
     let search_before_invalid = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+            100,
             Some(Signature::new_unique()),
             None,
-            100,
         )
         .await
         .unwrap();
@@ -124,16 +124,16 @@ pub async fn run() {
     let search_until_invalid = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+            usize::MAX,
             None,
             Some(Signature::new_unique()),
-            usize::MAX,
         )
         .await
         .unwrap();
     assert_eq!(search_until_invalid, search_system_unfiltered);
     // Search with a limit
     let search_system_limited = endpoint
-        .search_signatures(&ToolboxEndpoint::SYSTEM_PROGRAM_ID, None, None, 13)
+        .search_signatures(&ToolboxEndpoint::SYSTEM_PROGRAM_ID, 13, None, None)
         .await
         .unwrap();
     assert_eq!(search_system_limited.len(), 13);
@@ -142,9 +142,9 @@ pub async fn run() {
     let search_order_invalid = endpoint
         .search_signatures(
             &ToolboxEndpoint::SYSTEM_PROGRAM_ID,
+            usize::MAX,
             Some(signatures_newest_to_oldest[18]),
             Some(signatures_newest_to_oldest[6]),
-            usize::MAX,
         )
         .await
         .unwrap();

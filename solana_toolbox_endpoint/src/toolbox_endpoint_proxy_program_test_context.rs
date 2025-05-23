@@ -322,9 +322,9 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
     async fn search_signatures(
         &mut self,
         address: &Pubkey,
+        limit: usize,
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
-        limit: usize,
     ) -> Result<Vec<Signature>> {
         let mut found_signatures = vec![];
         if let Some(signatures) = self.signatures_by_address.get(address) {

@@ -8,14 +8,13 @@ use solana_sdk::signature::Signature;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 
-// TODO (FAR) - should it return the first signature "start_before" in results ?
 impl ToolboxEndpointProxyRpcClient {
     pub(crate) async fn search_signatures_using_rpc(
         &mut self,
         address: &Pubkey,
+        limit: usize,
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
-        limit: usize,
     ) -> Result<Vec<Signature>> {
         let mut oldest_known_signature = start_before;
         let mut ordered_signatures = vec![];
@@ -27,7 +26,6 @@ impl ToolboxEndpointProxyRpcClient {
                     None => limit,
                     Some(_) => match retries {
                         0 => 10,
-                        1 => 100,
                         _ => usize::MAX,
                     },
                 },

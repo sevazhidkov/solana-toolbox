@@ -12,43 +12,32 @@ impl ToolboxEndpoint {
     pub const PUBLIC_RPC_URL_TESTNET: &str = "https://api.testnet.solana.com";
 
     pub fn get_url_from_url_or_moniker(url_or_moniker: &str) -> &str {
-        match url_or_moniker {
-            "m" | "M" | "mainnet-beta" | "MAINNET-BETA" | "MAINNET_BETA" => {
+        match url_or_moniker.to_lowercase().as_str() {
+            "m" | "mainnet" | "mainnet-beta" => {
                 ToolboxEndpoint::PUBLIC_RPC_URL_MAINNET_BETA
             },
-            "t" | "T" | "testnet" | "TESTNET" => {
-                ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET
-            },
-            "d" | "D" | "devnet" | "DEVNET" => {
-                ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET
-            },
-            "l" | "L" | "localhost" | "LOCALHOST" => "http://localhost:8899",
-            url => url,
+            "t" | "testnet" => ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET,
+            "d" | "devnet" => ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET,
+            _ => url_or_moniker,
         }
     }
 
     pub fn get_cluster_from_url_or_moniker(
         url_or_moniker: &str,
     ) -> Option<&str> {
-        match url_or_moniker {
+        match url_or_moniker.to_lowercase().as_str() {
             "m"
-            | "M"
+            | "mainnet"
             | "mainnet-beta"
-            | "MAINNET-BETA"
-            | "MAINNET_BETA"
             | ToolboxEndpoint::PUBLIC_RPC_URL_MAINNET_BETA => {
                 Some("mainnet-beta")
             },
-            "t"
-            | "T"
-            | "testnet"
-            | "TESTNET"
-            | ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET => Some("testnet"),
-            "d"
-            | "D"
-            | "devnet"
-            | "DEVNET"
-            | ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET => Some("devnet"),
+            "t" | "testnet" | ToolboxEndpoint::PUBLIC_RPC_URL_TESTNET => {
+                Some("testnet")
+            },
+            "d" | "devnet" | ToolboxEndpoint::PUBLIC_RPC_URL_DEVNET => {
+                Some("devnet")
+            },
             _ => None,
         }
     }

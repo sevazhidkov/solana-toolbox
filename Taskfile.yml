@@ -8,6 +8,12 @@ tasks:
       - task test
       - task lint
 
+  check_web3:
+    cmds:
+      - task fmt_web3
+      - task test_web3
+      - task lint_web3
+
   # Formating
   fmt:
     cmds:

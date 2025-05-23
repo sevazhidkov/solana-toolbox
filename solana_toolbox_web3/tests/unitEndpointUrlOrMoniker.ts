@@ -1,0 +1,43 @@
+import { ToolboxEndpoint } from '../src/ToolboxEndpoint';
+
+it('Check the ToolboxEndpoint.getUrlFromUrlOrMoniker', () => {
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('mainnet-beta')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('m')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('M')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('mainnet')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('MAINNET')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('t')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_TESTNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('T')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_TESTNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('testnet')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_TESTNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('TESTNET')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_TESTNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('d')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('D')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('devnet')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET,
+  );
+  expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('DEVNET')).toBe(
+    ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET,
+  );
+});

@@ -173,15 +173,15 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyRpcClient {
     async fn search_signatures(
         &mut self,
         address: &Pubkey,
+        limit: usize,
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
-        limit: usize,
     ) -> Result<Vec<Signature>> {
         self.search_signatures_using_rpc(
             address,
+            limit,
             start_before,
             rewind_until,
-            limit,
         )
         .await
     }

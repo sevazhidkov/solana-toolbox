@@ -136,12 +136,12 @@ impl ToolboxEndpoint {
     pub async fn search_signatures(
         &mut self,
         address: &Pubkey,
+        limit: usize,
         start_before: Option<Signature>,
         rewind_until: Option<Signature>,
-        limit: usize,
     ) -> Result<Vec<Signature>> {
         self.proxy
-            .search_signatures(address, start_before, rewind_until, limit)
+            .search_signatures(address, limit, start_before, rewind_until)
             .await
     }
 
