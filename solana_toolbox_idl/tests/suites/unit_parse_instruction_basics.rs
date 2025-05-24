@@ -16,7 +16,7 @@ use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": [
             {
                 "name": "my_ix",
@@ -35,7 +35,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": [
             {
                 "name": "my_ix",
@@ -53,7 +53,7 @@ pub async fn run() {
         ],
     }))
     .unwrap();
-    let idl_program3 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program3 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": {
             "my_ix": {
                 "discriminator": [38, 19, 70, 194, 0, 59, 80, 114],
@@ -71,7 +71,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl_program4 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program4 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": {
             "my_ix": {
                 "accounts": [

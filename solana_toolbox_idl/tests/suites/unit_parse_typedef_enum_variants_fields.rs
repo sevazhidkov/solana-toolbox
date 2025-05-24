@@ -12,7 +12,7 @@ use solana_toolbox_idl::ToolboxIdlTypedef;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse(&json!({
         "types": {
             "MyEnum": {
                 "variants": [
@@ -38,7 +38,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse(&json!({
         "types": {
             "MyEnum": {
                 "variants": [

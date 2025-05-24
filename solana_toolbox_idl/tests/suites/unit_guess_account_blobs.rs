@@ -7,7 +7,7 @@ use solana_toolbox_idl::ToolboxIdlTypeFull;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse(&json!({
         "accounts": {
             "MyAccount1_x3": {
                 "blobs": [

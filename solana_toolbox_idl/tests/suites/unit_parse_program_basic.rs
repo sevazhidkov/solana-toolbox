@@ -15,7 +15,7 @@ use solana_toolbox_idl::ToolboxIdlTypePrimitive;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs on the fly
-    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": {
             "my_ix": {
                 "docs": ["my ix doc"],
@@ -47,7 +47,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": [
             {
                 "name": "my_ix",

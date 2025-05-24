@@ -1,7 +1,7 @@
-import { PublicKey, Transaction, TransactionSignature } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { ToolboxEndpoint } from '../src/ToolboxEndpoint';
 
-it('Check the ToolboxEndpoint.searchAdresses', async () => {
+it('Check the ToolboxEndpoint.searchSignatures', async () => {
   // Create the endpoint pointing to devnet
   let endpoint = new ToolboxEndpoint('devnet', 'confirmed');
   // Tests constants

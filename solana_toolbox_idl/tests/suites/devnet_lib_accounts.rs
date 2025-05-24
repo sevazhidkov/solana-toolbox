@@ -29,7 +29,7 @@ pub async fn run() {
     // Lookup our program
     let mut idl_service = ToolboxIdlService::new();
     let idl_program_ata = idl_service
-        .resolve_program(
+        .load_program(
             &mut endpoint,
             &ToolboxEndpoint::SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
         )

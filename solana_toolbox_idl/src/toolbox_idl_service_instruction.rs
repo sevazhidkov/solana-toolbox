@@ -27,7 +27,7 @@ impl ToolboxIdlService {
         instruction: &Instruction,
     ) -> Result<ToolboxIdlServiceInstructionDecoded> {
         let idl_program = self
-            .resolve_program(endpoint, &instruction.program_id)
+            .load_program(endpoint, &instruction.program_id)
             .await
             .context("Resolve Program")?
             .unwrap_or_default();

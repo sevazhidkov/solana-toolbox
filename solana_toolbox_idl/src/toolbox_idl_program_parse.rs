@@ -23,12 +23,10 @@ use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_idl_utils::idl_pubkey_from_bytes_at;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_key_as_str_or_else;
 
-// TODO (FAR) - support passing missing symbols (typedefs overrides at program parsing level ??)
 impl ToolboxIdlProgram {
     pub const DISCRIMINATOR: &[u8] =
         &[0x18, 0x46, 0x62, 0xBF, 0x3A, 0x90, 0x7B, 0x9E];
@@ -44,21 +42,11 @@ impl ToolboxIdlProgram {
                 account_data
             ));
         }
-        let authority_offset = discriminator.len();
-        let authority =
-            idl_pubkey_from_bytes_at(account_data, authority_offset)
-                .context("Read Authority")?;
-        let length_offset =
-            authority_offset + std::mem::size_of_val(&authority);
-        let length = idl_u32_from_bytes_at(account_data, length_offset)
-            .context("Read Length")?;
-        let content_offset = length_offset + std::mem::size_of_val(&length);
-        let content = idl_slice_from_bytes(
-            account_data,
-            content_offset,
-            usize::try_from(length)?,
-        )
-        .context("Read Content")?;
+        let length =
+            idl_u32_from_bytes_at(account_data, 40).context("Read Length")?;
+        let content =
+            idl_slice_from_bytes(account_data, 44, usize::try_from(length)?)
+                .context("Read Content")?;
         let content_encoded = inflate_bytes_zlib(content).map_err(|error| {
             anyhow!("Could not decompress idl data: {}", error)
         })?;
@@ -69,12 +57,12 @@ impl ToolboxIdlProgram {
     }
 
     pub fn try_parse_from_str(content: &str) -> Result<ToolboxIdlProgram> {
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &from_str::<Value>(content).context("Parse JSON")?,
         )
     }
 
-    pub fn try_parse_from_value(value: &Value) -> Result<ToolboxIdlProgram> {
+    pub fn try_parse(value: &Value) -> Result<ToolboxIdlProgram> {
         let idl_root = idl_as_object_or_else(value).context("Root")?;
         let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root)?;
         let typedefs = ToolboxIdlProgram::try_parse_typedefs(idl_root)

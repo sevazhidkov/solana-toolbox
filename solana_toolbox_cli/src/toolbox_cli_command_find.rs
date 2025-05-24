@@ -107,7 +107,7 @@ impl ToolboxCliCommandFindArgs {
             let account =
                 endpoint.get_account(&address).await?.unwrap_or_default();
             let idl_program = idl_service
-                .resolve_program(&mut endpoint, &account.owner)
+                .load_program(&mut endpoint, &account.owner)
                 .await?
                 .unwrap_or_default();
             let idl_account =

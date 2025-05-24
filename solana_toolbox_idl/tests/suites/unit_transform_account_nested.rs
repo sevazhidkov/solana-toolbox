@@ -4,7 +4,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 #[tokio::test]
 pub async fn run() {
     // Create an IDL on the fly
-    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse(&json!({
         "accounts": {
             "MyAccount1": {
                 "discriminator": [74, 73, 72, 71],

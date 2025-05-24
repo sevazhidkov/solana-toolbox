@@ -12,21 +12,21 @@ pub async fn run() {
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
         idl_program_native_system,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_system.export(&ToolboxIdlFormat::human())
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_system,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_system.export(&ToolboxIdlFormat::anchor_26())
         )
         .unwrap()
     );
     assert_eq!(
         idl_program_native_system,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_system.export(&ToolboxIdlFormat::anchor_30())
         )
         .unwrap()
@@ -37,7 +37,7 @@ pub async fn run() {
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
         idl_program_native_compute_budget,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_compute_budget
                 .export(&ToolboxIdlFormat::human())
         )
@@ -45,7 +45,7 @@ pub async fn run() {
     );
     assert_eq!(
         idl_program_native_compute_budget,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_compute_budget
                 .export(&ToolboxIdlFormat::anchor_26())
         )
@@ -53,7 +53,7 @@ pub async fn run() {
     );
     assert_eq!(
         idl_program_native_compute_budget,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_compute_budget
                 .export(&ToolboxIdlFormat::anchor_30())
         )
@@ -65,7 +65,7 @@ pub async fn run() {
     // Test that it's equivalent to the original IDL after being exported
     assert_eq!(
         idl_program_native_loader_upgradeable,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_loader_upgradeable
                 .export(&ToolboxIdlFormat::human())
         )
@@ -73,7 +73,7 @@ pub async fn run() {
     );
     assert_eq!(
         idl_program_native_loader_upgradeable,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_loader_upgradeable
                 .export(&ToolboxIdlFormat::anchor_26())
         )
@@ -81,7 +81,7 @@ pub async fn run() {
     );
     assert_eq!(
         idl_program_native_loader_upgradeable,
-        ToolboxIdlProgram::try_parse_from_value(
+        ToolboxIdlProgram::try_parse(
             &idl_program_native_loader_upgradeable
                 .export(&ToolboxIdlFormat::anchor_30())
         )

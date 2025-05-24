@@ -33,6 +33,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.98.2"
+    "@solana/web3.js": "^1.98.2",
+    "@types/deflate-js": "^0.2.2"
   }
 }

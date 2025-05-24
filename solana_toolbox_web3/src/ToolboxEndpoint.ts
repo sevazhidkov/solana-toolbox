@@ -25,6 +25,18 @@ export class ToolboxEndpoint {
     ['d', ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET],
     ['devnet', ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET],
   ]);
+  private static urlOrMonikerToCluster = new Map<string, string>([
+    [ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA, 'mainnet-beta'],
+    ['mainnet-beta', 'mainnet-beta'],
+    ['mainnet', 'mainnet-beta'],
+    ['m', 'mainnet-beta'],
+    [ToolboxEndpoint.PUBLIC_RPC_URL_TESTNET, 'testnet'],
+    ['testnet', 'testnet'],
+    ['t', 'testnet'],
+    [ToolboxEndpoint.PUBLIC_RPC_URL_DEVNET, 'devnet'],
+    ['devnetnet', 'devnetnet'],
+    ['d', 'devnetnet'],
+  ]);
 
   private connection: Connection;
   private commitment: 'finalized' | 'confirmed';
@@ -44,6 +56,15 @@ export class ToolboxEndpoint {
     return (
       ToolboxEndpoint.urlOrMonikerToUrl.get(urlOrMoniker.toLowerCase()) ??
       urlOrMoniker
+    );
+  }
+
+  public static getClusterFromUrlOrMoniker(
+    urlOrMoniker: string,
+  ): string | null {
+    return (
+      ToolboxEndpoint.urlOrMonikerToCluster.get(urlOrMoniker.toLowerCase()) ??
+      null
     );
   }
 
@@ -108,23 +129,34 @@ export class ToolboxEndpoint {
 
   public async searchAddresses(
     programId: PublicKey,
-    dataLength: number,
-    dataChunks: [number, Buffer][],
+    dataLength?: number,
+    dataChunks?: { offset: number; bytes: Buffer }[],
   ): Promise<Set<PublicKey>> {
+    let filters = [];
+    if (dataLength !== undefined) {
+      filters.push({
+        dataSize: dataLength,
+      });
+    }
+    if (dataChunks !== undefined) {
+      for (let dataChunk of dataChunks) {
+        filters.push({
+          memcmp: {
+            offset: dataChunk.offset,
+            encoding: 'base64' as const,
+            bytes: dataChunk.bytes.toString('base64'),
+          },
+        });
+      }
+    }
     let response = await this.connection.getProgramAccounts(programId, {
       commitment: this.commitment,
       dataSlice: {
         offset: 0,
         length: 0,
       },
-      filters: [
-        {
-          dataSize: dataLength,
-        },
-        // TODO - data chunk memcpy filters
-      ],
+      filters: filters,
     });
-    console.log('searchAddresses.response', response);
     let addresses = new Set<PublicKey>();
     for (let finding of response) {
       addresses.add(finding.pubkey);

@@ -11,7 +11,7 @@ pub async fn run() {
     let program_id1 = Pubkey::new_unique();
     let program_id2 = Pubkey::new_unique();
     // Create IDLs on the fly
-    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": {
             "my_ix": {
                 "discriminator": [77, 78],
@@ -65,7 +65,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse(&json!({
         "instructions": {
             "my_ix": {
                 "discriminator": [77, 78],

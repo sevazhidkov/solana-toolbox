@@ -220,7 +220,7 @@ impl ToolboxIdlInstructionAccount {
         idl_instruction_account_pda_blob_value: Value,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstructionAccountPdaBlob> {
-        let type_flat = ToolboxIdlTypeFlat::try_parse_value(
+        let type_flat = ToolboxIdlTypeFlat::try_parse(
             idl_instruction_account_pda_blob_type,
         )
         .context("Const type parse")?;

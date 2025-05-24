@@ -20,7 +20,7 @@ pub async fn run() {
     // We'll use an IDL resolve to automatically resolve htings using the endpoint
     let mut idl_service = ToolboxIdlService::new();
     let idl_program = idl_service
-        .resolve_program(&mut endpoint, &program_id)
+        .load_program(&mut endpoint, &program_id)
         .await
         .unwrap()
         .unwrap();

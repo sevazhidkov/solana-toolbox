@@ -33,7 +33,7 @@ impl ToolboxIdlService {
         self.cached_programs.insert(*program_id, idl_program);
     }
 
-    pub async fn resolve_program(
+    pub async fn load_program(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,
@@ -41,43 +41,34 @@ impl ToolboxIdlService {
         if let Some(idl_program) = self.cached_programs.get(program_id) {
             return Ok(idl_program.clone());
         }
-        let idl_program = {
-            if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
-                Some(Arc::new(idl_program))
-            } else {
-                let mut source_account = None;
-                if let Some(anchor_account) = endpoint
-                    .get_account(
-                        &ToolboxIdlProgram::find_anchor(program_id)
-                            .context("Find Anchor Account")?,
-                    )
-                    .await
-                    .context("Get Anchor Account")?
-                {
-                    source_account = Some(anchor_account);
-                } else if let Some(shank_account) = endpoint
-                    .get_account(
-                        &ToolboxIdlProgram::find_shank(program_id)
-                            .context("Find Shank Account")?,
-                    )
-                    .await
-                    .context("Get Shank Account")?
-                {
-                    source_account = Some(shank_account);
-                }
-                source_account
-                    .map(|source_account| {
-                        ToolboxIdlProgram::try_parse_from_account_data(
-                            &source_account.data,
-                        )
-                    })
-                    .transpose()
-                    .context("Parse IDL Account Data")?
-                    .map(Arc::new)
-            }
-        };
+        let idl_program =
+            ToolboxIdlService::resolve_program(endpoint, program_id).await?;
         self.cached_programs
             .insert(*program_id, idl_program.clone());
         Ok(idl_program)
+    }
+
+    async fn resolve_program(
+        endpoint: &mut ToolboxEndpoint,
+        program_id: &Pubkey,
+    ) -> Result<Option<Arc<ToolboxIdlProgram>>> {
+        if let Some(idl_program) = ToolboxIdlProgram::from_lib(program_id) {
+            return Ok(Some(Arc::new(idl_program)));
+        }
+        Ok(endpoint
+            .get_account(
+                &ToolboxIdlProgram::find_anchor_address(program_id)
+                    .context("Find Anchor Idl Account")?,
+            )
+            .await
+            .context("Get Anchor Idl Account")?
+            .map(|source_account| {
+                ToolboxIdlProgram::try_parse_from_account_data(
+                    &source_account.data,
+                )
+            })
+            .transpose()
+            .context("Parse IDL Account Data")?
+            .map(Arc::new))
     }
 }

@@ -5,7 +5,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs on the fly
-    let idl_program1 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program1 = ToolboxIdlProgram::try_parse(&json!({
         "types": {
             "MyStruct": {
                 "docs": ["My Struct"],
@@ -18,7 +18,7 @@ pub async fn run() {
         },
     }))
     .unwrap();
-    let idl_program2 = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program2 = ToolboxIdlProgram::try_parse(&json!({
         "types": {
             "MyStruct": { "fields": [] },
         },

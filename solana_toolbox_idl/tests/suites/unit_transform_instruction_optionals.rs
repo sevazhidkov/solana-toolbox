@@ -9,7 +9,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 #[tokio::test]
 pub async fn run() {
     // Create IDLs using different shortened formats
-    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse(&json!({
         "instructions": {
             "my_ix": {
                 "accounts": [

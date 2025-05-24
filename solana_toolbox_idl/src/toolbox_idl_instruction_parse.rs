@@ -120,9 +120,7 @@ impl ToolboxIdlInstruction {
         idl_instruction: &Map<String, Value>,
     ) -> Result<ToolboxIdlTypeFlat> {
         if let Some(idl_instruction_returns) = idl_instruction.get("returns") {
-            return ToolboxIdlTypeFlat::try_parse_value(
-                idl_instruction_returns,
-            );
+            return ToolboxIdlTypeFlat::try_parse(idl_instruction_returns);
         }
         Ok(ToolboxIdlTypeFlat::nothing())
     }

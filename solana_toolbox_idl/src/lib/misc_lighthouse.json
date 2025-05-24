@@ -2160,9 +2160,6 @@
     }
   ],
   "metadata": {
-    "origin": "shank",
-    "address": "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95",
-    "binaryVersion": "0.3.0",
-    "libVersion": "=0.3.0"
+    "address": "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95"
   }
 }

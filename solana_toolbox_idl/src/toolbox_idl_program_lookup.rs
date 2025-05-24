@@ -58,13 +58,8 @@ impl ToolboxIdlProgram {
         })
     }
 
-    pub fn find_anchor(program_id: &Pubkey) -> Result<Pubkey> {
+    pub fn find_anchor_address(program_id: &Pubkey) -> Result<Pubkey> {
         let base = Pubkey::find_program_address(&[], program_id).0;
         Ok(Pubkey::create_with_seed(&base, "anchor:idl", program_id)?)
-    }
-
-    pub fn find_shank(program_id: &Pubkey) -> Result<Pubkey> {
-        let base = Pubkey::find_program_address(&[], program_id).0;
-        Ok(Pubkey::create_with_seed(&base, "shank:idl", program_id)?)
     }
 }

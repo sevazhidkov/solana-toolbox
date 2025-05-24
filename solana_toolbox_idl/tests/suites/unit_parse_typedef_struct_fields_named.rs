@@ -10,7 +10,7 @@ use solana_toolbox_idl::ToolboxIdlTypedef;
 #[tokio::test]
 pub async fn run() {
     // Create IDL checking different formats
-    let idl_program = ToolboxIdlProgram::try_parse_from_value(&json!({
+    let idl_program = ToolboxIdlProgram::try_parse(&json!({
         "types": {
             "MyStruct": {
                 "fields": [

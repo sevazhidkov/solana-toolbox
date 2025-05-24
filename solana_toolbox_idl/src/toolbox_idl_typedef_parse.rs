@@ -19,7 +19,7 @@ impl ToolboxIdlTypedef {
                 .map(String::from);
         let repr = ToolboxIdlTypedef::try_parse_repr(idl_typedef)?;
         let generics = ToolboxIdlTypedef::try_parse_generics(idl_typedef)?;
-        let type_flat = ToolboxIdlTypeFlat::try_parse_value(idl_typedef)
+        let type_flat = ToolboxIdlTypeFlat::try_parse(idl_typedef)
             .context("Parse Type")?;
         Ok(ToolboxIdlTypedef {
             name: idl_typedef_name.to_string(),
