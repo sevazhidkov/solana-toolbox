@@ -18,5 +18,5 @@ pub struct ToolboxIdlFormat {
     pub can_shortcut_type_array_notation: bool,
     pub can_shortcut_enum_variant_to_string_if_no_fields: bool,
     pub can_shortcut_defined_name_to_string_if_no_generic: bool,
-    pub can_shortcut_error_to_number_if_no_msg: bool,
+    pub can_shortcut_error_to_number_if_no_msg: bool, // TODO - should I just deprecate all exporting ?
 }

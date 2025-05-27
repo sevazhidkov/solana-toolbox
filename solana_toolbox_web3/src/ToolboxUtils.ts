@@ -1,3 +1,5 @@
+import { sha256 } from 'sha.js';
+
 export class ToolboxUtils {
   public static isObject(value: any): boolean {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;
@@ -13,6 +15,10 @@ export class ToolboxUtils {
 
   public static isNumber(value: any): boolean {
     return typeof value === 'number';
+  }
+
+  public static isBoolean(value: any): boolean {
+    return typeof value === 'boolean';
   }
 
   public static expectObject(value: any): Record<string, any> {
@@ -41,5 +47,24 @@ export class ToolboxUtils {
       throw new Error('Expected a number');
     }
     return value;
+  }
+
+  public static expectBoolean(value: any): boolean {
+    if (!ToolboxUtils.isBoolean(value)) {
+      throw new Error('Expected a boolean');
+    }
+    return value;
+  }
+
+  public static camelize(value: string) {
+    return value
+      .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word: string, index: number) {
+        return index === 0 ? word.toLowerCase() : word.toUpperCase();
+      })
+      .replace(/\s+/g, '');
+  }
+
+  public static discriminator(value: string) {
+    return Array.from(new sha256().update(value).digest()).slice(0, 8);
   }
 }

@@ -2,6 +2,7 @@ import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
 import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
 import { parse, parseObjectIsPossible } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxIdlTypeFull } from './ToolboxIdlTypeFull';
+import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlAccount {
   public name: string;
@@ -10,34 +11,36 @@ export class ToolboxIdlAccount {
   public contentTypeFlat: ToolboxIdlTypeFlat;
   // public contentTypeFull: ToolboxIdlTypeFull;
 
-  constructor(
-    name: string,
-    discriminator: Buffer,
-    contentTypeFlat: ToolboxIdlTypeFlat,
+  constructor(value: {
+    name: string;
+    discriminator: Buffer;
+    contentTypeFlat: ToolboxIdlTypeFlat;
     // contentTypeFull: ToolboxIdlTypeFull,
-  ) {
-    this.name = name;
-    this.discriminator = discriminator;
-    this.contentTypeFlat = contentTypeFlat;
-    // this.contentTypeFull = contentTypeFull;
+  }) {
+    this.name = value.name;
+    this.discriminator = value.discriminator;
+    this.contentTypeFlat = value.contentTypeFlat;
+    // this.contentTypeFull = value.contentTypeFull;
   }
 
   public static tryParse(
+    idlAccountName: string,
     idlAccount: any,
     typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlAccount {
-    let name = idlAccount['name'] as string;
-    let discriminator = Buffer.from(idlAccount['discriminator']) as Buffer;
+    let discriminator = Buffer.from(
+      idlAccount['discriminator'] ??
+        ToolboxUtils.discriminator('account:' + idlAccountName),
+    );
     let contentTypeFlat = parseObjectIsPossible(idlAccount)
       ? parse(idlAccount)
-      : parse(name);
+      : parse(idlAccountName);
     // let contentTypeFull = contentTypeFlat.tryHydrate(new Map(), typedefs);
-    return new ToolboxIdlAccount(
-      name,
+    return new ToolboxIdlAccount({
+      name: idlAccountName,
       discriminator,
       contentTypeFlat,
-      // contentTypeFull,
-    );
+    });
   }
 
   public check(accountData: Buffer): boolean {

@@ -84,7 +84,8 @@ pub async fn run() {
             },
         ],
     }))
-    .unwrap(); // Assert that both versions are equivalent
+    .unwrap();
+    // Assert that both versions are equivalent
     assert_eq!(idl_program1, idl_program2);
     // Assert instruction was parsed correctly
     assert_eq!(

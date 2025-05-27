@@ -4,6 +4,7 @@ import { inflate } from 'deflate-js';
 import { ToolboxIdlAccount } from './ToolboxIdlAccount';
 import { ToolboxIdlInstruction } from './ToolboxIdlInstruction';
 import { ToolboxUtils } from './ToolboxUtils';
+import { ToolboxIdlError } from './ToolboxIdlError';
 
 export class ToolboxIdlProgram {
   public static readonly DISCRIMINATOR = Buffer.from([
@@ -13,15 +14,18 @@ export class ToolboxIdlProgram {
   public typedefs: Map<string, ToolboxIdlTypedef>;
   public accounts: Map<string, ToolboxIdlAccount>;
   public instructions: Map<string, ToolboxIdlInstruction>;
+  public errors: Map<string, ToolboxIdlError>;
 
-  constructor(
-    typedefs: Map<string, ToolboxIdlTypedef>,
-    accounts: Map<string, ToolboxIdlAccount>,
-    instructions: Map<string, ToolboxIdlInstruction>,
-  ) {
-    this.typedefs = typedefs;
-    this.accounts = accounts;
-    this.instructions = instructions;
+  constructor(value: {
+    typedefs: Map<string, ToolboxIdlTypedef>;
+    accounts: Map<string, ToolboxIdlAccount>;
+    instructions: Map<string, ToolboxIdlInstruction>;
+    errors: Map<string, ToolboxIdlError>;
+  }) {
+    this.typedefs = value.typedefs;
+    this.accounts = value.accounts;
+    this.instructions = value.instructions;
+    this.errors = value.errors;
   }
 
   public static async findAnchorAddress(
@@ -75,7 +79,14 @@ export class ToolboxIdlProgram {
       accounts,
       ToolboxIdlInstruction.tryParse,
     );
-    return new ToolboxIdlProgram(typedefs, accounts, instructions);
+    let errors = ToolboxIdlProgram.tryParseScopedNamedValues(
+      idlRoot,
+      'errors',
+      undefined,
+      undefined,
+      ToolboxIdlError.tryParse,
+    );
+    return new ToolboxIdlProgram({ typedefs, accounts, instructions, errors });
   }
 
   static tryParseScopedNamedValues<T, P1, P2>(
@@ -83,18 +94,19 @@ export class ToolboxIdlProgram {
     collectionKey: string,
     param1: P1,
     param2: P2,
-    parsingFunction: (value: any, param1: P1, param2: P2) => T,
+    parsingFunction: (name: string, value: any, param1: P1, param2: P2) => T,
   ): Map<string, T> {
     let values = new Map();
     let collection = idlRoot[collectionKey];
     if (ToolboxUtils.isArray(collection)) {
       collection.forEach(function (item: any) {
-        values.set(item.name, parsingFunction(item, param1, param2));
+        let name = ToolboxUtils.expectString(item['name']);
+        values.set(name, parsingFunction(name, item, param1, param2));
       });
     }
     if (ToolboxUtils.isObject(collection)) {
       Object.entries(collection).forEach(([key, value]) => {
-        values.set(key, parsingFunction(value, param1, param2));
+        values.set(key, parsingFunction(key, value, param1, param2));
       });
     }
     return values;

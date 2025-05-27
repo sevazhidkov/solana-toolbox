@@ -8,7 +8,7 @@ export class ToolboxIdlTypedef {
   public generics: string[];
   public typeFlat: ToolboxIdlTypeFlat;
 
-  private constructor(
+  constructor(
     name: string,
     serialization: string | undefined,
     repr: string | undefined,
@@ -22,14 +22,17 @@ export class ToolboxIdlTypedef {
     this.typeFlat = typeFlat;
   }
 
-  public static tryParse(idlTypedef: any): ToolboxIdlTypedef {
-    let name = idlTypedef['name'] as string;
+  public static tryParse(
+    idlTypedefName: string,
+    idlTypedef: any,
+  ): ToolboxIdlTypedef {
+    // TODO - proper parsing
     let serialization = idlTypedef['serialization'] as string | undefined;
     let repr = idlTypedef['repr'] as string | undefined;
-    let generics = idlTypedef['generics'] as string[] | undefined; // TODO - proper parsing
+    let generics = idlTypedef['generics'] as string[] | undefined;
     let typeFlat = parse(idlTypedef);
     return new ToolboxIdlTypedef(
-      name,
+      idlTypedefName,
       serialization,
       repr,
       generics ?? [],

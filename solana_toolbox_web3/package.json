@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@types/jest": "^29.5.14",
+    "@types/sha.js": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "eslint": "^9.27.0",
@@ -35,6 +36,7 @@
   "dependencies": {
     "@solana/web3.js": "^1.98.2",
     "@types/deflate-js": "^0.2.2",
-    "deflate-js": "^0.2.3"
+    "deflate-js": "^0.2.3",
+    "sha.js": "^2.4.11"
   }
 }

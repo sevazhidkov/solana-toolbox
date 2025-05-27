@@ -302,7 +302,7 @@ export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
       named = true;
     }
     fieldsInfos.push({
-      name: camelize(
+      name: ToolboxUtils.camelize(
         ToolboxUtils.expectString(field['name'] ?? index.toString()),
       ),
       content: parse(field),
@@ -312,12 +312,4 @@ export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
     return ToolboxIdlTypeFlatFields.named(fieldsInfos);
   }
   return ToolboxIdlTypeFlatFields.unnamed(fieldsInfos);
-}
-
-function camelize(value: string) {
-  return value
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, function (word: string, index: number) {
-      return index === 0 ? word.toLowerCase() : word.toUpperCase();
-    })
-    .replace(/\s+/g, '');
 }
