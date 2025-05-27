@@ -59,7 +59,7 @@ pub async fn run() {
             repr: None,
             generics: vec![],
             type_flat: ToolboxIdlTypeFlat::Struct {
-                fields: ToolboxIdlTypeFlatFields::None
+                fields: ToolboxIdlTypeFlatFields::nothing()
             }
         }
         .into()

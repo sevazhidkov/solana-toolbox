@@ -85,6 +85,14 @@ impl ToolboxIdlTypeFull {
                     deserializable,
                 )
             },
+            ToolboxIdlTypeFull::String { prefix, .. } => {
+                ToolboxIdlTypeFull::try_serialize_string(
+                    prefix,
+                    value,
+                    data,
+                    deserializable,
+                )
+            },
             ToolboxIdlTypeFull::Struct { fields, .. } => {
                 ToolboxIdlTypeFull::try_serialize_struct(
                     fields,
@@ -121,10 +129,7 @@ impl ToolboxIdlTypeFull {
             },
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 ToolboxIdlTypeFull::try_serialize_primitive(
-                    primitive,
-                    value,
-                    data,
-                    deserializable,
+                    primitive, value, data,
                 )
             },
         }
@@ -156,14 +161,14 @@ impl ToolboxIdlTypeFull {
         if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if deserializable {
-                vec_prefix.write(bytes.len().try_into()?, data)?;
+                vec_prefix.write(u64::try_from(bytes.len())?, data)?;
             }
             data.extend_from_slice(&bytes);
             return Ok(());
         }
         let values = idl_as_array_or_else(value)?;
         if deserializable {
-            vec_prefix.write(values.len().try_into()?, data)?;
+            vec_prefix.write(u64::try_from(values.len())?, data)?;
         }
         for (index, value_item) in values.iter().enumerate() {
             vec_items
@@ -205,6 +210,20 @@ impl ToolboxIdlTypeFull {
                 .try_serialize(value_item, data, deserializable)
                 .with_context(|| format!("Serialize Array Item: {}", index))?;
         }
+        Ok(())
+    }
+
+    fn try_serialize_string(
+        string_prefix: &ToolboxIdlTypePrefix,
+        value: &Value,
+        data: &mut Vec<u8>,
+        deserializable: bool,
+    ) -> Result<()> {
+        let value_str = idl_as_str_or_else(value)?;
+        if deserializable {
+            string_prefix.write(u64::try_from(value_str.len())?, data)?;
+        }
+        data.extend_from_slice(value_str.as_bytes());
         Ok(())
     }
 
@@ -321,7 +340,6 @@ impl ToolboxIdlTypeFull {
         primitive: &ToolboxIdlTypePrimitive,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
     ) -> Result<()> {
         match primitive {
             ToolboxIdlTypePrimitive::U8 => {
@@ -382,14 +400,6 @@ impl ToolboxIdlTypeFull {
                 let value_boolean = idl_as_bool_or_else(value)?;
                 data.push(if value_boolean { 1 } else { 0 });
             },
-            ToolboxIdlTypePrimitive::String => {
-                let value_str = idl_as_str_or_else(value)?;
-                if deserializable {
-                    let value_length = u32::try_from(value_str.len())?;
-                    data.extend_from_slice(&value_length.to_le_bytes());
-                }
-                data.extend_from_slice(value_str.as_bytes());
-            },
             ToolboxIdlTypePrimitive::PublicKey => {
                 let value_str = idl_as_str_or_else(value)?;
                 let value_pubkey = Pubkey::from_str(value_str)?;
@@ -407,6 +417,9 @@ impl ToolboxIdlTypeFullFields {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
+        if self.len() == 0 {
+            return Ok(());
+        }
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let value = idl_as_object_or_else(value)?;
@@ -436,7 +449,6 @@ impl ToolboxIdlTypeFullFields {
                         })?;
                 }
             },
-            ToolboxIdlTypeFullFields::None => {},
         }
         Ok(())
     }

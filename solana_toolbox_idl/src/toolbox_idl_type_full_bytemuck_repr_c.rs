@@ -36,6 +36,11 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::bytemuck_repr_c_array(*items, length)?
             },
+            ToolboxIdlTypeFull::String { .. } => {
+                return Err(anyhow!(
+                    "Bytemuck: Repr(C): String is not supported"
+                ));
+            },
             ToolboxIdlTypeFull::Struct { fields } => {
                 ToolboxIdlTypeFull::bytemuck_repr_c_struct(fields)?
             },
@@ -234,9 +239,6 @@ impl ToolboxIdlTypeFullFields {
                             .collect(),
                     ),
                 ))
-            },
-            ToolboxIdlTypeFullFields::None => {
-                Ok((1, 0, ToolboxIdlTypeFullFields::None))
             },
         }
     }

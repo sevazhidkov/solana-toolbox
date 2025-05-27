@@ -83,7 +83,9 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatFieldUnnamed {
                         docs: None,
-                        content: ToolboxIdlTypePrimitive::String.into()
+                        content: ToolboxIdlTypeFlat::String {
+                            prefix: ToolboxIdlTypePrefix::U32
+                        }
                     },
                     ToolboxIdlTypeFlatFieldUnnamed {
                         docs: None,
@@ -124,7 +126,7 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldUnnamed {
                         docs: None,
                         content: ToolboxIdlTypeFlat::Struct {
-                            fields: ToolboxIdlTypeFlatFields::None
+                            fields: ToolboxIdlTypeFlatFields::nothing()
                         }
                     },
                     ToolboxIdlTypeFlatFieldUnnamed {
@@ -182,7 +184,7 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldUnnamed {
                         docs: Some(json!(["Hello"])),
                         content: ToolboxIdlTypeFlat::Struct {
-                            fields: ToolboxIdlTypeFlatFields::None
+                            fields: ToolboxIdlTypeFlatFields::nothing()
                         }
                     },
                 ]),

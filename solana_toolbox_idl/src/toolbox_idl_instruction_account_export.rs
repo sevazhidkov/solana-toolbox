@@ -6,7 +6,6 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccount;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPda;
 use crate::toolbox_idl_instruction_account::ToolboxIdlInstructionAccountPdaBlob;
-use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
 use crate::toolbox_idl_utils::idl_convert_to_camel_case;
 
 impl ToolboxIdlInstructionAccount {
@@ -88,9 +87,7 @@ impl ToolboxIdlInstructionAccountPdaBlob {
                     json_const.insert("kind".to_string(), json!("const"));
                 }
                 if !format.can_skip_instruction_account_pda_type_key
-                    || !(type_full.is_bytes()
-                        || type_full
-                            .is_primitive(&ToolboxIdlTypePrimitive::String))
+                    || !(type_full.is_vec32_u8() || type_full.is_string32())
                 {
                     json_const
                         .insert("type".to_string(), type_flat.export(format));

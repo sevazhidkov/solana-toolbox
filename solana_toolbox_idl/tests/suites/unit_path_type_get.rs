@@ -12,7 +12,7 @@ pub async fn run() {
         "accounts": {
             "MyAccount": {
                 "fields": [
-                    { "name": "field1", "type": "string" },
+                    { "name": "field1", "type": "f32" },
                     { "name": "field2", "type": "MyStructNamed" },
                     { "name": "field3", "type": "MyStructUnnamed" },
                     { "name": "field4", "type": "MyEnum" },
@@ -53,7 +53,7 @@ pub async fn run() {
     }))
     .unwrap();
     // Check that we can read the proper type using the proper paths
-    assert_get(&idl_program, "field1", ToolboxIdlTypePrimitive::String);
+    assert_get(&idl_program, "field1", ToolboxIdlTypePrimitive::F32);
     // Named Struct Fields
     assert_get(&idl_program, "field2.field1", ToolboxIdlTypePrimitive::U8);
     assert_get(&idl_program, "field2.field2", ToolboxIdlTypePrimitive::U16);

@@ -80,7 +80,7 @@ impl ToolboxCliCommandInstructionArgs {
         let instruction_name = self.name.clone().unwrap_or_default();
 
         let idl_program = match idl_service
-            .load_program(&mut endpoint, &instruction_program_id)
+            .resolve_program(&mut endpoint, &instruction_program_id)
             .await?
         {
             Some(idl_program) => idl_program,

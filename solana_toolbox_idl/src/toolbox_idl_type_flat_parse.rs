@@ -83,10 +83,8 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_generic_symbol) =
             idl_object_get_key_as_str(idl_type_object, "generic")
         {
-            return ToolboxIdlTypeFlat::try_parse_generic_symbol(
-                idl_generic_symbol,
-            )
-            .context("Generic");
+            return ToolboxIdlTypeFlat::try_parse_generic(idl_generic_symbol)
+                .context("Generic");
         }
         if let Some(idl_option) = idl_type_object.get("option") {
             return ToolboxIdlTypeFlat::try_parse_option(
@@ -167,15 +165,13 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_struct_fields) =
             idl_object_get_key_as_array(idl_type_object, "fields")
         {
-            return ToolboxIdlTypeFlat::try_parse_struct_fields(
-                idl_struct_fields,
-            )
-            .context("Struct Fields");
+            return ToolboxIdlTypeFlat::try_parse_struct(idl_struct_fields)
+                .context("Struct Fields");
         }
         if let Some(idl_enum_variants) =
             idl_object_get_key_as_array(idl_type_object, "variants")
         {
-            return ToolboxIdlTypeFlat::try_parse_enum_variants(
+            return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U8,
                 idl_enum_variants,
             )
@@ -184,7 +180,7 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_enum_variants) =
             idl_object_get_key_as_array(idl_type_object, "variants8")
         {
-            return ToolboxIdlTypeFlat::try_parse_enum_variants(
+            return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U8,
                 idl_enum_variants,
             )
@@ -193,7 +189,7 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_enum_variants) =
             idl_object_get_key_as_array(idl_type_object, "variants16")
         {
-            return ToolboxIdlTypeFlat::try_parse_enum_variants(
+            return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U16,
                 idl_enum_variants,
             )
@@ -202,7 +198,7 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_enum_variants) =
             idl_object_get_key_as_array(idl_type_object, "variants32")
         {
-            return ToolboxIdlTypeFlat::try_parse_enum_variants(
+            return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U32,
                 idl_enum_variants,
             )
@@ -211,7 +207,7 @@ impl ToolboxIdlTypeFlat {
         if let Some(idl_enum_variants) =
             idl_object_get_key_as_array(idl_type_object, "variants64")
         {
-            return ToolboxIdlTypeFlat::try_parse_enum_variants(
+            return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U64,
                 idl_enum_variants,
             )
@@ -265,20 +261,33 @@ impl ToolboxIdlTypeFlat {
     }
 
     fn try_parse_str(idl_type_str: &str) -> Result<ToolboxIdlTypeFlat> {
-        if idl_type_str == "bytes" {
-            return Ok(ToolboxIdlTypeFlat::Vec {
+        Ok(match idl_type_str {
+            "bytes" => ToolboxIdlTypeFlat::Vec {
                 prefix: ToolboxIdlTypePrefix::U32,
                 items: Box::new(ToolboxIdlTypePrimitive::U8.into()),
-            });
-        }
-        if idl_type_str == "publicKey" {
-            return Ok(ToolboxIdlTypePrimitive::PublicKey.into());
-        }
-        Ok(match ToolboxIdlTypePrimitive::try_parse(idl_type_str) {
-            Some(primitive) => primitive.into(),
-            None => ToolboxIdlTypeFlat::Defined {
-                name: idl_type_str.to_string(),
-                generics: vec![],
+            },
+            "string" => ToolboxIdlTypeFlat::String {
+                prefix: ToolboxIdlTypePrefix::U32,
+            },
+            "string8" => ToolboxIdlTypeFlat::String {
+                prefix: ToolboxIdlTypePrefix::U8,
+            },
+            "string16" => ToolboxIdlTypeFlat::String {
+                prefix: ToolboxIdlTypePrefix::U16,
+            },
+            "string32" => ToolboxIdlTypeFlat::String {
+                prefix: ToolboxIdlTypePrefix::U32,
+            },
+            "string64" => ToolboxIdlTypeFlat::String {
+                prefix: ToolboxIdlTypePrefix::U64,
+            },
+            "publicKey" => ToolboxIdlTypePrimitive::PublicKey.into(),
+            _ => match ToolboxIdlTypePrimitive::try_parse(idl_type_str) {
+                Some(primitive) => primitive.into(),
+                None => ToolboxIdlTypeFlat::Defined {
+                    name: idl_type_str.to_string(),
+                    generics: vec![],
+                },
             },
         })
     }
@@ -317,21 +326,11 @@ impl ToolboxIdlTypeFlat {
         })
     }
 
-    fn try_parse_generic_symbol(
+    fn try_parse_generic(
         idl_generic_symbol: &str,
     ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Generic {
             symbol: idl_generic_symbol.to_string(),
-        })
-    }
-
-    fn try_parse_const_value(
-        idl_value_literal: &str,
-    ) -> Result<ToolboxIdlTypeFlat> {
-        Ok(ToolboxIdlTypeFlat::Const {
-            literal: idl_value_literal.parse().map_err(|error| {
-                anyhow!("Parse int literal error: {}", error)
-            })?,
         })
     }
 
@@ -357,7 +356,7 @@ impl ToolboxIdlTypeFlat {
         })
     }
 
-    fn try_parse_struct_fields(
+    fn try_parse_struct(
         idl_struct_fields: &[Value],
     ) -> Result<ToolboxIdlTypeFlat> {
         Ok(ToolboxIdlTypeFlat::Struct {
@@ -365,7 +364,7 @@ impl ToolboxIdlTypeFlat {
         })
     }
 
-    fn try_parse_enum_variants(
+    fn try_parse_enum(
         idl_enum_prefix: ToolboxIdlTypePrefix,
         idl_enum_variants: &[Value],
     ) -> Result<ToolboxIdlTypeFlat> {
@@ -404,7 +403,7 @@ impl ToolboxIdlTypeFlat {
             ToolboxIdlTypeFlatFields::try_parse(idl_enum_variant_fields)
                 .with_context(|| format!("Parse Enum Variant Type: {}", name))?
         } else {
-            ToolboxIdlTypeFlatFields::None
+            ToolboxIdlTypeFlatFields::Unnamed(vec![])
         };
         Ok(ToolboxIdlTypeFlatEnumVariant {
             name,
@@ -435,12 +434,22 @@ impl ToolboxIdlTypeFlat {
             )?),
         })
     }
+
+    fn try_parse_const_value(
+        idl_value_literal: &str,
+    ) -> Result<ToolboxIdlTypeFlat> {
+        Ok(ToolboxIdlTypeFlat::Const {
+            literal: idl_value_literal.parse().map_err(|error| {
+                anyhow!("Parse int literal error: {}", error)
+            })?,
+        })
+    }
 }
 
 impl ToolboxIdlTypeFlatFields {
     pub fn try_parse(idl_fields: &[Value]) -> Result<ToolboxIdlTypeFlatFields> {
         if idl_fields.is_empty() {
-            return Ok(ToolboxIdlTypeFlatFields::None);
+            return Ok(ToolboxIdlTypeFlatFields::nothing());
         }
         let mut fields_named = false;
         let mut fields_info = vec![];

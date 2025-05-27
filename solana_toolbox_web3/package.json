@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.2",
-    "@types/deflate-js": "^0.2.2"
+    "@types/deflate-js": "^0.2.2",
+    "deflate-js": "^0.2.3"
   }
 }

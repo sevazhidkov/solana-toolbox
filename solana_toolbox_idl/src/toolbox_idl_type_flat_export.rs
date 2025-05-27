@@ -82,6 +82,12 @@ impl ToolboxIdlTypeFlat {
                     length.export(format)
                 ]})
             },
+            ToolboxIdlTypeFlat::String { prefix } => match prefix {
+                ToolboxIdlTypePrefix::U8 => json!("string8"),
+                ToolboxIdlTypePrefix::U16 => json!("string16"),
+                ToolboxIdlTypePrefix::U32 => json!("string"),
+                ToolboxIdlTypePrefix::U64 => json!("string64"),
+            },
             ToolboxIdlTypeFlat::Struct { fields } => {
                 if format.can_skip_type_kind_key {
                     return json!({ "fields": fields.export(format) });
@@ -155,7 +161,7 @@ impl ToolboxIdlTypeFlatEnumVariant {
         if format.can_shortcut_enum_variant_to_string_if_no_fields
             && self.docs.is_none()
             && self.code == index_code
-            && self.fields == ToolboxIdlTypeFlatFields::None
+            && self.fields.len() == 0
         {
             return json!(self.name);
         }
@@ -167,7 +173,7 @@ impl ToolboxIdlTypeFlatEnumVariant {
         if self.code != index_code {
             json_variant.insert("code".to_string(), json!(self.code));
         }
-        if self.fields != ToolboxIdlTypeFlatFields::None {
+        if self.fields.len() > 0 {
             json_variant
                 .insert("fields".to_string(), self.fields.export(format));
         }
@@ -191,9 +197,6 @@ impl ToolboxIdlTypeFlatFields {
                     json_fields.push(field.export(format));
                 }
                 json!(json_fields)
-            },
-            ToolboxIdlTypeFlatFields::None => {
-                json!([])
             },
         }
     }

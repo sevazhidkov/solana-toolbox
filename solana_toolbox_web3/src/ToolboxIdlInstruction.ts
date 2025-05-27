@@ -6,5 +6,7 @@ export class ToolboxIdlInstruction {
     idlInstruction: any,
     typedefs: Map<string, ToolboxIdlTypedef>,
     accounts: Map<string, ToolboxIdlAccount>,
-  ): ToolboxIdlInstruction {}
+  ): ToolboxIdlInstruction {
+    return new ToolboxIdlInstruction(); // TODO - implement parsing logic
+  }
 }

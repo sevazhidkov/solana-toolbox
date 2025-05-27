@@ -124,6 +124,11 @@ impl ToolboxIdlTypeFlat {
                         .context("Expected a const literal")?,
                 )?,
             },
+            ToolboxIdlTypeFlat::String { prefix } => {
+                ToolboxIdlTypeFull::String {
+                    prefix: prefix.clone(),
+                }
+            },
             ToolboxIdlTypeFlat::Struct {
                 fields: fields_flat,
             } => ToolboxIdlTypeFull::Struct {
@@ -222,7 +227,6 @@ impl ToolboxIdlTypeFlatFields {
                 }
                 ToolboxIdlTypeFullFields::Unnamed(fields_type_full)
             },
-            ToolboxIdlTypeFlatFields::None => ToolboxIdlTypeFullFields::None,
         })
     }
 }

@@ -113,7 +113,7 @@ impl ToolboxIdlInstruction {
         {
             return ToolboxIdlTypeFlatFields::try_parse(idl_instruction_args);
         }
-        Ok(ToolboxIdlTypeFlatFields::None)
+        Ok(ToolboxIdlTypeFlatFields::nothing())
     }
 
     fn try_parse_return_type_flat(

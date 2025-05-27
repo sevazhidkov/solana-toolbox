@@ -1,27 +1,25 @@
 import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
 import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
+import { parse, parseObjectIsPossible } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxIdlTypeFull } from './ToolboxIdlTypeFull';
 
 export class ToolboxIdlAccount {
   public name: string;
-  public docs: any;
   // TODO - support space/chunks/blobs
   public discriminator: Buffer;
   public contentTypeFlat: ToolboxIdlTypeFlat;
-  public contentTypeFull: ToolboxIdlTypeFull;
+  // public contentTypeFull: ToolboxIdlTypeFull;
 
   constructor(
     name: string,
-    docs: any,
     discriminator: Buffer,
     contentTypeFlat: ToolboxIdlTypeFlat,
-    contentTypeFull: ToolboxIdlTypeFull,
+    // contentTypeFull: ToolboxIdlTypeFull,
   ) {
     this.name = name;
-    this.docs = docs;
     this.discriminator = discriminator;
     this.contentTypeFlat = contentTypeFlat;
-    this.contentTypeFull = contentTypeFull;
+    // this.contentTypeFull = contentTypeFull;
   }
 
   public static tryParse(
@@ -29,20 +27,28 @@ export class ToolboxIdlAccount {
     typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlAccount {
     let name = idlAccount['name'] as string;
-    let docs = idlAccount['docs'];
     let discriminator = Buffer.from(idlAccount['discriminator']) as Buffer;
-    let contentTypeFlat = ToolboxIdlTypeFlat.tryParseObjectIsPossible(
-      idlAccount,
-    )
-      ? ToolboxIdlTypeFlat.tryParse(idlAccount)
-      : ToolboxIdlTypeFlat.tryParse(name);
-    let contentTypeFull = contentTypeFlat.tryHydrate(new Map(), typedefs);
+    let contentTypeFlat = parseObjectIsPossible(idlAccount)
+      ? parse(idlAccount)
+      : parse(name);
+    // let contentTypeFull = contentTypeFlat.tryHydrate(new Map(), typedefs);
     return new ToolboxIdlAccount(
       name,
-      docs,
       discriminator,
       contentTypeFlat,
-      contentTypeFull,
+      // contentTypeFull,
     );
+  }
+
+  public check(accountData: Buffer): boolean {
+    if (accountData.length < this.discriminator.length) {
+      return false;
+    }
+    for (let i = 0; i < this.discriminator.length; i++) {
+      if (accountData[i] !== this.discriminator[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }

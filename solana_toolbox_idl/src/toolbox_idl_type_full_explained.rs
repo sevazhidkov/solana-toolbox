@@ -20,6 +20,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Array { items, length } => {
                 json!([items.explained(), length])
             },
+            ToolboxIdlTypeFull::String { .. } => json!("string"),
             ToolboxIdlTypeFull::Struct { fields, .. } => fields.explained(),
             ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let mut json_variants = vec![];
@@ -41,7 +42,7 @@ impl ToolboxIdlTypeFull {
 
 impl ToolboxIdlTypeFullEnumVariant {
     pub fn explained(&self) -> Value {
-        if self.fields == ToolboxIdlTypeFullFields::None {
+        if self.fields.len() == 0 {
             json!(self.name)
         } else {
             json!({ self.name.to_string(): self.fields.explained()})
@@ -68,9 +69,6 @@ impl ToolboxIdlTypeFullFields {
                     json_fields.push(field.content.explained());
                 }
                 json!(json_fields)
-            },
-            ToolboxIdlTypeFullFields::None => {
-                json!(null)
             },
         }
     }

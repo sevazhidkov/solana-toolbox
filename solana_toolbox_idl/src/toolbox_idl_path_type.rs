@@ -68,6 +68,10 @@ impl ToolboxIdlPath {
                 }
                 next.try_get_type_flat(items, generics_by_symbol, typedefs)
             },
+            ToolboxIdlTypeFlat::String { .. } => Err(anyhow!(
+                "Type string does not contain path: {}",
+                self.value()
+            )),
             ToolboxIdlTypeFlat::Struct { fields } => self
                 .try_get_type_flat_fields(fields, generics_by_symbol, typedefs),
             ToolboxIdlTypeFlat::Enum { variants, .. } => match current {
@@ -125,10 +129,6 @@ impl ToolboxIdlPath {
             });
         };
         match type_flat_fields {
-            ToolboxIdlTypeFlatFields::None => Err(anyhow!(
-                "Empty fields does not contain path: {}",
-                self.value()
-            )),
             ToolboxIdlTypeFlatFields::Named(fields) => {
                 let key = current.value();
                 for field in fields {

@@ -1,12 +1,27 @@
 import { ToolboxIdlTypePrefix } from './ToolboxIdlTypePrefix';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
 
-type ToolboxIdlTypeFlatPayload =
+enum ToolboxIdlTypeFlatDiscriminant {
+  Defined = 'defined',
+  Generic = 'generic',
+  Option = 'option',
+  Vec = 'vec',
+  Array = 'array',
+  String = 'string',
+  Struct = 'struct',
+  Enum = 'enum',
+  Padded = 'padded',
+  Const = 'const',
+  Primitive = 'primitive',
+}
+
+type ToolboxIdlTypeFlatContent =
   | ToolboxIdlTypeFlatDefined
   | ToolboxIdlTypeFlatGeneric
   | ToolboxIdlTypeFlatOption
   | ToolboxIdlTypeFlatVec
   | ToolboxIdlTypeFlatArray
+  | ToolboxIdlTypeFlatString
   | ToolboxIdlTypeFlatStruct
   | ToolboxIdlTypeFlatEnum
   | ToolboxIdlTypeFlatPadded
@@ -37,9 +52,24 @@ export type ToolboxIdlTypeFlatArray = {
   length: number;
 };
 
-export type ToolboxIdlTypeFlatStruct = {};
+export type ToolboxIdlTypeFlatString = {
+  prefix: ToolboxIdlTypePrefix;
+};
 
-export type ToolboxIdlTypeFlatEnum = {};
+export type ToolboxIdlTypeFlatStruct = {
+  fields: ToolboxIdlTypeFlatFields;
+};
+
+export type ToolboxIdlTypeFlatEnum = {
+  prefix: ToolboxIdlTypePrefix;
+  variants: ToolboxIdlTypeFlatEnumVariant[];
+};
+
+export type ToolboxIdlTypeFlatEnumVariant = {
+  name: string;
+  code: number;
+  fields: ToolboxIdlTypeFlatFields;
+};
 
 export type ToolboxIdlTypeFlatPadded = {
   before: number;
@@ -52,103 +82,104 @@ export type ToolboxIdlTypeFlatConst = {
   literal: number;
 };
 
+export type ToolboxIdlTypeFlatFieldNamed = {
+  name: string;
+  content: ToolboxIdlTypeFlat;
+};
+
+export type ToolboxIdlTypeFlatFieldUnnamed = {
+  content: ToolboxIdlTypeFlat;
+};
+
 export class ToolboxIdlTypeFlat {
-  private discriminant: string;
-  private payload: ToolboxIdlTypeFlatPayload;
+  private discriminant: ToolboxIdlTypeFlatDiscriminant;
+  private content: ToolboxIdlTypeFlatContent;
 
   private constructor(
-    discriminant: string,
-    payload: ToolboxIdlTypeFlatPayload,
+    discriminant: ToolboxIdlTypeFlatDiscriminant,
+    content: ToolboxIdlTypeFlatContent,
   ) {
     this.discriminant = discriminant;
-    this.payload = payload;
+    this.content = content;
   }
 
-  public tryHydrate(): ToolboxIdlTypeFull {}
-
-  public static tryParseObjectIsPossible(idlType: any): boolean {
-    if (
-      idlType.hasOwnProperty('type') ||
-      idlType.hasOwnProperty('defined') ||
-      idlType.hasOwnProperty('generic') ||
-      idlType.hasOwnProperty('option') ||
-      idlType.hasOwnProperty('option8') ||
-      idlType.hasOwnProperty('option16') ||
-      idlType.hasOwnProperty('option32') ||
-      idlType.hasOwnProperty('option64') ||
-      idlType.hasOwnProperty('vec') ||
-      idlType.hasOwnProperty('vec8') ||
-      idlType.hasOwnProperty('vec16') ||
-      idlType.hasOwnProperty('vec32') ||
-      idlType.hasOwnProperty('vec64') ||
-      idlType.hasOwnProperty('array') ||
-      idlType.hasOwnProperty('fields') ||
-      idlType.hasOwnProperty('variants') ||
-      idlType.hasOwnProperty('variants8') ||
-      idlType.hasOwnProperty('variants16') ||
-      idlType.hasOwnProperty('variants32') ||
-      idlType.hasOwnProperty('variants64') ||
-      idlType.hasOwnProperty('padded')
-    ) {
-      return true;
-    }
-    return false;
+  public static defined(value: ToolboxIdlTypeFlatDefined): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(
+      ToolboxIdlTypeFlatDiscriminant.Defined,
+      value,
+    );
   }
 
-  public static tryParse(idlType: any): ToolboxIdlTypeFlat {
-    if (typeof idlType === 'object') {
-      return ToolboxIdlTypeFlat.tryParseObject(idlType);
-    }
-    if (Array.isArray(idlType)) {
-      return ToolboxIdlTypeFlat.tryParseArray(idlType);
-    }
-    if (typeof idlType === 'string' || idlType instanceof String) {
-      return ToolboxIdlTypeFlat.tryParseString(idlType as string);
-    }
+  public static generic(value: ToolboxIdlTypeFlatGeneric): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(
+      ToolboxIdlTypeFlatDiscriminant.Generic,
+      value,
+    );
   }
 
-  static tryParseObject(idlTypeObject: object): ToolboxIdlTypeFlat {}
-
-  static tryParseObjectKey(
-    idlTypeObject: object,
-    key: string,
-  ): ToolboxIdlTypeFlat | null {}
-
-  static tryParseArray(idlTypeArray: any[]): ToolboxIdlTypeFlat {
-    if (idlTypeArray.length === 1) {
-      return new ToolboxIdlTypeFlat('vec', {
-        prefix: ToolboxIdlTypePrefix.U32,
-        items: this.tryParse(idlTypeArray[0]),
-      });
-    }
-    if (idlTypeArray.length === 2) {
-      return new ToolboxIdlTypeFlat('array', {
-        items: this.tryParse(idlTypeArray[0]),
-        length: idlTypeArray[1],
-      });
-    }
-    throw new Error('Unknown idl type array');
+  public static option(value: ToolboxIdlTypeFlatOption): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Option, value);
   }
 
-  static tryParseString(idlTypeString: string): ToolboxIdlTypeFlat {
-    if (idlTypeString === 'bytes') {
-      return new ToolboxIdlTypeFlat('vec', {
-        prefix: ToolboxIdlTypePrefix.U32,
-        items: ToolboxIdlTypePrimitive.U8,
-      });
-    }
-    if (idlTypeString === 'publicKey') {
-      return new ToolboxIdlTypeFlat(
-        'primitive',
-        ToolboxIdlTypePrimitive.PublicKey,
-      );
-    }
-    let primitive = ToolboxIdlTypePrimitive.primitiveByName.get(idlTypeString);
-    return primitive
-      ? new ToolboxIdlTypeFlat('primitive', primitive)
-      : new ToolboxIdlTypeFlat('defined', {
-          name: idlTypeString,
-          generics: [],
-        });
+  public static vec(value: ToolboxIdlTypeFlatVec): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Vec, value);
+  }
+
+  public static array(value: ToolboxIdlTypeFlatArray): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Array, value);
+  }
+
+  public static string(value: ToolboxIdlTypeFlatString): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.String, value);
+  }
+
+  public static struct(value: ToolboxIdlTypeFlatStruct): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Struct, value);
+  }
+
+  public static enum(value: ToolboxIdlTypeFlatEnum): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Enum, value);
+  }
+
+  public static padded(value: ToolboxIdlTypeFlatPadded): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Padded, value);
+  }
+
+  public static const(value: ToolboxIdlTypeFlatConst): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Const, value);
+  }
+
+  public static primitive(value: ToolboxIdlTypePrimitive): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(
+      ToolboxIdlTypeFlatDiscriminant.Primitive,
+      value,
+    );
+  }
+}
+
+export class ToolboxIdlTypeFlatFields {
+  private discriminant: 'named' | 'unamed';
+  private content:
+    | ToolboxIdlTypeFlatFieldNamed[]
+    | ToolboxIdlTypeFlatFieldUnnamed[];
+
+  private constructor(
+    discriminant: 'named' | 'unamed',
+    content: ToolboxIdlTypeFlatFieldNamed[] | ToolboxIdlTypeFlatFieldUnnamed[],
+  ) {
+    this.discriminant = discriminant;
+    this.content = content;
+  }
+
+  public static named(
+    content: ToolboxIdlTypeFlatFieldNamed[],
+  ): ToolboxIdlTypeFlatFields {
+    return new ToolboxIdlTypeFlatFields('named', content);
+  }
+
+  public static unnamed(
+    content: ToolboxIdlTypeFlatFieldUnnamed[],
+  ): ToolboxIdlTypeFlatFields {
+    return new ToolboxIdlTypeFlatFields('unamed', content);
   }
 }

@@ -24,6 +24,9 @@ pub enum ToolboxIdlTypeFlat {
         items: Box<ToolboxIdlTypeFlat>,
         length: Box<ToolboxIdlTypeFlat>,
     },
+    String {
+        prefix: ToolboxIdlTypePrefix,
+    },
     Struct {
         fields: ToolboxIdlTypeFlatFields,
     },
@@ -55,7 +58,6 @@ pub struct ToolboxIdlTypeFlatEnumVariant {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFlatFields {
-    None,
     Named(Vec<ToolboxIdlTypeFlatFieldNamed>),
     Unnamed(Vec<ToolboxIdlTypeFlatFieldUnnamed>),
 }
@@ -82,13 +84,20 @@ impl From<ToolboxIdlTypePrimitive> for ToolboxIdlTypeFlat {
 impl ToolboxIdlTypeFlat {
     pub fn nothing() -> ToolboxIdlTypeFlat {
         ToolboxIdlTypeFlat::Struct {
-            fields: ToolboxIdlTypeFlatFields::None,
+            fields: ToolboxIdlTypeFlatFields::nothing(),
         }
     }
 }
 
 impl ToolboxIdlTypeFlatFields {
     pub fn nothing() -> ToolboxIdlTypeFlatFields {
-        ToolboxIdlTypeFlatFields::None
+        ToolboxIdlTypeFlatFields::Unnamed(vec![])
+    }
+
+    pub fn len(&self) -> usize {
+        match self {
+            ToolboxIdlTypeFlatFields::Named(fields) => fields.len(),
+            ToolboxIdlTypeFlatFields::Unnamed(fields) => fields.len(),
+        }
     }
 }

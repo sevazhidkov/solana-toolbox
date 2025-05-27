@@ -318,7 +318,7 @@ pub(crate) fn idl_fields_infos_aligned<T>(
 ) -> Result<(usize, usize, Vec<(T, ToolboxIdlTypeFull)>)> {
     let mut alignment = prefix_size;
     let mut size = prefix_size;
-    let last_field_index = fields_infos.len() - 1;
+    let last_field_index = fields_infos.len().saturating_sub(1);
     let mut fields_infos_padded = vec![];
     for (field_index, field_info) in fields_infos.into_iter().enumerate() {
         let (field_alignment, field_size, field_meta, field_type) = field_info;

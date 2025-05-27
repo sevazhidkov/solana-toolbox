@@ -89,6 +89,16 @@ impl ToolboxIdlTypeFull {
                     length, data_offset
                 )
             }),
+            ToolboxIdlTypeFull::String { prefix, .. } => {
+                ToolboxIdlTypeFull::try_deserialize_string(
+                    prefix,
+                    data,
+                    data_offset,
+                )
+            }
+            .with_context(|| {
+                format!("Deserialize String (offset: {})", data_offset)
+            }),
             ToolboxIdlTypeFull::Struct { fields, .. } => {
                 ToolboxIdlTypeFull::try_deserialize_struct(
                     fields,
@@ -224,6 +234,22 @@ impl ToolboxIdlTypeFull {
             data_items.push(data_item);
         }
         Ok((data_size, json!(data_items)))
+    }
+
+    fn try_deserialize_string(
+        string_prefix: &ToolboxIdlTypePrefix,
+        data: &[u8],
+        data_offset: usize,
+    ) -> Result<(usize, Value)> {
+        let data_length = string_prefix.read_at(data, data_offset)?;
+        let mut data_size = string_prefix.to_size();
+        let data_bytes = idl_slice_from_bytes(
+            data,
+            data_offset + data_size,
+            usize::try_from(data_length)?,
+        )?;
+        data_size += data_bytes.len();
+        Ok((data_size, json!(String::from_utf8(data_bytes.to_vec())?)))
     }
 
     fn try_deserialize_struct(
@@ -423,25 +449,13 @@ impl ToolboxIdlTypeFull {
                 (data_size, json!(data_num))
             },
             ToolboxIdlTypePrimitive::Boolean => {
-                let prefix = ToolboxIdlTypePrefix::U8;
+                let prefix = ToolboxIdlTypePrefix::U8; // TODO - homogenize this
                 let data_flag = prefix.read_at(data, data_offset)?;
                 let data_size = prefix.to_size();
                 (data_size, json!(data_flag != 0))
             },
-            ToolboxIdlTypePrimitive::String => {
-                let prefix = ToolboxIdlTypePrefix::U32;
-                let data_length = prefix.read_at(data, data_offset)?;
-                let mut data_size = prefix.to_size();
-                let data_bytes = idl_slice_from_bytes(
-                    data,
-                    data_offset + data_size,
-                    usize::try_from(data_length)?,
-                )?;
-                data_size += data_bytes.len();
-                (data_size, json!(String::from_utf8(data_bytes.to_vec())?))
-            },
             ToolboxIdlTypePrimitive::PublicKey => {
-                let data_pubkey = idl_pubkey_from_bytes_at(data, data_offset)?;
+                let data_pubkey = idl_pubkey_from_bytes_at(data, data_offset)?; // TODO - homogeneze this
                 let data_size = std::mem::size_of_val(&data_pubkey);
                 (data_size, json!(data_pubkey.to_string()))
             },
@@ -455,6 +469,9 @@ impl ToolboxIdlTypeFullFields {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
+        if self.len() == 0 {
+            return Ok((0, json!(null)));
+        }
         Ok(match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let mut data_size = 0;
@@ -494,7 +511,6 @@ impl ToolboxIdlTypeFullFields {
                 }
                 (data_size, json!(data_fields))
             },
-            ToolboxIdlTypeFullFields::None => (0, Value::Null),
         })
     }
 }

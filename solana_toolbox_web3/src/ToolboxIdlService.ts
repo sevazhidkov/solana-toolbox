@@ -40,9 +40,24 @@ export class ToolboxIdlService {
     let account = await endpoint.getAccount(
       await ToolboxIdlProgram.findAnchorAddress(programId),
     );
+    console.log('ToolboxIdlService.resolveProgram.account', account);
     if (account == null) {
       return null;
     }
     return ToolboxIdlProgram.tryParseFromAccountData(account.data);
+  }
+
+  public async getAndDecodeAccount(
+    endpoint: ToolboxEndpoint,
+    address: PublicKey,
+  ) {
+    let account = await endpoint.getAccount(address);
+    if (account == null) {
+      return null;
+    }
+    let idlProgram = await this.loadProgram(endpoint, account.owner);
+    //let idlAccount = idlProgram.guessAccount(account.data);
+    //let accountState = idlAccount.decode(account.data);
+    //return accountState;
   }
 }

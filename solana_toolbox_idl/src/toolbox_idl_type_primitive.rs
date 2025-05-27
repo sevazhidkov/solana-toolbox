@@ -15,7 +15,6 @@ pub enum ToolboxIdlTypePrimitive {
     F32,
     F64,
     Boolean,
-    String,
     PublicKey,
 }
 
@@ -35,7 +34,6 @@ impl ToolboxIdlTypePrimitive {
             "f32" => Some(ToolboxIdlTypePrimitive::F32),
             "f64" => Some(ToolboxIdlTypePrimitive::F64),
             "bool" => Some(ToolboxIdlTypePrimitive::Boolean),
-            "string" => Some(ToolboxIdlTypePrimitive::String),
             "pubkey" => Some(ToolboxIdlTypePrimitive::PublicKey),
             _ => None,
         }
@@ -56,7 +54,6 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::F32 => "f32",
             ToolboxIdlTypePrimitive::F64 => "f64",
             ToolboxIdlTypePrimitive::Boolean => "bool",
-            ToolboxIdlTypePrimitive::String => "string",
             ToolboxIdlTypePrimitive::PublicKey => "pubkey",
         }
     }
@@ -76,7 +73,6 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::F32 => std::mem::size_of::<f32>(),
             ToolboxIdlTypePrimitive::F64 => std::mem::size_of::<f64>(),
             ToolboxIdlTypePrimitive::Boolean => std::mem::size_of::<bool>(),
-            ToolboxIdlTypePrimitive::String => std::mem::size_of::<String>(),
             ToolboxIdlTypePrimitive::PublicKey => std::mem::size_of::<Pubkey>(),
         }
     }
@@ -96,7 +92,6 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::F32 => std::mem::size_of::<f32>(),
             ToolboxIdlTypePrimitive::F64 => std::mem::size_of::<f64>(),
             ToolboxIdlTypePrimitive::Boolean => std::mem::size_of::<bool>(),
-            ToolboxIdlTypePrimitive::String => std::mem::size_of::<usize>(),
             ToolboxIdlTypePrimitive::PublicKey => std::mem::size_of::<u8>(),
         }
     }

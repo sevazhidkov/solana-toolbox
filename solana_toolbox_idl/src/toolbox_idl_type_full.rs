@@ -25,6 +25,9 @@ pub enum ToolboxIdlTypeFull {
         items: Box<ToolboxIdlTypeFull>,
         length: usize,
     },
+    String {
+        prefix: ToolboxIdlTypePrefix,
+    },
     Struct {
         fields: ToolboxIdlTypeFullFields,
     },
@@ -55,7 +58,6 @@ pub struct ToolboxIdlTypeFullEnumVariant {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypeFullFields {
-    None,
     Named(Vec<ToolboxIdlTypeFullFieldNamed>),
     Unnamed(Vec<ToolboxIdlTypeFullFieldUnnamed>),
 }
@@ -81,15 +83,24 @@ impl From<ToolboxIdlTypePrimitive> for ToolboxIdlTypeFull {
 impl ToolboxIdlTypeFull {
     pub fn nothing() -> ToolboxIdlTypeFull {
         ToolboxIdlTypeFull::Struct {
-            fields: ToolboxIdlTypeFullFields::None,
+            fields: ToolboxIdlTypeFullFields::nothing(),
         }
     }
 
-    pub fn is_bytes(&self) -> bool {
+    pub fn is_vec32_u8(&self) -> bool {
         match self {
             ToolboxIdlTypeFull::Vec { prefix, items, .. } => {
                 prefix == &ToolboxIdlTypePrefix::U32
                     && items.is_primitive(&ToolboxIdlTypePrimitive::U8)
+            },
+            _ => false,
+        }
+    }
+
+    pub fn is_string32(&self) -> bool {
+        match self {
+            ToolboxIdlTypeFull::String { prefix } => {
+                prefix == &ToolboxIdlTypePrefix::U32
             },
             _ => false,
         }
@@ -112,6 +123,13 @@ impl ToolboxIdlTypeFull {
 
 impl ToolboxIdlTypeFullFields {
     pub fn nothing() -> ToolboxIdlTypeFullFields {
-        ToolboxIdlTypeFullFields::None
+        ToolboxIdlTypeFullFields::Unnamed(vec![])
+    }
+
+    pub fn len(&self) -> usize {
+        match self {
+            ToolboxIdlTypeFullFields::Named(fields) => fields.len(),
+            ToolboxIdlTypeFullFields::Unnamed(fields) => fields.len(),
+        }
     }
 }

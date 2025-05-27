@@ -12,7 +12,6 @@ export class ToolboxIdlTypePrimitive {
   public static readonly F32 = new ToolboxIdlTypePrimitive('f32');
   public static readonly F64 = new ToolboxIdlTypePrimitive('f64');
   public static readonly Boolean = new ToolboxIdlTypePrimitive('bool');
-  public static readonly String = new ToolboxIdlTypePrimitive('string');
   public static readonly PublicKey = new ToolboxIdlTypePrimitive('pubkey');
 
   public static readonly primitiveByName = (() => {
@@ -30,7 +29,6 @@ export class ToolboxIdlTypePrimitive {
       ToolboxIdlTypePrimitive.F32,
       ToolboxIdlTypePrimitive.F64,
       ToolboxIdlTypePrimitive.Boolean,
-      ToolboxIdlTypePrimitive.String,
       ToolboxIdlTypePrimitive.PublicKey,
     ];
     let primitivesByName = new Map<string, ToolboxIdlTypePrimitive>();

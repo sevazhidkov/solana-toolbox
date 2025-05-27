@@ -65,7 +65,9 @@ pub async fn run() {
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "string".to_string(),
                         docs: None,
-                        content: ToolboxIdlTypePrimitive::String.into()
+                        content: ToolboxIdlTypeFlat::String {
+                            prefix: ToolboxIdlTypePrefix::U32,
+                        }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "vec1_u8".to_string(),
@@ -137,14 +139,14 @@ pub async fn run() {
                         name: "struct1".to_string(),
                         docs: None,
                         content: ToolboxIdlTypeFlat::Struct {
-                            fields: ToolboxIdlTypeFlatFields::None
+                            fields: ToolboxIdlTypeFlatFields::nothing()
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
                         name: "struct2".to_string(),
                         docs: None,
                         content: ToolboxIdlTypeFlat::Struct {
-                            fields: ToolboxIdlTypeFlatFields::None
+                            fields: ToolboxIdlTypeFlatFields::nothing()
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {

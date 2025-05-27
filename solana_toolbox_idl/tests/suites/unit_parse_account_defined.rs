@@ -72,7 +72,7 @@ pub async fn run() {
                 name: "MyAccount".to_string(),
                 repr: None,
                 content: Box::new(ToolboxIdlTypeFull::Struct {
-                    fields: ToolboxIdlTypeFullFields::None
+                    fields: ToolboxIdlTypeFullFields::nothing()
                 })
             },
         }

@@ -3,6 +3,7 @@ import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
 import { inflate } from 'deflate-js';
 import { ToolboxIdlAccount } from './ToolboxIdlAccount';
 import { ToolboxIdlInstruction } from './ToolboxIdlInstruction';
+import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlProgram {
   public static readonly DISCRIMINATOR = Buffer.from([
@@ -38,8 +39,11 @@ export class ToolboxIdlProgram {
       throw new Error('Invalid IDL program discriminator');
     }
     let length = accountData.readUInt32LE(40);
+    console.log('length', length);
     let content = accountData.subarray(44, 44 + length);
+    console.log('content', content);
     let contentEncoded = inflate(content);
+    console.log('contentEncoded', contentEncoded);
     let contentDecoded = contentEncoded.toString();
     console.log('contentDecoded', contentDecoded);
     return ToolboxIdlProgram.tryParseFromString(contentDecoded);
@@ -83,13 +87,12 @@ export class ToolboxIdlProgram {
   ): Map<string, T> {
     let values = new Map();
     let collection = idlRoot[collectionKey];
-    if (Array.isArray(collection)) {
-      collection.forEach((item: any) => {
+    if (ToolboxUtils.isArray(collection)) {
+      collection.forEach(function (item: any) {
         values.set(item.name, parsingFunction(item, param1, param2));
       });
     }
-    // TODO - set of utility
-    if (typeof collection === 'object') {
+    if (ToolboxUtils.isObject(collection)) {
       Object.entries(collection).forEach(([key, value]) => {
         values.set(key, parsingFunction(value, param1, param2));
       });
@@ -97,7 +100,6 @@ export class ToolboxIdlProgram {
     return values;
   }
 
-  /*
   public guessAccount(accountData: Buffer): ToolboxIdlAccount | null {
     for (let account of this.accounts.values()) {
       try {
@@ -108,5 +110,4 @@ export class ToolboxIdlProgram {
     }
     return null;
   }
-    */
 }

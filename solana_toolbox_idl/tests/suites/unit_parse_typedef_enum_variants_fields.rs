@@ -143,7 +143,7 @@ pub async fn run() {
                         name: "Empty".to_string(),
                         code: 2,
                         docs: None,
-                        fields: ToolboxIdlTypeFlatFields::None
+                        fields: ToolboxIdlTypeFlatFields::nothing()
                     },
                 ]
             }
