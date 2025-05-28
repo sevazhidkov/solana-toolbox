@@ -133,7 +133,7 @@ function parseArray(idlTypeArray: any[]): ToolboxIdlTypeFlat {
   if (idlTypeArray.length === 2) {
     return ToolboxIdlTypeFlat.array({
       items: parse(idlTypeArray[0]),
-      length: idlTypeArray[1],
+      length: parse(idlTypeArray[1]),
     });
   }
   throw new Error('Could not parse type array');
@@ -197,7 +197,7 @@ function parseDefined(idlDefined: any): ToolboxIdlTypeFlat {
   ToolboxUtils.expectObject(idlDefined);
   let generics = [];
   if (ToolboxUtils.isArray(idlDefined['generics'])) {
-    generics = idlDefined['generics'].map(function (generic: any) {
+    generics = idlDefined['generics'].map((generic: any) => {
       return parse(generic);
     });
   }

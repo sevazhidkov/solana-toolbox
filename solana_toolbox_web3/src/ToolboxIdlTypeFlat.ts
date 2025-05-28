@@ -49,7 +49,7 @@ export type ToolboxIdlTypeFlatVec = {
 
 export type ToolboxIdlTypeFlatArray = {
   items: ToolboxIdlTypeFlat;
-  length: number;
+  length: ToolboxIdlTypeFlat;
 };
 
 export type ToolboxIdlTypeFlatString = {
@@ -155,16 +155,36 @@ export class ToolboxIdlTypeFlat {
       value,
     );
   }
+
+  public traverse<P1, P2, T>(
+    visitor: {
+      defined: (value: ToolboxIdlTypeFlatDefined, param1: P1, param2: P2) => T;
+      generic: (value: ToolboxIdlTypeFlatGeneric, param1: P1, param2: P2) => T;
+      option: (value: ToolboxIdlTypeFlatOption, param1: P1, param2: P2) => T;
+      vec: (value: ToolboxIdlTypeFlatVec, param1: P1, param2: P2) => T;
+      array: (value: ToolboxIdlTypeFlatArray, param1: P1, param2: P2) => T;
+      string: (value: ToolboxIdlTypeFlatString, param1: P1, param2: P2) => T;
+      struct: (value: ToolboxIdlTypeFlatStruct, param1: P1, param2: P2) => T;
+      enum: (value: ToolboxIdlTypeFlatEnum, param1: P1, param2: P2) => T;
+      padded: (value: ToolboxIdlTypeFlatPadded, param1: P1, param2: P2) => T;
+      const: (value: ToolboxIdlTypeFlatConst, param1: P1, param2: P2) => T;
+      primitive: (value: ToolboxIdlTypePrimitive, param1: P1, param2: P2) => T;
+    },
+    param1: P1,
+    param2: P2,
+  ): T {
+    return visitor[this.discriminant](this.content as any, param1, param2);
+  }
 }
 
 export class ToolboxIdlTypeFlatFields {
-  private discriminant: 'named' | 'unamed';
+  private discriminant: 'named' | 'unnamed';
   private content:
     | ToolboxIdlTypeFlatFieldNamed[]
     | ToolboxIdlTypeFlatFieldUnnamed[];
 
   private constructor(
-    discriminant: 'named' | 'unamed',
+    discriminant: 'named' | 'unnamed',
     content: ToolboxIdlTypeFlatFieldNamed[] | ToolboxIdlTypeFlatFieldUnnamed[],
   ) {
     this.discriminant = discriminant;
@@ -180,6 +200,25 @@ export class ToolboxIdlTypeFlatFields {
   public static unnamed(
     content: ToolboxIdlTypeFlatFieldUnnamed[],
   ): ToolboxIdlTypeFlatFields {
-    return new ToolboxIdlTypeFlatFields('unamed', content);
+    return new ToolboxIdlTypeFlatFields('unnamed', content);
+  }
+
+  public traverse<P1, P2, T>(
+    visitor: {
+      named: (
+        value: ToolboxIdlTypeFlatFieldNamed[],
+        param1: P1,
+        param2: P2,
+      ) => T;
+      unnamed: (
+        value: ToolboxIdlTypeFlatFieldUnnamed[],
+        param1: P1,
+        param2: P2,
+      ) => T;
+    },
+    param1: P1,
+    param2: P2,
+  ) {
+    return visitor[this.discriminant](this.content as any, param1, param2);
   }
 }

@@ -74,8 +74,7 @@ it('run', () => {
   expect(idlProgram1).toStrictEqual(idlProgram2);
   expect(idlProgram1).toStrictEqual(idlProgram3);
   expect(idlProgram1).toStrictEqual(idlProgram4);
-  // TODO - proper content assert
-  console.log('idlProgram1', idlProgram1);
+  // Assert that the content is correct
   expect(idlProgram1.instructions.get('my_ix')).toStrictEqual(
     new ToolboxIdlInstruction({
       name: 'my_ix',

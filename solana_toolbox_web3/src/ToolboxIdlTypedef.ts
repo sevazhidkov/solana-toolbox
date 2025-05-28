@@ -1,6 +1,7 @@
 import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
 import { parse } from './ToolboxIdlTypeFlat.parse';
 
+// TODO - support docs fields ?
 export class ToolboxIdlTypedef {
   public name: string;
   public serialization?: string;

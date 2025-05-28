@@ -9,6 +9,7 @@ pub enum ToolboxIdlTypeFull {
         content: Box<ToolboxIdlTypeFull>,
     },
     Pod {
+        // TODO - is this really necessary ?
         alignment: usize,
         size: usize,
         content: Box<ToolboxIdlTypeFull>,
