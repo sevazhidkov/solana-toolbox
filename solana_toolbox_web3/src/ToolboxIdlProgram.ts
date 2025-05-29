@@ -1,10 +1,11 @@
 import { PublicKey } from '@solana/web3.js';
 import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
-import { inflate } from 'deflate-js';
 import { ToolboxIdlAccount } from './ToolboxIdlAccount';
 import { ToolboxIdlInstruction } from './ToolboxIdlInstruction';
 import { ToolboxUtils } from './ToolboxUtils';
 import { ToolboxIdlError } from './ToolboxIdlError';
+import { inflate } from 'pako';
+import { ToolboxIdlEvent } from './ToolboxIdlEvent';
 
 export class ToolboxIdlProgram {
   public static readonly DISCRIMINATOR = Buffer.from([
@@ -42,19 +43,16 @@ export class ToolboxIdlProgram {
     if (!discriminator.equals(ToolboxIdlProgram.DISCRIMINATOR)) {
       throw new Error('Invalid IDL program discriminator');
     }
-    let length = accountData.readUInt32LE(40);
-    console.log('length', length);
-    let content = accountData.subarray(44, 44 + length);
-    console.log('content', content);
-    let contentEncoded = inflate(content);
-    console.log('contentEncoded', contentEncoded);
-    let contentDecoded = contentEncoded.toString();
-    console.log('contentDecoded', contentDecoded);
+    let contentLength = accountData.readUInt32LE(40);
+    let contentRaw = accountData.subarray(44, 44 + contentLength);
+    let contentEncoded = inflate(contentRaw);
+    let contentDecoded = new TextDecoder('utf8').decode(contentEncoded);
     return ToolboxIdlProgram.tryParseFromString(contentDecoded);
   }
 
   public static tryParseFromString(idlString: string): ToolboxIdlProgram {
-    return ToolboxIdlProgram.tryParse(JSON.stringify(idlString));
+    let idlRoot = JSON.parse(idlString);
+    return ToolboxIdlProgram.tryParse(idlRoot);
   }
 
   public static tryParse(idlRoot: any): ToolboxIdlProgram {
@@ -78,6 +76,13 @@ export class ToolboxIdlProgram {
       typedefs,
       accounts,
       ToolboxIdlInstruction.tryParse,
+    );
+    let events = ToolboxIdlProgram.tryParseScopedNamedValues(
+      idlRoot,
+      'events',
+      typedefs,
+      undefined,
+      ToolboxIdlEvent.tryParse,
     );
     let errors = ToolboxIdlProgram.tryParseScopedNamedValues(
       idlRoot,
