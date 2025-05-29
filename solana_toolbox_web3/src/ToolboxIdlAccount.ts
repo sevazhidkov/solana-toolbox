@@ -3,6 +3,7 @@ import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
 import { hydrate } from './ToolboxIdlTypeFlat.hydrate';
 import { parse, parseObjectIsPossible } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxIdlTypeFull } from './ToolboxIdlTypeFull';
+import { deserialize } from './ToolboxIdlTypeFull.deserialize';
 import { serialize } from './ToolboxIdlTypeFull.serialize';
 import { ToolboxUtils } from './ToolboxUtils';
 
@@ -63,5 +64,17 @@ export class ToolboxIdlAccount {
     data.push(this.discriminator);
     serialize(this.contentTypeFull, accountState, data, true);
     return Buffer.concat(data);
+  }
+
+  public decode(accountData: Buffer): any {
+    if (!this.check(accountData)) {
+      throw new Error('Invalid account type'); // TODO - better error handling
+    }
+    let [accountSize, accountState] = deserialize(
+      this.contentTypeFull,
+      accountData,
+      this.discriminator.length,
+    );
+    return accountState;
   }
 }

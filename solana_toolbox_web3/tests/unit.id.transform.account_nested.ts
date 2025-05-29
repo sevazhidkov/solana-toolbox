@@ -57,5 +57,7 @@ it('run', () => {
       0, 97, 0, 3, 0, 0, 0, 201, 255, 56, 0, 57, 0,
     ]),
   );
+  console.log('dudu', idlAccount.decode(accountData));
+  expect(accountstate).toStrictEqual(idlAccount.decode(accountData));
   // TODO - rest of checks
 });

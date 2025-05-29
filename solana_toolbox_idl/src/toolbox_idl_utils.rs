@@ -217,6 +217,7 @@ pub(crate) fn idl_slice_from_bytes(
     Ok(&bytes[offset..end])
 }
 
+// TODO - are those needed or can those be inlined ?
 pub(crate) fn idl_u8_from_bytes_at(bytes: &[u8], offset: usize) -> Result<u8> {
     let size = std::mem::size_of::<u8>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
@@ -248,15 +249,6 @@ pub(crate) fn idl_u64_from_bytes_at(
     let size = std::mem::size_of::<u64>();
     let slice = idl_slice_from_bytes(bytes, offset, size)?;
     Ok(u64::from_le_bytes(slice.try_into()?))
-}
-
-pub(crate) fn idl_pubkey_from_bytes_at(
-    bytes: &[u8],
-    offset: usize,
-) -> Result<Pubkey> {
-    let size = std::mem::size_of::<Pubkey>();
-    let slice = idl_slice_from_bytes(bytes, offset, size)?;
-    Ok(Pubkey::new_from_array(slice.try_into()?))
 }
 
 pub(crate) fn idl_map_get_key_or_else<'a, V: std::fmt::Debug>(

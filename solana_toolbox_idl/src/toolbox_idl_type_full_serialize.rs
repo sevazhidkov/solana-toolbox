@@ -128,9 +128,7 @@ impl ToolboxIdlTypeFull {
                 Err(anyhow!("Can't use a const literal directly: {}", literal))
             },
             ToolboxIdlTypeFull::Primitive { primitive } => {
-                ToolboxIdlTypeFull::try_serialize_primitive(
-                    primitive, value, data,
-                )
+                primitive.try_serialize(value, data)
             },
         }
     }
@@ -143,9 +141,9 @@ impl ToolboxIdlTypeFull {
         deserializable: bool,
     ) -> Result<()> {
         if value.is_null() {
-            option_prefix.write(0, data)?;
+            option_prefix.try_serialize(0, data)?;
         } else {
-            option_prefix.write(1, data)?;
+            option_prefix.try_serialize(1, data)?;
             option_content.try_serialize(value, data, deserializable)?;
         }
         Ok(())
@@ -161,14 +159,14 @@ impl ToolboxIdlTypeFull {
         if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
             if deserializable {
-                vec_prefix.write(u64::try_from(bytes.len())?, data)?;
+                vec_prefix.try_serialize(u64::try_from(bytes.len())?, data)?;
             }
             data.extend_from_slice(&bytes);
             return Ok(());
         }
         let values = idl_as_array_or_else(value)?;
         if deserializable {
-            vec_prefix.write(u64::try_from(values.len())?, data)?;
+            vec_prefix.try_serialize(u64::try_from(values.len())?, data)?;
         }
         for (index, value_item) in values.iter().enumerate() {
             vec_items
@@ -221,7 +219,8 @@ impl ToolboxIdlTypeFull {
     ) -> Result<()> {
         let value_str = idl_as_str_or_else(value)?;
         if deserializable {
-            string_prefix.write(u64::try_from(value_str.len())?, data)?;
+            string_prefix
+                .try_serialize(u64::try_from(value_str.len())?, data)?;
         }
         data.extend_from_slice(value_str.as_bytes());
         Ok(())
@@ -246,8 +245,8 @@ impl ToolboxIdlTypeFull {
         if let Some(value_number) = value.as_u64() {
             for enum_variant in enum_variants {
                 if enum_variant.code == value_number {
+                    enum_prefix.try_serialize(enum_variant.code, data)?;
                     return ToolboxIdlTypeFull::try_serialize_enum_variant(
-                        enum_prefix,
                         enum_variant,
                         &Value::Null,
                         data,
@@ -263,8 +262,8 @@ impl ToolboxIdlTypeFull {
         if let Some(value_string) = value.as_str() {
             for enum_variant in enum_variants {
                 if enum_variant.name == value_string {
+                    enum_prefix.try_serialize(enum_variant.code, data)?;
                     return ToolboxIdlTypeFull::try_serialize_enum_variant(
-                        enum_prefix,
                         enum_variant,
                         &Value::Null,
                         data,
@@ -280,8 +279,8 @@ impl ToolboxIdlTypeFull {
         if let Some(value_object) = value.as_object() {
             for enum_variant in enum_variants {
                 if let Some(enum_value) = value_object.get(&enum_variant.name) {
+                    enum_prefix.try_serialize(enum_variant.code, data)?;
                     return ToolboxIdlTypeFull::try_serialize_enum_variant(
-                        enum_prefix,
                         enum_variant,
                         enum_value,
                         data,
@@ -297,13 +296,11 @@ impl ToolboxIdlTypeFull {
     }
 
     fn try_serialize_enum_variant(
-        enum_prefix: &ToolboxIdlTypePrefix,
         enum_variant: &ToolboxIdlTypeFullEnumVariant,
         value: &Value,
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        enum_prefix.write(enum_variant.code, data)?;
         enum_variant
             .fields
             .try_serialize(value, data, deserializable)
@@ -335,13 +332,79 @@ impl ToolboxIdlTypeFull {
         }
         Ok(())
     }
+}
 
-    fn try_serialize_primitive(
-        primitive: &ToolboxIdlTypePrimitive,
+impl ToolboxIdlTypeFullFields {
+    pub fn try_serialize(
+        &self,
+        value: &Value,
+        data: &mut Vec<u8>,
+        deserializable: bool,
+    ) -> Result<()> {
+        if self.len() == 0 {
+            return Ok(());
+        }
+        match self {
+            ToolboxIdlTypeFullFields::Named(fields) => {
+                let value = idl_as_object_or_else(value)?;
+                for field in fields {
+                    let value_field =
+                        idl_object_get_key_or_else(value, &field.name)?;
+                    field
+                        .content
+                        .try_serialize(value_field, data, deserializable)
+                        .with_context(|| {
+                            format!("Serialize Field: {}", field.name)
+                        })?;
+                }
+            },
+            ToolboxIdlTypeFullFields::Unnamed(fields) => {
+                let values = idl_as_array_or_else(value)?;
+                if values.len() != fields.len() {
+                    return Err(anyhow!("Wrong number of unnamed fields, expected: {}, found: {}", fields.len(), values.len()));
+                }
+                for field in fields {
+                    let value_field = &values[field.position];
+                    field
+                        .content
+                        .try_serialize(value_field, data, deserializable)
+                        .with_context(|| {
+                            format!("Serialize Field: {}", field.position)
+                        })?;
+                }
+            },
+        }
+        Ok(())
+    }
+}
+
+impl ToolboxIdlTypePrefix {
+    pub fn try_serialize(&self, value: u64, data: &mut Vec<u8>) -> Result<()> {
+        match self {
+            ToolboxIdlTypePrefix::U8 => {
+                data.extend_from_slice(&u8::try_from(value)?.to_le_bytes())
+            },
+            ToolboxIdlTypePrefix::U16 => {
+                data.extend_from_slice(&u16::try_from(value)?.to_le_bytes())
+            },
+            ToolboxIdlTypePrefix::U32 => {
+                data.extend_from_slice(&u32::try_from(value)?.to_le_bytes())
+            },
+            ToolboxIdlTypePrefix::U64 => {
+                data.extend_from_slice(&value.to_le_bytes())
+            },
+        }
+        Ok(())
+    }
+}
+
+impl ToolboxIdlTypePrimitive {
+    pub fn try_serialize(
+        self: &ToolboxIdlTypePrimitive,
         value: &Value,
         data: &mut Vec<u8>,
     ) -> Result<()> {
-        match primitive {
+        match self {
             ToolboxIdlTypePrimitive::U8 => {
                 let value_integer = idl_as_u64_or_else(value)?;
                 let value_typed = u8::try_from(value_integer)?;
@@ -406,50 +469,6 @@ impl ToolboxIdlTypeFull {
                 data.extend_from_slice(&value_pubkey.to_bytes());
             },
         };
-        Ok(())
-    }
-}
-
-impl ToolboxIdlTypeFullFields {
-    pub fn try_serialize(
-        &self,
-        value: &Value,
-        data: &mut Vec<u8>,
-        deserializable: bool,
-    ) -> Result<()> {
-        if self.len() == 0 {
-            return Ok(());
-        }
-        match self {
-            ToolboxIdlTypeFullFields::Named(fields) => {
-                let value = idl_as_object_or_else(value)?;
-                for field in fields {
-                    let value_field =
-                        idl_object_get_key_or_else(value, &field.name)?;
-                    field
-                        .content
-                        .try_serialize(value_field, data, deserializable)
-                        .with_context(|| {
-                            format!("Serialize Field: {}", field.name)
-                        })?;
-                }
-            },
-            ToolboxIdlTypeFullFields::Unnamed(fields) => {
-                let values = idl_as_array_or_else(value)?;
-                if values.len() != fields.len() {
-                    return Err(anyhow!("Wrong number of unnamed fields, expected: {}, found: {}", fields.len(), values.len()));
-                }
-                for field in fields {
-                    let value_field = &values[field.position];
-                    field
-                        .content
-                        .try_serialize(value_field, data, deserializable)
-                        .with_context(|| {
-                            format!("Serialize Field: {}", field.position)
-                        })?;
-                }
-            },
-        }
         Ok(())
     }
 }

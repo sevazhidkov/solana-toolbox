@@ -17,6 +17,7 @@ import {
 } from './ToolboxIdlTypeFull';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
 import { ToolboxUtils } from './ToolboxUtils';
+import { ToolboxIdlTypePrefix } from './ToolboxIdlTypePrefix';
 
 export function serialize(
   typeFull: ToolboxIdlTypeFull,
@@ -51,10 +52,10 @@ let serializer = {
     deserializable: boolean,
   ) => {
     if (value === null) {
-      data.push(Buffer.from([0]));
+      serializePrefix(self.prefix, 0, data);
       return;
     }
-    data.push(Buffer.from([1]));
+    serializePrefix(self.prefix, 1, data);
     serialize(self.content, value, data, deserializable);
   },
   vec: (
@@ -65,7 +66,7 @@ let serializer = {
   ) => {
     let array = ToolboxUtils.expectArray(value);
     if (deserializable) {
-      data.push(self.prefix.toBuffer(array.length));
+      serializePrefix(self.prefix, array.length, data);
     }
     for (let item of array) {
       serialize(self.items, item, data, deserializable);
@@ -93,7 +94,7 @@ let serializer = {
   ) => {
     let string = ToolboxUtils.expectString(value);
     if (deserializable) {
-      data.push(self.prefix.toBuffer(string.length));
+      serializePrefix(self.prefix, string.length, data);
     }
     data.push(Buffer.from(string, 'utf8'));
   },
@@ -114,7 +115,7 @@ let serializer = {
     if (ToolboxUtils.isNumber(value)) {
       for (let variant of self.variants) {
         if (variant.code == value) {
-          data.push(self.prefix.toBuffer(variant.code));
+          serializePrefix(self.prefix, variant.code, data);
           serializeFields(variant.fields, null, data, deserializable);
           return;
         }
@@ -124,7 +125,7 @@ let serializer = {
     if (ToolboxUtils.isString(value)) {
       for (let variant of self.variants) {
         if (variant.name == value) {
-          data.push(self.prefix.toBuffer(variant.code));
+          serializePrefix(self.prefix, variant.code, data);
           serializeFields(variant.fields, null, data, deserializable);
           return;
         }
@@ -134,13 +135,9 @@ let serializer = {
     if (ToolboxUtils.isObject(value)) {
       for (let variant of self.variants) {
         if (value.hasOwnProperty(variant.name)) {
-          data.push(self.prefix.toBuffer(variant.code));
-          serializeFields(
-            variant.fields,
-            value[variant.name],
-            data,
-            deserializable,
-          );
+          let valueFields = value[variant.name];
+          serializePrefix(self.prefix, variant.code, data);
+          serializeFields(variant.fields, valueFields, data, deserializable);
           return;
         }
       }
@@ -192,6 +189,81 @@ let serializer = {
   },
 };
 
+export function serializeFields(
+  typeFullFields: ToolboxIdlTypeFullFields,
+  value: any,
+  data: Buffer[],
+  deserializable: boolean,
+) {
+  typeFullFields.traverse(serializerFields, value, data, deserializable);
+}
+
+let serializerFields = {
+  named: (
+    self: ToolboxIdlTypeFullFieldNamed[],
+    value: any,
+    data: Buffer[],
+    deserializable: boolean,
+  ) => {
+    if (self.length <= 0) {
+      return;
+    }
+    ToolboxUtils.expectObject(value);
+    for (let field of self) {
+      serialize(field.content, value[field.name], data, deserializable);
+    }
+  },
+  unnamed: (
+    self: ToolboxIdlTypeFullFieldUnnamed[],
+    value: any,
+    data: Buffer[],
+    deserializable: boolean,
+  ) => {
+    if (self.length <= 0) {
+      return;
+    }
+    ToolboxUtils.expectArray(value);
+    for (let i = 0; i < self.length; i++) {
+      serialize(self[i].content, value[i], data, deserializable);
+    }
+  },
+};
+
+export function serializePrefix(
+  prefix: ToolboxIdlTypePrefix,
+  value: number,
+  data: Buffer[],
+) {
+  let buffer = Buffer.alloc(prefix.size);
+  prefix.traverse(serializerPrefix, buffer, value, undefined);
+  data.push(buffer);
+}
+
+let serializerPrefix = {
+  u8: (buffer: Buffer, value: any) => {
+    buffer.writeUInt8(ToolboxUtils.expectNumber(value));
+  },
+  u16: (buffer: Buffer, value: any) => {
+    buffer.writeUInt16LE(ToolboxUtils.expectNumber(value));
+  },
+  u32: (buffer: Buffer, value: any) => {
+    buffer.writeUInt32LE(ToolboxUtils.expectNumber(value));
+  },
+  u64: (buffer: Buffer, value: any) => {
+    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+  },
+};
+
+export function serializePrimitives(
+  primitive: ToolboxIdlTypePrimitive,
+  value: any,
+  data: Buffer[],
+) {
+  let buffer = Buffer.alloc(primitive.size);
+  primitive.traverse(serializerPrimitives, buffer, value, undefined);
+  data.push(buffer);
+}
+
 let serializerPrimitives = {
   u8: (buffer: Buffer, value: any) => {
     buffer.writeUInt8(ToolboxUtils.expectNumber(value));
@@ -238,45 +310,5 @@ let serializerPrimitives = {
   },
   pubkey: (buffer: Buffer, value: any) => {
     buffer.set(new PublicKey(ToolboxUtils.expectString(value)).toBuffer());
-  },
-};
-
-export function serializeFields(
-  typeFullFields: ToolboxIdlTypeFullFields,
-  value: any,
-  data: Buffer[],
-  deserializable: boolean,
-) {
-  typeFullFields.traverse(serializerFields, value, data, deserializable);
-}
-
-let serializerFields = {
-  named: (
-    self: ToolboxIdlTypeFullFieldNamed[],
-    value: any,
-    data: Buffer[],
-    deserializable: boolean,
-  ) => {
-    if (self.length <= 0) {
-      return;
-    }
-    ToolboxUtils.expectObject(value);
-    for (let field of self) {
-      serialize(field.content, value[field.name], data, deserializable);
-    }
-  },
-  unnamed: (
-    self: ToolboxIdlTypeFullFieldUnnamed[],
-    value: any,
-    data: Buffer[],
-    deserializable: boolean,
-  ) => {
-    if (self.length <= 0) {
-      return;
-    }
-    ToolboxUtils.expectArray(value);
-    for (let i = 0; i < self.length; i++) {
-      serialize(self[i].content, value[i], data, deserializable);
-    }
   },
 };
