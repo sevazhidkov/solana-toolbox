@@ -21,6 +21,14 @@ import {
 } from './ToolboxIdlTypeFull';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
 
+export function hydrate(
+  typeFlat: ToolboxIdlTypeFlat,
+  genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
+  typedefs: Map<string, ToolboxIdlTypedef>,
+): ToolboxIdlTypeFull {
+  return typeFlat.traverse(hydrator, genericsBySymbol, typedefs);
+}
+
 let hydrator = {
   defined: (
     self: ToolboxIdlTypeFlatDefined,
@@ -162,6 +170,14 @@ let hydrator = {
   },
 };
 
+export function hydrateFields(
+  typeFlatFields: ToolboxIdlTypeFlatFields,
+  genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
+  typedefs: Map<string, ToolboxIdlTypedef>,
+): ToolboxIdlTypeFullFields {
+  return typeFlatFields.traverse(hydratorFields, genericsBySymbol, typedefs);
+}
+
 let hydratorFields = {
   named: (
     self: ToolboxIdlTypeFlatFieldNamed[],
@@ -191,19 +207,3 @@ let hydratorFields = {
     );
   },
 };
-
-export function hydrate(
-  typeFlat: ToolboxIdlTypeFlat,
-  genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
-  typedefs: Map<string, ToolboxIdlTypedef>,
-): ToolboxIdlTypeFull {
-  return typeFlat.traverse(hydrator, genericsBySymbol, typedefs);
-}
-
-export function hydrateFields(
-  typeFlatFields: ToolboxIdlTypeFlatFields,
-  genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
-  typedefs: Map<string, ToolboxIdlTypedef>,
-): ToolboxIdlTypeFullFields {
-  return typeFlatFields.traverse(hydratorFields, genericsBySymbol, typedefs);
-}

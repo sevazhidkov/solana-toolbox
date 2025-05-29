@@ -396,11 +396,11 @@ impl ToolboxIdlTypeFull {
                 let value_floating = idl_as_f64_or_else(value)?;
                 data.extend_from_slice(&value_floating.to_le_bytes());
             },
-            ToolboxIdlTypePrimitive::Boolean => {
+            ToolboxIdlTypePrimitive::Bool => {
                 let value_boolean = idl_as_bool_or_else(value)?;
                 data.push(if value_boolean { 1 } else { 0 });
             },
-            ToolboxIdlTypePrimitive::PublicKey => {
+            ToolboxIdlTypePrimitive::Pubkey => {
                 let value_str = idl_as_str_or_else(value)?;
                 let value_pubkey = Pubkey::from_str(value_str)?;
                 data.extend_from_slice(&value_pubkey.to_bytes());

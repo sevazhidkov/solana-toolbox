@@ -20,8 +20,8 @@ pub async fn run() {
                         "name": "const_bytes_without_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "type": ["u8"], "value": [41, 00, 00, 00] },
-                                { "kind": "const", "value": [42, 00, 00, 00] },
+                                { "kind": "const", "type": ["u8"], "value": [41, 0, 0, 0] },
+                                { "kind": "const", "value": [42, 0, 0, 0] },
                             ]
                         }
                     },
@@ -29,8 +29,8 @@ pub async fn run() {
                         "name": "const_bytes_with_program",
                         "pda": {
                             "seeds": [
-                                { "kind": "const", "type": ["u8"], "value": [41, 00, 00, 00] },
-                                { "kind": "const", "value": [42, 00, 00, 00] },
+                                { "kind": "const", "type": ["u8"], "value": [41, 0, 0, 0] },
+                                { "kind": "const", "value": [42, 0, 0, 0] },
                             ],
                             "program": {
                                 "kind": "const",
@@ -73,13 +73,13 @@ pub async fn run() {
                     {
                         "name": "const_bytes_without_program",
                         "pda": {
-                            "seeds": [[41, 00, 00, 00], [42, 00, 00, 00]],
+                            "seeds": [[41, 0, 0, 0], [42, 0, 0, 0]],
                         }
                     },
                     {
                         "name": "const_bytes_with_program",
                         "pda": {
-                            "seeds": [[41, 00, 00, 00], [42, 00, 00, 00]],
+                            "seeds": [[41, 0, 0, 0], [42, 0, 0, 0]],
                             "program": { "value": program_id2.to_bytes() }
                         }
                     },

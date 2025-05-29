@@ -448,13 +448,13 @@ impl ToolboxIdlTypeFull {
                 let data_num = f64::from_le_bytes(data_slice.try_into()?);
                 (data_size, json!(data_num))
             },
-            ToolboxIdlTypePrimitive::Boolean => {
+            ToolboxIdlTypePrimitive::Bool => {
                 let prefix = ToolboxIdlTypePrefix::U8; // TODO - homogenize this
                 let data_flag = prefix.read_at(data, data_offset)?;
                 let data_size = prefix.to_size();
                 (data_size, json!(data_flag != 0))
             },
-            ToolboxIdlTypePrimitive::PublicKey => {
+            ToolboxIdlTypePrimitive::Pubkey => {
                 let data_pubkey = idl_pubkey_from_bytes_at(data, data_offset)?; // TODO - homogeneze this
                 let data_size = std::mem::size_of_val(&data_pubkey);
                 (data_size, json!(data_pubkey.to_string()))

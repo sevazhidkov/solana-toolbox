@@ -1,7 +1,9 @@
 import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
 import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
+import { hydrate } from './ToolboxIdlTypeFlat.hydrate';
 import { parse, parseObjectIsPossible } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxIdlTypeFull } from './ToolboxIdlTypeFull';
+import { serialize } from './ToolboxIdlTypeFull.serialize';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlAccount {
@@ -9,18 +11,18 @@ export class ToolboxIdlAccount {
   // TODO - support space/chunks/blobs
   public discriminator: Buffer;
   public contentTypeFlat: ToolboxIdlTypeFlat;
-  // public contentTypeFull: ToolboxIdlTypeFull;
+  public contentTypeFull: ToolboxIdlTypeFull;
 
   constructor(value: {
     name: string;
     discriminator: Buffer;
     contentTypeFlat: ToolboxIdlTypeFlat;
-    // contentTypeFull: ToolboxIdlTypeFull,
+    contentTypeFull: ToolboxIdlTypeFull;
   }) {
     this.name = value.name;
     this.discriminator = value.discriminator;
     this.contentTypeFlat = value.contentTypeFlat;
-    // this.contentTypeFull = value.contentTypeFull;
+    this.contentTypeFull = value.contentTypeFull;
   }
 
   public static tryParse(
@@ -35,11 +37,12 @@ export class ToolboxIdlAccount {
     let contentTypeFlat = parseObjectIsPossible(idlAccount)
       ? parse(idlAccount)
       : parse(idlAccountName);
-    // let contentTypeFull = contentTypeFlat.tryHydrate(new Map(), typedefs);
+    let contentTypeFull = hydrate(contentTypeFlat, new Map(), typedefs);
     return new ToolboxIdlAccount({
       name: idlAccountName,
       discriminator,
       contentTypeFlat,
+      contentTypeFull,
     });
   }
 
@@ -53,5 +56,12 @@ export class ToolboxIdlAccount {
       }
     }
     return true;
+  }
+
+  public encode(accountState: any): Buffer {
+    let data: Buffer[] = [];
+    data.push(this.discriminator);
+    serialize(this.contentTypeFull, accountState, data, true);
+    return Buffer.concat(data);
   }
 }

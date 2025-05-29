@@ -99,10 +99,10 @@ export class ToolboxIdlProgram {
     let values = new Map();
     let collection = idlRoot[collectionKey];
     if (ToolboxUtils.isArray(collection)) {
-      collection.forEach((item: any) => {
+      for (let item of collection) {
         let name = ToolboxUtils.expectString(item['name']);
         values.set(name, parsingFunction(name, item, param1, param2));
-      });
+      }
     }
     if (ToolboxUtils.isObject(collection)) {
       Object.entries(collection).forEach(([key, value]) => {

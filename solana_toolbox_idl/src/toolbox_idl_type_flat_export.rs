@@ -145,7 +145,7 @@ impl ToolboxIdlTypeFlat {
             },
             ToolboxIdlTypeFlat::Primitive { primitive } => {
                 if format.use_camel_case_type_primitive_names
-                    && primitive == &ToolboxIdlTypePrimitive::PublicKey
+                    && primitive == &ToolboxIdlTypePrimitive::Pubkey
                 {
                     return json!("publicKey");
                 }

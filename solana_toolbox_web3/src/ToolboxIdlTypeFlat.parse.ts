@@ -147,30 +147,22 @@ function parseString(idlTypeString: string): ToolboxIdlTypeFlat {
     });
   }
   if (idlTypeString === 'publicKey') {
-    return ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.PublicKey);
+    return ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.Pubkey);
   }
   if (idlTypeString === 'string') {
     return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U32 });
   }
   if (idlTypeString === 'string8') {
-    return ToolboxIdlTypeFlat.string({
-      prefix: ToolboxIdlTypePrefix.U8,
-    });
+    return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U8 });
   }
   if (idlTypeString === 'string16') {
-    return ToolboxIdlTypeFlat.string({
-      prefix: ToolboxIdlTypePrefix.U16,
-    });
+    return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U16 });
   }
   if (idlTypeString === 'string32') {
-    return ToolboxIdlTypeFlat.string({
-      prefix: ToolboxIdlTypePrefix.U32,
-    });
+    return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U32 });
   }
   if (idlTypeString === 'string64') {
-    return ToolboxIdlTypeFlat.string({
-      prefix: ToolboxIdlTypePrefix.U64,
-    });
+    return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U64 });
   }
   let primitive = ToolboxIdlTypePrimitive.primitiveByName.get(idlTypeString);
   return primitive
@@ -182,9 +174,7 @@ function parseString(idlTypeString: string): ToolboxIdlTypeFlat {
 }
 
 function parseNumber(idlTypeNumber: number): ToolboxIdlTypeFlat {
-  return ToolboxIdlTypeFlat.const({
-    literal: idlTypeNumber,
-  });
+  return ToolboxIdlTypeFlat.const({ literal: idlTypeNumber });
 }
 
 function parseDefined(idlDefined: any): ToolboxIdlTypeFlat {
@@ -208,9 +198,7 @@ function parseDefined(idlDefined: any): ToolboxIdlTypeFlat {
 }
 
 function parseGeneric(idlGenericSymbol: any): ToolboxIdlTypeFlat {
-  return ToolboxIdlTypeFlat.generic({
-    symbol: idlGenericSymbol,
-  });
+  return ToolboxIdlTypeFlat.generic({ symbol: idlGenericSymbol });
 }
 
 function parseOption(
@@ -234,9 +222,7 @@ function parseVec(
 }
 
 function parseStruct(idlStructFields: any): ToolboxIdlTypeFlat {
-  return ToolboxIdlTypeFlat.struct({
-    fields: parseFields(idlStructFields),
-  });
+  return ToolboxIdlTypeFlat.struct({ fields: parseFields(idlStructFields) });
 }
 
 function parseEnum(
@@ -297,17 +283,18 @@ export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
   ToolboxUtils.expectArray(idlFields);
   let named = false;
   let fieldsInfos: ToolboxIdlTypeFlatFieldNamed[] = [];
-  idlFields.forEach((field: any, index: number) => {
-    if (field.hasOwnProperty('name')) {
+  for (let i = 0; i < idlFields.length; i++) {
+    let idlField = idlFields[i];
+    if (idlField.hasOwnProperty('name')) {
       named = true;
     }
     fieldsInfos.push({
       name: ToolboxUtils.camelize(
-        ToolboxUtils.expectString(field['name'] ?? index.toString()),
+        ToolboxUtils.expectString(idlField['name'] ?? i.toString()),
       ),
-      content: parse(field),
+      content: parse(idlField),
     });
-  });
+  }
   if (named) {
     return ToolboxIdlTypeFlatFields.named(fieldsInfos);
   }

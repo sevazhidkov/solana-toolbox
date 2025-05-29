@@ -4,7 +4,7 @@ export class ToolboxIdlTypePrefix {
   public static readonly U32 = new ToolboxIdlTypePrefix(4);
   public static readonly U64 = new ToolboxIdlTypePrefix(8);
 
-  private size: number;
+  public size: number;
 
   private constructor(size: number) {
     this.size = size;

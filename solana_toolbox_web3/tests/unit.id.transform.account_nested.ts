@@ -50,5 +50,12 @@ it('run', () => {
   };
   // Check that we can use the manual IDL to encode/decode our account 1
   let accountData = idlAccount.encode(accountstate);
+  console.log('accountData', accountData);
+  expect(accountData).toStrictEqual(
+    Buffer.from([
+      74, 73, 72, 71, 4, 0, 0, 0, 65, 66, 67, 68, 42, 0, 0, 0, 1, 77, 99, 0, 98,
+      0, 97, 0, 3, 0, 0, 0, 201, 255, 56, 0, 57, 0,
+    ]),
+  );
   // TODO - rest of checks
 });

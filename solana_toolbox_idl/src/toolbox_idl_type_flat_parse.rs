@@ -281,7 +281,7 @@ impl ToolboxIdlTypeFlat {
             "string64" => ToolboxIdlTypeFlat::String {
                 prefix: ToolboxIdlTypePrefix::U64,
             },
-            "publicKey" => ToolboxIdlTypePrimitive::PublicKey.into(),
+            "publicKey" => ToolboxIdlTypePrimitive::Pubkey.into(),
             _ => match ToolboxIdlTypePrimitive::try_parse(idl_type_str) {
                 Some(primitive) => primitive.into(),
                 None => ToolboxIdlTypeFlat::Defined {

@@ -293,7 +293,7 @@ impl ToolboxIdlInstructionAccount {
                 }
             })
             .transpose()?
-            .unwrap_or(ToolboxIdlTypePrimitive::PublicKey.into());
+            .unwrap_or(ToolboxIdlTypePrimitive::Pubkey.into());
         let type_full = type_flat
             .try_hydrate(&HashMap::new(), typedefs)
             .context("Hydrate account content type")?;

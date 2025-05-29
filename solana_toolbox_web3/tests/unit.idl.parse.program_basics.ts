@@ -7,6 +7,10 @@ import {
   ToolboxIdlTypeFlat,
   ToolboxIdlTypeFlatFields,
 } from '../src/ToolboxIdlTypeFlat';
+import {
+  ToolboxIdlTypeFull,
+  ToolboxIdlTypeFullFields,
+} from '../src/ToolboxIdlTypeFull';
 import { ToolboxIdlTypePrimitive } from '../src/ToolboxIdlTypePrimitive';
 
 it('run', () => {
@@ -135,6 +139,18 @@ it('run', () => {
           {
             name: 'field2',
             content: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.U32),
+          },
+        ]),
+      }),
+      contentTypeFull: ToolboxIdlTypeFull.struct({
+        fields: ToolboxIdlTypeFullFields.named([
+          {
+            name: 'field1',
+            content: ToolboxIdlTypeFull.primitive(ToolboxIdlTypePrimitive.U64),
+          },
+          {
+            name: 'field2',
+            content: ToolboxIdlTypeFull.primitive(ToolboxIdlTypePrimitive.U32),
           },
         ]),
       }),

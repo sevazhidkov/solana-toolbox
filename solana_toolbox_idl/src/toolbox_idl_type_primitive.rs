@@ -14,8 +14,8 @@ pub enum ToolboxIdlTypePrimitive {
     I128,
     F32,
     F64,
-    Boolean,
-    PublicKey,
+    Bool,
+    Pubkey,
 }
 
 impl ToolboxIdlTypePrimitive {
@@ -33,8 +33,8 @@ impl ToolboxIdlTypePrimitive {
             "i128" => Some(ToolboxIdlTypePrimitive::I128),
             "f32" => Some(ToolboxIdlTypePrimitive::F32),
             "f64" => Some(ToolboxIdlTypePrimitive::F64),
-            "bool" => Some(ToolboxIdlTypePrimitive::Boolean),
-            "pubkey" => Some(ToolboxIdlTypePrimitive::PublicKey),
+            "bool" => Some(ToolboxIdlTypePrimitive::Bool),
+            "pubkey" => Some(ToolboxIdlTypePrimitive::Pubkey),
             _ => None,
         }
     }
@@ -53,8 +53,8 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::I128 => "i128",
             ToolboxIdlTypePrimitive::F32 => "f32",
             ToolboxIdlTypePrimitive::F64 => "f64",
-            ToolboxIdlTypePrimitive::Boolean => "bool",
-            ToolboxIdlTypePrimitive::PublicKey => "pubkey",
+            ToolboxIdlTypePrimitive::Bool => "bool",
+            ToolboxIdlTypePrimitive::Pubkey => "pubkey",
         }
     }
 
@@ -72,8 +72,8 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::I128 => std::mem::size_of::<i128>(),
             ToolboxIdlTypePrimitive::F32 => std::mem::size_of::<f32>(),
             ToolboxIdlTypePrimitive::F64 => std::mem::size_of::<f64>(),
-            ToolboxIdlTypePrimitive::Boolean => std::mem::size_of::<bool>(),
-            ToolboxIdlTypePrimitive::PublicKey => std::mem::size_of::<Pubkey>(),
+            ToolboxIdlTypePrimitive::Bool => std::mem::size_of::<bool>(),
+            ToolboxIdlTypePrimitive::Pubkey => std::mem::size_of::<Pubkey>(),
         }
     }
 
@@ -91,8 +91,8 @@ impl ToolboxIdlTypePrimitive {
             ToolboxIdlTypePrimitive::I128 => std::mem::size_of::<i128>(),
             ToolboxIdlTypePrimitive::F32 => std::mem::size_of::<f32>(),
             ToolboxIdlTypePrimitive::F64 => std::mem::size_of::<f64>(),
-            ToolboxIdlTypePrimitive::Boolean => std::mem::size_of::<bool>(),
-            ToolboxIdlTypePrimitive::PublicKey => std::mem::size_of::<u8>(),
+            ToolboxIdlTypePrimitive::Bool => std::mem::size_of::<bool>(),
+            ToolboxIdlTypePrimitive::Pubkey => std::mem::size_of::<u8>(),
         }
     }
 }

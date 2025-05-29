@@ -29,7 +29,7 @@ it('Check the ToolboxEndpoint.searchAdresses', async () => {
   expect(searchByDataLength).toStrictEqual(searchByDiscriminator);
   // Some account are known to be the exception
   let searchByDiscriminatorWithoutOther = new Set(searchByDiscriminator);
-  searchByDiscriminatorWithoutOther.forEach((account) => {
+  for (let account of searchByDiscriminatorWithoutOther) {
     if (
       account.equals(
         new PublicKey('GAHCWMw8Uc1wpXJS23bL1Hxtb2XFGNDmBvEN12gUiArq'),
@@ -37,7 +37,7 @@ it('Check the ToolboxEndpoint.searchAdresses', async () => {
     ) {
       searchByDiscriminatorWithoutOther.delete(account);
     }
-  });
+  }
   // Searching accounts by matching a public key from the data content
   let searchByDataBlob1 = await endpoint.searchAddresses(programId, undefined, [
     { offset: 17, bytes: blobFromAddress1 },

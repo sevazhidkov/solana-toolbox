@@ -80,12 +80,12 @@ pub async fn run() {
     assert_get(
         &idl_program,
         "field4.Case1.0",
-        ToolboxIdlTypePrimitive::Boolean,
+        ToolboxIdlTypePrimitive::Bool,
     );
     assert_get(
         &idl_program,
         "field4.Case1.1",
-        ToolboxIdlTypePrimitive::PublicKey,
+        ToolboxIdlTypePrimitive::Pubkey,
     );
     assert_get(
         &idl_program,
