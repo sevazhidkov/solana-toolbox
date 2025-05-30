@@ -82,7 +82,7 @@ pub async fn run() {
                 "code": 4242,
                 "name": "MyError",
                 "msg": "My error message",
-                "docs": "This is an error",
+                "docs": ["This is an error"],
             },
         ],
     }))

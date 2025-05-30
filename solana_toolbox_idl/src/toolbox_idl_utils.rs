@@ -10,7 +10,6 @@ use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::hash::Hasher;
-use solana_sdk::pubkey::Pubkey;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 
