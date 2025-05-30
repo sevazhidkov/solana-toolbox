@@ -22,11 +22,11 @@ pub async fn run() {
         .await
         .unwrap();
     // Check that the account was parsed properly and values matches
-    assert_eq!(campaign_decoded.account.name, "Campaign");
     assert_eq!(
         campaign_decoded.program.metadata.name,
         Some("psyche_crowd_funding".to_string()),
     );
+    assert_eq!(campaign_decoded.account.name, "Campaign");
     assert_eq!(
         campaign_decoded.state.get("bump").unwrap(),
         &json!(campaign_bump),

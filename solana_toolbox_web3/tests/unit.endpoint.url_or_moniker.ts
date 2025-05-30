@@ -1,6 +1,6 @@
 import { ToolboxEndpoint } from '../src/ToolboxEndpoint';
 
-it('Check the ToolboxEndpoint.getUrlFromUrlOrMoniker', () => {
+it('run', () => {
   expect(ToolboxEndpoint.getUrlFromUrlOrMoniker('mainnet-beta')).toBe(
     ToolboxEndpoint.PUBLIC_RPC_URL_MAINNET_BETA,
   );

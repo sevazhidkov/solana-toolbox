@@ -1,6 +1,7 @@
-import { PublicKey } from '@solana/web3.js';
+import { AccountInfo, PublicKey, SystemProgram } from '@solana/web3.js';
 import { ToolboxIdlProgram } from './ToolboxIdlProgram';
 import { ToolboxEndpoint } from './ToolboxEndpoint';
+import { ToolboxIdlAccount } from './ToolboxIdlAccount';
 
 export class ToolboxIdlService {
   private cachedPrograms: Map<PublicKey, ToolboxIdlProgram | null>;
@@ -16,7 +17,7 @@ export class ToolboxIdlService {
     this.cachedPrograms.set(programId, idlProgram);
   }
 
-  public async loadProgram(
+  public async resolveProgram(
     endpoint: ToolboxEndpoint,
     programId: PublicKey,
   ): Promise<ToolboxIdlProgram | null> {
@@ -24,7 +25,7 @@ export class ToolboxIdlService {
     if (cachedProgram !== undefined) {
       return cachedProgram;
     }
-    let resolvedProgram = await ToolboxIdlService.resolveProgram(
+    let resolvedProgram = await ToolboxIdlService.loadProgram(
       endpoint,
       programId,
     );
@@ -32,7 +33,7 @@ export class ToolboxIdlService {
     return resolvedProgram;
   }
 
-  static async resolveProgram(
+  static async loadProgram(
     endpoint: ToolboxEndpoint,
     programId: PublicKey,
   ): Promise<ToolboxIdlProgram | null> {
@@ -40,7 +41,6 @@ export class ToolboxIdlService {
     let account = await endpoint.getAccount(
       await ToolboxIdlProgram.findAnchorAddress(programId),
     );
-    console.log('ToolboxIdlService.resolveProgram.account', account);
     if (account == null) {
       return null;
     }
@@ -51,13 +51,31 @@ export class ToolboxIdlService {
     endpoint: ToolboxEndpoint,
     address: PublicKey,
   ) {
-    let account = await endpoint.getAccount(address);
-    if (account == null) {
-      return null;
-    }
-    let idlProgram = await this.loadProgram(endpoint, account.owner);
-    //let idlAccount = idlProgram.guessAccount(account.data);
-    //let accountState = idlAccount.decode(account.data);
-    //return accountState;
+    let account = (await endpoint.getAccount(address)) ?? {
+      lamports: 0,
+      owner: SystemProgram.programId,
+      data: Buffer.from([]),
+      executable: false,
+    };
+    return this.decodeAccount(endpoint, account);
+  }
+
+  public async decodeAccount(
+    endpoint: ToolboxEndpoint,
+    account: AccountInfo<Buffer>,
+  ) {
+    let idlProgram =
+      (await this.resolveProgram(endpoint, account.owner)) ??
+      ToolboxIdlProgram.Unknown;
+    let idlAccount =
+      idlProgram.guessAccount(account.data) ?? ToolboxIdlAccount.Unknown;
+    let accountState = idlAccount.decode(account.data);
+    return {
+      lamports: account.lamports,
+      owner: account.owner,
+      program: idlProgram,
+      account: idlAccount,
+      state: accountState,
+    };
   }
 }

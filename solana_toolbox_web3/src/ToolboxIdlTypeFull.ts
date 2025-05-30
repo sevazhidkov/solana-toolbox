@@ -156,6 +156,12 @@ export class ToolboxIdlTypeFull {
     );
   }
 
+  public static nothing(): ToolboxIdlTypeFull {
+    return new ToolboxIdlTypeFull(ToolboxIdlTypeFullDiscriminant.Struct, {
+      fields: ToolboxIdlTypeFullFields.unnamed([]),
+    });
+  }
+
   public traverse<P1, P2, P3, T>(
     visitor: {
       typedef: (

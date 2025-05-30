@@ -8,7 +8,16 @@ import { serialize } from './ToolboxIdlTypeFull.serialize';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlAccount {
+  public static readonly Unknown = new ToolboxIdlAccount({
+    name: 'unknown',
+    docs: undefined,
+    discriminator: Buffer.from([]),
+    contentTypeFlat: ToolboxIdlTypeFlat.nothing(),
+    contentTypeFull: ToolboxIdlTypeFull.nothing(),
+  });
+
   public name: string;
+  public docs: any;
   // TODO - support space/chunks/blobs
   public discriminator: Buffer;
   public contentTypeFlat: ToolboxIdlTypeFlat;
@@ -16,11 +25,13 @@ export class ToolboxIdlAccount {
 
   constructor(value: {
     name: string;
+    docs: any;
     discriminator: Buffer;
     contentTypeFlat: ToolboxIdlTypeFlat;
     contentTypeFull: ToolboxIdlTypeFull;
   }) {
     this.name = value.name;
+    this.docs = value.docs;
     this.discriminator = value.discriminator;
     this.contentTypeFlat = value.contentTypeFlat;
     this.contentTypeFull = value.contentTypeFull;
@@ -31,6 +42,7 @@ export class ToolboxIdlAccount {
     idlAccount: any,
     typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlAccount {
+    let docs = idlAccount['docs'];
     let discriminator = Buffer.from(
       idlAccount['discriminator'] ??
         ToolboxUtils.discriminator('account:' + idlAccountName),
@@ -41,22 +53,11 @@ export class ToolboxIdlAccount {
     let contentTypeFull = hydrate(contentTypeFlat, new Map(), typedefs);
     return new ToolboxIdlAccount({
       name: idlAccountName,
+      docs,
       discriminator,
       contentTypeFlat,
       contentTypeFull,
     });
-  }
-
-  public check(accountData: Buffer): boolean {
-    if (accountData.length < this.discriminator.length) {
-      return false;
-    }
-    for (let i = 0; i < this.discriminator.length; i++) {
-      if (accountData[i] !== this.discriminator[i]) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public encode(accountState: any): Buffer {
@@ -67,14 +68,23 @@ export class ToolboxIdlAccount {
   }
 
   public decode(accountData: Buffer): any {
-    if (!this.check(accountData)) {
-      throw new Error('Invalid account type'); // TODO - better error handling
-    }
-    let [accountSize, accountState] = deserialize(
+    this.check(accountData);
+    let [_, accountState] = deserialize(
       this.contentTypeFull,
       accountData,
       this.discriminator.length,
     );
     return accountState;
+  }
+
+  public check(accountData: Buffer) {
+    if (accountData.length < this.discriminator.length) {
+      throw new Error('Invalid discriminator');
+    }
+    for (let i = 0; i < this.discriminator.length; i++) {
+      if (accountData[i] !== this.discriminator[i]) {
+        throw new Error('Invalid discriminator');
+      }
+    }
   }
 }

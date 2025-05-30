@@ -393,10 +393,10 @@ impl ToolboxIdlTypeFlat {
             format!("Parse Enum Variant Name: {}", idl_enum_variant_index)
         })?
         .to_string();
-        let code = idl_value_as_object_get_key_as_u64(idl_enum_variant, "code")
-            .unwrap_or(u64::try_from(idl_enum_variant_index)?);
         let docs =
             idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
+        let code = idl_value_as_object_get_key_as_u64(idl_enum_variant, "code")
+            .unwrap_or(u64::try_from(idl_enum_variant_index)?);
         let fields = if let Some(idl_enum_variant_fields) =
             idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
         {
@@ -407,8 +407,8 @@ impl ToolboxIdlTypeFlat {
         };
         Ok(ToolboxIdlTypeFlatEnumVariant {
             name,
-            code,
             docs,
+            code,
             fields,
         })
     }

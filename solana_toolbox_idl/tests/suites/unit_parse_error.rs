@@ -48,6 +48,7 @@ pub async fn run() {
         *idl_program1.errors.get("MyError").unwrap(),
         ToolboxIdlError {
             name: "MyError".to_string(),
+            docs: None,
             code: 42,
             msg: "".to_string(),
         }

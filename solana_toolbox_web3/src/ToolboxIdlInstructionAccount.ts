@@ -1,15 +1,11 @@
 import { PublicKey } from '@solana/web3.js';
 import { ToolboxIdlAccount } from './ToolboxIdlAccount';
 import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
-import {
-  ToolboxIdlTypeFlat,
-  ToolboxIdlTypeFlatFields,
-} from './ToolboxIdlTypeFlat';
-import { parse, parseFields } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlInstructionAccount {
   public name: string;
+  public docs: any;
   public writable: boolean;
   public signer: boolean;
   public optional: boolean;
@@ -18,6 +14,7 @@ export class ToolboxIdlInstructionAccount {
 
   constructor(value: {
     name: string;
+    docs: any;
     writable: boolean;
     signer: boolean;
     optional: boolean;
@@ -25,6 +22,7 @@ export class ToolboxIdlInstructionAccount {
     pda?: any[];
   }) {
     this.name = value.name;
+    this.docs = value.docs;
     this.writable = value.writable;
     this.signer = value.signer;
     this.optional = value.optional;
@@ -38,7 +36,10 @@ export class ToolboxIdlInstructionAccount {
     accounts: Map<string, ToolboxIdlAccount>,
   ): ToolboxIdlInstructionAccount {
     ToolboxUtils.expectObject(idlInstructionAccount);
-    let name = ToolboxUtils.expectString(idlInstructionAccount['name']);
+    let name = ToolboxUtils.convertToSnakeCase(
+      ToolboxUtils.expectString(idlInstructionAccount['name']),
+    );
+    let docs = idlInstructionAccount['docs'];
     let writable = ToolboxUtils.expectBoolean(
       idlInstructionAccount['writable'] ??
         idlInstructionAccount['isMut'] ??
@@ -62,6 +63,7 @@ export class ToolboxIdlInstructionAccount {
     }
     return new ToolboxIdlInstructionAccount({
       name,
+      docs,
       writable,
       signer,
       optional,

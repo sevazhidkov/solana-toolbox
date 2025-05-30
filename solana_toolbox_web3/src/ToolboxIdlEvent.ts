@@ -3,21 +3,26 @@ import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
 import { hydrate } from './ToolboxIdlTypeFlat.hydrate';
 import { parse, parseObjectIsPossible } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxIdlTypeFull } from './ToolboxIdlTypeFull';
+import { deserialize } from './ToolboxIdlTypeFull.deserialize';
+import { serialize } from './ToolboxIdlTypeFull.serialize';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlEvent {
   public name: string;
+  public docs: any;
   public discriminator: Buffer;
   public infoTypeFlat: ToolboxIdlTypeFlat;
   public infoTypeFull: ToolboxIdlTypeFull;
 
   constructor(value: {
     name: string;
+    docs: any;
     discriminator: Buffer;
     infoTypeFlat: ToolboxIdlTypeFlat;
     infoTypeFull: ToolboxIdlTypeFull;
   }) {
     this.name = value.name;
+    this.docs = value.docs;
     this.discriminator = value.discriminator;
     this.infoTypeFlat = value.infoTypeFlat;
     this.infoTypeFull = value.infoTypeFull;
@@ -29,6 +34,7 @@ export class ToolboxIdlEvent {
     typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlEvent {
     ToolboxUtils.expectObject(idlEvent);
+    let docs = idlEvent['docs'];
     let discriminator = Buffer.from(
       ToolboxUtils.expectArray(
         idlEvent['discriminator'] ??
@@ -41,9 +47,38 @@ export class ToolboxIdlEvent {
     let infoTypeFull = hydrate(infoTypeFlat, new Map(), typedefs);
     return new ToolboxIdlEvent({
       name: idlEventName,
+      docs,
       discriminator,
       infoTypeFlat,
       infoTypeFull,
     });
+  }
+
+  public encode(eventState: any): Buffer {
+    let data: Buffer[] = [];
+    data.push(this.discriminator);
+    serialize(this.infoTypeFull, eventState, data, true);
+    return Buffer.concat(data);
+  }
+
+  public decode(eventData: Buffer): any {
+    this.check(eventData);
+    let [_, eventState] = deserialize(
+      this.infoTypeFull,
+      eventData,
+      this.discriminator.length,
+    );
+    return eventState;
+  }
+
+  public check(eventData: Buffer) {
+    if (eventData.length < this.discriminator.length) {
+      throw new Error('Invalid discriminator');
+    }
+    for (let i = 0; i < this.discriminator.length; i++) {
+      if (eventData[i] !== this.discriminator[i]) {
+        throw new Error('Invalid discriminator');
+      }
+    }
   }
 }

@@ -78,28 +78,33 @@ it('run', () => {
   expect(idlProgram1.instructions.get('my_ix')).toStrictEqual(
     new ToolboxIdlInstruction({
       name: 'my_ix',
+      docs: undefined,
       discriminator: Buffer.from([38, 19, 70, 194, 0, 59, 80, 114]),
       accounts: [
         new ToolboxIdlInstructionAccount({
           name: 'account_ws',
+          docs: undefined,
           writable: true,
           signer: true,
           optional: false,
         }),
         new ToolboxIdlInstructionAccount({
           name: 'account_rs',
+          docs: undefined,
           writable: false,
           signer: true,
           optional: false,
         }),
         new ToolboxIdlInstructionAccount({
           name: 'account_w',
+          docs: undefined,
           writable: true,
           signer: false,
           optional: false,
         }),
         new ToolboxIdlInstructionAccount({
           name: 'account_r',
+          docs: undefined,
           writable: false,
           signer: false,
           optional: false,
@@ -108,6 +113,7 @@ it('run', () => {
       argsTypeFlatFields: ToolboxIdlTypeFlatFields.named([
         {
           name: 'arg',
+          docs: undefined,
           content: ToolboxIdlTypeFlat.vec({
             prefix: ToolboxIdlTypePrefix.U32,
             items: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.U8),

@@ -26,12 +26,12 @@ impl ToolboxIdlInstruction {
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlInstruction> {
         let idl_instruction = idl_as_object_or_else(idl_instruction)?;
+        let docs = idl_instruction.get("docs").cloned();
         let discriminator = ToolboxIdlInstruction::try_parse_discriminator(
             idl_instruction_name,
             idl_instruction,
         )
         .context("Discriminator")?;
-        let docs = idl_instruction.get("docs").cloned();
         let args_type_flat_fields =
             ToolboxIdlInstruction::try_parse_args_type_flat_fields(
                 idl_instruction,

@@ -24,12 +24,12 @@ impl ToolboxIdlAccount {
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlAccount> {
         let idl_account = idl_as_object_or_else(idl_account)?;
+        let docs = idl_account.get("docs").cloned();
         let discriminator = ToolboxIdlAccount::try_parse_discriminator(
             idl_account_name,
             idl_account,
         )
         .context("Parse Discriminator")?;
-        let docs = idl_account.get("docs").cloned();
         let space = idl_object_get_key_as_u64(idl_account, "space")
             .map(usize::try_from)
             .transpose()

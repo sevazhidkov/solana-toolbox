@@ -56,12 +56,11 @@ export class ToolboxUtils {
     return value;
   }
 
-  public static camelize(value: string) {
+  public static convertToSnakeCase(value: string) {
     return value
-      .replace(/(?:^\w|[A-Z]|\b\w)/g, (word: string, index: number) => {
-        return index === 0 ? word.toLowerCase() : word.toUpperCase();
-      })
-      .replace(/\s+/g, '');
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
+      .toLowerCase();
   }
 
   public static discriminator(value: string) {

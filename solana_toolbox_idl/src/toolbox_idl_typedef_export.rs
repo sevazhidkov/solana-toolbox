@@ -8,14 +8,20 @@ use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 impl ToolboxIdlTypedef {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
         if format.can_skip_typedef_type_object_wrap
+            && self.docs.is_none()
             && self.serialization.is_none()
             && self.repr.is_none()
             && self.generics.is_empty()
-            && self.docs.is_none()
         {
             return self.type_flat.export(format);
         }
         let mut json_object = Map::new();
+        if !format.use_object_for_unordered_named_array {
+            json_object.insert("name".to_string(), json!(self.name));
+        }
+        if let Some(docs) = &self.docs {
+            json_object.insert("docs".to_string(), json!(docs));
+        }
         if let Some(serialization) = &self.serialization {
             json_object
                 .insert("serialization".to_string(), json!(serialization));
@@ -41,12 +47,6 @@ impl ToolboxIdlTypedef {
                 }
             }
             json_object.insert("generics".to_string(), json!(json_generics));
-        }
-        if !format.use_object_for_unordered_named_array {
-            json_object.insert("name".to_string(), json!(self.name));
-        }
-        if let Some(docs) = &self.docs {
-            json_object.insert("docs".to_string(), json!(docs));
         }
         json_object.insert("type".to_string(), self.type_flat.export(format));
         json!(json_object)

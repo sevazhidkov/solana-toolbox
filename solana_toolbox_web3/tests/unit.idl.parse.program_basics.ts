@@ -89,22 +89,26 @@ it('run', () => {
   expect(idlProgram1.instructions.get('my_ix')).toStrictEqual(
     new ToolboxIdlInstruction({
       name: 'my_ix',
+      docs: ['my ix doc'],
       discriminator: Buffer.from([38, 19, 70, 194, 0, 59, 80, 114]),
       accounts: [
         new ToolboxIdlInstructionAccount({
           name: 'authority',
+          docs: undefined,
           writable: false,
           signer: true,
           optional: false,
         }),
         new ToolboxIdlInstructionAccount({
           name: 'content',
+          docs: undefined,
           writable: true,
           signer: false,
           optional: false,
         }),
         new ToolboxIdlInstructionAccount({
           name: 'optional',
+          docs: undefined,
           writable: false,
           signer: false,
           optional: true,
@@ -113,10 +117,12 @@ it('run', () => {
       argsTypeFlatFields: ToolboxIdlTypeFlatFields.named([
         {
           name: 'index',
+          docs: undefined,
           content: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.U32),
         },
         {
           name: 'id',
+          docs: undefined,
           content: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.I64),
         },
       ]),
@@ -129,15 +135,18 @@ it('run', () => {
   expect(idlProgram1.accounts.get('MyAccount')).toStrictEqual(
     new ToolboxIdlAccount({
       name: 'MyAccount',
+      docs: ['My Account doc'],
       discriminator: Buffer.from([246, 28, 6, 87, 251, 45, 50, 42]),
       contentTypeFlat: ToolboxIdlTypeFlat.struct({
         fields: ToolboxIdlTypeFlatFields.named([
           {
             name: 'field1',
+            docs: undefined,
             content: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.U64),
           },
           {
             name: 'field2',
+            docs: undefined,
             content: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.U32),
           },
         ]),
@@ -160,6 +169,7 @@ it('run', () => {
   expect(idlProgram1.errors.get('MyError')).toStrictEqual(
     new ToolboxIdlError({
       name: 'MyError',
+      docs: undefined,
       code: 4242,
       msg: 'My error message',
     }),

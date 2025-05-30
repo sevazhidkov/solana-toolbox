@@ -42,6 +42,7 @@ pub async fn run() {
         "errors": {
             "MyError": {
                 "code": 4242,
+                "docs": ["This is an error"],
                 "msg": "My error message",
             },
         },
@@ -81,6 +82,7 @@ pub async fn run() {
                 "code": 4242,
                 "name": "MyError",
                 "msg": "My error message",
+                "docs": "This is an error",
             },
         ],
     }))
@@ -193,6 +195,7 @@ pub async fn run() {
         *idl_program1.errors.get("MyError").unwrap(),
         ToolboxIdlError {
             name: "MyError".to_string(),
+            docs: Some(json!(["This is an error"])),
             code: 4242,
             msg: "My error message".to_string()
         }

@@ -187,9 +187,9 @@ function parseDefined(idlDefined: any): ToolboxIdlTypeFlat {
   ToolboxUtils.expectObject(idlDefined);
   let generics = [];
   if (ToolboxUtils.isArray(idlDefined['generics'])) {
-    generics = idlDefined['generics'].map((generic: any) => {
-      return parse(generic);
-    });
+    for (let idlGeneric of idlDefined['generics']) {
+      generics.push(parse(idlGeneric));
+    }
   }
   return ToolboxIdlTypeFlat.defined({
     name: ToolboxUtils.expectString(idlDefined['name']),
@@ -247,18 +247,21 @@ function parseEnumVariant(
   if (ToolboxUtils.isString(idlEnumVariant)) {
     return {
       name: idlEnumVariant,
+      docs: undefined,
       code: idlEnumVariantIndex,
       fields: ToolboxIdlTypeFlatFields.unnamed([]),
     };
   }
   ToolboxUtils.expectObject(idlEnumVariant);
   let name = ToolboxUtils.expectString(idlEnumVariant['name']);
+  let docs = idlEnumVariant['docs'];
   let code = ToolboxUtils.expectNumber(
     idlEnumVariant['code'] ?? idlEnumVariantIndex,
   );
   let fields = parseFields(idlEnumVariant['fields']);
   return {
     name: name,
+    docs: docs,
     code: code,
     fields: fields,
   };
@@ -289,9 +292,10 @@ export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
       named = true;
     }
     fieldsInfos.push({
-      name: ToolboxUtils.camelize(
+      name: ToolboxUtils.convertToSnakeCase(
         ToolboxUtils.expectString(idlField['name'] ?? i.toString()),
       ),
+      docs: idlField['docs'],
       content: parse(idlField),
     });
   }

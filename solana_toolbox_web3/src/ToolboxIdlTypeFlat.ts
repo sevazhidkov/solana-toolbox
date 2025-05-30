@@ -67,6 +67,7 @@ export type ToolboxIdlTypeFlatEnum = {
 
 export type ToolboxIdlTypeFlatEnumVariant = {
   name: string;
+  docs: any;
   code: number;
   fields: ToolboxIdlTypeFlatFields;
 };
@@ -84,10 +85,12 @@ export type ToolboxIdlTypeFlatConst = {
 
 export type ToolboxIdlTypeFlatFieldNamed = {
   name: string;
+  docs: any;
   content: ToolboxIdlTypeFlat;
 };
 
 export type ToolboxIdlTypeFlatFieldUnnamed = {
+  docs: any;
   content: ToolboxIdlTypeFlat;
 };
 
@@ -154,6 +157,12 @@ export class ToolboxIdlTypeFlat {
       ToolboxIdlTypeFlatDiscriminant.Primitive,
       value,
     );
+  }
+
+  public static nothing(): ToolboxIdlTypeFlat {
+    return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Struct, {
+      fields: ToolboxIdlTypeFlatFields.unnamed([]),
+    });
   }
 
   public traverse<P1, P2, T>(

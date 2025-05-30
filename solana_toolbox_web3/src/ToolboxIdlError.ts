@@ -1,16 +1,14 @@
-import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
-import { ToolboxIdlTypeFlat } from './ToolboxIdlTypeFlat';
-import { parse, parseObjectIsPossible } from './ToolboxIdlTypeFlat.parse';
-import { ToolboxIdlTypeFull } from './ToolboxIdlTypeFull';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlError {
   public name: string;
+  public docs: any;
   public code: number;
   public msg: string;
 
-  constructor(value: { name: string; code: number; msg: string }) {
+  constructor(value: { name: string; docs: any; code: number; msg: string }) {
     this.name = value.name;
+    this.docs = value.docs;
     this.code = value.code;
     this.msg = value.msg;
   }
@@ -19,15 +17,18 @@ export class ToolboxIdlError {
     if (ToolboxUtils.isNumber(idlError)) {
       return new ToolboxIdlError({
         name: idlErrorName,
+        docs: undefined,
         code: idlError,
         msg: '',
       });
     }
     if (ToolboxUtils.isObject(idlError)) {
+      let docs = idlError['docs'];
       let code = ToolboxUtils.expectNumber(idlError['code']);
       let msg = ToolboxUtils.expectString(idlError['msg'] ?? '');
       return new ToolboxIdlError({
         name: idlErrorName,
+        docs,
         code,
         msg,
       });
