@@ -3,7 +3,6 @@ import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
 
 enum ToolboxIdlTypeFullDiscriminant {
   Typedef = 'typedef',
-  Pod = 'pod',
   Option = 'option',
   Vec = 'vec',
   Array = 'array',
@@ -17,7 +16,6 @@ enum ToolboxIdlTypeFullDiscriminant {
 
 type ToolboxIdlTypeFullContent =
   | ToolboxIdlTypeFullTypedef
-  | ToolboxIdlTypeFullPod
   | ToolboxIdlTypeFullOption
   | ToolboxIdlTypeFullVec
   | ToolboxIdlTypeFullArray
@@ -31,12 +29,6 @@ type ToolboxIdlTypeFullContent =
 export type ToolboxIdlTypeFullTypedef = {
   name: string;
   repr: string | undefined;
-  content: ToolboxIdlTypeFull;
-};
-
-export type ToolboxIdlTypeFullPod = {
-  alignment: number;
-  size: number;
   content: ToolboxIdlTypeFull;
 };
 
@@ -91,6 +83,7 @@ export type ToolboxIdlTypeFullFieldNamed = {
 };
 
 export type ToolboxIdlTypeFullFieldUnnamed = {
+  position: number;
   content: ToolboxIdlTypeFull;
 };
 
@@ -111,10 +104,6 @@ export class ToolboxIdlTypeFull {
       ToolboxIdlTypeFullDiscriminant.Typedef,
       value,
     );
-  }
-
-  public static pod(value: ToolboxIdlTypeFullPod): ToolboxIdlTypeFull {
-    return new ToolboxIdlTypeFull(ToolboxIdlTypeFullDiscriminant.Pod, value);
   }
 
   public static option(value: ToolboxIdlTypeFullOption): ToolboxIdlTypeFull {
@@ -166,12 +155,6 @@ export class ToolboxIdlTypeFull {
     visitor: {
       typedef: (
         value: ToolboxIdlTypeFullTypedef,
-        param1: P1,
-        param2: P2,
-        param3: P3,
-      ) => T;
-      pod: (
-        value: ToolboxIdlTypeFullPod,
         param1: P1,
         param2: P2,
         param3: P3,

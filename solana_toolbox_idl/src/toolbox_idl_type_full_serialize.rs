@@ -45,19 +45,6 @@ impl ToolboxIdlTypeFull {
                 )
                 .with_context(|| format!("Serialize Typedef, name: {}", name))
             },
-            ToolboxIdlTypeFull::Pod {
-                alignment,
-                size,
-                content,
-            } => ToolboxIdlTypeFull::try_serialize(
-                content,
-                value,
-                data,
-                deserializable,
-            )
-            .with_context(|| {
-                format!("Serialize Pod, layout: {}/{}", alignment, size)
-            }),
             ToolboxIdlTypeFull::Option {
                 prefix, content, ..
             } => ToolboxIdlTypeFull::try_serialize_option(

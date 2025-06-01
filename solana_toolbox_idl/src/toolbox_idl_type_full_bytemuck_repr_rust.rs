@@ -23,11 +23,6 @@ impl ToolboxIdlTypeFull {
                 repr,
                 content,
             } => content.bytemuck_typedef(&name, &repr)?,
-            ToolboxIdlTypeFull::Pod {
-                alignment,
-                size,
-                content,
-            } => (alignment, size, *content),
             ToolboxIdlTypeFull::Option { prefix, content } => {
                 ToolboxIdlTypeFull::bytemuck_repr_rust_option(prefix, *content)?
             },
@@ -129,11 +124,26 @@ impl ToolboxIdlTypeFull {
         let mut size = prefix.to_size();
         let mut variants_repr_rust = vec![];
         for variant in variants {
-            let (variant_alignment, variant_size, variant_repr_rust) =
-                variant.bytemuck_repr_rust(prefix.to_size())?;
-            alignment = max(alignment, variant_alignment);
-            size = max(size, variant_size);
-            variants_repr_rust.push(variant_repr_rust);
+            let (
+                variant_fields_alignment,
+                variant_fields_size,
+                variant_fields_repr_rust,
+            ) = variant
+                .fields
+                .bytemuck_repr_rust(prefix.to_size())
+                .with_context(|| {
+                    anyhow!(
+                        "Bytemuck: Repr(Rust): Enum Variant: {}",
+                        variant.name
+                    )
+                })?;
+            alignment = max(alignment, variant_fields_alignment);
+            size = max(size, variant_fields_size);
+            variants_repr_rust.push(ToolboxIdlTypeFullEnumVariant {
+                name: variant.name,
+                code: variant.code,
+                fields: variant_fields_repr_rust,
+            });
         }
         size += idl_alignment_padding_needed(size, alignment);
         Ok((
@@ -147,29 +157,6 @@ impl ToolboxIdlTypeFull {
                     prefix,
                     variants: variants_repr_rust,
                 }),
-            },
-        ))
-    }
-}
-
-impl ToolboxIdlTypeFullEnumVariant {
-    pub fn bytemuck_repr_rust(
-        self,
-        prefix_size: usize,
-    ) -> Result<(usize, usize, ToolboxIdlTypeFullEnumVariant)> {
-        let (fields_alignment, fields_size, fields_repr_rust) = self
-            .fields
-            .bytemuck_repr_rust(prefix_size)
-            .with_context(|| {
-                anyhow!("Bytemuck: Repr(Rust): Enum Variant: {}", self.name)
-            })?;
-        Ok((
-            fields_alignment,
-            fields_size,
-            ToolboxIdlTypeFullEnumVariant {
-                name: self.name,
-                code: self.code,
-                fields: fields_repr_rust,
             },
         ))
     }

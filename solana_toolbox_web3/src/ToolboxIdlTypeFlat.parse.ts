@@ -278,11 +278,14 @@ function parsePadded(idlPadded: any): ToolboxIdlTypeFlat {
 
 function parseConst(idlConstValue: any): ToolboxIdlTypeFlat {
   return ToolboxIdlTypeFlat.const({
-    literal: ToolboxUtils.expectNumber(idlConstValue),
+    literal: parseInt(ToolboxUtils.expectString(idlConstValue)),
   });
 }
 
 export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
+  if (idlFields === undefined) {
+    return ToolboxIdlTypeFlatFields.unnamed([]);
+  }
   ToolboxUtils.expectArray(idlFields);
   let named = false;
   let fieldsInfos: ToolboxIdlTypeFlatFieldNamed[] = [];

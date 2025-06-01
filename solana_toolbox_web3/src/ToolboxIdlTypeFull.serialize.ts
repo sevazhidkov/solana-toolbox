@@ -9,7 +9,6 @@ import {
   ToolboxIdlTypeFullFieldUnnamed,
   ToolboxIdlTypeFullOption,
   ToolboxIdlTypeFullPadded,
-  ToolboxIdlTypeFullPod,
   ToolboxIdlTypeFullString,
   ToolboxIdlTypeFullStruct,
   ToolboxIdlTypeFullTypedef,
@@ -25,20 +24,12 @@ export function serialize(
   data: Buffer[],
   deserializable: boolean,
 ) {
-  typeFull.traverse(serializer, value, data, deserializable);
+  typeFull.traverse(serializeVisitor, value, data, deserializable);
 }
 
-let serializer = {
+let serializeVisitor = {
   typedef: (
     self: ToolboxIdlTypeFullTypedef,
-    value: any,
-    data: Buffer[],
-    deserializable: boolean,
-  ) => {
-    serialize(self.content, value, data, deserializable);
-  },
-  pod: (
-    self: ToolboxIdlTypeFullPod,
     value: any,
     data: Buffer[],
     deserializable: boolean,
@@ -183,9 +174,7 @@ let serializer = {
     data: Buffer[],
     deserializable: boolean,
   ) => {
-    let buffer = Buffer.alloc(self.size);
-    self.traverse(serializerPrimitives, buffer, value, undefined);
-    data.push(buffer);
+    serializePrimitive(self, value, data);
   },
 };
 
@@ -195,10 +184,10 @@ export function serializeFields(
   data: Buffer[],
   deserializable: boolean,
 ) {
-  typeFullFields.traverse(serializerFields, value, data, deserializable);
+  typeFullFields.traverse(serializeFieldsVisitor, value, data, deserializable);
 }
 
-let serializerFields = {
+let serializeFieldsVisitor = {
   named: (
     self: ToolboxIdlTypeFullFieldNamed[],
     value: any,
@@ -235,11 +224,11 @@ export function serializePrefix(
   data: Buffer[],
 ) {
   let buffer = Buffer.alloc(prefix.size);
-  prefix.traverse(serializerPrefix, buffer, value, undefined);
+  prefix.traverse(serializePrefixVisitor, buffer, value);
   data.push(buffer);
 }
 
-let serializerPrefix = {
+let serializePrefixVisitor = {
   u8: (buffer: Buffer, value: any) => {
     buffer.writeUInt8(ToolboxUtils.expectNumber(value));
   },
@@ -254,17 +243,17 @@ let serializerPrefix = {
   },
 };
 
-export function serializePrimitives(
+export function serializePrimitive(
   primitive: ToolboxIdlTypePrimitive,
   value: any,
   data: Buffer[],
 ) {
   let buffer = Buffer.alloc(primitive.size);
-  primitive.traverse(serializerPrimitives, buffer, value, undefined);
+  primitive.traverse(serializePrimitiveVisitor, buffer, value);
   data.push(buffer);
 }
 
-let serializerPrimitives = {
+let serializePrimitiveVisitor = {
   u8: (buffer: Buffer, value: any) => {
     buffer.writeUInt8(ToolboxUtils.expectNumber(value));
   },

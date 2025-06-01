@@ -26,10 +26,10 @@ export function hydrate(
   genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
   typedefs: Map<string, ToolboxIdlTypedef>,
 ): ToolboxIdlTypeFull {
-  return typeFlat.traverse(hydrator, genericsBySymbol, typedefs);
+  return typeFlat.traverse(hydrateVisitor, genericsBySymbol, typedefs);
 }
 
-let hydrator = {
+let hydrateVisitor = {
   defined: (
     self: ToolboxIdlTypeFlatDefined,
     genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
@@ -175,10 +175,14 @@ export function hydrateFields(
   genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
   typedefs: Map<string, ToolboxIdlTypedef>,
 ): ToolboxIdlTypeFullFields {
-  return typeFlatFields.traverse(hydratorFields, genericsBySymbol, typedefs);
+  return typeFlatFields.traverse(
+    hydrateFieldsVisitor,
+    genericsBySymbol,
+    typedefs,
+  );
 }
 
-let hydratorFields = {
+let hydrateFieldsVisitor = {
   named: (
     self: ToolboxIdlTypeFlatFieldNamed[],
     genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
@@ -199,8 +203,9 @@ let hydratorFields = {
     typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlTypeFullFields => {
     return ToolboxIdlTypeFullFields.unnamed(
-      self.map((field) => {
+      self.map((field, index) => {
         return {
+          position: index,
           content: hydrate(field.content, genericsBySymbol, typedefs),
         };
       }),

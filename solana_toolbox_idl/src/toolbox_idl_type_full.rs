@@ -8,12 +8,6 @@ pub enum ToolboxIdlTypeFull {
         repr: Option<String>,
         content: Box<ToolboxIdlTypeFull>,
     },
-    Pod {
-        // TODO - is this really necessary ?
-        alignment: usize,
-        size: usize,
-        content: Box<ToolboxIdlTypeFull>,
-    },
     Option {
         prefix: ToolboxIdlTypePrefix,
         content: Box<ToolboxIdlTypeFull>,

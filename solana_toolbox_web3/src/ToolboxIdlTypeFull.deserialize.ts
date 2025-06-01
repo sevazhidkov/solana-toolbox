@@ -9,7 +9,6 @@ import {
   ToolboxIdlTypeFullFieldUnnamed,
   ToolboxIdlTypeFullOption,
   ToolboxIdlTypeFullPadded,
-  ToolboxIdlTypeFullPod,
   ToolboxIdlTypeFullString,
   ToolboxIdlTypeFullStruct,
   ToolboxIdlTypeFullTypedef,
@@ -23,19 +22,12 @@ export function deserialize(
   data: Buffer,
   dataOffset: number,
 ): [number, any] {
-  return typeFull.traverse(deserializer, data, dataOffset, undefined);
+  return typeFull.traverse(deserializeVisitor, data, dataOffset, undefined);
 }
 
-let deserializer = {
+let deserializeVisitor = {
   typedef: (
     self: ToolboxIdlTypeFullTypedef,
-    data: Buffer,
-    dataOffset: number,
-  ): [number, any] => {
-    return deserialize(self.content, data, dataOffset);
-  },
-  pod: (
-    self: ToolboxIdlTypeFullPod,
     data: Buffer,
     dataOffset: number,
   ): [number, any] => {
@@ -200,10 +192,10 @@ export function deserializeFields(
   data: Buffer,
   dataOffset: number,
 ): [number, any] {
-  return fields.traverse(deserializerFields, data, dataOffset, undefined);
+  return fields.traverse(deserializeFieldsVisitor, data, dataOffset, undefined);
 }
 
-let deserializerFields = {
+let deserializeFieldsVisitor = {
   named: (
     self: ToolboxIdlTypeFullFieldNamed[],
     data: Buffer,
@@ -257,11 +249,11 @@ export function deserializePrefix(
 ): [number, number] {
   return [
     prefix.size,
-    prefix.traverse(deserializerPrefix, data, dataOffset, undefined),
+    prefix.traverse(deserializePrefixVisitor, data, dataOffset),
   ];
 }
 
-let deserializerPrefix = {
+let deserializePrefixVisitor = {
   u8: (data: Buffer, dataOffset: number): number => {
     return data.readUInt8(dataOffset);
   },
@@ -283,11 +275,11 @@ export function deserializePrimitive(
 ): [number, any] {
   return [
     primitive.size,
-    primitive.traverse(deserializerPrimitive, data, dataOffset, undefined),
+    primitive.traverse(deserializePrimitiveVisitor, data, dataOffset),
   ];
 }
 
-let deserializerPrimitive = {
+let deserializePrimitiveVisitor = {
   u8: (data: Buffer, dataOffset: number): any => {
     return data.readUInt8(dataOffset);
   },

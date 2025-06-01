@@ -65,6 +65,7 @@ export type ToolboxIdlTypeFlatEnum = {
   variants: ToolboxIdlTypeFlatEnumVariant[];
 };
 
+// TODO - support parsing enum variants by object with code as key
 export type ToolboxIdlTypeFlatEnumVariant = {
   name: string;
   docs: any;

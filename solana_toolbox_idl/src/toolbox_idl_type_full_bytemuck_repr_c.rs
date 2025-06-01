@@ -22,11 +22,6 @@ impl ToolboxIdlTypeFull {
             } => content.bytemuck_typedef(&name, &repr).with_context(|| {
                 anyhow!("Bytemuck: Repr(C): Typedef: {}", name)
             })?,
-            ToolboxIdlTypeFull::Pod {
-                alignment,
-                size,
-                content,
-            } => (alignment, size, *content),
             ToolboxIdlTypeFull::Option { prefix, content } => {
                 ToolboxIdlTypeFull::bytemuck_repr_c_option(prefix, *content)?
             },
@@ -126,11 +121,20 @@ impl ToolboxIdlTypeFull {
         let mut size = 0;
         let mut variants_repr_c = vec![];
         for variant in variants {
-            let (variant_alignment, variant_size, variant_repr_c) =
-                variant.bytemuck_repr_c()?;
-            alignment = max(alignment, variant_alignment);
-            size = max(size, variant_size);
-            variants_repr_c.push(variant_repr_c);
+            let (
+                variant_fields_alignment,
+                variant_fields_size,
+                variant_fields_repr_c,
+            ) = variant.fields.bytemuck_repr_c().with_context(|| {
+                anyhow!("Bytemuck: Repr(C): Enum Variant: {}", variant.name)
+            })?;
+            alignment = max(alignment, variant_fields_alignment);
+            size = max(size, variant_fields_size);
+            variants_repr_c.push(ToolboxIdlTypeFullEnumVariant {
+                name: variant.name,
+                code: variant.code,
+                fields: variant_fields_repr_c,
+            });
         }
         size += alignment;
         Ok((
@@ -144,26 +148,6 @@ impl ToolboxIdlTypeFull {
                     prefix: ToolboxIdlTypePrefix::from_size(alignment)?,
                     variants: variants_repr_c,
                 }),
-            },
-        ))
-    }
-}
-
-impl ToolboxIdlTypeFullEnumVariant {
-    pub fn bytemuck_repr_c(
-        self,
-    ) -> Result<(usize, usize, ToolboxIdlTypeFullEnumVariant)> {
-        let (fields_alignment, fields_size, fields_repr_c) =
-            self.fields.bytemuck_repr_c().with_context(|| {
-                anyhow!("Bytemuck: Repr(C): Enum Variant: {}", self.name)
-            })?;
-        Ok((
-            fields_alignment,
-            fields_size,
-            ToolboxIdlTypeFullEnumVariant {
-                name: self.name,
-                code: self.code,
-                fields: fields_repr_c,
             },
         ))
     }

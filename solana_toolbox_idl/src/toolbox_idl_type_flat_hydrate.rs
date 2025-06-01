@@ -67,16 +67,12 @@ impl ToolboxIdlTypeFlat {
                     })?;
                 if let Some(serialization) = &typedef.serialization {
                     if serialization == "bytemuck" {
-                        let (pod_alignment, pod_size, pod_content) = type_full
+                        return Ok(type_full
                             .bytemuck_typedef(&typedef.name, &typedef.repr)
                             .with_context(|| {
                                 format!("Hydrate Defined: {}, Bytemuck", name)
-                            })?;
-                        return Ok(ToolboxIdlTypeFull::Pod {
-                            alignment: pod_alignment,
-                            size: pod_size,
-                            content: Box::new(pod_content),
-                        });
+                            })?
+                            .2);
                     }
                 }
                 ToolboxIdlTypeFull::Typedef {

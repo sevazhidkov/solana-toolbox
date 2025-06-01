@@ -36,19 +36,6 @@ impl ToolboxIdlTypeFull {
                         )
                     })
             },
-            ToolboxIdlTypeFull::Pod {
-                alignment,
-                size,
-                content,
-            } => {
-                ToolboxIdlTypeFull::try_deserialize(content, data, data_offset)
-                    .with_context(|| {
-                        format!(
-                            "Deserialize Pod, layout: {}/{} (offset: {})",
-                            alignment, size, data_offset
-                        )
-                    })
-            },
             ToolboxIdlTypeFull::Option {
                 prefix, content, ..
             } => ToolboxIdlTypeFull::try_deserialize_option(

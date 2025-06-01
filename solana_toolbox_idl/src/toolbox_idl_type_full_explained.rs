@@ -3,14 +3,12 @@ use serde_json::Map;
 use serde_json::Value;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
-use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 
 impl ToolboxIdlTypeFull {
     pub fn explained(&self) -> Value {
         match self {
             ToolboxIdlTypeFull::Typedef { content, .. } => content.explained(),
-            ToolboxIdlTypeFull::Pod { content, .. } => content.explained(),
             ToolboxIdlTypeFull::Option { content, .. } => {
                 json!({ "option": content.explained() })
             },
@@ -25,7 +23,11 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let mut json_variants = vec![];
                 for variant in variants {
-                    json_variants.push(variant.explained());
+                    json_variants.push(if variant.fields.len() == 0 {
+                        json!(variant.name)
+                    } else {
+                        json!({ variant.name.to_string(): variant.fields.explained()})
+                    });
                 }
                 json!({ "variants": json_variants })
             },
@@ -36,16 +38,6 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Primitive { primitive } => {
                 json!(primitive.as_str())
             },
-        }
-    }
-}
-
-impl ToolboxIdlTypeFullEnumVariant {
-    pub fn explained(&self) -> Value {
-        if self.fields.len() == 0 {
-            json!(self.name)
-        } else {
-            json!({ self.name.to_string(): self.fields.explained()})
         }
     }
 }
