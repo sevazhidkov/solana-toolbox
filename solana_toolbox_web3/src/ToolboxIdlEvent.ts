@@ -38,7 +38,7 @@ export class ToolboxIdlEvent {
     let discriminator = Buffer.from(
       ToolboxUtils.expectArray(
         idlEvent['discriminator'] ??
-          ToolboxUtils.discriminator('event:' + idlEventName),
+          ToolboxUtils.discriminator(`event:${idlEventName}`),
       ),
     );
     let infoTypeFlat = parseObjectIsPossible(idlEvent)
@@ -63,7 +63,7 @@ export class ToolboxIdlEvent {
 
   public decode(eventData: Buffer): any {
     this.check(eventData);
-    let [_, eventState] = deserialize(
+    let [, eventState] = deserialize(
       this.infoTypeFull,
       eventData,
       this.discriminator.length,

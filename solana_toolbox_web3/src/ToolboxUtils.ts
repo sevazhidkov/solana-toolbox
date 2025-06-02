@@ -67,6 +67,7 @@ export class ToolboxUtils {
     return Array.from(new sha256().update(value).digest()).slice(0, 8);
   }
 
+  // TODO - should this have params ?
   public static withContext<T>(fn: () => T, message: string): T {
     try {
       return fn();

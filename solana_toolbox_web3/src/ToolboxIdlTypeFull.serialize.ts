@@ -37,7 +37,7 @@ let serializeVisitor = {
   ) => {
     ToolboxUtils.withContext(() => {
       return serialize(self.content, value, data, deserializable);
-    }, 'Serialize: Typedef:' + self.name);
+    }, `Serialize: Typedef: ${self.name}`);
   },
   option: (
     self: ToolboxIdlTypeFullOption,
@@ -74,7 +74,7 @@ let serializeVisitor = {
   ) => {
     let array = ToolboxUtils.expectArray(value);
     if (array.length != self.length) {
-      throw new Error('Expected an array of size: ' + self.length); // TODO - better error handling
+      throw new Error(`Expected an array of size: ${self.length}`);
     }
     for (let item of array) {
       serialize(self.items, item, data, deserializable);
@@ -113,16 +113,15 @@ let serializeVisitor = {
       ToolboxUtils.withContext(() => {
         serializePrefix(self.prefix, variant.code, data);
         serializeFields(variant.fields, value, data, deserializable);
-      }, 'Serialize: Enum Variant: ' + variant.name);
+      }, `Serialize: Enum Variant: ${variant.name}`);
     }
-
     if (ToolboxUtils.isNumber(value)) {
       for (let variant of self.variants) {
         if (variant.code == value) {
           return serializeEnumVariant(variant, null);
         }
       }
-      throw new Error('Could not find enum variant with code: ' + value);
+      throw new Error(`Could not find enum variant with code: ${value}`);
     }
     if (ToolboxUtils.isString(value)) {
       for (let variant of self.variants) {
@@ -130,7 +129,7 @@ let serializeVisitor = {
           return serializeEnumVariant(variant, null);
         }
       }
-      throw new Error('Could not find enum variant with name: ' + value);
+      throw new Error(`Could not find enum variant with name: ${value}`);
     }
     if (ToolboxUtils.isObject(value)) {
       for (let variant of self.variants) {
@@ -167,10 +166,10 @@ let serializeVisitor = {
     }
   },
   const: (
-    self: ToolboxIdlTypeFullConst,
-    value: any,
-    data: Buffer[],
-    deserializable: boolean,
+    _self: ToolboxIdlTypeFullConst,
+    _value: any,
+    _data: Buffer[],
+    _deserializable: boolean,
   ) => {
     throw new Error('Cannot serialize a const type');
   },
@@ -178,7 +177,7 @@ let serializeVisitor = {
     self: ToolboxIdlTypePrimitive,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    _deserializable: boolean,
   ) => {
     serializePrimitive(self, value, data);
   },
@@ -207,7 +206,7 @@ let serializeFieldsVisitor = {
     for (let field of self) {
       ToolboxUtils.withContext(() => {
         serialize(field.content, value[field.name], data, deserializable);
-      }, 'Serialize: Field: ' + field.name);
+      }, `Serialize: Field: ${field.name}`);
     }
   },
   unnamed: (
@@ -220,8 +219,10 @@ let serializeFieldsVisitor = {
       return;
     }
     ToolboxUtils.expectArray(value);
-    for (let i = 0; i < self.length; i++) {
-      serialize(self[i].content, value[i], data, deserializable);
+    for (let field of self) {
+      ToolboxUtils.withContext(() => {
+        serialize(field.content, value[field.position], data, deserializable);
+      }, `Serialize: Field: ${field.position}`);
     }
   },
 };

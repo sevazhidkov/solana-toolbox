@@ -1,4 +1,3 @@
-import { TransactionInstruction } from '@solana/web3.js';
 import { ToolboxIdlAccount } from './ToolboxIdlAccount';
 import { ToolboxIdlInstructionAccount } from './ToolboxIdlInstructionAccount';
 import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
@@ -42,7 +41,7 @@ export class ToolboxIdlInstruction {
     let docs = idlInstruction['docs'];
     let discriminator = Buffer.from(
       idlInstruction['discriminator'] ??
-        ToolboxUtils.discriminator('global:' + idlInstructionName),
+        ToolboxUtils.discriminator(`global:${idlInstructionName}`),
     );
     let idlInstructionAccounts = ToolboxUtils.expectArray(
       idlInstruction['accounts'] ?? [],

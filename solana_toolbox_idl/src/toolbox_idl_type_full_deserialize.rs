@@ -256,17 +256,7 @@ impl ToolboxIdlTypeFull {
     ) -> Result<(usize, Value)> {
         let mut enum_mask = 0;
         for enum_variant in enum_variants {
-            enum_mask = max(enum_mask, {
-                if enum_variant.code <= u64::from(u8::MAX) {
-                    u64::from(u8::MAX)
-                } else if enum_variant.code <= u64::from(u16::MAX) {
-                    u64::from(u16::MAX)
-                } else if enum_variant.code <= u64::from(u32::MAX) {
-                    u64::from(u32::MAX)
-                } else {
-                    u64::MAX
-                }
-            });
+            enum_mask |= enum_variant.code;
         }
         let (mut data_size, data_prefix) =
             enum_prefix.try_deserialize(data, data_offset)?;

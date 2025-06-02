@@ -19,17 +19,13 @@ export default [
     rules: {
       ...eslintPluginTs.configs.recommended.rules,
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_' },
       ],
-    },
-  },
-  {
-    files: ['**/*.test.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off', // allow `any` in test files
+      'prefer-template': 'warn',
+      'template-curly-spacing': ['warn', 'never'],
     },
   },
 ];

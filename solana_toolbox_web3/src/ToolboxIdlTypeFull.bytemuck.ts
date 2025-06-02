@@ -15,6 +15,7 @@ import {
 } from './ToolboxIdlTypeFull';
 import { ToolboxIdlTypePrefix } from './ToolboxIdlTypePrefix';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
+import { ToolboxUtils } from './ToolboxUtils';
 
 type ToolboxIdlTypeFullPod = {
   alignment: number;
@@ -31,27 +32,29 @@ type ToolboxIdlTypeFullPodFields = {
 export function bytemuckTypedef(
   typedef: ToolboxIdlTypeFullTypedef,
 ): ToolboxIdlTypeFullPod {
-  let contentPod;
-  if (typedef.repr === undefined) {
-    contentPod = bytemuckReprRust(typedef.content);
-  } else if (typedef.repr === 'c') {
-    contentPod = bytemuckReprC(typedef.content);
-  } else if (typedef.repr === 'rust') {
-    contentPod = bytemuckReprRust(typedef.content);
-  } else if (typedef.repr === 'transparent') {
-    contentPod = bytemuckReprRust(typedef.content);
-  } else {
-    throw new Error('Bytemuck: Unsupported repr: ' + typedef.repr);
-  }
-  return {
-    alignment: contentPod.alignment,
-    size: contentPod.size,
-    value: ToolboxIdlTypeFull.typedef({
-      name: typedef.name,
-      repr: typedef.repr,
-      content: contentPod.value,
-    }),
-  };
+  return ToolboxUtils.withContext(() => {
+    let contentPod;
+    if (typedef.repr === undefined) {
+      contentPod = bytemuckReprRust(typedef.content);
+    } else if (typedef.repr === 'c') {
+      contentPod = bytemuckReprC(typedef.content);
+    } else if (typedef.repr === 'rust') {
+      contentPod = bytemuckReprRust(typedef.content);
+    } else if (typedef.repr === 'transparent') {
+      contentPod = bytemuckReprRust(typedef.content);
+    } else {
+      throw new Error(`Bytemuck: Unsupported repr: ${typedef.repr}`);
+    }
+    return {
+      alignment: contentPod.alignment,
+      size: contentPod.size,
+      value: ToolboxIdlTypeFull.typedef({
+        name: typedef.name,
+        repr: typedef.repr,
+        content: contentPod.value,
+      }),
+    };
+  }, `Bytemuck: Typedef: ${typedef.name}`);
 }
 
 function bytemuckReprC(value: ToolboxIdlTypeFull): ToolboxIdlTypeFullPod {
@@ -80,7 +83,7 @@ let bytemuckReprCVisitor = {
       }),
     };
   },
-  vec: (self: ToolboxIdlTypeFullVec): ToolboxIdlTypeFullPod => {
+  vec: (_self: ToolboxIdlTypeFullVec): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(C): Vec is not supported');
   },
   array: (self: ToolboxIdlTypeFullArray): ToolboxIdlTypeFullPod => {
@@ -96,7 +99,7 @@ let bytemuckReprCVisitor = {
       }),
     };
   },
-  string: (self: ToolboxIdlTypeFullString): ToolboxIdlTypeFullPod => {
+  string: (_self: ToolboxIdlTypeFullString): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(C): String is not supported');
   },
   struct: (self: ToolboxIdlTypeFullStruct): ToolboxIdlTypeFullPod => {
@@ -114,7 +117,9 @@ let bytemuckReprCVisitor = {
     let size = 0;
     let variantsReprC = [];
     for (let variant of self.variants) {
-      let variantFieldsPod = bytemuckFields(variant.fields, 0, false);
+      let variantFieldsPod = ToolboxUtils.withContext(() => {
+        return bytemuckFields(variant.fields, 0, false);
+      }, `Bytemuck: Repr(C): Enum Variant: ${variant.name}`);
       alignment = Math.max(alignment, variantFieldsPod.alignment);
       size = Math.max(size, variantFieldsPod.size);
       variantsReprC.push({
@@ -138,10 +143,10 @@ let bytemuckReprCVisitor = {
       }),
     };
   },
-  padded: (self: ToolboxIdlTypeFullPadded): ToolboxIdlTypeFullPod => {
+  padded: (_self: ToolboxIdlTypeFullPadded): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(C): Padded is not supported');
   },
-  const: (self: ToolboxIdlTypeFullConst): ToolboxIdlTypeFullPod => {
+  const: (_self: ToolboxIdlTypeFullConst): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(C): Const is not supported');
   },
   primitive: (self: ToolboxIdlTypePrimitive): ToolboxIdlTypeFullPod => {
@@ -184,7 +189,7 @@ let bytemuckReprRustVisitor = {
       }),
     };
   },
-  vec: (self: ToolboxIdlTypeFullVec): ToolboxIdlTypeFullPod => {
+  vec: (_self: ToolboxIdlTypeFullVec): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(Rust): Vec is not supported');
   },
   array: (self: ToolboxIdlTypeFullArray): ToolboxIdlTypeFullPod => {
@@ -200,7 +205,7 @@ let bytemuckReprRustVisitor = {
       }),
     };
   },
-  string: (self: ToolboxIdlTypeFullString): ToolboxIdlTypeFullPod => {
+  string: (_self: ToolboxIdlTypeFullString): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(Rust): String is not supported');
   },
   struct: (self: ToolboxIdlTypeFullStruct): ToolboxIdlTypeFullPod => {
@@ -218,11 +223,9 @@ let bytemuckReprRustVisitor = {
     let size = self.prefix.size;
     let variantsReprRust = [];
     for (let variant of self.variants) {
-      let variantFieldsPod = bytemuckFields(
-        variant.fields,
-        self.prefix.size,
-        true,
-      );
+      let variantFieldsPod = ToolboxUtils.withContext(() => {
+        return bytemuckFields(variant.fields, self.prefix.size, true);
+      }, `Bytemuck: Repr(Rust): Enum Variant: ${variant.name}`);
       alignment = Math.max(alignment, variantFieldsPod.alignment);
       size = Math.max(size, variantFieldsPod.size);
       variantsReprRust.push({
@@ -246,10 +249,10 @@ let bytemuckReprRustVisitor = {
       }),
     };
   },
-  padded: (self: ToolboxIdlTypeFullPadded): ToolboxIdlTypeFullPod => {
+  padded: (_self: ToolboxIdlTypeFullPadded): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(Rust): Padded is not supported');
   },
-  const: (self: ToolboxIdlTypeFullConst): ToolboxIdlTypeFullPod => {
+  const: (_self: ToolboxIdlTypeFullConst): ToolboxIdlTypeFullPod => {
     throw new Error('Bytemuck: Repr(Rust): Const is not supported');
   },
   primitive: (self: ToolboxIdlTypePrimitive): ToolboxIdlTypeFullPod => {
@@ -281,7 +284,9 @@ let bytemuckFieldsVisitor = {
     rustReorder: boolean,
   ): ToolboxIdlTypeFullPodFields => {
     let fieldsInfosPods = self.map((field) => {
-      let contentPod = bytemuckReprRust(field.content);
+      let contentPod = ToolboxUtils.withContext(() => {
+        return bytemuckReprRust(field.content);
+      }, `Bytemuck: Field: ${field.name}`);
       return {
         alignment: contentPod.alignment,
         size: contentPod.size,
@@ -315,7 +320,9 @@ let bytemuckFieldsVisitor = {
     rustReorder: boolean,
   ): ToolboxIdlTypeFullPodFields => {
     let fieldsInfosPods = self.map((field) => {
-      let contentPod = bytemuckReprRust(field.content);
+      let contentPod = ToolboxUtils.withContext(() => {
+        return bytemuckReprRust(field.content);
+      }, `Bytemuck: Field: ${field.position}`);
       return {
         alignment: contentPod.alignment,
         size: contentPod.size,
@@ -420,7 +427,7 @@ function internalVerifyUnstableOrder(prefixSize: number, fieldsInfo: any[]) {
 function internalPrefixFromAlignment(alignment: number): ToolboxIdlTypePrefix {
   let prefix = ToolboxIdlTypePrefix.prefixesBySize.get(alignment);
   if (prefix === undefined) {
-    throw new Error('Unknown prefix size: ' + alignment);
+    throw new Error(`Bytemuck: Unknown alignment: ${alignment}`);
   }
   return prefix;
 }

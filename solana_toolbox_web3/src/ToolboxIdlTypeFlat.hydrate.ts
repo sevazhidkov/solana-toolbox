@@ -38,7 +38,7 @@ let hydrateVisitor = {
   ): ToolboxIdlTypeFull => {
     let typedef = typedefs.get(self.name);
     if (typedef === undefined) {
-      throw new Error('Could not resolve type named: ' + self.name);
+      throw new Error(`Could not resolve type named: ${self.name}`);
     }
     if (self.generics.length < typedef.generics.length) {
       throw new Error('Insufficient set of generics');
@@ -64,11 +64,11 @@ let hydrateVisitor = {
   generic: (
     self: ToolboxIdlTypeFlatGeneric,
     genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
-    typedefs: Map<string, ToolboxIdlTypedef>,
+    _typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlTypeFull => {
     let typeFull = genericsBySymbol.get(self.symbol);
     if (typeFull === undefined) {
-      throw new Error('Could not resolve generic named: ' + self.symbol);
+      throw new Error(`Could not resolve generic named: ${self.symbol}`);
     }
     return typeFull;
   },
@@ -112,8 +112,8 @@ let hydrateVisitor = {
   },
   string: (
     self: ToolboxIdlTypeFlatString,
-    genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
-    typedefs: Map<string, ToolboxIdlTypedef>,
+    _genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
+    _typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlTypeFull => {
     return ToolboxIdlTypeFull.string({
       prefix: self.prefix,
@@ -158,8 +158,8 @@ let hydrateVisitor = {
   },
   const: (
     self: ToolboxIdlTypeFlatConst,
-    genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
-    typedefs: Map<string, ToolboxIdlTypedef>,
+    _genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
+    _typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlTypeFull => {
     return ToolboxIdlTypeFull.const({
       literal: self.literal,
@@ -167,8 +167,8 @@ let hydrateVisitor = {
   },
   primitive: (
     self: ToolboxIdlTypePrimitive,
-    genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
-    typedefs: Map<string, ToolboxIdlTypedef>,
+    _genericsBySymbol: Map<string, ToolboxIdlTypeFull>,
+    _typedefs: Map<string, ToolboxIdlTypedef>,
   ): ToolboxIdlTypeFull => {
     return ToolboxIdlTypeFull.primitive(self);
   },

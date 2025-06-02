@@ -45,7 +45,7 @@ export class ToolboxIdlAccount {
     let docs = idlAccount['docs'];
     let discriminator = Buffer.from(
       idlAccount['discriminator'] ??
-        ToolboxUtils.discriminator('account:' + idlAccountName),
+        ToolboxUtils.discriminator(`account:${idlAccountName}`),
     );
     let contentTypeFlat = parseObjectIsPossible(idlAccount)
       ? parse(idlAccount)
@@ -69,7 +69,7 @@ export class ToolboxIdlAccount {
 
   public decode(accountData: Buffer): any {
     this.check(accountData);
-    let [_, accountState] = deserialize(
+    let [, accountState] = deserialize(
       this.contentTypeFull,
       accountData,
       this.discriminator.length,

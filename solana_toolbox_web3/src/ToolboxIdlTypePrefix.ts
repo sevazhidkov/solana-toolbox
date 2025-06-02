@@ -26,7 +26,7 @@ export class ToolboxIdlTypePrefix {
     this.size = size;
   }
 
-  public traverse<P1, P2, P3, T>(
+  public traverse<P1, P2, T>(
     visitor: {
       u8: (param1: P1, param2: P2) => T;
       u16: (param1: P1, param2: P2) => T;

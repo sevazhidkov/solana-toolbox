@@ -34,7 +34,7 @@ let deserializeVisitor = {
   ): [number, any] => {
     return ToolboxUtils.withContext(() => {
       return deserialize(self.content, data, dataOffset);
-    }, 'Deserialize: Typedef: ' + self.name);
+    }, `Deserialize: Typedef: ${self.name} (offset: ${dataOffset})`);
   },
   option: (
     self: ToolboxIdlTypeFullOption,
@@ -46,7 +46,7 @@ let deserializeVisitor = {
       data,
       dataOffset,
     );
-    if (dataPrefix % 0xff == 0) {
+    if ((dataPrefix & 1) == 0) {
       return [dataSize, null];
     }
     let dataContentOffset = dataOffset + dataSize;
@@ -131,6 +131,10 @@ let deserializeVisitor = {
     data: Buffer,
     dataOffset: number,
   ): [number, any] => {
+    let enumMask = 0;
+    for (let variant of self.variants) {
+      enumMask |= variant.code;
+    }
     let [dataSize, dataPrefix] = deserializePrefix(
       self.prefix,
       data,
@@ -138,23 +142,20 @@ let deserializeVisitor = {
     );
     let dataVariantOffset = dataOffset + dataSize;
     for (let variant of self.variants) {
-      if (variant.code == dataPrefix) {
+      if (variant.code == (dataPrefix & enumMask)) {
         let [dataVariantSize, dataVariant] = ToolboxUtils.withContext(() => {
           return deserializeFields(variant.fields, data, dataVariantOffset);
-        }, 'Deserialize: Enum Variant: ' + variant.name);
+        }, `Deserialize: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`);
         dataSize += dataVariantSize;
         if (dataVariant === null) {
           return [dataSize, variant.name];
         }
-        return [
-          dataSize,
-          {
-            [variant.name]: dataVariant,
-          },
-        ];
+        return [dataSize, { [variant.name]: dataVariant }];
       }
     }
-    throw new Error('Deserialize: Unknown enum code: ' + dataPrefix);
+    throw new Error(
+      `Deserialize: Unknown enum code: ${dataPrefix} (offset: ${dataOffset})`,
+    );
   },
   padded: (
     self: ToolboxIdlTypeFullPadded,
@@ -173,9 +174,9 @@ let deserializeVisitor = {
     return [dataSize, dataContent];
   },
   const: (
-    self: ToolboxIdlTypeFullConst,
-    data: Buffer,
-    dataOffset: number,
+    _self: ToolboxIdlTypeFullConst,
+    _data: Buffer,
+    _dataOffset: number,
   ): [number, any] => {
     throw new Error('Cannot deserialize a const type');
   },
@@ -211,7 +212,7 @@ let deserializeFieldsVisitor = {
       let dataFieldOffset = dataOffset + dataSize;
       let [dataFieldSize, dataField] = ToolboxUtils.withContext(() => {
         return deserialize(field.content, data, dataFieldOffset);
-      }, 'Deserialize: Field: ' + field.name);
+      }, `Deserialize: Field: ${field.name} (offset: ${dataFieldOffset})`);
       dataSize += dataFieldSize;
       dataFields[field.name] = dataField;
     }
@@ -229,11 +230,9 @@ let deserializeFieldsVisitor = {
     let dataFields = [];
     for (let field of self) {
       let dataFieldOffset = dataOffset + dataSize;
-      let [dataFieldSize, dataField] = deserialize(
-        field.content,
-        data,
-        dataFieldOffset,
-      );
+      let [dataFieldSize, dataField] = ToolboxUtils.withContext(() => {
+        return deserialize(field.content, data, dataFieldOffset);
+      }, `Deserialize: Field: ${field.position} (offset: ${dataFieldOffset})`);
       dataSize += dataFieldSize;
       dataFields.push(dataField);
     }
