@@ -27,24 +27,18 @@ pub async fn run() {
         Some("psyche_crowd_funding".to_string()),
     );
     assert_eq!(campaign_decoded.account.name, "Campaign");
+    assert_eq!(&campaign_decoded.state["bump"], &json!(campaign_bump),);
+    assert_eq!(&campaign_decoded.state["index"], &json!(campaign_index),);
     assert_eq!(
-        campaign_decoded.state.get("bump").unwrap(),
-        &json!(campaign_bump),
-    );
-    assert_eq!(
-        campaign_decoded.state.get("index").unwrap(),
-        &json!(campaign_index),
-    );
-    assert_eq!(
-        campaign_decoded.state.get("authority").unwrap(),
+        &campaign_decoded.state["authority"],
         &json!("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
     );
     assert_eq!(
-        campaign_decoded.state.get("collateral_mint").unwrap(),
+        &campaign_decoded.state["collateral_mint"],
         &json!("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3"),
     );
     assert_eq!(
-        campaign_decoded.state.get("redeemable_mint").unwrap(),
+        &campaign_decoded.state["redeemable_mint"],
         &json!("3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9"),
     );
 }

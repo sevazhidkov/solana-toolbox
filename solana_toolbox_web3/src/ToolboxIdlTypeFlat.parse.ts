@@ -272,7 +272,7 @@ function parsePadded(idlPadded: any): ToolboxIdlTypeFlat {
     before: ToolboxUtils.expectNumber(idlPadded['before'] ?? 0),
     minSize: ToolboxUtils.expectNumber(idlPadded['min_size'] ?? 0),
     after: ToolboxUtils.expectNumber(idlPadded['after'] ?? 0),
-    content: parse(idlPadded['content']),
+    content: parse(idlPadded),
   });
 }
 

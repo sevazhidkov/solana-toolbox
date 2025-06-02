@@ -1,5 +1,3 @@
-use solana_sdk::pubkey::Pubkey;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToolboxIdlTypePrimitive {
     U8,
@@ -60,39 +58,39 @@ impl ToolboxIdlTypePrimitive {
 
     pub fn size(&self) -> usize {
         match self {
-            ToolboxIdlTypePrimitive::U8 => std::mem::size_of::<u8>(),
-            ToolboxIdlTypePrimitive::U16 => std::mem::size_of::<u16>(),
-            ToolboxIdlTypePrimitive::U32 => std::mem::size_of::<u32>(),
-            ToolboxIdlTypePrimitive::U64 => std::mem::size_of::<u64>(),
-            ToolboxIdlTypePrimitive::U128 => std::mem::size_of::<u128>(),
-            ToolboxIdlTypePrimitive::I8 => std::mem::size_of::<i8>(),
-            ToolboxIdlTypePrimitive::I16 => std::mem::size_of::<i16>(),
-            ToolboxIdlTypePrimitive::I32 => std::mem::size_of::<i32>(),
-            ToolboxIdlTypePrimitive::I64 => std::mem::size_of::<i64>(),
-            ToolboxIdlTypePrimitive::I128 => std::mem::size_of::<i128>(),
-            ToolboxIdlTypePrimitive::F32 => std::mem::size_of::<f32>(),
-            ToolboxIdlTypePrimitive::F64 => std::mem::size_of::<f64>(),
-            ToolboxIdlTypePrimitive::Bool => std::mem::size_of::<bool>(),
-            ToolboxIdlTypePrimitive::Pubkey => std::mem::size_of::<Pubkey>(),
+            ToolboxIdlTypePrimitive::U8 => 1,
+            ToolboxIdlTypePrimitive::U16 => 2,
+            ToolboxIdlTypePrimitive::U32 => 4,
+            ToolboxIdlTypePrimitive::U64 => 8,
+            ToolboxIdlTypePrimitive::U128 => 16,
+            ToolboxIdlTypePrimitive::I8 => 1,
+            ToolboxIdlTypePrimitive::I16 => 2,
+            ToolboxIdlTypePrimitive::I32 => 4,
+            ToolboxIdlTypePrimitive::I64 => 8,
+            ToolboxIdlTypePrimitive::I128 => 16,
+            ToolboxIdlTypePrimitive::F32 => 4,
+            ToolboxIdlTypePrimitive::F64 => 8,
+            ToolboxIdlTypePrimitive::Bool => 1,
+            ToolboxIdlTypePrimitive::Pubkey => 32,
         }
     }
 
     pub fn alignment(&self) -> usize {
         match self {
-            ToolboxIdlTypePrimitive::U8 => std::mem::size_of::<u8>(),
-            ToolboxIdlTypePrimitive::U16 => std::mem::size_of::<u16>(),
-            ToolboxIdlTypePrimitive::U32 => std::mem::size_of::<u32>(),
-            ToolboxIdlTypePrimitive::U64 => std::mem::size_of::<u64>(),
-            ToolboxIdlTypePrimitive::U128 => std::mem::size_of::<u128>(),
-            ToolboxIdlTypePrimitive::I8 => std::mem::size_of::<i8>(),
-            ToolboxIdlTypePrimitive::I16 => std::mem::size_of::<i16>(),
-            ToolboxIdlTypePrimitive::I32 => std::mem::size_of::<i32>(),
-            ToolboxIdlTypePrimitive::I64 => std::mem::size_of::<i64>(),
-            ToolboxIdlTypePrimitive::I128 => std::mem::size_of::<i128>(),
-            ToolboxIdlTypePrimitive::F32 => std::mem::size_of::<f32>(),
-            ToolboxIdlTypePrimitive::F64 => std::mem::size_of::<f64>(),
-            ToolboxIdlTypePrimitive::Bool => std::mem::size_of::<bool>(),
-            ToolboxIdlTypePrimitive::Pubkey => std::mem::size_of::<u8>(),
+            ToolboxIdlTypePrimitive::U8 => 1,
+            ToolboxIdlTypePrimitive::U16 => 2,
+            ToolboxIdlTypePrimitive::U32 => 4,
+            ToolboxIdlTypePrimitive::U64 => 8,
+            ToolboxIdlTypePrimitive::U128 => 16,
+            ToolboxIdlTypePrimitive::I8 => 1,
+            ToolboxIdlTypePrimitive::I16 => 2,
+            ToolboxIdlTypePrimitive::I32 => 4,
+            ToolboxIdlTypePrimitive::I64 => 8,
+            ToolboxIdlTypePrimitive::I128 => 16,
+            ToolboxIdlTypePrimitive::F32 => 4,
+            ToolboxIdlTypePrimitive::F64 => 8,
+            ToolboxIdlTypePrimitive::Bool => 1,
+            ToolboxIdlTypePrimitive::Pubkey => 1,
         }
     }
 }

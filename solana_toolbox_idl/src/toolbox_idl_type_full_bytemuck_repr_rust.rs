@@ -1,4 +1,5 @@
 use std::cmp::max;
+use std::fmt::Debug;
 
 use anyhow::anyhow;
 use anyhow::Context;
@@ -248,7 +249,7 @@ impl ToolboxIdlTypeFullFields {
     }
 }
 
-fn verify_unstable_fields_infos<T>(
+fn verify_unstable_fields_infos<T: Debug>(
     prefix_size: usize,
     fields_infos: &Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
 ) -> Result<()> {

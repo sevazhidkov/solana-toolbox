@@ -38,8 +38,10 @@ export function bytemuckTypedef(
     contentPod = bytemuckReprC(typedef.content);
   } else if (typedef.repr === 'rust') {
     contentPod = bytemuckReprRust(typedef.content);
+  } else if (typedef.repr === 'transparent') {
+    contentPod = bytemuckReprRust(typedef.content);
   } else {
-    throw new Error('Bytemuck: unsupported repr: ' + typedef.repr);
+    throw new Error('Bytemuck: Unsupported repr: ' + typedef.repr);
   }
   return {
     alignment: contentPod.alignment,
@@ -202,7 +204,7 @@ let bytemuckReprRustVisitor = {
     throw new Error('Bytemuck: Repr(Rust): String is not supported');
   },
   struct: (self: ToolboxIdlTypeFullStruct): ToolboxIdlTypeFullPod => {
-    let fieldsPod = bytemuckFields(self.fields, 0, false);
+    let fieldsPod = bytemuckFields(self.fields, 0, true);
     return {
       alignment: fieldsPod.alignment,
       size: fieldsPod.size,
@@ -238,7 +240,7 @@ let bytemuckReprRustVisitor = {
         minSize: size,
         after: 0,
         content: ToolboxIdlTypeFull.enum({
-          prefix: internalPrefixFromAlignment(alignment),
+          prefix: self.prefix,
           variants: variantsReprRust,
         }),
       }),
@@ -388,7 +390,7 @@ function internalFieldsInfoAligned<T>(
   return {
     alignment,
     size,
-    value: fieldsInfo,
+    value: fieldsInfoPadded,
   };
 }
 

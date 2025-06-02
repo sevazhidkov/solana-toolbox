@@ -16,6 +16,7 @@ import {
 } from './ToolboxIdlTypeFull';
 import { ToolboxIdlTypePrefix } from './ToolboxIdlTypePrefix';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
+import { ToolboxUtils } from './ToolboxUtils';
 
 export function deserialize(
   typeFull: ToolboxIdlTypeFull,
@@ -31,7 +32,9 @@ let deserializeVisitor = {
     data: Buffer,
     dataOffset: number,
   ): [number, any] => {
-    return deserialize(self.content, data, dataOffset);
+    return ToolboxUtils.withContext(() => {
+      return deserialize(self.content, data, dataOffset);
+    }, 'Deserialize: Typedef: ' + self.name);
   },
   option: (
     self: ToolboxIdlTypeFullOption,
@@ -136,11 +139,9 @@ let deserializeVisitor = {
     let dataVariantOffset = dataOffset + dataSize;
     for (let variant of self.variants) {
       if (variant.code == dataPrefix) {
-        let [dataVariantSize, dataVariant] = deserializeFields(
-          variant.fields,
-          data,
-          dataVariantOffset,
-        );
+        let [dataVariantSize, dataVariant] = ToolboxUtils.withContext(() => {
+          return deserializeFields(variant.fields, data, dataVariantOffset);
+        }, 'Deserialize: Enum Variant: ' + variant.name);
         dataSize += dataVariantSize;
         if (dataVariant === null) {
           return [dataSize, variant.name];
@@ -153,7 +154,7 @@ let deserializeVisitor = {
         ];
       }
     }
-    throw new Error('Could not deserialize enum with code: ' + dataPrefix);
+    throw new Error('Deserialize: Unknown enum code: ' + dataPrefix);
   },
   padded: (
     self: ToolboxIdlTypeFullPadded,
@@ -208,11 +209,9 @@ let deserializeFieldsVisitor = {
     let dataFields: Record<string, any> = {};
     for (let field of self) {
       let dataFieldOffset = dataOffset + dataSize;
-      let [dataFieldSize, dataField] = deserialize(
-        field.content,
-        data,
-        dataFieldOffset,
-      );
+      let [dataFieldSize, dataField] = ToolboxUtils.withContext(() => {
+        return deserialize(field.content, data, dataFieldOffset);
+      }, 'Deserialize: Field: ' + field.name);
       dataSize += dataFieldSize;
       dataFields[field.name] = dataField;
     }

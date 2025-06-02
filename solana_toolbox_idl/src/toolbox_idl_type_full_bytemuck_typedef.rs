@@ -13,9 +13,10 @@ impl ToolboxIdlTypeFull {
             None => self.bytemuck_repr_rust(),
             Some(repr) if repr == "c" => self.bytemuck_repr_c(),
             Some(repr) if repr == "rust" => self.bytemuck_repr_rust(),
+            Some(repr) if repr == "transparent" => self.bytemuck_repr_rust(),
             Some(repr) => {
                 // TODO - enums repr u16 cannot be supported properly ??
-                // TODO - REPR unsupported: packed/transparent
+                // TODO - REPR unsupported: packed ?
                 return Err(anyhow!("Bytemuck: Unsupported Repr: {}", repr));
             },
         }?;

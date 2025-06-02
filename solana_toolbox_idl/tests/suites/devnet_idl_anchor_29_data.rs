@@ -2,15 +2,12 @@ use serde_json::json;
 use solana_sdk::pubkey;
 use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
-use solana_toolbox_endpoint::ToolboxEndpointLoggerPrinter;
 use solana_toolbox_idl::ToolboxIdlService;
 
 #[tokio::test]
 pub async fn run() {
     // Create the endpoint
     let mut endpoint = ToolboxEndpoint::new_devnet().await;
-    // Create a print logger
-    endpoint.add_logger(Box::new(ToolboxEndpointLoggerPrinter::default()));
     // The devnet program we'll lookup
     let program_id = pubkey!("Ee5CDFHQmdUQMEnM3dJZMiLaBuP2Wr8WBVYM7UZPPb6E");
     // Important account addresses
@@ -34,19 +31,16 @@ pub async fn run() {
         Some("redemption".to_string()),
     );
     assert_eq!(realm_decoded.account.name, "Realm");
-    assert_eq!(realm_decoded.state.get("bump").unwrap(), &json!(realm_bump));
+    assert_eq!(&realm_decoded.state["bump"], &json!(realm_bump));
     // Related "USDC mint" account checks
     assert_eq!(
-        realm_decoded.state.get("usdc_mint").unwrap(),
+        &realm_decoded.state["usdc_mint"],
         &json!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B"),
     );
     // Related "UCT mint" account checks
+    assert_eq!(&realm_decoded.state["uct_mint_bump"], &json!(uct_mint_bump),);
     assert_eq!(
-        realm_decoded.state.get("uct_mint_bump").unwrap(),
-        &json!(uct_mint_bump),
-    );
-    assert_eq!(
-        realm_decoded.state.get("uct_mint").unwrap(),
+        &realm_decoded.state["uct_mint"],
         &json!(uct_mint.to_string()),
     );
 }

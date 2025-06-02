@@ -4,6 +4,7 @@ import {
   ToolboxIdlTypeFullArray,
   ToolboxIdlTypeFullConst,
   ToolboxIdlTypeFullEnum,
+  ToolboxIdlTypeFullEnumVariant,
   ToolboxIdlTypeFullFieldNamed,
   ToolboxIdlTypeFullFields,
   ToolboxIdlTypeFullFieldUnnamed,
@@ -34,7 +35,9 @@ let serializeVisitor = {
     data: Buffer[],
     deserializable: boolean,
   ) => {
-    serialize(self.content, value, data, deserializable);
+    ToolboxUtils.withContext(() => {
+      return serialize(self.content, value, data, deserializable);
+    }, 'Serialize: Typedef:' + self.name);
   },
   option: (
     self: ToolboxIdlTypeFullOption,
@@ -103,12 +106,20 @@ let serializeVisitor = {
     data: Buffer[],
     deserializable: boolean,
   ) => {
+    function serializeEnumVariant(
+      variant: ToolboxIdlTypeFullEnumVariant,
+      value: any,
+    ) {
+      ToolboxUtils.withContext(() => {
+        serializePrefix(self.prefix, variant.code, data);
+        serializeFields(variant.fields, value, data, deserializable);
+      }, 'Serialize: Enum Variant: ' + variant.name);
+    }
+
     if (ToolboxUtils.isNumber(value)) {
       for (let variant of self.variants) {
         if (variant.code == value) {
-          serializePrefix(self.prefix, variant.code, data);
-          serializeFields(variant.fields, null, data, deserializable);
-          return;
+          return serializeEnumVariant(variant, null);
         }
       }
       throw new Error('Could not find enum variant with code: ' + value);
@@ -116,9 +127,7 @@ let serializeVisitor = {
     if (ToolboxUtils.isString(value)) {
       for (let variant of self.variants) {
         if (variant.name == value) {
-          serializePrefix(self.prefix, variant.code, data);
-          serializeFields(variant.fields, null, data, deserializable);
-          return;
+          return serializeEnumVariant(variant, null);
         }
       }
       throw new Error('Could not find enum variant with name: ' + value);
@@ -126,13 +135,10 @@ let serializeVisitor = {
     if (ToolboxUtils.isObject(value)) {
       for (let variant of self.variants) {
         if (value.hasOwnProperty(variant.name)) {
-          let valueFields = value[variant.name];
-          serializePrefix(self.prefix, variant.code, data);
-          serializeFields(variant.fields, valueFields, data, deserializable);
-          return;
+          return serializeEnumVariant(variant, value[variant.name]);
         }
       }
-      throw new Error('Could not gues enum from object keys');
+      throw new Error('Could not guess enum variant from object key');
     }
     throw new Error('Expected enum value to be: number/string or object');
   },
@@ -199,7 +205,9 @@ let serializeFieldsVisitor = {
     }
     ToolboxUtils.expectObject(value);
     for (let field of self) {
-      serialize(field.content, value[field.name], data, deserializable);
+      ToolboxUtils.withContext(() => {
+        serialize(field.content, value[field.name], data, deserializable);
+      }, 'Serialize: Field: ' + field.name);
     }
   },
   unnamed: (

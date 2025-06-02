@@ -2,6 +2,7 @@ pub mod devnet_idl_anchor_26_data;
 pub mod devnet_idl_anchor_29_data;
 pub mod devnet_idl_anchor_30_data;
 pub mod devnet_idl_anchor_30_instruction;
+pub mod devnet_idl_bytemuck_data;
 pub mod devnet_lib_accounts;
 pub mod file_idl_anchor_26_accounts;
 pub mod file_idl_anchor_26_data;

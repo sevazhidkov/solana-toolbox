@@ -31,9 +31,9 @@ impl ToolboxIdlTypeFlat {
             } => {
                 let typedef = idl_map_get_key_or_else(typedefs, name)
                     .context("Hydrate Defined: Lookup")?;
-                if generics_flat.len() != typedef.generics.len() {
+                if generics_flat.len() < typedef.generics.len() {
                     return Err(anyhow!(
-                        "Invalid number of generic parameter for {}: expected: {}, found: {}",
+                        "Insufficient number of generic parameter for {}: expected: {}, found: {}",
                         typedef.name,
                         typedef.generics.len(),
                         generics_flat.len()

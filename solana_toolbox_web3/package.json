@@ -1,4 +1,8 @@
 {
+  "name": "solana_toolbox_web3",
+  "version": "0.0.2",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/pako": "^2.0.3",
@@ -14,8 +18,6 @@
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup src/index.ts --dts",
     "fmt": "prettier --write src && prettier --write tests",

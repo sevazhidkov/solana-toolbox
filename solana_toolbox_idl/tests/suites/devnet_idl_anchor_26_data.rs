@@ -87,7 +87,7 @@ fn assert_account_decoded_properly(
     );
     assert_eq!(account_decoded.account.name, account_name);
     assert_eq!(
-        account_decoded.state.get(account_state_key).unwrap(),
+        &account_decoded.state[account_state_key],
         account_state_value,
     );
 }

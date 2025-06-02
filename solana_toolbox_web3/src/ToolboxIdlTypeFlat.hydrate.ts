@@ -19,6 +19,7 @@ import {
   ToolboxIdlTypeFull,
   ToolboxIdlTypeFullFields,
 } from './ToolboxIdlTypeFull';
+import { bytemuckTypedef } from './ToolboxIdlTypeFull.bytemuck';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
 
 export function hydrate(
@@ -40,7 +41,7 @@ let hydrateVisitor = {
       throw new Error('Could not resolve type named: ' + self.name);
     }
     if (self.generics.length < typedef.generics.length) {
-      throw new Error('Invalid set of generics');
+      throw new Error('Insufficient set of generics');
     }
     let genericsFull = self.generics.map((genericFlat: ToolboxIdlTypeFlat) => {
       return hydrate(genericFlat, genericsBySymbol, typedefs);
@@ -50,12 +51,15 @@ let hydrateVisitor = {
       innerGenericsBySymbol.set(typedef.generics[i], genericsFull[i]);
     }
     let typeFull = hydrate(typedef.typeFlat, innerGenericsBySymbol, typedefs);
-    // TODO - bytemuck impl
-    return ToolboxIdlTypeFull.typedef({
+    let typeTypedef = {
       name: typedef.name,
       repr: typedef.repr,
       content: typeFull,
-    });
+    };
+    if (typedef.serialization === 'bytemuck') {
+      return bytemuckTypedef(typeTypedef).value;
+    }
+    return ToolboxIdlTypeFull.typedef(typeTypedef);
   },
   generic: (
     self: ToolboxIdlTypeFlatGeneric,

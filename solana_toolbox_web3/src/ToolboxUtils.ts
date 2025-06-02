@@ -66,4 +66,14 @@ export class ToolboxUtils {
   public static discriminator(value: string) {
     return Array.from(new sha256().update(value).digest()).slice(0, 8);
   }
+
+  public static withContext<T>(fn: () => T, message: string): T {
+    try {
+      return fn();
+    } catch (err) {
+      throw new Error(
+        `${message}\n > ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
 }

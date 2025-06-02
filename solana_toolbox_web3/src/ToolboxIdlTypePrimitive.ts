@@ -1,18 +1,74 @@
 export class ToolboxIdlTypePrimitive {
-  public static readonly U8 = new ToolboxIdlTypePrimitive('u8', 1, 1);
-  public static readonly U16 = new ToolboxIdlTypePrimitive('u16', 2, 2);
-  public static readonly U32 = new ToolboxIdlTypePrimitive('u32', 4, 4);
-  public static readonly U64 = new ToolboxIdlTypePrimitive('u64', 8, 8);
-  public static readonly U128 = new ToolboxIdlTypePrimitive('u128', 16, 16);
-  public static readonly I8 = new ToolboxIdlTypePrimitive('i8', 1, 1);
-  public static readonly I16 = new ToolboxIdlTypePrimitive('i16', 2, 2);
-  public static readonly I32 = new ToolboxIdlTypePrimitive('i32', 4, 4);
-  public static readonly I64 = new ToolboxIdlTypePrimitive('i64', 8, 8);
-  public static readonly I128 = new ToolboxIdlTypePrimitive('i128', 16, 16);
-  public static readonly F32 = new ToolboxIdlTypePrimitive('f32', 4, 4);
-  public static readonly F64 = new ToolboxIdlTypePrimitive('f64', 8, 8);
-  public static readonly Bool = new ToolboxIdlTypePrimitive('bool', 1, 1);
-  public static readonly Pubkey = new ToolboxIdlTypePrimitive('pubkey', 32, 1);
+  public static readonly U8 = new ToolboxIdlTypePrimitive({
+    name: 'u8',
+    size: 1,
+    alignment: 1,
+  });
+  public static readonly U16 = new ToolboxIdlTypePrimitive({
+    name: 'u16',
+    size: 2,
+    alignment: 2,
+  });
+  public static readonly U32 = new ToolboxIdlTypePrimitive({
+    name: 'u32',
+    size: 4,
+    alignment: 4,
+  });
+  public static readonly U64 = new ToolboxIdlTypePrimitive({
+    name: 'u64',
+    size: 8,
+    alignment: 8,
+  });
+  public static readonly U128 = new ToolboxIdlTypePrimitive({
+    name: 'u128',
+    size: 16,
+    alignment: 16,
+  });
+  public static readonly I8 = new ToolboxIdlTypePrimitive({
+    name: 'i8',
+    size: 1,
+    alignment: 1,
+  });
+  public static readonly I16 = new ToolboxIdlTypePrimitive({
+    name: 'i16',
+    size: 2,
+    alignment: 2,
+  });
+  public static readonly I32 = new ToolboxIdlTypePrimitive({
+    name: 'i32',
+    size: 4,
+    alignment: 4,
+  });
+  public static readonly I64 = new ToolboxIdlTypePrimitive({
+    name: 'i64',
+    size: 8,
+    alignment: 8,
+  });
+  public static readonly I128 = new ToolboxIdlTypePrimitive({
+    name: 'i128',
+    size: 16,
+    alignment: 16,
+  });
+  public static readonly F32 = new ToolboxIdlTypePrimitive({
+    name: 'f32',
+    size: 4,
+    alignment: 4,
+  });
+  public static readonly F64 = new ToolboxIdlTypePrimitive({
+    name: 'f64',
+    size: 8,
+    alignment: 8,
+  });
+  public static readonly Bool = new ToolboxIdlTypePrimitive({
+    name: 'bool',
+    size: 1,
+    alignment: 1,
+  });
+  public static readonly Pubkey = new ToolboxIdlTypePrimitive({
+    name: 'pubkey',
+    size: 32,
+    alignment: 1,
+  });
 
   public static readonly primitiveByName = (() => {
     let primitives = [
@@ -42,10 +98,14 @@ export class ToolboxIdlTypePrimitive {
   public size: number;
   public alignment: number;
 
-  private constructor(name: string, size: number, alignment: number) {
-    this.name = name;
-    this.size = size;
-    this.alignment = alignment;
+  private constructor(value: {
+    name: string;
+    alignment: number;
+    size: number;
+  }) {
+    this.name = value.name;
+    this.size = value.size;
+    this.alignment = value.alignment;
   }
 
   public traverse<P1, P2, T>(
