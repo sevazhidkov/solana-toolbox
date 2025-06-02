@@ -22,6 +22,4 @@ pub async fn run() {
         &decoded.state["state"]["coordinator"]["config"]["min_clients"],
         &json!(16)
     );
-
-    panic!("LOL");
 }
