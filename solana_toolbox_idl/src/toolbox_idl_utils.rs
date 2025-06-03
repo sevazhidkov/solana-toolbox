@@ -113,7 +113,7 @@ pub(crate) fn idl_value_as_str_or_object_with_key_as_str_or_else<'a>(
     match value.as_str() {
         Some(name) => Ok(name),
         None => {
-            let object = idl_as_object_or_else(value)?;
+            let object = idl_value_as_object_or_else(value)?;
             Ok(idl_object_get_key_as_str_or_else(object, key)?)
         },
     }
@@ -156,40 +156,40 @@ pub(crate) fn idl_value_as_object_get_key<'a>(
     value.as_object().and_then(|object| object.get(key))
 }
 
-pub(crate) fn idl_as_array_or_else(value: &Value) -> Result<&Vec<Value>> {
+pub(crate) fn idl_value_as_array_or_else(value: &Value) -> Result<&Vec<Value>> {
     value.as_array().context("Expected an array")
 }
 
-pub(crate) fn idl_as_object_or_else(
+pub(crate) fn idl_value_as_object_or_else(
     value: &Value,
 ) -> Result<&Map<String, Value>> {
     value.as_object().context("Expected an object")
 }
 
-pub(crate) fn idl_as_str_or_else(value: &Value) -> Result<&str> {
+pub(crate) fn idl_value_as_str_or_else(value: &Value) -> Result<&str> {
     value.as_str().context("Expected an string")
 }
 
-pub(crate) fn idl_as_u64_or_else(value: &Value) -> Result<u64> {
+pub(crate) fn idl_value_as_u64_or_else(value: &Value) -> Result<u64> {
     value.as_u64().context("Expected an unsigned number")
 }
 
-pub(crate) fn idl_as_i64_or_else(value: &Value) -> Result<i64> {
+pub(crate) fn idl_value_as_i64_or_else(value: &Value) -> Result<i64> {
     value.as_i64().context("Expected a signed number")
 }
 
-pub(crate) fn idl_as_f64_or_else(value: &Value) -> Result<f64> {
+pub(crate) fn idl_value_as_f64_or_else(value: &Value) -> Result<f64> {
     value.as_f64().context("Expected a floating number")
 }
 
-pub(crate) fn idl_as_bool_or_else(value: &Value) -> Result<bool> {
+pub(crate) fn idl_value_as_bool_or_else(value: &Value) -> Result<bool> {
     value.as_bool().context("Expected a boolean")
 }
 
-pub(crate) fn idl_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
+pub(crate) fn idl_value_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
     let mut bytes = vec![];
     for item in array {
-        bytes.push(u8::try_from(idl_as_u64_or_else(item)?)?);
+        bytes.push(u8::try_from(idl_value_as_u64_or_else(item)?)?);
     }
     Ok(bytes)
 }

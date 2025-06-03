@@ -127,7 +127,7 @@ it('run', () => {
         },
       ]),
       returnTypeFlat: ToolboxIdlTypeFlat.struct({
-        fields: ToolboxIdlTypeFlatFields.unnamed([]),
+        fields: ToolboxIdlTypeFlatFields.nothing(),
       }),
     }),
   );

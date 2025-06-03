@@ -9,8 +9,8 @@ use serde_json::Value;
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
@@ -23,7 +23,7 @@ impl ToolboxIdlAccount {
         idl_account: &Value,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlAccount> {
-        let idl_account = idl_as_object_or_else(idl_account)?;
+        let idl_account = idl_value_as_object_or_else(idl_account)?;
         let docs = idl_account.get("docs").cloned();
         let discriminator = ToolboxIdlAccount::try_parse_discriminator(
             idl_account_name,
@@ -62,7 +62,7 @@ impl ToolboxIdlAccount {
         if let Some(idl_account_discriminator) =
             idl_object_get_key_as_array(idl_account, "discriminator")
         {
-            return idl_as_bytes_or_else(idl_account_discriminator);
+            return idl_value_as_bytes_or_else(idl_account_discriminator);
         }
         Ok(idl_hash_discriminator_from_string(&format!(
             "account:{}",
@@ -84,7 +84,7 @@ impl ToolboxIdlAccount {
                             idl_account_blob,
                             "offset",
                         )?)?;
-                    let bytes = idl_as_bytes_or_else(
+                    let bytes = idl_value_as_bytes_or_else(
                         idl_object_get_key_as_array_or_else(
                             idl_account_blob,
                             "value",

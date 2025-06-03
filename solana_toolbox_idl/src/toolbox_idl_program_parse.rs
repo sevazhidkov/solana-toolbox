@@ -18,14 +18,13 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_program::ToolboxIdlProgramMetadata;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
-use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_key_as_str_or_else;
 
 impl ToolboxIdlProgram {
     pub const DISCRIMINATOR: &[u8] =
@@ -63,7 +62,7 @@ impl ToolboxIdlProgram {
     }
 
     pub fn try_parse(value: &Value) -> Result<ToolboxIdlProgram> {
-        let idl_root = idl_as_object_or_else(value).context("Root")?;
+        let idl_root = idl_value_as_object_or_else(value).context("Root")?;
         let metadata = ToolboxIdlProgram::try_parse_metadata(idl_root)?;
         let typedefs = ToolboxIdlProgram::try_parse_typedefs(idl_root)
             .context("Parse Types")?;
@@ -271,12 +270,12 @@ impl ToolboxIdlProgram {
             for (index, idl_collection_item) in
                 idl_collection.iter().enumerate()
             {
-                let idl_collection_item_name =
-                    idl_value_as_str_or_object_with_key_as_str_or_else(
-                        idl_collection_item,
-                        "name",
-                    )
-                    .context(index)?;
+                let idl_collection_item_name = idl_object_get_key_as_str(
+                    idl_value_as_object_or_else(idl_collection_item)
+                        .context(index)?,
+                    "name",
+                )
+                .context(index)?;
                 collection_scoped_named_objects
                     .push((idl_collection_item_name, idl_collection_item));
             }

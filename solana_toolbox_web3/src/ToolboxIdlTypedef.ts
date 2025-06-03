@@ -10,20 +10,20 @@ export class ToolboxIdlTypedef {
   public generics: string[];
   public typeFlat: ToolboxIdlTypeFlat;
 
-  constructor(
-    name: string,
-    docs: any,
-    serialization: string | undefined,
-    repr: string | undefined,
-    generics: string[],
-    typeFlat: ToolboxIdlTypeFlat,
-  ) {
-    this.name = name;
-    this.docs = docs;
-    this.serialization = serialization;
-    this.repr = repr;
-    this.generics = generics;
-    this.typeFlat = typeFlat;
+  constructor(value: {
+    name: string;
+    docs: any;
+    serialization: string | undefined;
+    repr: string | undefined;
+    generics: string[];
+    typeFlat: ToolboxIdlTypeFlat;
+  }) {
+    this.name = value.name;
+    this.docs = value.docs;
+    this.serialization = value.serialization;
+    this.repr = value.repr;
+    this.generics = value.generics;
+    this.typeFlat = value.typeFlat;
   }
 
   public static tryParse(
@@ -55,13 +55,13 @@ export class ToolboxIdlTypedef {
       }
     }
     let typeFlat = parse(idlTypedef);
-    return new ToolboxIdlTypedef(
-      idlTypedefName,
+    return new ToolboxIdlTypedef({
+      name: idlTypedefName,
       docs,
       serialization,
       repr,
       generics,
       typeFlat,
-    );
+    });
   }
 }

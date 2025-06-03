@@ -147,7 +147,7 @@ export class ToolboxIdlTypeFull {
 
   public static nothing(): ToolboxIdlTypeFull {
     return new ToolboxIdlTypeFull(ToolboxIdlTypeFullDiscriminant.Struct, {
-      fields: ToolboxIdlTypeFullFields.unnamed([]),
+      fields: ToolboxIdlTypeFullFields.nothing(),
     });
   }
 
@@ -258,6 +258,10 @@ export class ToolboxIdlTypeFullFields {
     content: ToolboxIdlTypeFullFieldUnnamed[],
   ): ToolboxIdlTypeFullFields {
     return new ToolboxIdlTypeFullFields('unnamed', content);
+  }
+
+  public static nothing(): ToolboxIdlTypeFullFields {
+    return new ToolboxIdlTypeFullFields('unnamed', []);
   }
 
   public traverse<P1, P2, P3, T>(

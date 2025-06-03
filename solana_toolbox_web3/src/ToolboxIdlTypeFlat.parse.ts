@@ -244,11 +244,57 @@ function parseEnum(
   idlEnumPrefix: ToolboxIdlTypePrefix,
   idlEnumVariants: any,
 ): ToolboxIdlTypeFlat {
-  let variants = ToolboxUtils.expectArray(idlEnumVariants).map(
-    (variant: any, index: number) => {
-      return parseEnumVariant(index, variant);
-    },
-  );
+  let variants = [];
+  if (ToolboxUtils.isArray(idlEnumVariants)) {
+    for (let i = 0; i < idlEnumVariants.length; i++) {
+      let idlEnumVariant = idlEnumVariants[i];
+      let idlEnumVariantCode = i;
+      if (ToolboxUtils.isNumber(idlEnumVariant)) {
+        idlEnumVariantCode = idlEnumVariant;
+      }
+      if (ToolboxUtils.isObject(idlEnumVariant)) {
+        idlEnumVariantCode = ToolboxUtils.expectNumber(
+          idlEnumVariant['code'] ?? idlEnumVariantCode,
+        );
+      }
+      let idlEnumVariantName = idlEnumVariantCode.toString();
+      if (ToolboxUtils.isString(idlEnumVariant)) {
+        idlEnumVariantName = idlEnumVariant;
+      }
+      if (ToolboxUtils.isObject(idlEnumVariant)) {
+        idlEnumVariantName = ToolboxUtils.expectString(
+          idlEnumVariant['name'] ?? idlEnumVariantName,
+        );
+      }
+      variants.push(
+        parseEnumVariant(
+          idlEnumVariantName,
+          ToolboxUtils.expectNumber(idlEnumVariantCode),
+          idlEnumVariant,
+        ),
+      );
+    }
+  }
+  if (ToolboxUtils.isObject(idlEnumVariants)) {
+    Object.entries(idlEnumVariants).forEach(
+      ([idlEnumVariantName, idlEnumVariant]) => {
+        let idlEnumVariantCode;
+        if (ToolboxUtils.isNumber(idlEnumVariant)) {
+          idlEnumVariantCode = idlEnumVariant;
+        } else {
+          idlEnumVariantCode =
+            ToolboxUtils.expectObject(idlEnumVariant)['code'];
+        }
+        variants.push(
+          parseEnumVariant(
+            idlEnumVariantName,
+            ToolboxUtils.expectNumber(idlEnumVariantCode),
+            idlEnumVariant,
+          ),
+        );
+      },
+    );
+  }
   return ToolboxIdlTypeFlat.enum({
     prefix: idlEnumPrefix,
     variants: variants,
@@ -256,28 +302,20 @@ function parseEnum(
 }
 
 function parseEnumVariant(
-  idlEnumVariantIndex: number,
+  idlEnumVariantName: string,
+  idlEnumVariantCode: number,
   idlEnumVariant: any,
 ): ToolboxIdlTypeFlatEnumVariant {
-  if (ToolboxUtils.isString(idlEnumVariant)) {
-    return {
-      name: idlEnumVariant,
-      docs: undefined,
-      code: idlEnumVariantIndex,
-      fields: ToolboxIdlTypeFlatFields.unnamed([]),
-    };
+  let docs = undefined;
+  let fields = ToolboxIdlTypeFlatFields.nothing();
+  if (ToolboxUtils.isObject(idlEnumVariant)) {
+    docs = idlEnumVariant['docs'];
+    fields = parseFields(idlEnumVariant['fields']);
   }
-  ToolboxUtils.expectObject(idlEnumVariant);
-  let name = ToolboxUtils.expectString(idlEnumVariant['name']);
-  let docs = idlEnumVariant['docs'];
-  let code = ToolboxUtils.expectNumber(
-    idlEnumVariant['code'] ?? idlEnumVariantIndex,
-  );
-  let fields = parseFields(idlEnumVariant['fields']);
   return {
-    name: name,
+    name: idlEnumVariantName,
     docs: docs,
-    code: code,
+    code: idlEnumVariantCode,
     fields: fields,
   };
 }
@@ -299,7 +337,7 @@ function parseConst(idlConstValue: any): ToolboxIdlTypeFlat {
 
 export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
   if (idlFields === undefined) {
-    return ToolboxIdlTypeFlatFields.unnamed([]);
+    return ToolboxIdlTypeFlatFields.nothing();
   }
   ToolboxUtils.expectArray(idlFields);
   let named = false;
@@ -320,5 +358,12 @@ export function parseFields(idlFields: any): ToolboxIdlTypeFlatFields {
   if (named) {
     return ToolboxIdlTypeFlatFields.named(fieldsInfos);
   }
-  return ToolboxIdlTypeFlatFields.unnamed(fieldsInfos);
+  return ToolboxIdlTypeFlatFields.unnamed(
+    fieldsInfos.map((fieldInfo) => {
+      return {
+        docs: fieldInfo.docs,
+        content: fieldInfo.content,
+      };
+    }),
+  );
 }

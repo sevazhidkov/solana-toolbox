@@ -13,6 +13,7 @@ pub async fn run() {
         "types": {
             "MyEnum": {
                 "variants": [
+                    { "name": "77", "fields": [], "code": 77 },
                     { "name": "Case1", "fields": [] },
                     { "name": "Case2", "fields": [], "code": 42 },
                     { "name": "Case3", "fields": [] },
@@ -25,6 +26,7 @@ pub async fn run() {
         "types": {
             "MyEnum": {
                 "variants": [
+                    { "name": "77", "code": 77 },
                     { "name": "Case1" },
                     { "name": "Case2", "code": 42 },
                     { "name": "Case3" },
@@ -37,6 +39,7 @@ pub async fn run() {
         "types": {
             "MyEnum": {
                 "variants": [
+                    77,
                     "Case1",
                     {"name": "Case2", "code": 42},
                     "Case3",
@@ -45,9 +48,23 @@ pub async fn run() {
         },
     }))
     .unwrap();
+    let idl_program4 = ToolboxIdlProgram::try_parse(&json!({
+        "types": {
+            "MyEnum": {
+                "variants": {
+                    "77": 77,
+                    "Case1": 1,
+                    "Case2": 42,
+                    "Case3": { "code": 3, "fields": [] },
+                }
+            },
+        },
+    }))
+    .unwrap();
     // Assert that all are equivalent
     assert_eq!(idl_program1, idl_program2);
     assert_eq!(idl_program1, idl_program3);
+    assert_eq!(idl_program1, idl_program4);
     // Assert that the content is correct
     assert_eq!(
         *idl_program1.typedefs.get("MyEnum").unwrap(),
@@ -61,8 +78,14 @@ pub async fn run() {
                 prefix: ToolboxIdlTypePrefix::U8,
                 variants: vec![
                     ToolboxIdlTypeFlatEnumVariant {
+                        name: "77".to_string(),
+                        code: 77,
+                        docs: None,
+                        fields: ToolboxIdlTypeFlatFields::nothing()
+                    },
+                    ToolboxIdlTypeFlatEnumVariant {
                         name: "Case1".to_string(),
-                        code: 0,
+                        code: 1,
                         docs: None,
                         fields: ToolboxIdlTypeFlatFields::nothing()
                     },
@@ -74,7 +97,7 @@ pub async fn run() {
                     },
                     ToolboxIdlTypeFlatEnumVariant {
                         name: "Case3".to_string(),
-                        code: 2,
+                        code: 3,
                         docs: None,
                         fields: ToolboxIdlTypeFlatFields::nothing()
                     },

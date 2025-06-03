@@ -9,8 +9,8 @@ use serde_json::Value;
 use crate::toolbox_idl_event::ToolboxIdlEvent;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
+use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 
@@ -20,7 +20,7 @@ impl ToolboxIdlEvent {
         idl_event: &Value,
         typedefs: &HashMap<String, Arc<ToolboxIdlTypedef>>,
     ) -> Result<ToolboxIdlEvent> {
-        let idl_event = idl_as_object_or_else(idl_event)?;
+        let idl_event = idl_value_as_object_or_else(idl_event)?;
         let discriminator =
             ToolboxIdlEvent::try_parse_discriminator(idl_event_name, idl_event)
                 .context("Parse Discriminator")?;
@@ -49,7 +49,7 @@ impl ToolboxIdlEvent {
         if let Some(idl_event_discriminator) =
             idl_object_get_key_as_array(idl_event, "discriminator")
         {
-            return idl_as_bytes_or_else(idl_event_discriminator);
+            return idl_value_as_bytes_or_else(idl_event_discriminator);
         }
         Ok(idl_hash_discriminator_from_string(&format!(
             "event:{}",

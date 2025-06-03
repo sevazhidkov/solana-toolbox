@@ -65,7 +65,6 @@ export type ToolboxIdlTypeFlatEnum = {
   variants: ToolboxIdlTypeFlatEnumVariant[];
 };
 
-// TODO - support parsing enum variants by object with code as key ?
 export type ToolboxIdlTypeFlatEnumVariant = {
   name: string;
   docs: any;
@@ -162,7 +161,7 @@ export class ToolboxIdlTypeFlat {
 
   public static nothing(): ToolboxIdlTypeFlat {
     return new ToolboxIdlTypeFlat(ToolboxIdlTypeFlatDiscriminant.Struct, {
-      fields: ToolboxIdlTypeFlatFields.unnamed([]),
+      fields: ToolboxIdlTypeFlatFields.nothing(),
     });
   }
 
@@ -211,6 +210,10 @@ export class ToolboxIdlTypeFlatFields {
     content: ToolboxIdlTypeFlatFieldUnnamed[],
   ): ToolboxIdlTypeFlatFields {
     return new ToolboxIdlTypeFlatFields('unnamed', content);
+  }
+
+  public static nothing(): ToolboxIdlTypeFlatFields {
+    return new ToolboxIdlTypeFlatFields('unnamed', []);
   }
 
   public traverse<P1, P2, T>(

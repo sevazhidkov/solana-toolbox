@@ -13,17 +13,17 @@ use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_as_array_or_else;
-use crate::toolbox_idl_utils::idl_as_bool_or_else;
-use crate::toolbox_idl_utils::idl_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_as_f64_or_else;
-use crate::toolbox_idl_utils::idl_as_i64_or_else;
-use crate::toolbox_idl_utils::idl_as_object_or_else;
-use crate::toolbox_idl_utils::idl_as_str_or_else;
-use crate::toolbox_idl_utils::idl_as_u64_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
+use crate::toolbox_idl_utils::idl_value_as_array_or_else;
+use crate::toolbox_idl_utils::idl_value_as_bool_or_else;
+use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_value_as_f64_or_else;
+use crate::toolbox_idl_utils::idl_value_as_i64_or_else;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
+use crate::toolbox_idl_utils::idl_value_as_str_or_else;
+use crate::toolbox_idl_utils::idl_value_as_u64_or_else;
 
 impl ToolboxIdlTypeFull {
     pub fn try_serialize(
@@ -151,7 +151,7 @@ impl ToolboxIdlTypeFull {
             data.extend_from_slice(&bytes);
             return Ok(());
         }
-        let values = idl_as_array_or_else(value)?;
+        let values = idl_value_as_array_or_else(value)?;
         if deserializable {
             vec_prefix.try_serialize(u64::try_from(values.len())?, data)?;
         }
@@ -182,7 +182,7 @@ impl ToolboxIdlTypeFull {
             data.extend_from_slice(&bytes);
             return Ok(());
         }
-        let values = idl_as_array_or_else(value)?;
+        let values = idl_value_as_array_or_else(value)?;
         if values.len() != *array_length {
             return Err(anyhow!(
                 "value array is not the correct size: expected {} items, found {} items",
@@ -204,7 +204,7 @@ impl ToolboxIdlTypeFull {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        let value_str = idl_as_str_or_else(value)?;
+        let value_str = idl_value_as_str_or_else(value)?;
         if deserializable {
             string_prefix
                 .try_serialize(u64::try_from(value_str.len())?, data)?;
@@ -333,7 +333,7 @@ impl ToolboxIdlTypeFullFields {
         }
         match self {
             ToolboxIdlTypeFullFields::Named(fields) => {
-                let value = idl_as_object_or_else(value)?;
+                let value = idl_value_as_object_or_else(value)?;
                 for field in fields {
                     let value_field =
                         idl_object_get_key_or_else(value, &field.name)?;
@@ -346,7 +346,7 @@ impl ToolboxIdlTypeFullFields {
                 }
             },
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
-                let values = idl_as_array_or_else(value)?;
+                let values = idl_value_as_array_or_else(value)?;
                 if values.len() != fields.len() {
                     return Err(anyhow!("Wrong number of unnamed fields, expected: {}, found: {}", fields.len(), values.len()));
                 }
@@ -396,65 +396,67 @@ impl ToolboxIdlTypePrimitive {
     ) -> Result<()> {
         match self {
             ToolboxIdlTypePrimitive::U8 => {
-                let value_integer = idl_as_u64_or_else(value)?;
+                let value_integer = idl_value_as_u64_or_else(value)?;
                 let value_typed = u8::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U16 => {
-                let value_integer = idl_as_u64_or_else(value)?;
+                let value_integer = idl_value_as_u64_or_else(value)?;
                 let value_typed = u16::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U32 => {
-                let value_integer = idl_as_u64_or_else(value)?;
+                let value_integer = idl_value_as_u64_or_else(value)?;
                 let value_typed = u32::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U64 => {
-                let value_integer = idl_as_u64_or_else(value)?;
+                let value_integer = idl_value_as_u64_or_else(value)?;
                 data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::U128 => {
-                let value_integer = u128::from(idl_as_u64_or_else(value)?);
+                let value_integer =
+                    u128::from(idl_value_as_u64_or_else(value)?);
                 data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I8 => {
-                let value_integer = idl_as_i64_or_else(value)?;
+                let value_integer = idl_value_as_i64_or_else(value)?;
                 let value_typed = i8::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I16 => {
-                let value_integer = idl_as_i64_or_else(value)?;
+                let value_integer = idl_value_as_i64_or_else(value)?;
                 let value_typed = i16::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I32 => {
-                let value_integer = idl_as_i64_or_else(value)?;
+                let value_integer = idl_value_as_i64_or_else(value)?;
                 let value_typed = i32::try_from(value_integer)?;
                 data.extend_from_slice(&value_typed.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I64 => {
-                let value_integer = idl_as_i64_or_else(value)?;
+                let value_integer = idl_value_as_i64_or_else(value)?;
                 data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::I128 => {
-                let value_integer = i128::from(idl_as_i64_or_else(value)?);
+                let value_integer =
+                    i128::from(idl_value_as_i64_or_else(value)?);
                 data.extend_from_slice(&value_integer.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::F32 => {
-                let value_floating = idl_as_f64_or_else(value)? as f32;
+                let value_floating = idl_value_as_f64_or_else(value)? as f32;
                 data.extend_from_slice(&value_floating.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::F64 => {
-                let value_floating = idl_as_f64_or_else(value)?;
+                let value_floating = idl_value_as_f64_or_else(value)?;
                 data.extend_from_slice(&value_floating.to_le_bytes());
             },
             ToolboxIdlTypePrimitive::Bool => {
-                let value_boolean = idl_as_bool_or_else(value)?;
+                let value_boolean = idl_value_as_bool_or_else(value)?;
                 data.push(if value_boolean { 1 } else { 0 });
             },
             ToolboxIdlTypePrimitive::Pubkey => {
-                let value_str = idl_as_str_or_else(value)?;
+                let value_str = idl_value_as_str_or_else(value)?;
                 let value_pubkey = Pubkey::from_str(value_str)?;
                 data.extend_from_slice(&value_pubkey.to_bytes());
             },
@@ -465,7 +467,7 @@ impl ToolboxIdlTypePrimitive {
 
 fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
     if let Some(value_array) = value.as_array() {
-        return idl_as_bytes_or_else(value_array);
+        return idl_value_as_bytes_or_else(value_array);
     }
     if let Some(value_object) = value.as_object() {
         if let Some(data) = idl_object_get_key_as_str(value_object, "base16") {

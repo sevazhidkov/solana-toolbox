@@ -18,6 +18,7 @@ use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_value_as_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_value_as_str_or_object_with_key_as_str_or_else;
 
@@ -185,54 +186,42 @@ impl ToolboxIdlTypeFlat {
             return ToolboxIdlTypeFlat::try_parse_struct(idl_struct_fields)
                 .context("Struct Fields");
         }
-        if let Some(idl_enum_variants) =
-            idl_object_get_key_as_array(idl_type_object, "variants")
-        {
+        if let Some(idl_enum_variants) = idl_type_object.get("variants") {
             return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U8,
                 idl_enum_variants,
             )
             .context("Enum Variants");
         }
-        if let Some(idl_enum_variants) =
-            idl_object_get_key_as_array(idl_type_object, "variants8")
-        {
+        if let Some(idl_enum_variants) = idl_type_object.get("variants8") {
             return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U8,
                 idl_enum_variants,
             )
             .context("Enum Variants8");
         }
-        if let Some(idl_enum_variants) =
-            idl_object_get_key_as_array(idl_type_object, "variants16")
-        {
+        if let Some(idl_enum_variants) = idl_type_object.get("variants16") {
             return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U16,
                 idl_enum_variants,
             )
             .context("Enum Variants16");
         }
-        if let Some(idl_enum_variants) =
-            idl_object_get_key_as_array(idl_type_object, "variants32")
-        {
+        if let Some(idl_enum_variants) = idl_type_object.get("variants32") {
             return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U32,
                 idl_enum_variants,
             )
             .context("Enum Variants32");
         }
-        if let Some(idl_enum_variants) =
-            idl_object_get_key_as_array(idl_type_object, "variants64")
-        {
+        if let Some(idl_enum_variants) = idl_type_object.get("variants64") {
             return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U64,
                 idl_enum_variants,
             )
             .context("Enum Variants64");
         }
-        if let Some(idl_enum_variants) =
-            idl_object_get_key_as_array(idl_type_object, "variants128")
-        {
+        if let Some(idl_enum_variants) = idl_type_object.get("variants128") {
             return ToolboxIdlTypeFlat::try_parse_enum(
                 ToolboxIdlTypePrefix::U128,
                 idl_enum_variants,
@@ -395,14 +384,59 @@ impl ToolboxIdlTypeFlat {
 
     fn try_parse_enum(
         idl_enum_prefix: ToolboxIdlTypePrefix,
-        idl_enum_variants: &[Value],
+        idl_enum_variants: &Value,
     ) -> Result<ToolboxIdlTypeFlat> {
         let mut variants = vec![];
-        for (index, idl_enum_variant) in idl_enum_variants.iter().enumerate() {
-            variants.push(ToolboxIdlTypeFlat::try_parse_enum_variant(
-                index,
-                idl_enum_variant,
-            )?);
+        if let Some(idl_enum_variants) = idl_enum_variants.as_array() {
+            for (index, idl_enum_variant) in
+                idl_enum_variants.iter().enumerate()
+            {
+                let idl_enum_variant_code = idl_enum_variant
+                    .as_u64()
+                    .or(idl_value_as_object_get_key_as_u64(
+                        idl_enum_variant,
+                        "code",
+                    ))
+                    .unwrap_or(u64::try_from(index)?);
+                let idl_enum_variant_name = idl_enum_variant
+                    .as_str()
+                    .or(idl_value_as_object_get_key_as_str(
+                        idl_enum_variant,
+                        "name",
+                    ))
+                    .map(|name| name.to_string())
+                    .unwrap_or_else(|| idl_enum_variant_code.to_string());
+                variants.push(ToolboxIdlTypeFlat::try_parse_enum_variant(
+                    idl_enum_variant_name,
+                    idl_enum_variant_code,
+                    idl_enum_variant,
+                )?);
+            }
+        }
+        if let Some(idl_enum_variants) = idl_enum_variants.as_object() {
+            for (idl_enum_variant_name, idl_enum_variant) in
+                idl_enum_variants.iter()
+            {
+                let idl_enum_variant_code = idl_enum_variant
+                    .as_u64()
+                    .or_else(|| {
+                        idl_value_as_object_get_key_as_u64(
+                            idl_enum_variant,
+                            "code",
+                        )
+                    })
+                    .with_context(|| {
+                        anyhow!(
+                            "Parse Enum Variant: Missing code for: {}",
+                            idl_enum_variant_name
+                        )
+                    })?;
+                variants.push(ToolboxIdlTypeFlat::try_parse_enum_variant(
+                    idl_enum_variant_name.to_string(),
+                    idl_enum_variant_code,
+                    idl_enum_variant,
+                )?);
+            }
         }
         Ok(ToolboxIdlTypeFlat::Enum {
             prefix: idl_enum_prefix,
@@ -411,33 +445,29 @@ impl ToolboxIdlTypeFlat {
     }
 
     fn try_parse_enum_variant(
-        idl_enum_variant_index: usize,
+        idl_enum_variant_name: String,
+        idl_enum_variant_code: u64,
         idl_enum_variant: &Value,
     ) -> Result<ToolboxIdlTypeFlatEnumVariant> {
-        let name = idl_value_as_str_or_object_with_key_as_str_or_else(
-            idl_enum_variant,
-            "name",
-        )
-        .with_context(|| {
-            format!("Parse Enum Variant Name: {}", idl_enum_variant_index)
-        })?
-        .to_string();
         let docs =
             idl_value_as_object_get_key(idl_enum_variant, "docs").cloned();
-        let code = idl_value_as_object_get_key_as_u64(idl_enum_variant, "code")
-            .unwrap_or(u64::try_from(idl_enum_variant_index)?);
         let fields = if let Some(idl_enum_variant_fields) =
             idl_value_as_object_get_key_as_array(idl_enum_variant, "fields")
         {
             ToolboxIdlTypeFlatFields::try_parse(idl_enum_variant_fields)
-                .with_context(|| format!("Parse Enum Variant Type: {}", name))?
+                .with_context(|| {
+                    format!(
+                        "Parse Enum Variant Type: {}",
+                        idl_enum_variant_name
+                    )
+                })?
         } else {
-            ToolboxIdlTypeFlatFields::Unnamed(vec![])
+            ToolboxIdlTypeFlatFields::nothing()
         };
         Ok(ToolboxIdlTypeFlatEnumVariant {
-            name,
+            name: idl_enum_variant_name,
             docs,
-            code,
+            code: idl_enum_variant_code,
             fields,
         })
     }

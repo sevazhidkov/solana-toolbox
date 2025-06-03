@@ -9,7 +9,7 @@ use solana_toolbox_idl::ToolboxIdlTypedef;
 
 #[tokio::test]
 pub async fn run() {
-    // Create IDL checking different formats
+    // Create IDL on the fly
     let idl_program = ToolboxIdlProgram::try_parse(&json!({
         "types": {
             "MyStruct": {
@@ -31,8 +31,8 @@ pub async fn run() {
                     { "name": "defined2", "defined": {"name": "Other"} },
                     { "name": "defined3", "type": {"defined": "Other"} },
                     { "name": "defined4", "type": {"defined": {"name": "Other"}} },
-                    { "name": "option_1_f32", "option": "f32" },
-                    { "name": "option_2_f32", "type": {"option": "f32"} },
+                    { "name": "option1_f32", "option": "f32" },
+                    { "name": "option2_f32", "type": {"option": "f32"} },
                     { "name": "generic1", "generic": "G" },
                     { "name": "generic2", "type": {"generic": "G"} },
                     { "name": "docs", "type": "u8", "docs": ["Hello"] },
@@ -198,7 +198,7 @@ pub async fn run() {
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
-                        name: "option_1_f32".to_string(),
+                        name: "option1_f32".to_string(),
                         docs: None,
                         content: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U8,
@@ -208,7 +208,7 @@ pub async fn run() {
                         }
                     },
                     ToolboxIdlTypeFlatFieldNamed {
-                        name: "option_2_f32".to_string(),
+                        name: "option2_f32".to_string(),
                         docs: None,
                         content: ToolboxIdlTypeFlat::Option {
                             prefix: ToolboxIdlTypePrefix::U8,
