@@ -410,6 +410,9 @@ impl ToolboxIdlTypePrefix {
                 ToolboxIdlTypePrefix::U64 => {
                     idl_u64_from_bytes_at(data, data_offset)?
                 },
+                ToolboxIdlTypePrefix::U128 => {
+                    idl_u64_from_bytes_at(data, data_offset)?
+                },
             },
         ))
     }

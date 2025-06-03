@@ -380,6 +380,9 @@ impl ToolboxIdlTypePrefix {
             ToolboxIdlTypePrefix::U64 => {
                 data.extend_from_slice(&value.to_le_bytes())
             },
+            ToolboxIdlTypePrefix::U128 => {
+                data.extend_from_slice(&u128::from(value).to_le_bytes())
+            },
         }
         Ok(())
     }

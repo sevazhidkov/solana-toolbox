@@ -91,6 +91,7 @@ pub async fn run() {
                     { "name": "bytemuck_discriminant_c", "type": "BytemuckDiscriminantC" },
                     { "name": "bytemuck_discriminant_u8", "type": "BytemuckDiscriminantU8" },
                     { "name": "bytemuck_field", "type": "u8" },
+                    // { "name": "bytemuck_yolo", "type": "u128" },
                 ]
             },
             "BytemuckStructC": {
@@ -161,7 +162,7 @@ pub async fn run() {
     let raw_bytemuck_struct_c = BytemuckStructC {
         field1: 0xF1F1u16,
         field2: key_f2,
-        field3: 0xF3F3F3F3F3F3u64,
+        field3: 0xF3F3F3F3F3F3F3F3u64,
         field4: 0xF4u8,
         field5: (0xF5u8, 0xF5F5F5F5u32),
     };
@@ -169,7 +170,7 @@ pub async fn run() {
     let json_bytemuck_struct = json!({
         "field1": 0xF1F1u16,
         "field2": key_f2.to_string(),
-        "field3": 0xF3F3F3F3F3F3u64,
+        "field3": 0xF3F3F3F3F3F3F3F3u64,
         "field4": 0xF4u8,
         "field5": [0xF5u8, 0xF5F5F5F5u32],
     });
@@ -236,16 +237,16 @@ pub async fn run() {
             "Case3",
             BytemuckContainer {
                 bytemuck_struct_c: raw_bytemuck_struct_c,
-                bytemuck_enum_c: BytemuckEnumC::Case3(0xC3C3C3C3C3C3u64),
-                bytemuck_enum_u8: BytemuckEnumU8::Case3(0xC3C3C3C3C3C3u64),
+                bytemuck_enum_c: BytemuckEnumC::Case3(0xC3C3C3C3C3C3C3C3u64),
+                bytemuck_enum_u8: BytemuckEnumU8::Case3(0xC3C3C3C3C3C3C3C3u64),
                 bytemuck_discriminant_c: BytemuckDiscriminantC::CaseA,
                 bytemuck_discriminant_u8: BytemuckDiscriminantU8::CaseA,
                 bytemuck_field: 0xD3,
             },
             json!({
                 "bytemuck_struct_c": json_bytemuck_struct,
-                "bytemuck_enum_c": { "Case3": [0xC3C3C3C3C3C3u64] },
-                "bytemuck_enum_u8": { "Case3": [0xC3C3C3C3C3C3u64] },
+                "bytemuck_enum_c": { "Case3": [0xC3C3C3C3C3C3C3C3u64] },
+                "bytemuck_enum_u8": { "Case3": [0xC3C3C3C3C3C3C3C3u64] },
                 "bytemuck_discriminant_c": "CaseA",
                 "bytemuck_discriminant_u8": "CaseA",
                 "bytemuck_field": 0xD3,

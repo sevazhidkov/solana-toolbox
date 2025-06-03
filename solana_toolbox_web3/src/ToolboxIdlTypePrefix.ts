@@ -3,6 +3,7 @@ export class ToolboxIdlTypePrefix {
   public static readonly U16 = new ToolboxIdlTypePrefix('u16', 2);
   public static readonly U32 = new ToolboxIdlTypePrefix('u32', 4);
   public static readonly U64 = new ToolboxIdlTypePrefix('u64', 8);
+  public static readonly U128 = new ToolboxIdlTypePrefix('u128', 16);
 
   public static readonly prefixesBySize = (() => {
     let prefixes = [
@@ -10,6 +11,7 @@ export class ToolboxIdlTypePrefix {
       ToolboxIdlTypePrefix.U16,
       ToolboxIdlTypePrefix.U32,
       ToolboxIdlTypePrefix.U64,
+      ToolboxIdlTypePrefix.U128,
     ];
     let prefixesBySize = new Map<number, ToolboxIdlTypePrefix>();
     for (let prefix of prefixes) {
@@ -32,6 +34,7 @@ export class ToolboxIdlTypePrefix {
       u16: (param1: P1, param2: P2) => T;
       u32: (param1: P1, param2: P2) => T;
       u64: (param1: P1, param2: P2) => T;
+      u128: (param1: P1, param2: P2) => T;
     },
     param1: P1,
     param2: P2,

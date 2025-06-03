@@ -6,9 +6,9 @@ it('run', async () => {
   // Create the endpoint
   let endpoint = new ToolboxEndpoint('devnet', 'confirmed');
   // Find an account we can read from the endpoint
-  let campaignIndexNumber = 0;
+  let campaignIndexNumber = 0n;
   let campaignIndexBuffer = Buffer.alloc(8);
-  campaignIndexBuffer.writeBigInt64LE(BigInt(campaignIndexNumber));
+  campaignIndexBuffer.writeBigInt64LE(campaignIndexNumber);
   let campaignPda = PublicKey.findProgramAddressSync(
     [Buffer.from('Campaign'), campaignIndexBuffer],
     new PublicKey('UCNcQRtrbGmvuLKA3Jv719Cc6DS4r661ZRpyZduxu2j'),

@@ -18,11 +18,13 @@ export function parseObjectIsPossible(idlType: any): boolean {
     idlType.hasOwnProperty('option16') ||
     idlType.hasOwnProperty('option32') ||
     idlType.hasOwnProperty('option64') ||
+    idlType.hasOwnProperty('option128') ||
     idlType.hasOwnProperty('vec') ||
     idlType.hasOwnProperty('vec8') ||
     idlType.hasOwnProperty('vec16') ||
     idlType.hasOwnProperty('vec32') ||
     idlType.hasOwnProperty('vec64') ||
+    idlType.hasOwnProperty('vec128') ||
     idlType.hasOwnProperty('array') ||
     idlType.hasOwnProperty('fields') ||
     idlType.hasOwnProperty('variants') ||
@@ -30,6 +32,7 @@ export function parseObjectIsPossible(idlType: any): boolean {
     idlType.hasOwnProperty('variants16') ||
     idlType.hasOwnProperty('variants32') ||
     idlType.hasOwnProperty('variants64') ||
+    idlType.hasOwnProperty('variants128') ||
     idlType.hasOwnProperty('padded')
   ) {
     return true;
@@ -78,6 +81,9 @@ function parseObject(idlTypeObject: Record<string, any>): ToolboxIdlTypeFlat {
   if (idlTypeObject.hasOwnProperty('option64')) {
     return parseOption(ToolboxIdlTypePrefix.U64, idlTypeObject['option64']);
   }
+  if (idlTypeObject.hasOwnProperty('option128')) {
+    return parseOption(ToolboxIdlTypePrefix.U128, idlTypeObject['option128']);
+  }
   if (idlTypeObject.hasOwnProperty('vec')) {
     return parseVec(ToolboxIdlTypePrefix.U32, idlTypeObject['vec']);
   }
@@ -92,6 +98,9 @@ function parseObject(idlTypeObject: Record<string, any>): ToolboxIdlTypeFlat {
   }
   if (idlTypeObject.hasOwnProperty('vec64')) {
     return parseVec(ToolboxIdlTypePrefix.U64, idlTypeObject['vec64']);
+  }
+  if (idlTypeObject.hasOwnProperty('vec128')) {
+    return parseVec(ToolboxIdlTypePrefix.U128, idlTypeObject['vec128']);
   }
   if (idlTypeObject.hasOwnProperty('array')) {
     return parseArray(idlTypeObject['array']);
@@ -113,6 +122,9 @@ function parseObject(idlTypeObject: Record<string, any>): ToolboxIdlTypeFlat {
   }
   if (idlTypeObject.hasOwnProperty('variants64')) {
     return parseEnum(ToolboxIdlTypePrefix.U64, idlTypeObject['variants64']);
+  }
+  if (idlTypeObject.hasOwnProperty('variants128')) {
+    return parseEnum(ToolboxIdlTypePrefix.U128, idlTypeObject['variants128']);
   }
   if (idlTypeObject.hasOwnProperty('padded')) {
     return parsePadded(idlTypeObject['padded']);
@@ -163,6 +175,9 @@ function parseString(idlTypeString: string): ToolboxIdlTypeFlat {
   }
   if (idlTypeString === 'string64') {
     return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U64 });
+  }
+  if (idlTypeString === 'string128') {
+    return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U128 });
   }
   let primitive = ToolboxIdlTypePrimitive.primitiveByName.get(idlTypeString);
   return primitive

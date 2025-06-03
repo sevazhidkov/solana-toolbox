@@ -49,6 +49,7 @@ impl ToolboxIdlTypeFlat {
                     ToolboxIdlTypePrefix::U16 => "option16",
                     ToolboxIdlTypePrefix::U32 => "option32",
                     ToolboxIdlTypePrefix::U64 => "option64",
+                    ToolboxIdlTypePrefix::U128 => "option128",
                 };
                 json!({ key: content.export(format) })
             },
@@ -58,6 +59,7 @@ impl ToolboxIdlTypeFlat {
                     ToolboxIdlTypePrefix::U16 => "vec16",
                     ToolboxIdlTypePrefix::U32 => "vec",
                     ToolboxIdlTypePrefix::U64 => "vec64",
+                    ToolboxIdlTypePrefix::U128 => "vec128",
                 };
                 if key != "vec" {
                     return json!({ key: items.export(format) });
@@ -82,12 +84,13 @@ impl ToolboxIdlTypeFlat {
                     length.export(format)
                 ]})
             },
-            ToolboxIdlTypeFlat::String { prefix } => match prefix {
-                ToolboxIdlTypePrefix::U8 => json!("string8"),
-                ToolboxIdlTypePrefix::U16 => json!("string16"),
-                ToolboxIdlTypePrefix::U32 => json!("string"),
-                ToolboxIdlTypePrefix::U64 => json!("string64"),
-            },
+            ToolboxIdlTypeFlat::String { prefix } => json!(match prefix {
+                ToolboxIdlTypePrefix::U8 => "string8",
+                ToolboxIdlTypePrefix::U16 => "string16",
+                ToolboxIdlTypePrefix::U32 => "string",
+                ToolboxIdlTypePrefix::U64 => "string64",
+                ToolboxIdlTypePrefix::U128 => "string128",
+            }),
             ToolboxIdlTypeFlat::Struct { fields } => {
                 if format.can_skip_type_kind_key {
                     return json!({ "fields": fields.export(format) });
@@ -111,6 +114,7 @@ impl ToolboxIdlTypeFlat {
                     ToolboxIdlTypePrefix::U16 => "variants16",
                     ToolboxIdlTypePrefix::U32 => "variants32",
                     ToolboxIdlTypePrefix::U64 => "variants64",
+                    ToolboxIdlTypePrefix::U128 => "variants128",
                 };
                 json_enum.insert(key.to_string(), json!(json_variants));
                 json!(json_enum)

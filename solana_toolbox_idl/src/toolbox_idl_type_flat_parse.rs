@@ -33,11 +33,13 @@ impl ToolboxIdlTypeFlat {
             || idl_type_object.contains_key("option16")
             || idl_type_object.contains_key("option32")
             || idl_type_object.contains_key("option64")
+            || idl_type_object.contains_key("option128")
             || idl_type_object.contains_key("vec")
             || idl_type_object.contains_key("vec8")
             || idl_type_object.contains_key("vec16")
             || idl_type_object.contains_key("vec32")
             || idl_type_object.contains_key("vec64")
+            || idl_type_object.contains_key("vec128")
             || idl_type_object.contains_key("array")
             || idl_type_object.contains_key("fields")
             || idl_type_object.contains_key("variants")
@@ -45,6 +47,7 @@ impl ToolboxIdlTypeFlat {
             || idl_type_object.contains_key("variants16")
             || idl_type_object.contains_key("variants32")
             || idl_type_object.contains_key("variants64")
+            || idl_type_object.contains_key("variants128")
             || idl_type_object.contains_key("padded")
         {
             return true;
@@ -121,6 +124,13 @@ impl ToolboxIdlTypeFlat {
             )
             .context("Option64");
         }
+        if let Some(idl_option) = idl_type_object.get("option128") {
+            return ToolboxIdlTypeFlat::try_parse_option(
+                ToolboxIdlTypePrefix::U128,
+                idl_option,
+            )
+            .context("Option128");
+        }
         if let Some(idl_vec) = idl_type_object.get("vec") {
             return ToolboxIdlTypeFlat::try_parse_vec(
                 ToolboxIdlTypePrefix::U32,
@@ -155,6 +165,13 @@ impl ToolboxIdlTypeFlat {
                 idl_vec,
             )
             .context("Vec64");
+        }
+        if let Some(idl_vec) = idl_type_object.get("vec128") {
+            return ToolboxIdlTypeFlat::try_parse_vec(
+                ToolboxIdlTypePrefix::U128,
+                idl_vec,
+            )
+            .context("Vec128");
         }
         if let Some(idl_array) =
             idl_object_get_key_as_array(idl_type_object, "array")
@@ -212,6 +229,15 @@ impl ToolboxIdlTypeFlat {
                 idl_enum_variants,
             )
             .context("Enum Variants64");
+        }
+        if let Some(idl_enum_variants) =
+            idl_object_get_key_as_array(idl_type_object, "variants128")
+        {
+            return ToolboxIdlTypeFlat::try_parse_enum(
+                ToolboxIdlTypePrefix::U128,
+                idl_enum_variants,
+            )
+            .context("Enum Variants128");
         }
         if let Some(idl_padded) =
             idl_object_get_key_as_object(idl_type_object, "padded")
@@ -280,6 +306,9 @@ impl ToolboxIdlTypeFlat {
             },
             "string64" => ToolboxIdlTypeFlat::String {
                 prefix: ToolboxIdlTypePrefix::U64,
+            },
+            "string128" => ToolboxIdlTypeFlat::String {
+                prefix: ToolboxIdlTypePrefix::U128,
             },
             "publicKey" => ToolboxIdlTypePrimitive::Pubkey.into(),
             _ => match ToolboxIdlTypePrimitive::try_parse(idl_type_str) {

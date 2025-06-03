@@ -250,6 +250,9 @@ let serializePrefixVisitor = {
   u64: (buffer: Buffer, value: any) => {
     buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
   },
+  u128: (buffer: Buffer, value: any) => {
+    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+  },
 };
 
 export function serializePrimitive(
@@ -273,10 +276,14 @@ let serializePrimitiveVisitor = {
     buffer.writeUInt32LE(ToolboxUtils.expectNumber(value));
   },
   u64: (buffer: Buffer, value: any) => {
-    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    buffer.writeBigUInt64LE(ToolboxUtils.expectBigInt(value));
   },
   u128: (buffer: Buffer, value: any) => {
-    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    let num = ToolboxUtils.expectBigInt(value);
+    let low = num & 0xffffffffffffffffn;
+    let high = (num >> 64n) & 0xffffffffffffffffn;
+    buffer.writeBigUInt64LE(low, 0);
+    buffer.writeBigUInt64LE(high, 8);
   },
   i8: (buffer: Buffer, value: any) => {
     buffer.writeInt8(ToolboxUtils.expectNumber(value));
@@ -288,10 +295,14 @@ let serializePrimitiveVisitor = {
     buffer.writeInt32LE(ToolboxUtils.expectNumber(value));
   },
   i64: (buffer: Buffer, value: any) => {
-    buffer.writeBigInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    buffer.writeBigInt64LE(ToolboxUtils.expectBigInt(value));
   },
   i128: (buffer: Buffer, value: any) => {
-    buffer.writeBigInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    let num = ToolboxUtils.expectBigInt(value);
+    let low = BigInt.asIntN(64, num);
+    let high = BigInt.asIntN(64, num >> 64n);
+    buffer.writeBigInt64LE(low, 0);
+    buffer.writeBigInt64LE(high, 8);
   },
   f32: (buffer: Buffer, value: any) => {
     buffer.writeFloatLE(ToolboxUtils.expectNumber(value));

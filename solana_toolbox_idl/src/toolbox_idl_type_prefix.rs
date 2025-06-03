@@ -7,6 +7,7 @@ pub enum ToolboxIdlTypePrefix {
     U16,
     U32,
     U64,
+    U128,
 }
 
 impl ToolboxIdlTypePrefix {
@@ -16,6 +17,7 @@ impl ToolboxIdlTypePrefix {
             2 => ToolboxIdlTypePrefix::U16,
             4 => ToolboxIdlTypePrefix::U32,
             8 => ToolboxIdlTypePrefix::U64,
+            16 => ToolboxIdlTypePrefix::U128,
             _ => return Err(anyhow!("Prefix size {} is not supported", size)),
         })
     }
@@ -26,6 +28,7 @@ impl ToolboxIdlTypePrefix {
             ToolboxIdlTypePrefix::U16 => 2,
             ToolboxIdlTypePrefix::U32 => 4,
             ToolboxIdlTypePrefix::U64 => 8,
+            ToolboxIdlTypePrefix::U128 => 16,
         }
     }
 
@@ -35,6 +38,7 @@ impl ToolboxIdlTypePrefix {
             ToolboxIdlTypePrefix::U16 => "u16",
             ToolboxIdlTypePrefix::U32 => "u32",
             ToolboxIdlTypePrefix::U64 => "u64",
+            ToolboxIdlTypePrefix::U128 => "u128",
         }
     }
 }

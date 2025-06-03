@@ -14,44 +14,55 @@ export class ToolboxUtils {
   }
 
   public static isNumber(value: any): boolean {
-    return typeof value === 'number';
+    return typeof value === 'number' || value instanceof Number;
+  }
+
+  public static isBigInt(value: any): boolean {
+    return typeof value === 'bigint' || value instanceof BigInt;
   }
 
   public static isBoolean(value: any): boolean {
-    return typeof value === 'boolean';
+    return typeof value === 'boolean' || value instanceof Boolean;
   }
 
   public static expectObject(value: any): Record<string, any> {
     if (!ToolboxUtils.isObject(value)) {
-      throw new Error('Expected an object');
+      throw new Error(`Expected an object (found: ${typeof value})`);
     }
     return value;
   }
 
   public static expectArray(value: any): any[] {
     if (!ToolboxUtils.isArray(value)) {
-      throw new Error('Expected an array');
+      throw new Error(`Expected an array (found: ${typeof value})`);
     }
     return value;
   }
 
   public static expectString(value: any): string {
     if (!ToolboxUtils.isString(value)) {
-      throw new Error('Expected a string');
+      throw new Error(`Expected a string (found: ${typeof value})`);
     }
     return value;
   }
 
   public static expectNumber(value: any): number {
     if (!ToolboxUtils.isNumber(value)) {
-      throw new Error('Expected a number');
+      throw new Error(`Expected a number (found: ${typeof value})`);
+    }
+    return value;
+  }
+
+  public static expectBigInt(value: any): bigint {
+    if (!ToolboxUtils.isBigInt(value)) {
+      throw new Error(`Expected a bigint (found: ${typeof value})`);
     }
     return value;
   }
 
   public static expectBoolean(value: any): boolean {
     if (!ToolboxUtils.isBoolean(value)) {
-      throw new Error('Expected a boolean');
+      throw new Error(`Expected a boolean (found: ${typeof value})`);
     }
     return value;
   }

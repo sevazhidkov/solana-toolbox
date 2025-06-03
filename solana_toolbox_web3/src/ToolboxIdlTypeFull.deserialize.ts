@@ -142,7 +142,7 @@ let deserializeVisitor = {
     );
     let dataVariantOffset = dataOffset + dataSize;
     for (let variant of self.variants) {
-      if (variant.code == (dataPrefix & enumMask)) {
+      if (variant.code === (dataPrefix & enumMask)) {
         let [dataVariantSize, dataVariant] = ToolboxUtils.withContext(() => {
           return deserializeFields(variant.fields, data, dataVariantOffset);
         }, `Deserialize: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`);
@@ -262,7 +262,10 @@ let deserializePrefixVisitor = {
     return data.readUInt32LE(dataOffset);
   },
   u64: (data: Buffer, dataOffset: number): number => {
-    return Number(data.readBigUInt64LE(dataOffset));
+    return Number(data.readBigUInt64LE(dataOffset) & 0xffffffffffffn);
+  },
+  u128: (data: Buffer, dataOffset: number): number => {
+    return Number(data.readBigUInt64LE(dataOffset) & 0xffffffffffffn);
   },
 };
 
@@ -288,10 +291,12 @@ let deserializePrimitiveVisitor = {
     return data.readUInt32LE(dataOffset);
   },
   u64: (data: Buffer, dataOffset: number): any => {
-    return Number(data.readBigUInt64LE(dataOffset));
+    return data.readBigUInt64LE(dataOffset);
   },
   u128: (data: Buffer, dataOffset: number): any => {
-    return Number(data.readBigUInt64LE(dataOffset));
+    let low = data.readBigUInt64LE(dataOffset);
+    let high = data.readBigUInt64LE(dataOffset + 8);
+    return low | (high << 64n);
   },
   i8: (data: Buffer, dataOffset: number): any => {
     return data.readInt8(dataOffset);
@@ -303,10 +308,12 @@ let deserializePrimitiveVisitor = {
     return data.readInt32LE(dataOffset);
   },
   i64: (data: Buffer, dataOffset: number): any => {
-    return Number(data.readBigInt64LE(dataOffset));
+    return data.readBigInt64LE(dataOffset);
   },
   i128: (data: Buffer, dataOffset: number): any => {
-    return Number(data.readBigInt64LE(dataOffset));
+    let low = data.readBigUInt64LE(dataOffset);
+    let high = data.readBigInt64LE(dataOffset + 8);
+    return low | (high << 64n);
   },
   f32: (data: Buffer, dataOffset: number): any => {
     return data.readFloatLE(dataOffset);
