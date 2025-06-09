@@ -1,10 +1,10 @@
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlError {
-  public name: string;
-  public docs: any;
-  public code: number;
-  public msg: string;
+  public readonly name: string;
+  public readonly docs: any;
+  public readonly code: number;
+  public readonly msg: string;
 
   constructor(value: { name: string; docs: any; code: number; msg: string }) {
     this.name = value.name;

@@ -16,12 +16,12 @@ export class ToolboxIdlAccount {
     contentTypeFull: ToolboxIdlTypeFull.nothing(),
   });
 
-  public name: string;
-  public docs: any;
+  public readonly name: string;
+  public readonly docs: any;
   // TODO - support space/chunks/blobs
-  public discriminator: Buffer;
-  public contentTypeFlat: ToolboxIdlTypeFlat;
-  public contentTypeFull: ToolboxIdlTypeFull;
+  public readonly discriminator: Buffer;
+  public readonly contentTypeFlat: ToolboxIdlTypeFlat;
+  public readonly contentTypeFull: ToolboxIdlTypeFull;
 
   constructor(value: {
     name: string;

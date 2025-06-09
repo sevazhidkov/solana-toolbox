@@ -61,9 +61,9 @@ impl ToolboxEndpointProxyRpcClient {
             )
             .await?;
         Ok(ToolboxEndpointExecution {
+            slot: outcome.context.slot,
             payer,
             instructions,
-            slot: outcome.context.slot,
             error: outcome.value.err,
             steps: outcome
                 .value
@@ -72,10 +72,6 @@ impl ToolboxEndpointProxyRpcClient {
                 .map(|logs| ToolboxEndpointExecution::try_parse_steps(logs))
                 .transpose()?,
             logs: outcome.value.logs,
-            return_data:
-                ToolboxEndpointProxyRpcClient::decode_transaction_return_data(
-                    outcome.value.return_data,
-                )?,
             units_consumed: outcome.value.units_consumed,
         })
     }

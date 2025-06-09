@@ -15,27 +15,24 @@ impl ToolboxIdlInstruction {
         instruction_addresses: &HashMap<String, Pubkey>,
     ) -> Result<Vec<AccountMeta>> {
         let mut instruction_metas = vec![];
-        for instruction_account in &self.accounts {
-            if instruction_account.optional
-                && !instruction_addresses
-                    .contains_key(&instruction_account.name)
+        for account in &self.accounts {
+            if account.optional
+                && !instruction_addresses.contains_key(&account.name)
             {
                 continue;
             }
-            let instruction_address = *idl_map_get_key_or_else(
-                instruction_addresses,
-                &instruction_account.name,
-            )
-            .context("Instruction Address")?;
-            if instruction_account.writable {
+            let instruction_address =
+                *idl_map_get_key_or_else(instruction_addresses, &account.name)
+                    .context("Instruction Address")?;
+            if account.writable {
                 instruction_metas.push(AccountMeta::new(
                     instruction_address,
-                    instruction_account.signer,
+                    account.signer,
                 ));
             } else {
                 instruction_metas.push(AccountMeta::new_readonly(
                     instruction_address,
-                    instruction_account.signer,
+                    account.signer,
                 ));
             }
         }

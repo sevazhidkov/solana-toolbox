@@ -5,7 +5,10 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
 use solana_sdk::transaction::TransactionError;
-use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::{
+    ToolboxEndpoint, ToolboxEndpointExecutionStep,
+    ToolboxEndpointExecutionStepCall,
+};
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]
@@ -45,7 +48,6 @@ pub async fn run() {
             "Program 11111111111111111111111111111111 success".to_string(),
         ])
     );
-    assert_eq!(simulation_success.return_data, None);
     assert_eq!(simulation_success.units_consumed, Some(150));
     // Simulate an instruction that should fail
     let account_failure = Keypair::new();
@@ -82,7 +84,6 @@ pub async fn run() {
             "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
         ])
     );
-    assert_eq!(simulation_failure.return_data, None);
     assert_eq!(simulation_failure.units_consumed, Some(150));
     // Simulate an intreuction with return data
     let instruction_returned = ui_amount_to_amount(
@@ -110,8 +111,16 @@ pub async fn run() {
         ])
     );
     assert_eq!(
-        simulation_returned.return_data,
-        Some(12_340_000u64.to_le_bytes().to_vec())
+        simulation_returned.steps,
+        Some(vec![ToolboxEndpointExecutionStep::Call(
+            ToolboxEndpointExecutionStepCall {
+                program_id: ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
+                steps: vec![],
+                consumed: Some((3034, 200000)),
+                returns: Some(12_340_000u64.to_le_bytes().to_vec()),
+                failure: None,
+            }
+        )])
     );
     assert_eq!(simulation_returned.units_consumed, Some(3034));
 }

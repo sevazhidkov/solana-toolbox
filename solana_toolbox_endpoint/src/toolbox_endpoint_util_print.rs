@@ -27,10 +27,6 @@ impl ToolboxEndpoint {
                 println!("result: Err({:?})", error)
             },
         };
-        if let Some(return_data) = &execution.return_data {
-            println!("----");
-            ToolboxEndpoint::print_data("return_data", return_data);
-        }
         if let Some(units_consumed) = execution.units_consumed {
             println!("----");
             println!("units_consumed: {}", units_consumed);

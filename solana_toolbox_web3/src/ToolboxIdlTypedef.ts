@@ -3,12 +3,12 @@ import { parse } from './ToolboxIdlTypeFlat.parse';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlTypedef {
-  public name: string;
-  public docs: any;
-  public serialization?: string;
-  public repr?: string;
-  public generics: string[];
-  public typeFlat: ToolboxIdlTypeFlat;
+  public readonly name: string;
+  public readonly docs: any;
+  public readonly serialization?: string;
+  public readonly repr?: string;
+  public readonly generics: string[];
+  public readonly typeFlat: ToolboxIdlTypeFlat;
 
   constructor(value: {
     name: string;

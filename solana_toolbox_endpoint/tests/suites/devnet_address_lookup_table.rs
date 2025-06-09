@@ -90,6 +90,5 @@ pub async fn run() {
             expected_logs
         })
     );
-    assert_eq!(execution.return_data, None);
     assert_eq!(execution.units_consumed, Some(7500));
 }

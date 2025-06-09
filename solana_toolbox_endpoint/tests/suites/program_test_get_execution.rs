@@ -62,7 +62,6 @@ pub async fn run() {
                 "Program 11111111111111111111111111111111 success".to_string(),
             ]),
             error: None,
-            return_data: None,
             units_consumed: Some(150),
         }
     );
@@ -116,7 +115,6 @@ pub async fn run() {
             0,
             InstructionError::Custom(1)
         )),
-        return_data: None,
         units_consumed: Some(150),
     });
 }

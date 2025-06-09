@@ -126,8 +126,21 @@ it('run', () => {
           content: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.I64),
         },
       ]),
+      argsTypeFullFields: ToolboxIdlTypeFullFields.named([
+        {
+          name: 'index',
+          content: ToolboxIdlTypeFull.primitive(ToolboxIdlTypePrimitive.U32),
+        },
+        {
+          name: 'id',
+          content: ToolboxIdlTypeFull.primitive(ToolboxIdlTypePrimitive.I64),
+        },
+      ]),
       returnTypeFlat: ToolboxIdlTypeFlat.struct({
         fields: ToolboxIdlTypeFlatFields.nothing(),
+      }),
+      returnTypeFull: ToolboxIdlTypeFull.struct({
+        fields: ToolboxIdlTypeFullFields.nothing(),
       }),
     }),
   );

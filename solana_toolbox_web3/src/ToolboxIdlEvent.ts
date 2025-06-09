@@ -8,11 +8,11 @@ import { serialize } from './ToolboxIdlTypeFull.serialize';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlEvent {
-  public name: string;
-  public docs: any;
-  public discriminator: Buffer;
-  public infoTypeFlat: ToolboxIdlTypeFlat;
-  public infoTypeFull: ToolboxIdlTypeFull;
+  public readonly name: string;
+  public readonly docs: any;
+  public readonly discriminator: Buffer;
+  public readonly infoTypeFlat: ToolboxIdlTypeFlat;
+  public readonly infoTypeFull: ToolboxIdlTypeFull;
 
   constructor(value: {
     name: string;

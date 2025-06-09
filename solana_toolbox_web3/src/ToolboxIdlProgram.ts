@@ -30,12 +30,12 @@ export class ToolboxIdlProgram {
     errors: new Map(),
   });
 
-  public metadata: ToolboxIdlProgramMetadata;
-  public typedefs: Map<string, ToolboxIdlTypedef>;
-  public accounts: Map<string, ToolboxIdlAccount>;
-  public instructions: Map<string, ToolboxIdlInstruction>;
-  public events: Map<string, ToolboxIdlEvent>;
-  public errors: Map<string, ToolboxIdlError>;
+  public readonly metadata: ToolboxIdlProgramMetadata;
+  public readonly typedefs: Map<string, ToolboxIdlTypedef>;
+  public readonly accounts: Map<string, ToolboxIdlAccount>;
+  public readonly instructions: Map<string, ToolboxIdlInstruction>;
+  public readonly events: Map<string, ToolboxIdlEvent>;
+  public readonly errors: Map<string, ToolboxIdlError>;
 
   constructor(value: {
     metadata: ToolboxIdlProgramMetadata;
@@ -161,7 +161,7 @@ export class ToolboxIdlProgram {
   static tryParseScopedNamedValues<T, P1, P2>(
     idlRoot: any,
     collectionKey: string,
-    nameToSnakeCase: boolean,
+    convertNameToSnakeCase: boolean,
     param1: P1,
     param2: P2,
     parsingFunction: (name: string, value: any, param1: P1, param2: P2) => T,
@@ -171,7 +171,7 @@ export class ToolboxIdlProgram {
     if (ToolboxUtils.isArray(collection)) {
       for (let item of collection) {
         let name = ToolboxUtils.expectString(item['name']);
-        if (nameToSnakeCase) {
+        if (convertNameToSnakeCase) {
           name = ToolboxUtils.convertToSnakeCase(name);
         }
         values.set(name, parsingFunction(name, item, param1, param2));
@@ -179,7 +179,7 @@ export class ToolboxIdlProgram {
     }
     if (ToolboxUtils.isObject(collection)) {
       Object.entries(collection).forEach(([key, value]) => {
-        if (nameToSnakeCase) {
+        if (convertNameToSnakeCase) {
           key = ToolboxUtils.convertToSnakeCase(key);
         }
         values.set(key, parsingFunction(key, value, param1, param2));
@@ -203,7 +203,7 @@ export class ToolboxIdlProgram {
   ): ToolboxIdlInstruction | null {
     for (let instruction of this.instructions.values()) {
       try {
-        instruction.check(instructionData);
+        instruction.checkPayload(instructionData);
         return instruction;
       } catch {}
     }

@@ -7,6 +7,10 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import { ToolboxEndpointExecution } from './ToolboxEndpointExecution';
+import {
+  decompileTransactionInstructions,
+  decompileTransactionPayerAddress,
+} from './ToolboxEndpointExecution.utils.decompile';
 
 export class ToolboxEndpoint {
   public static readonly PUBLIC_RPC_URL_MAINNET_BETA =
@@ -97,14 +101,33 @@ export class ToolboxEndpoint {
       },
     );
     console.log('simulateTransaction.response', response);
+    throw new Error(
+      'ToolboxEndpoint.simulateTransaction is not implemented yet. ' +
+        'Please use processTransaction instead.',
+    );
+    /*
     // TODO - convert to executution
-    return new ToolboxEndpointExecution();
+    return new ToolboxEndpointExecution({
+      slot: -1,
+      payer: response.value.accounts?.[0] ?? new PublicKey(0),
+      instructions: response.value?.transaction.message.instructions ?? [],
+      logs: response.value?.logs ?? null,
+      error: response.value?.err ?? null,
+      returnData: response.value?.returnData
+        ? Buffer.from(response.value.returnData.data, 'base64')
+        : null,
+      unitsConsumed: response.value?.unitsConsumed ?? null, // TODO - handle this better
+    });
+    */
   }
 
   public async processTransaction(
     versionedTransaction: VersionedTransaction,
     verifyPreflight: boolean,
-  ): Promise<[TransactionSignature, ToolboxEndpointExecution]> {
+  ): Promise<{
+    signature: TransactionSignature;
+    execution: ToolboxEndpointExecution;
+  }> {
     let signature = await this.connection.sendTransaction(
       versionedTransaction,
       {
@@ -112,20 +135,79 @@ export class ToolboxEndpoint {
         preflightCommitment: this.commitment,
       },
     );
-    console.log('processTransaction.signature', signature);
-    // TODO - fetch executution
-    return [signature, new ToolboxEndpointExecution()];
+    return { signature, execution: await this.waitUntilExecution(signature) };
   }
 
   public async getExecution(
     signature: TransactionSignature,
   ): Promise<ToolboxEndpointExecution> {
+    const execution = await this.getExecutionIfExists(signature);
+    if (execution) {
+      return execution;
+    }
+    throw new Error(`Execution for transaction ${signature} does not exist`);
+  }
+
+  private async waitUntilExecution(
+    signature: TransactionSignature,
+  ): Promise<ToolboxEndpointExecution> {
+    const timeoutMs = 60 * 1000;
+    const sleepMs = 100;
+    let startTime = Date.now();
+    while (true) {
+      let execution = await this.getExecutionIfExists(signature);
+      if (execution) {
+        return execution;
+      }
+      if (Date.now() > startTime + timeoutMs) {
+        throw new Error(
+          `Timeout while waiting for execution of transaction ${signature}`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, sleepMs));
+    }
+  }
+
+  private async getExecutionIfExists(
+    signature: TransactionSignature,
+  ): Promise<ToolboxEndpointExecution | undefined> {
     let response = await this.connection.getTransaction(signature, {
       commitment: this.commitment,
       maxSupportedTransactionVersion: 0,
     });
-    console.log('getExecution.response', response);
-    return new ToolboxEndpointExecution();
+    if (!response) {
+      return undefined;
+    }
+    let staticAddresses = response.transaction.message.staticAccountKeys;
+    let payer = decompileTransactionPayerAddress(staticAddresses);
+    let header = response.transaction.message.header;
+    let compiledInstructions = [];
+    for (let responseInstruction of response.transaction.message
+      .compiledInstructions) {
+      compiledInstructions.push({
+        programIdIndex: responseInstruction.programIdIndex,
+        accountsIndexes: responseInstruction.accountKeyIndexes,
+        data: Buffer.from(responseInstruction.data),
+      });
+    }
+    let loadedAddresses = response.meta?.loadedAddresses;
+    let instructions = decompileTransactionInstructions(
+      header.numRequiredSignatures,
+      header.numReadonlySignedAccounts,
+      header.numReadonlyUnsignedAccounts,
+      staticAddresses,
+      loadedAddresses?.writable ?? [],
+      loadedAddresses?.readonly ?? [],
+      compiledInstructions,
+    );
+    return new ToolboxEndpointExecution({
+      slot: response.slot,
+      payer: payer,
+      instructions: instructions,
+      logs: response?.meta?.logMessages ?? null,
+      error: response?.meta?.err ?? null,
+      unitsConsumed: response?.meta?.computeUnitsConsumed ?? null,
+    });
   }
 
   public async searchAddresses(

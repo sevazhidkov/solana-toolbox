@@ -13,7 +13,6 @@ mod toolbox_endpoint_proxy_rpc_client_get_execution;
 mod toolbox_endpoint_proxy_rpc_client_search_addresses;
 mod toolbox_endpoint_proxy_rpc_client_search_signatures;
 mod toolbox_endpoint_proxy_rpc_client_simulate_transaction;
-mod toolbox_endpoint_proxy_rpc_client_utils;
 mod toolbox_endpoint_util_account;
 mod toolbox_endpoint_util_address_lookup_table;
 mod toolbox_endpoint_util_compute_budget;

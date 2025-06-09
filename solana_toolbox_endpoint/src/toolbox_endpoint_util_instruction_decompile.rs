@@ -82,15 +82,15 @@ impl ToolboxEndpoint {
         header_num_required_signatures: u8,
         static_addresses: &[Pubkey],
     ) -> Result<HashSet<Pubkey>> {
-        let mut signers = HashSet::new();
+        let mut signers_addresses = HashSet::new();
         for index in 0..usize::from(header_num_required_signatures) {
-            signers.insert(
+            signers_addresses.insert(
                 *static_addresses
                     .get(index)
                     .ok_or(CompileError::AccountIndexOverflow)?,
             );
         }
-        Ok(signers)
+        Ok(signers_addresses)
     }
 
     fn decompile_transaction_static_readonly_addresses(
@@ -99,12 +99,12 @@ impl ToolboxEndpoint {
         header_num_readonly_unsigned_accounts: u8,
         static_addresses: &[Pubkey],
     ) -> Result<HashSet<Pubkey>> {
-        let mut readonly = HashSet::new();
+        let mut readonly_addresses = HashSet::new();
         for index in (usize::from(header_num_required_signatures)
             - usize::from(header_num_readonly_signed_accounts))
             ..usize::from(header_num_required_signatures)
         {
-            readonly.insert(
+            readonly_addresses.insert(
                 *static_addresses
                     .get(index)
                     .ok_or(CompileError::AccountIndexOverflow)?,
@@ -114,12 +114,12 @@ impl ToolboxEndpoint {
             - usize::from(header_num_readonly_unsigned_accounts))
             ..static_addresses.len()
         {
-            readonly.insert(
+            readonly_addresses.insert(
                 *static_addresses
                     .get(index)
                     .ok_or(CompileError::AccountIndexOverflow)?,
             );
         }
-        Ok(readonly)
+        Ok(readonly_addresses)
     }
 }

@@ -5,6 +5,10 @@ import {
   ToolboxIdlTypeFlat,
   ToolboxIdlTypeFlatFields,
 } from '../src/ToolboxIdlTypeFlat';
+import {
+  ToolboxIdlTypeFull,
+  ToolboxIdlTypeFullFields,
+} from '../src/ToolboxIdlTypeFull';
 import { ToolboxIdlTypePrefix } from '../src/ToolboxIdlTypePrefix';
 import { ToolboxIdlTypePrimitive } from '../src/ToolboxIdlTypePrimitive';
 
@@ -120,7 +124,17 @@ it('run', () => {
           }),
         },
       ]),
+      argsTypeFullFields: ToolboxIdlTypeFullFields.named([
+        {
+          name: 'arg',
+          content: ToolboxIdlTypeFull.vec({
+            prefix: ToolboxIdlTypePrefix.U32,
+            items: ToolboxIdlTypeFull.primitive(ToolboxIdlTypePrimitive.U8),
+          }),
+        },
+      ]),
       returnTypeFlat: ToolboxIdlTypeFlat.primitive(ToolboxIdlTypePrimitive.I8),
+      returnTypeFull: ToolboxIdlTypeFull.primitive(ToolboxIdlTypePrimitive.I8),
     }),
   );
 });

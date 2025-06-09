@@ -3,7 +3,7 @@ use solana_toolbox_idl::ToolboxIdlProgram;
 
 #[tokio::test]
 pub async fn run() {
-    // Create an IDL on the fly
+    // Create IDLs using different shortened formats
     let idl_program1 = ToolboxIdlProgram::try_parse(&json!({
         "accounts": {
             "MyAccount": {
@@ -70,11 +70,11 @@ pub async fn run() {
     // Check that we can use the manual IDL to encode/decode our account
     let account_data = idl_account.encode(&account_state).unwrap();
     assert_eq!(
+        account_data,
         vec![
             77, 1, 40, 1, 41, 1, 0, 42, 1, 0, 0, 0, 43, 1, 0, 0, 0, 50, 1, 51,
             1, 0, 52, 1, 0, 0, 0, 53, 0, 1, 2, 0, 3, 0, 0, 0
         ],
-        account_data,
     );
-    assert_eq!(account_state, idl_account.decode(&account_data).unwrap());
+    assert_eq!(idl_account.decode(&account_data).unwrap(), account_state);
 }

@@ -1,7 +1,7 @@
 import { ToolboxIdlProgram } from '../src/ToolboxIdlProgram';
 
 it('run', () => {
-  // Create an IDL on the fly
+  // Create IDLs using different shortened formats
   let idlProgram1 = ToolboxIdlProgram.tryParse({
     accounts: {
       MyAccount: {

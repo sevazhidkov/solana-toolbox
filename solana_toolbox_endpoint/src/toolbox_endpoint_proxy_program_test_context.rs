@@ -121,12 +121,11 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 &versioned_transaction,
             )?;
         }
-        let current_slot = self
+        let clock = self
             .program_test_context
             .banks_client
             .get_sysvar::<Clock>()
-            .await?
-            .slot;
+            .await?;
         let outcome = self
             .program_test_context
             .banks_client
@@ -137,28 +136,24 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .await?;
         if let Some(simulation_details) = outcome.simulation_details {
             return Ok(ToolboxEndpointExecution {
+                slot: clock.slot,
                 payer,
                 instructions,
-                slot: current_slot,
                 error: outcome.result.transpose().err(),
                 steps: Some(ToolboxEndpointExecution::try_parse_steps(
                     &simulation_details.logs,
                 )?),
                 logs: Some(simulation_details.logs),
-                return_data: simulation_details
-                    .return_data
-                    .map(|return_data| return_data.data),
                 units_consumed: Some(simulation_details.units_consumed),
             });
         }
         Ok(ToolboxEndpointExecution {
+            slot: clock.slot,
             payer,
             instructions,
-            slot: current_slot,
             error: outcome.result.transpose().err(),
             steps: None,
             logs: None,
-            return_data: None,
             units_consumed: None,
         })
     }
@@ -205,39 +200,34 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 );
             }
         }
-        let current_slot = self
+        let clock = self
             .program_test_context
             .banks_client
             .get_sysvar::<Clock>()
-            .await?
-            .slot;
+            .await?;
         let signature = Signature::new_unique();
         for transaction_account in transaction_accounts {
             self.push_signature_for_address(transaction_account, signature);
         }
         let execution = match outcome.metadata {
             Some(metadata) => ToolboxEndpointExecution {
+                slot: clock.slot,
                 payer,
                 instructions,
-                slot: current_slot,
                 error: outcome.result.err(),
                 steps: Some(ToolboxEndpointExecution::try_parse_steps(
                     &metadata.log_messages,
                 )?),
                 logs: Some(metadata.log_messages),
-                return_data: metadata
-                    .return_data
-                    .map(|return_data| return_data.data),
                 units_consumed: Some(metadata.compute_units_consumed),
             },
             None => ToolboxEndpointExecution {
+                slot: clock.slot,
                 payer,
                 instructions,
-                slot: current_slot,
                 error: outcome.result.err(),
                 steps: None,
                 logs: None,
-                return_data: None,
                 units_consumed: None,
             },
         };

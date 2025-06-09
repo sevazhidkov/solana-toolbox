@@ -11,6 +11,7 @@ use solana_client::rpc_config::RpcAccountInfoConfig;
 use solana_client::rpc_config::RpcRequestAirdropConfig;
 use solana_client::rpc_config::RpcSendTransactionConfig;
 use solana_sdk::account::Account;
+use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
@@ -32,6 +33,10 @@ pub struct ToolboxEndpointProxyRpcClient {
 impl ToolboxEndpointProxyRpcClient {
     pub fn new(rpc_client: RpcClient) -> ToolboxEndpointProxyRpcClient {
         ToolboxEndpointProxyRpcClient { rpc_client }
+    }
+
+    pub(crate) fn get_commitment(&self) -> CommitmentConfig {
+        self.rpc_client.commitment()
     }
 }
 

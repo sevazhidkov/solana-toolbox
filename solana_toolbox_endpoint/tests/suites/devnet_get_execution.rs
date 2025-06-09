@@ -105,7 +105,6 @@ pub async fn run() {
                 "Program CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu success".to_string(),
             ]),
             error: None,
-            return_data: None,
             units_consumed: Some(23988),
         }
     );
@@ -203,6 +202,5 @@ pub async fn run() {
             expected_logs
         })
     );
-    assert_eq!(execution_tables.return_data, None);
     assert_eq!(execution_tables.units_consumed, Some(7500));
 }

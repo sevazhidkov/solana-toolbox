@@ -6,7 +6,6 @@ use solana_client::rpc_request::RpcRequest;
 use solana_sdk::instruction::CompiledInstruction;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionError;
-use solana_transaction_status::UiTransactionReturnData;
 
 use crate::toolbox_endpoint::ToolboxEndpoint;
 use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
@@ -56,7 +55,6 @@ struct GetTransactionResponseMeta {
     pub loaded_addresses: Option<GetTransactionResponseMetaLoadedAddresses>,
     pub err: Option<TransactionError>,
     pub log_messages: Option<Vec<String>>,
-    pub return_data: Option<UiTransactionReturnData>,
     pub compute_units_consumed: Option<u64>,
 }
 
@@ -80,7 +78,6 @@ impl ToolboxEndpointProxyRpcClient {
                     signature.to_string(),
                     {
                         "commitment": self.get_commitment().commitment.to_string(),
-                        // "encoding": "json",
                         "maxSupportedTransactionVersion": 0,
                     },
                 ]),
@@ -90,13 +87,15 @@ impl ToolboxEndpointProxyRpcClient {
             Some(response) => response,
             None => return Ok(None),
         };
-        let header = response.transaction.message.header;
         let mut static_addresses = vec![];
         for static_address in &response.transaction.message.account_keys {
             static_addresses.push(ToolboxEndpoint::sanitize_and_decode_pubkey(
                 static_address,
             )?);
         }
+        let payer =
+            ToolboxEndpoint::decompile_transaction_payer(&static_addresses)?;
+        let header = response.transaction.message.header;
         let mut loaded_writable_addresses = vec![];
         let mut loaded_readonly_addresses = vec![];
         if let Some(loaded_addresses) = &response.meta.loaded_addresses {
@@ -125,8 +124,6 @@ impl ToolboxEndpointProxyRpcClient {
                 )?,
             });
         }
-        let payer =
-            ToolboxEndpoint::decompile_transaction_payer(&static_addresses)?;
         let instructions = ToolboxEndpoint::decompile_transaction_instructions(
             header.num_required_signatures,
             header.num_readonly_signed_accounts,
@@ -137,9 +134,9 @@ impl ToolboxEndpointProxyRpcClient {
             &compiled_instructions,
         )?;
         Ok(Some(ToolboxEndpointExecution {
+            slot: response.slot,
             payer,
             instructions,
-            slot: response.slot,
             error: response.meta.err,
             steps: response
                 .meta
@@ -148,10 +145,6 @@ impl ToolboxEndpointProxyRpcClient {
                 .map(|logs| ToolboxEndpointExecution::try_parse_steps(logs))
                 .transpose()?,
             logs: response.meta.log_messages,
-            return_data:
-                ToolboxEndpointProxyRpcClient::decode_transaction_return_data(
-                    response.meta.return_data,
-                )?,
             units_consumed: response.meta.compute_units_consumed,
         }))
     }

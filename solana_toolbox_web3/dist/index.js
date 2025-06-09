@@ -258,7 +258,7 @@ var ToolboxIdlTypeFlat = class _ToolboxIdlTypeFlat {
   }
   static nothing() {
     return new _ToolboxIdlTypeFlat("struct" /* Struct */, {
-      fields: ToolboxIdlTypeFlatFields.unnamed([])
+      fields: ToolboxIdlTypeFlatFields.nothing()
     });
   }
   traverse(visitor, param1, param2) {
@@ -275,6 +275,9 @@ var ToolboxIdlTypeFlatFields = class _ToolboxIdlTypeFlatFields {
   }
   static unnamed(content) {
     return new _ToolboxIdlTypeFlatFields("unnamed", content);
+  }
+  static nothing() {
+    return new _ToolboxIdlTypeFlatFields("unnamed", []);
   }
   traverse(visitor, param1, param2) {
     return visitor[this.discriminant](this.content, param1, param2);
@@ -325,7 +328,7 @@ var ToolboxIdlTypeFull = class _ToolboxIdlTypeFull {
   }
   static nothing() {
     return new _ToolboxIdlTypeFull("struct" /* Struct */, {
-      fields: ToolboxIdlTypeFullFields.unnamed([])
+      fields: ToolboxIdlTypeFullFields.nothing()
     });
   }
   traverse(visitor, param1, param2, param3) {
@@ -354,6 +357,9 @@ var ToolboxIdlTypeFullFields = class _ToolboxIdlTypeFullFields {
   static unnamed(content) {
     return new _ToolboxIdlTypeFullFields("unnamed", content);
   }
+  static nothing() {
+    return new _ToolboxIdlTypeFullFields("unnamed", []);
+  }
   traverse(visitor, param1, param2, param3) {
     return visitor[this.discriminant](
       this.content,
@@ -364,6 +370,481 @@ var ToolboxIdlTypeFullFields = class _ToolboxIdlTypeFullFields {
   }
 };
 
+// src/ToolboxIdlTypePrefix.ts
+var _ToolboxIdlTypePrefix = class _ToolboxIdlTypePrefix {
+  constructor(name, size) {
+    this.name = name;
+    this.size = size;
+  }
+  traverse(visitor, param1, param2) {
+    return visitor[this.name](param1, param2);
+  }
+};
+_ToolboxIdlTypePrefix.U8 = new _ToolboxIdlTypePrefix("u8", 1);
+_ToolboxIdlTypePrefix.U16 = new _ToolboxIdlTypePrefix("u16", 2);
+_ToolboxIdlTypePrefix.U32 = new _ToolboxIdlTypePrefix("u32", 4);
+_ToolboxIdlTypePrefix.U64 = new _ToolboxIdlTypePrefix("u64", 8);
+_ToolboxIdlTypePrefix.U128 = new _ToolboxIdlTypePrefix("u128", 16);
+_ToolboxIdlTypePrefix.prefixesBySize = (() => {
+  let prefixes = [
+    _ToolboxIdlTypePrefix.U8,
+    _ToolboxIdlTypePrefix.U16,
+    _ToolboxIdlTypePrefix.U32,
+    _ToolboxIdlTypePrefix.U64,
+    _ToolboxIdlTypePrefix.U128
+  ];
+  let prefixesBySize = /* @__PURE__ */ new Map();
+  for (let prefix of prefixes) {
+    prefixesBySize.set(prefix.size, prefix);
+  }
+  return prefixesBySize;
+})();
+var ToolboxIdlTypePrefix = _ToolboxIdlTypePrefix;
+
+// src/ToolboxUtils.ts
+var import_sha = require("sha.js");
+var ToolboxUtils = class _ToolboxUtils {
+  static isObject(value) {
+    return typeof value === "object" && !Array.isArray(value) && value !== null;
+  }
+  static isArray(value) {
+    return Array.isArray(value);
+  }
+  static isString(value) {
+    return typeof value === "string" || value instanceof String;
+  }
+  static isNumber(value) {
+    return typeof value === "number" || value instanceof Number;
+  }
+  static isBigInt(value) {
+    return typeof value === "bigint" || value instanceof BigInt;
+  }
+  static isBoolean(value) {
+    return typeof value === "boolean" || value instanceof Boolean;
+  }
+  static expectObject(value) {
+    if (!_ToolboxUtils.isObject(value)) {
+      throw new Error(`Expected an object (found: ${typeof value})`);
+    }
+    return value;
+  }
+  static expectArray(value) {
+    if (!_ToolboxUtils.isArray(value)) {
+      throw new Error(`Expected an array (found: ${typeof value})`);
+    }
+    return value;
+  }
+  static expectString(value) {
+    if (!_ToolboxUtils.isString(value)) {
+      throw new Error(`Expected a string (found: ${typeof value})`);
+    }
+    return value;
+  }
+  static expectNumber(value) {
+    if (!_ToolboxUtils.isNumber(value)) {
+      throw new Error(`Expected a number (found: ${typeof value})`);
+    }
+    return value;
+  }
+  static expectBigInt(value) {
+    if (!_ToolboxUtils.isBigInt(value)) {
+      throw new Error(`Expected a bigint (found: ${typeof value})`);
+    }
+    return value;
+  }
+  static expectBoolean(value) {
+    if (!_ToolboxUtils.isBoolean(value)) {
+      throw new Error(`Expected a boolean (found: ${typeof value})`);
+    }
+    return value;
+  }
+  static convertToSnakeCase(value) {
+    return value.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/([A-Z])([A-Z][a-z])/g, "$1_$2").toLowerCase();
+  }
+  static discriminator(value) {
+    return Array.from(new import_sha.sha256().update(value).digest()).slice(0, 8);
+  }
+  static withContext(fn, message) {
+    try {
+      return fn();
+    } catch (err) {
+      throw new Error(
+        `${message}
+ > ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+};
+
+// src/ToolboxIdlTypeFull.bytemuck.ts
+function bytemuckTypedef(typedef) {
+  return ToolboxUtils.withContext(() => {
+    let contentPod;
+    if (typedef.repr === void 0) {
+      contentPod = bytemuckReprRust(typedef.content);
+    } else if (typedef.repr === "c") {
+      contentPod = bytemuckReprC(typedef.content);
+    } else if (typedef.repr === "rust") {
+      contentPod = bytemuckReprRust(typedef.content);
+    } else if (typedef.repr === "transparent") {
+      contentPod = bytemuckReprRust(typedef.content);
+    } else {
+      throw new Error(`Bytemuck: Unsupported repr: ${typedef.repr}`);
+    }
+    return {
+      alignment: contentPod.alignment,
+      size: contentPod.size,
+      value: ToolboxIdlTypeFull.typedef({
+        name: typedef.name,
+        repr: typedef.repr,
+        content: contentPod.value
+      })
+    };
+  }, `Bytemuck: Typedef: ${typedef.name}`);
+}
+function bytemuckReprC(value) {
+  return value.traverse(bytemuckReprCVisitor, void 0, void 0, void 0);
+}
+var bytemuckReprCVisitor = {
+  typedef: (self) => {
+    return bytemuckTypedef(self);
+  },
+  option: (self) => {
+    let contentPod = bytemuckReprC(self.content);
+    let alignment = Math.max(self.prefix.size, contentPod.alignment);
+    let size = alignment + contentPod.size;
+    return {
+      alignment,
+      size,
+      value: ToolboxIdlTypeFull.padded({
+        before: 0,
+        minSize: size,
+        after: 0,
+        content: ToolboxIdlTypeFull.option({
+          prefix: internalPrefixFromAlignment(alignment),
+          content: contentPod.value
+        })
+      })
+    };
+  },
+  vec: (_self) => {
+    throw new Error("Bytemuck: Repr(C): Vec is not supported");
+  },
+  array: (self) => {
+    let itemsPod = bytemuckReprC(self.items);
+    let alignment = itemsPod.alignment;
+    let size = itemsPod.size * self.length;
+    return {
+      alignment,
+      size,
+      value: ToolboxIdlTypeFull.array({
+        items: itemsPod.value,
+        length: self.length
+      })
+    };
+  },
+  string: (_self) => {
+    throw new Error("Bytemuck: Repr(C): String is not supported");
+  },
+  struct: (self) => {
+    let fieldsPod = bytemuckFields(self.fields, 0, false);
+    return {
+      alignment: fieldsPod.alignment,
+      size: fieldsPod.size,
+      value: ToolboxIdlTypeFull.struct({
+        fields: fieldsPod.value
+      })
+    };
+  },
+  enum: (self) => {
+    let alignment = Math.max(4, self.prefix.size);
+    let size = 0;
+    let variantsReprC = [];
+    for (let variant of self.variants) {
+      let variantFieldsPod = ToolboxUtils.withContext(() => {
+        return bytemuckFields(variant.fields, 0, false);
+      }, `Bytemuck: Repr(C): Enum Variant: ${variant.name}`);
+      alignment = Math.max(alignment, variantFieldsPod.alignment);
+      size = Math.max(size, variantFieldsPod.size);
+      variantsReprC.push({
+        name: variant.name,
+        code: variant.code,
+        fields: variantFieldsPod.value
+      });
+    }
+    size += alignment;
+    return {
+      alignment,
+      size,
+      value: ToolboxIdlTypeFull.padded({
+        before: 0,
+        minSize: size,
+        after: 0,
+        content: ToolboxIdlTypeFull.enum({
+          prefix: internalPrefixFromAlignment(alignment),
+          variants: variantsReprC
+        })
+      })
+    };
+  },
+  padded: (_self) => {
+    throw new Error("Bytemuck: Repr(C): Padded is not supported");
+  },
+  const: (_self) => {
+    throw new Error("Bytemuck: Repr(C): Const is not supported");
+  },
+  primitive: (self) => {
+    return {
+      alignment: self.alignment,
+      size: self.size,
+      value: ToolboxIdlTypeFull.primitive(self)
+    };
+  }
+};
+function bytemuckReprRust(value) {
+  return value.traverse(
+    bytemuckReprRustVisitor,
+    void 0,
+    void 0,
+    void 0
+  );
+}
+var bytemuckReprRustVisitor = {
+  typedef: (self) => {
+    return bytemuckTypedef(self);
+  },
+  option: (self) => {
+    let contentPod = bytemuckReprRust(self.content);
+    let alignment = Math.max(self.prefix.size, contentPod.alignment);
+    let size = alignment + contentPod.size;
+    return {
+      alignment,
+      size,
+      value: ToolboxIdlTypeFull.padded({
+        before: 0,
+        minSize: size,
+        after: 0,
+        content: ToolboxIdlTypeFull.option({
+          prefix: internalPrefixFromAlignment(alignment),
+          content: contentPod.value
+        })
+      })
+    };
+  },
+  vec: (_self) => {
+    throw new Error("Bytemuck: Repr(Rust): Vec is not supported");
+  },
+  array: (self) => {
+    let itemsPod = bytemuckReprRust(self.items);
+    let alignment = itemsPod.alignment;
+    let size = itemsPod.size * self.length;
+    return {
+      alignment,
+      size,
+      value: ToolboxIdlTypeFull.array({
+        items: itemsPod.value,
+        length: self.length
+      })
+    };
+  },
+  string: (_self) => {
+    throw new Error("Bytemuck: Repr(Rust): String is not supported");
+  },
+  struct: (self) => {
+    let fieldsPod = bytemuckFields(self.fields, 0, true);
+    return {
+      alignment: fieldsPod.alignment,
+      size: fieldsPod.size,
+      value: ToolboxIdlTypeFull.struct({
+        fields: fieldsPod.value
+      })
+    };
+  },
+  enum: (self) => {
+    let alignment = self.prefix.size;
+    let size = self.prefix.size;
+    let variantsReprRust = [];
+    for (let variant of self.variants) {
+      let variantFieldsPod = ToolboxUtils.withContext(() => {
+        return bytemuckFields(variant.fields, self.prefix.size, true);
+      }, `Bytemuck: Repr(Rust): Enum Variant: ${variant.name}`);
+      alignment = Math.max(alignment, variantFieldsPod.alignment);
+      size = Math.max(size, variantFieldsPod.size);
+      variantsReprRust.push({
+        name: variant.name,
+        code: variant.code,
+        fields: variantFieldsPod.value
+      });
+    }
+    size += internalAlignmentPaddingNeeded(size, alignment);
+    return {
+      alignment,
+      size,
+      value: ToolboxIdlTypeFull.padded({
+        before: 0,
+        minSize: size,
+        after: 0,
+        content: ToolboxIdlTypeFull.enum({
+          prefix: self.prefix,
+          variants: variantsReprRust
+        })
+      })
+    };
+  },
+  padded: (_self) => {
+    throw new Error("Bytemuck: Repr(Rust): Padded is not supported");
+  },
+  const: (_self) => {
+    throw new Error("Bytemuck: Repr(Rust): Const is not supported");
+  },
+  primitive: (self) => {
+    return {
+      alignment: self.alignment,
+      size: self.size,
+      value: ToolboxIdlTypeFull.primitive(self)
+    };
+  }
+};
+function bytemuckFields(typeFields, prefixSize, rustReorder) {
+  return typeFields.traverse(
+    bytemuckFieldsVisitor,
+    prefixSize,
+    rustReorder,
+    void 0
+  );
+}
+var bytemuckFieldsVisitor = {
+  named: (self, prefixSize, rustReorder) => {
+    let fieldsInfosPods = self.map((field) => {
+      let contentPod = ToolboxUtils.withContext(() => {
+        return bytemuckReprRust(field.content);
+      }, `Bytemuck: Field: ${field.name}`);
+      return {
+        alignment: contentPod.alignment,
+        size: contentPod.size,
+        meta: field.name,
+        type: contentPod.value
+      };
+    });
+    if (rustReorder) {
+      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods);
+    }
+    let fieldsInfosPadded = internalFieldsInfoAligned(
+      prefixSize,
+      fieldsInfosPods
+    );
+    return {
+      alignment: fieldsInfosPadded.alignment,
+      size: fieldsInfosPadded.size,
+      value: ToolboxIdlTypeFullFields.named(
+        fieldsInfosPadded.value.map((fieldInfo) => {
+          return {
+            name: fieldInfo.meta,
+            content: fieldInfo.type
+          };
+        })
+      )
+    };
+  },
+  unnamed: (self, prefixSize, rustReorder) => {
+    let fieldsInfosPods = self.map((field) => {
+      let contentPod = ToolboxUtils.withContext(() => {
+        return bytemuckReprRust(field.content);
+      }, `Bytemuck: Field: ${field.position}`);
+      return {
+        alignment: contentPod.alignment,
+        size: contentPod.size,
+        meta: field.position,
+        type: contentPod.value
+      };
+    });
+    if (rustReorder) {
+      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods);
+    }
+    let fieldsInfosPadded = internalFieldsInfoAligned(
+      prefixSize,
+      fieldsInfosPods
+    );
+    return {
+      alignment: fieldsInfosPadded.alignment,
+      size: fieldsInfosPadded.size,
+      value: ToolboxIdlTypeFullFields.unnamed(
+        fieldsInfosPadded.value.map((fieldInfo) => {
+          return {
+            position: fieldInfo.meta,
+            content: fieldInfo.type
+          };
+        })
+      )
+    };
+  }
+};
+function internalFieldsInfoAligned(prefixSize, fieldsInfo) {
+  let alignment = prefixSize;
+  let size = prefixSize;
+  let lastFieldIndex = fieldsInfo.length - 1;
+  let fieldsInfoPadded = [];
+  for (let i = 0; i < fieldsInfo.length; i++) {
+    let {
+      alignment: fieldAlignment,
+      size: fieldSize,
+      meta: fieldMeta,
+      type: fieldType
+    } = fieldsInfo[i];
+    alignment = Math.max(alignment, fieldAlignment);
+    let paddingBefore = internalAlignmentPaddingNeeded(size, fieldAlignment);
+    size += paddingBefore + fieldSize;
+    let paddingAfter = 0;
+    if (i == lastFieldIndex) {
+      paddingAfter = internalAlignmentPaddingNeeded(size, alignment);
+    }
+    size += paddingAfter;
+    if (paddingBefore == 0 && paddingAfter == 0) {
+      fieldsInfoPadded.push({ meta: fieldMeta, type: fieldType });
+    } else {
+      fieldsInfoPadded.push({
+        meta: fieldMeta,
+        type: ToolboxIdlTypeFull.padded({
+          before: paddingBefore,
+          minSize: fieldSize,
+          after: paddingAfter,
+          content: fieldType
+        })
+      });
+    }
+  }
+  return {
+    alignment,
+    size,
+    value: fieldsInfoPadded
+  };
+}
+function internalAlignmentPaddingNeeded(offset, alignment) {
+  let missalignment = offset % alignment;
+  if (missalignment == 0) {
+    return 0;
+  }
+  return alignment - missalignment;
+}
+function internalVerifyUnstableOrder(prefixSize, fieldsInfo) {
+  if (prefixSize == 0 && fieldsInfo.length <= 2) {
+    return;
+  }
+  if (fieldsInfo.length <= 1) {
+    return;
+  }
+  throw new Error(
+    "Bytemuck: Repr(Rust): Structs/Enums/Tuples fields ordering is compiler-dependent. Use Repr(C) instead."
+  );
+}
+function internalPrefixFromAlignment(alignment) {
+  let prefix = ToolboxIdlTypePrefix.prefixesBySize.get(alignment);
+  if (prefix === void 0) {
+    throw new Error(`Bytemuck: Unknown alignment: ${alignment}`);
+  }
+  return prefix;
+}
+
 // src/ToolboxIdlTypeFlat.hydrate.ts
 function hydrate(typeFlat, genericsBySymbol, typedefs) {
   return typeFlat.traverse(hydrateVisitor, genericsBySymbol, typedefs);
@@ -372,10 +853,10 @@ var hydrateVisitor = {
   defined: (self, genericsBySymbol, typedefs) => {
     let typedef = typedefs.get(self.name);
     if (typedef === void 0) {
-      throw new Error("Could not resolve type named: " + self.name);
+      throw new Error(`Could not resolve type named: ${self.name}`);
     }
     if (self.generics.length < typedef.generics.length) {
-      throw new Error("Invalid set of generics");
+      throw new Error("Insufficient set of generics");
     }
     let genericsFull = self.generics.map((genericFlat) => {
       return hydrate(genericFlat, genericsBySymbol, typedefs);
@@ -385,16 +866,20 @@ var hydrateVisitor = {
       innerGenericsBySymbol.set(typedef.generics[i], genericsFull[i]);
     }
     let typeFull = hydrate(typedef.typeFlat, innerGenericsBySymbol, typedefs);
-    return ToolboxIdlTypeFull.typedef({
+    let typeTypedef = {
       name: typedef.name,
       repr: typedef.repr,
       content: typeFull
-    });
+    };
+    if (typedef.serialization === "bytemuck") {
+      return bytemuckTypedef(typeTypedef).value;
+    }
+    return ToolboxIdlTypeFull.typedef(typeTypedef);
   },
-  generic: (self, genericsBySymbol, typedefs) => {
+  generic: (self, genericsBySymbol, _typedefs) => {
     let typeFull = genericsBySymbol.get(self.symbol);
     if (typeFull === void 0) {
-      throw new Error("Could not resolve generic named: " + self.symbol);
+      throw new Error(`Could not resolve generic named: ${self.symbol}`);
     }
     return typeFull;
   },
@@ -424,7 +909,7 @@ var hydrateVisitor = {
       items: hydrate(self.items, genericsBySymbol, typedefs)
     });
   },
-  string: (self, genericsBySymbol, typedefs) => {
+  string: (self, _genericsBySymbol, _typedefs) => {
     return ToolboxIdlTypeFull.string({
       prefix: self.prefix
     });
@@ -454,12 +939,12 @@ var hydrateVisitor = {
       content: hydrate(self.content, genericsBySymbol, typedefs)
     });
   },
-  const: (self, genericsBySymbol, typedefs) => {
+  const: (self, _genericsBySymbol, _typedefs) => {
     return ToolboxIdlTypeFull.const({
       literal: self.literal
     });
   },
-  primitive: (self, genericsBySymbol, typedefs) => {
+  primitive: (self, _genericsBySymbol, _typedefs) => {
     return ToolboxIdlTypeFull.primitive(self);
   }
 };
@@ -493,60 +978,87 @@ var hydrateFieldsVisitor = {
   }
 };
 
-// src/ToolboxIdlTypePrefix.ts
-var _ToolboxIdlTypePrefix = class _ToolboxIdlTypePrefix {
-  constructor(name, size) {
-    this.name = name;
-    this.size = size;
-  }
-  traverse(visitor, param1, param2) {
-    return visitor[this.name](param1, param2);
-  }
-};
-_ToolboxIdlTypePrefix.U8 = new _ToolboxIdlTypePrefix("u8", 1);
-_ToolboxIdlTypePrefix.U16 = new _ToolboxIdlTypePrefix("u16", 2);
-_ToolboxIdlTypePrefix.U32 = new _ToolboxIdlTypePrefix("u32", 4);
-_ToolboxIdlTypePrefix.U64 = new _ToolboxIdlTypePrefix("u64", 8);
-_ToolboxIdlTypePrefix.prefixesBySize = (() => {
-  let prefixes = [
-    _ToolboxIdlTypePrefix.U8,
-    _ToolboxIdlTypePrefix.U16,
-    _ToolboxIdlTypePrefix.U32,
-    _ToolboxIdlTypePrefix.U64
-  ];
-  let prefixesBySize = /* @__PURE__ */ new Map();
-  for (let prefix of prefixes) {
-    prefixesBySize.set(prefix.size, prefix);
-  }
-  return prefixesBySize;
-})();
-var ToolboxIdlTypePrefix = _ToolboxIdlTypePrefix;
-
 // src/ToolboxIdlTypePrimitive.ts
 var _ToolboxIdlTypePrimitive = class _ToolboxIdlTypePrimitive {
-  constructor(name, size, alignment) {
-    this.name = name;
-    this.size = size;
-    this.alignment = alignment;
+  constructor(value) {
+    this.name = value.name;
+    this.size = value.size;
+    this.alignment = value.alignment;
   }
   traverse(visitor, param1, param2) {
     return visitor[this.name](param1, param2);
   }
 };
-_ToolboxIdlTypePrimitive.U8 = new _ToolboxIdlTypePrimitive("u8", 1, 1);
-_ToolboxIdlTypePrimitive.U16 = new _ToolboxIdlTypePrimitive("u16", 2, 2);
-_ToolboxIdlTypePrimitive.U32 = new _ToolboxIdlTypePrimitive("u32", 4, 4);
-_ToolboxIdlTypePrimitive.U64 = new _ToolboxIdlTypePrimitive("u64", 8, 8);
-_ToolboxIdlTypePrimitive.U128 = new _ToolboxIdlTypePrimitive("u128", 16, 16);
-_ToolboxIdlTypePrimitive.I8 = new _ToolboxIdlTypePrimitive("i8", 1, 1);
-_ToolboxIdlTypePrimitive.I16 = new _ToolboxIdlTypePrimitive("i16", 2, 2);
-_ToolboxIdlTypePrimitive.I32 = new _ToolboxIdlTypePrimitive("i32", 4, 4);
-_ToolboxIdlTypePrimitive.I64 = new _ToolboxIdlTypePrimitive("i64", 8, 8);
-_ToolboxIdlTypePrimitive.I128 = new _ToolboxIdlTypePrimitive("i128", 16, 16);
-_ToolboxIdlTypePrimitive.F32 = new _ToolboxIdlTypePrimitive("f32", 4, 4);
-_ToolboxIdlTypePrimitive.F64 = new _ToolboxIdlTypePrimitive("f64", 8, 8);
-_ToolboxIdlTypePrimitive.Bool = new _ToolboxIdlTypePrimitive("bool", 1, 1);
-_ToolboxIdlTypePrimitive.Pubkey = new _ToolboxIdlTypePrimitive("pubkey", 32, 1);
+_ToolboxIdlTypePrimitive.U8 = new _ToolboxIdlTypePrimitive({
+  name: "u8",
+  size: 1,
+  alignment: 1
+});
+_ToolboxIdlTypePrimitive.U16 = new _ToolboxIdlTypePrimitive({
+  name: "u16",
+  size: 2,
+  alignment: 2
+});
+_ToolboxIdlTypePrimitive.U32 = new _ToolboxIdlTypePrimitive({
+  name: "u32",
+  size: 4,
+  alignment: 4
+});
+_ToolboxIdlTypePrimitive.U64 = new _ToolboxIdlTypePrimitive({
+  name: "u64",
+  size: 8,
+  alignment: 8
+});
+_ToolboxIdlTypePrimitive.U128 = new _ToolboxIdlTypePrimitive({
+  name: "u128",
+  size: 16,
+  alignment: 16
+});
+_ToolboxIdlTypePrimitive.I8 = new _ToolboxIdlTypePrimitive({
+  name: "i8",
+  size: 1,
+  alignment: 1
+});
+_ToolboxIdlTypePrimitive.I16 = new _ToolboxIdlTypePrimitive({
+  name: "i16",
+  size: 2,
+  alignment: 2
+});
+_ToolboxIdlTypePrimitive.I32 = new _ToolboxIdlTypePrimitive({
+  name: "i32",
+  size: 4,
+  alignment: 4
+});
+_ToolboxIdlTypePrimitive.I64 = new _ToolboxIdlTypePrimitive({
+  name: "i64",
+  size: 8,
+  alignment: 8
+});
+_ToolboxIdlTypePrimitive.I128 = new _ToolboxIdlTypePrimitive({
+  name: "i128",
+  size: 16,
+  alignment: 16
+});
+_ToolboxIdlTypePrimitive.F32 = new _ToolboxIdlTypePrimitive({
+  name: "f32",
+  size: 4,
+  alignment: 4
+});
+_ToolboxIdlTypePrimitive.F64 = new _ToolboxIdlTypePrimitive({
+  name: "f64",
+  size: 8,
+  alignment: 8
+});
+_ToolboxIdlTypePrimitive.Bool = new _ToolboxIdlTypePrimitive({
+  name: "bool",
+  size: 1,
+  alignment: 1
+});
+_ToolboxIdlTypePrimitive.Pubkey = new _ToolboxIdlTypePrimitive({
+  name: "pubkey",
+  size: 32,
+  alignment: 1
+});
 _ToolboxIdlTypePrimitive.primitiveByName = (() => {
   let primitives = [
     _ToolboxIdlTypePrimitive.U8,
@@ -572,65 +1084,9 @@ _ToolboxIdlTypePrimitive.primitiveByName = (() => {
 })();
 var ToolboxIdlTypePrimitive = _ToolboxIdlTypePrimitive;
 
-// src/ToolboxUtils.ts
-var import_sha = require("sha.js");
-var ToolboxUtils = class _ToolboxUtils {
-  static isObject(value) {
-    return typeof value === "object" && !Array.isArray(value) && value !== null;
-  }
-  static isArray(value) {
-    return Array.isArray(value);
-  }
-  static isString(value) {
-    return typeof value === "string" || value instanceof String;
-  }
-  static isNumber(value) {
-    return typeof value === "number";
-  }
-  static isBoolean(value) {
-    return typeof value === "boolean";
-  }
-  static expectObject(value) {
-    if (!_ToolboxUtils.isObject(value)) {
-      throw new Error("Expected an object");
-    }
-    return value;
-  }
-  static expectArray(value) {
-    if (!_ToolboxUtils.isArray(value)) {
-      throw new Error("Expected an array");
-    }
-    return value;
-  }
-  static expectString(value) {
-    if (!_ToolboxUtils.isString(value)) {
-      throw new Error("Expected a string");
-    }
-    return value;
-  }
-  static expectNumber(value) {
-    if (!_ToolboxUtils.isNumber(value)) {
-      throw new Error("Expected a number");
-    }
-    return value;
-  }
-  static expectBoolean(value) {
-    if (!_ToolboxUtils.isBoolean(value)) {
-      throw new Error("Expected a boolean");
-    }
-    return value;
-  }
-  static convertToSnakeCase(value) {
-    return value.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/([A-Z])([A-Z][a-z])/g, "$1_$2").toLowerCase();
-  }
-  static discriminator(value) {
-    return Array.from(new import_sha.sha256().update(value).digest()).slice(0, 8);
-  }
-};
-
 // src/ToolboxIdlTypeFlat.parse.ts
 function parseObjectIsPossible(idlType) {
-  if (idlType.hasOwnProperty("type") || idlType.hasOwnProperty("defined") || idlType.hasOwnProperty("generic") || idlType.hasOwnProperty("option") || idlType.hasOwnProperty("option8") || idlType.hasOwnProperty("option16") || idlType.hasOwnProperty("option32") || idlType.hasOwnProperty("option64") || idlType.hasOwnProperty("vec") || idlType.hasOwnProperty("vec8") || idlType.hasOwnProperty("vec16") || idlType.hasOwnProperty("vec32") || idlType.hasOwnProperty("vec64") || idlType.hasOwnProperty("array") || idlType.hasOwnProperty("fields") || idlType.hasOwnProperty("variants") || idlType.hasOwnProperty("variants8") || idlType.hasOwnProperty("variants16") || idlType.hasOwnProperty("variants32") || idlType.hasOwnProperty("variants64") || idlType.hasOwnProperty("padded")) {
+  if (idlType.hasOwnProperty("type") || idlType.hasOwnProperty("defined") || idlType.hasOwnProperty("generic") || idlType.hasOwnProperty("option") || idlType.hasOwnProperty("option8") || idlType.hasOwnProperty("option16") || idlType.hasOwnProperty("option32") || idlType.hasOwnProperty("option64") || idlType.hasOwnProperty("option128") || idlType.hasOwnProperty("vec") || idlType.hasOwnProperty("vec8") || idlType.hasOwnProperty("vec16") || idlType.hasOwnProperty("vec32") || idlType.hasOwnProperty("vec64") || idlType.hasOwnProperty("vec128") || idlType.hasOwnProperty("array") || idlType.hasOwnProperty("fields") || idlType.hasOwnProperty("variants") || idlType.hasOwnProperty("variants8") || idlType.hasOwnProperty("variants16") || idlType.hasOwnProperty("variants32") || idlType.hasOwnProperty("variants64") || idlType.hasOwnProperty("variants128") || idlType.hasOwnProperty("padded")) {
     return true;
   }
   return false;
@@ -675,6 +1131,9 @@ function parseObject(idlTypeObject) {
   if (idlTypeObject.hasOwnProperty("option64")) {
     return parseOption(ToolboxIdlTypePrefix.U64, idlTypeObject["option64"]);
   }
+  if (idlTypeObject.hasOwnProperty("option128")) {
+    return parseOption(ToolboxIdlTypePrefix.U128, idlTypeObject["option128"]);
+  }
   if (idlTypeObject.hasOwnProperty("vec")) {
     return parseVec(ToolboxIdlTypePrefix.U32, idlTypeObject["vec"]);
   }
@@ -689,6 +1148,9 @@ function parseObject(idlTypeObject) {
   }
   if (idlTypeObject.hasOwnProperty("vec64")) {
     return parseVec(ToolboxIdlTypePrefix.U64, idlTypeObject["vec64"]);
+  }
+  if (idlTypeObject.hasOwnProperty("vec128")) {
+    return parseVec(ToolboxIdlTypePrefix.U128, idlTypeObject["vec128"]);
   }
   if (idlTypeObject.hasOwnProperty("array")) {
     return parseArray(idlTypeObject["array"]);
@@ -710,6 +1172,9 @@ function parseObject(idlTypeObject) {
   }
   if (idlTypeObject.hasOwnProperty("variants64")) {
     return parseEnum(ToolboxIdlTypePrefix.U64, idlTypeObject["variants64"]);
+  }
+  if (idlTypeObject.hasOwnProperty("variants128")) {
+    return parseEnum(ToolboxIdlTypePrefix.U128, idlTypeObject["variants128"]);
   }
   if (idlTypeObject.hasOwnProperty("padded")) {
     return parsePadded(idlTypeObject["padded"]);
@@ -759,6 +1224,9 @@ function parseString(idlTypeString) {
   if (idlTypeString === "string64") {
     return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U64 });
   }
+  if (idlTypeString === "string128") {
+    return ToolboxIdlTypeFlat.string({ prefix: ToolboxIdlTypePrefix.U128 });
+  }
   let primitive = ToolboxIdlTypePrimitive.primitiveByName.get(idlTypeString);
   return primitive ? ToolboxIdlTypeFlat.primitive(primitive) : ToolboxIdlTypeFlat.defined({
     name: idlTypeString,
@@ -806,36 +1274,72 @@ function parseStruct(idlStructFields) {
   return ToolboxIdlTypeFlat.struct({ fields: parseFields(idlStructFields) });
 }
 function parseEnum(idlEnumPrefix, idlEnumVariants) {
-  let variants = ToolboxUtils.expectArray(idlEnumVariants).map(
-    (variant, index) => {
-      return parseEnumVariant(index, variant);
+  let variants = [];
+  if (ToolboxUtils.isArray(idlEnumVariants)) {
+    for (let i = 0; i < idlEnumVariants.length; i++) {
+      let idlEnumVariant = idlEnumVariants[i];
+      let idlEnumVariantCode = i;
+      if (ToolboxUtils.isNumber(idlEnumVariant)) {
+        idlEnumVariantCode = idlEnumVariant;
+      }
+      if (ToolboxUtils.isObject(idlEnumVariant)) {
+        idlEnumVariantCode = ToolboxUtils.expectNumber(
+          idlEnumVariant["code"] ?? idlEnumVariantCode
+        );
+      }
+      let idlEnumVariantName = idlEnumVariantCode.toString();
+      if (ToolboxUtils.isString(idlEnumVariant)) {
+        idlEnumVariantName = idlEnumVariant;
+      }
+      if (ToolboxUtils.isObject(idlEnumVariant)) {
+        idlEnumVariantName = ToolboxUtils.expectString(
+          idlEnumVariant["name"] ?? idlEnumVariantName
+        );
+      }
+      variants.push(
+        parseEnumVariant(
+          idlEnumVariantName,
+          ToolboxUtils.expectNumber(idlEnumVariantCode),
+          idlEnumVariant
+        )
+      );
     }
-  );
+  }
+  if (ToolboxUtils.isObject(idlEnumVariants)) {
+    Object.entries(idlEnumVariants).forEach(
+      ([idlEnumVariantName, idlEnumVariant]) => {
+        let idlEnumVariantCode;
+        if (ToolboxUtils.isNumber(idlEnumVariant)) {
+          idlEnumVariantCode = idlEnumVariant;
+        } else {
+          idlEnumVariantCode = ToolboxUtils.expectObject(idlEnumVariant)["code"];
+        }
+        variants.push(
+          parseEnumVariant(
+            idlEnumVariantName,
+            ToolboxUtils.expectNumber(idlEnumVariantCode),
+            idlEnumVariant
+          )
+        );
+      }
+    );
+  }
   return ToolboxIdlTypeFlat.enum({
     prefix: idlEnumPrefix,
     variants
   });
 }
-function parseEnumVariant(idlEnumVariantIndex, idlEnumVariant) {
-  if (ToolboxUtils.isString(idlEnumVariant)) {
-    return {
-      name: idlEnumVariant,
-      docs: void 0,
-      code: idlEnumVariantIndex,
-      fields: ToolboxIdlTypeFlatFields.unnamed([])
-    };
+function parseEnumVariant(idlEnumVariantName, idlEnumVariantCode, idlEnumVariant) {
+  let docs = void 0;
+  let fields = ToolboxIdlTypeFlatFields.nothing();
+  if (ToolboxUtils.isObject(idlEnumVariant)) {
+    docs = idlEnumVariant["docs"];
+    fields = parseFields(idlEnumVariant["fields"]);
   }
-  ToolboxUtils.expectObject(idlEnumVariant);
-  let name = ToolboxUtils.expectString(idlEnumVariant["name"]);
-  let docs = idlEnumVariant["docs"];
-  let code = ToolboxUtils.expectNumber(
-    idlEnumVariant["code"] ?? idlEnumVariantIndex
-  );
-  let fields = parseFields(idlEnumVariant["fields"]);
   return {
-    name,
+    name: idlEnumVariantName,
     docs,
-    code,
+    code: idlEnumVariantCode,
     fields
   };
 }
@@ -844,7 +1348,7 @@ function parsePadded(idlPadded) {
     before: ToolboxUtils.expectNumber(idlPadded["before"] ?? 0),
     minSize: ToolboxUtils.expectNumber(idlPadded["min_size"] ?? 0),
     after: ToolboxUtils.expectNumber(idlPadded["after"] ?? 0),
-    content: parse(idlPadded["content"])
+    content: parse(idlPadded)
   });
 }
 function parseConst(idlConstValue) {
@@ -854,7 +1358,7 @@ function parseConst(idlConstValue) {
 }
 function parseFields(idlFields) {
   if (idlFields === void 0) {
-    return ToolboxIdlTypeFlatFields.unnamed([]);
+    return ToolboxIdlTypeFlatFields.nothing();
   }
   ToolboxUtils.expectArray(idlFields);
   let named = false;
@@ -875,7 +1379,14 @@ function parseFields(idlFields) {
   if (named) {
     return ToolboxIdlTypeFlatFields.named(fieldsInfos);
   }
-  return ToolboxIdlTypeFlatFields.unnamed(fieldsInfos);
+  return ToolboxIdlTypeFlatFields.unnamed(
+    fieldsInfos.map((fieldInfo) => {
+      return {
+        docs: fieldInfo.docs,
+        content: fieldInfo.content
+      };
+    })
+  );
 }
 
 // src/ToolboxIdlTypeFull.deserialize.ts
@@ -885,7 +1396,9 @@ function deserialize(typeFull, data, dataOffset) {
 }
 var deserializeVisitor = {
   typedef: (self, data, dataOffset) => {
-    return deserialize(self.content, data, dataOffset);
+    return ToolboxUtils.withContext(() => {
+      return deserialize(self.content, data, dataOffset);
+    }, `Deserialize: Typedef: ${self.name} (offset: ${dataOffset})`);
   },
   option: (self, data, dataOffset) => {
     let [dataSize, dataPrefix] = deserializePrefix(
@@ -893,7 +1406,7 @@ var deserializeVisitor = {
       data,
       dataOffset
     );
-    if (dataPrefix % 255 == 0) {
+    if ((dataPrefix & 1) == 0) {
       return [dataSize, null];
     }
     let dataContentOffset = dataOffset + dataSize;
@@ -958,6 +1471,10 @@ var deserializeVisitor = {
     return deserializeFields(self.fields, data, dataOffset);
   },
   enum: (self, data, dataOffset) => {
+    let enumMask = 0;
+    for (let variant of self.variants) {
+      enumMask |= variant.code;
+    }
     let [dataSize, dataPrefix] = deserializePrefix(
       self.prefix,
       data,
@@ -965,25 +1482,20 @@ var deserializeVisitor = {
     );
     let dataVariantOffset = dataOffset + dataSize;
     for (let variant of self.variants) {
-      if (variant.code == dataPrefix) {
-        let [dataVariantSize, dataVariant] = deserializeFields(
-          variant.fields,
-          data,
-          dataVariantOffset
-        );
+      if (variant.code === (dataPrefix & enumMask)) {
+        let [dataVariantSize, dataVariant] = ToolboxUtils.withContext(() => {
+          return deserializeFields(variant.fields, data, dataVariantOffset);
+        }, `Deserialize: Enum Variant: ${variant.name} (offset: ${dataVariantOffset})`);
         dataSize += dataVariantSize;
         if (dataVariant === null) {
           return [dataSize, variant.name];
         }
-        return [
-          dataSize,
-          {
-            [variant.name]: dataVariant
-          }
-        ];
+        return [dataSize, { [variant.name]: dataVariant }];
       }
     }
-    throw new Error("Could not deserialize enum with code: " + dataPrefix);
+    throw new Error(
+      `Deserialize: Unknown enum code: ${dataPrefix} (offset: ${dataOffset})`
+    );
   },
   padded: (self, data, dataOffset) => {
     let dataSize = self.before;
@@ -997,7 +1509,7 @@ var deserializeVisitor = {
     dataSize += self.after;
     return [dataSize, dataContent];
   },
-  const: (self, data, dataOffset) => {
+  const: (_self, _data, _dataOffset) => {
     throw new Error("Cannot deserialize a const type");
   },
   primitive: (self, data, dataOffset) => {
@@ -1016,11 +1528,9 @@ var deserializeFieldsVisitor = {
     let dataFields = {};
     for (let field of self) {
       let dataFieldOffset = dataOffset + dataSize;
-      let [dataFieldSize, dataField] = deserialize(
-        field.content,
-        data,
-        dataFieldOffset
-      );
+      let [dataFieldSize, dataField] = ToolboxUtils.withContext(() => {
+        return deserialize(field.content, data, dataFieldOffset);
+      }, `Deserialize: Field: ${field.name} (offset: ${dataFieldOffset})`);
       dataSize += dataFieldSize;
       dataFields[field.name] = dataField;
     }
@@ -1034,11 +1544,9 @@ var deserializeFieldsVisitor = {
     let dataFields = [];
     for (let field of self) {
       let dataFieldOffset = dataOffset + dataSize;
-      let [dataFieldSize, dataField] = deserialize(
-        field.content,
-        data,
-        dataFieldOffset
-      );
+      let [dataFieldSize, dataField] = ToolboxUtils.withContext(() => {
+        return deserialize(field.content, data, dataFieldOffset);
+      }, `Deserialize: Field: ${field.position} (offset: ${dataFieldOffset})`);
       dataSize += dataFieldSize;
       dataFields.push(dataField);
     }
@@ -1062,7 +1570,10 @@ var deserializePrefixVisitor = {
     return data.readUInt32LE(dataOffset);
   },
   u64: (data, dataOffset) => {
-    return Number(data.readBigUInt64LE(dataOffset));
+    return Number(data.readBigUInt64LE(dataOffset) & 0xffffffffffffn);
+  },
+  u128: (data, dataOffset) => {
+    return Number(data.readBigUInt64LE(dataOffset) & 0xffffffffffffn);
   }
 };
 function deserializePrimitive(primitive, data, dataOffset) {
@@ -1082,10 +1593,12 @@ var deserializePrimitiveVisitor = {
     return data.readUInt32LE(dataOffset);
   },
   u64: (data, dataOffset) => {
-    return Number(data.readBigUInt64LE(dataOffset));
+    return data.readBigUInt64LE(dataOffset);
   },
   u128: (data, dataOffset) => {
-    return Number(data.readBigUInt64LE(dataOffset));
+    let low = data.readBigUInt64LE(dataOffset);
+    let high = data.readBigUInt64LE(dataOffset + 8);
+    return low | high << 64n;
   },
   i8: (data, dataOffset) => {
     return data.readInt8(dataOffset);
@@ -1097,10 +1610,12 @@ var deserializePrimitiveVisitor = {
     return data.readInt32LE(dataOffset);
   },
   i64: (data, dataOffset) => {
-    return Number(data.readBigInt64LE(dataOffset));
+    return data.readBigInt64LE(dataOffset);
   },
   i128: (data, dataOffset) => {
-    return Number(data.readBigInt64LE(dataOffset));
+    let low = data.readBigUInt64LE(dataOffset);
+    let high = data.readBigInt64LE(dataOffset + 8);
+    return low | high << 64n;
   },
   f32: (data, dataOffset) => {
     return data.readFloatLE(dataOffset);
@@ -1123,7 +1638,9 @@ function serialize(typeFull, value, data, deserializable) {
 }
 var serializeVisitor = {
   typedef: (self, value, data, deserializable) => {
-    serialize(self.content, value, data, deserializable);
+    ToolboxUtils.withContext(() => {
+      return serialize(self.content, value, data, deserializable);
+    }, `Serialize: Typedef: ${self.name}`);
   },
   option: (self, value, data, deserializable) => {
     if (value === null) {
@@ -1145,7 +1662,7 @@ var serializeVisitor = {
   array: (self, value, data, deserializable) => {
     let array = ToolboxUtils.expectArray(value);
     if (array.length != self.length) {
-      throw new Error("Expected an array of size: " + self.length);
+      throw new Error(`Expected an array of size: ${self.length}`);
     }
     for (let item of array) {
       serialize(self.items, item, data, deserializable);
@@ -1162,36 +1679,35 @@ var serializeVisitor = {
     serializeFields(self.fields, value, data, deserializable);
   },
   enum: (self, value, data, deserializable) => {
+    function serializeEnumVariant(variant, value2) {
+      ToolboxUtils.withContext(() => {
+        serializePrefix(self.prefix, variant.code, data);
+        serializeFields(variant.fields, value2, data, deserializable);
+      }, `Serialize: Enum Variant: ${variant.name}`);
+    }
     if (ToolboxUtils.isNumber(value)) {
       for (let variant of self.variants) {
         if (variant.code == value) {
-          serializePrefix(self.prefix, variant.code, data);
-          serializeFields(variant.fields, null, data, deserializable);
-          return;
+          return serializeEnumVariant(variant, null);
         }
       }
-      throw new Error("Could not find enum variant with code: " + value);
+      throw new Error(`Could not find enum variant with code: ${value}`);
     }
     if (ToolboxUtils.isString(value)) {
       for (let variant of self.variants) {
         if (variant.name == value) {
-          serializePrefix(self.prefix, variant.code, data);
-          serializeFields(variant.fields, null, data, deserializable);
-          return;
+          return serializeEnumVariant(variant, null);
         }
       }
-      throw new Error("Could not find enum variant with name: " + value);
+      throw new Error(`Could not find enum variant with name: ${value}`);
     }
     if (ToolboxUtils.isObject(value)) {
       for (let variant of self.variants) {
         if (value.hasOwnProperty(variant.name)) {
-          let valueFields = value[variant.name];
-          serializePrefix(self.prefix, variant.code, data);
-          serializeFields(variant.fields, valueFields, data, deserializable);
-          return;
+          return serializeEnumVariant(variant, value[variant.name]);
         }
       }
-      throw new Error("Could not gues enum from object keys");
+      throw new Error("Could not guess enum variant from object key");
     }
     throw new Error("Expected enum value to be: number/string or object");
   },
@@ -1214,10 +1730,10 @@ var serializeVisitor = {
       data.push(Buffer.alloc(self.after));
     }
   },
-  const: (self, value, data, deserializable) => {
+  const: (_self, _value, _data, _deserializable) => {
     throw new Error("Cannot serialize a const type");
   },
-  primitive: (self, value, data, deserializable) => {
+  primitive: (self, value, data, _deserializable) => {
     serializePrimitive(self, value, data);
   }
 };
@@ -1231,7 +1747,9 @@ var serializeFieldsVisitor = {
     }
     ToolboxUtils.expectObject(value);
     for (let field of self) {
-      serialize(field.content, value[field.name], data, deserializable);
+      ToolboxUtils.withContext(() => {
+        serialize(field.content, value[field.name], data, deserializable);
+      }, `Serialize: Field: ${field.name}`);
     }
   },
   unnamed: (self, value, data, deserializable) => {
@@ -1239,8 +1757,10 @@ var serializeFieldsVisitor = {
       return;
     }
     ToolboxUtils.expectArray(value);
-    for (let i = 0; i < self.length; i++) {
-      serialize(self[i].content, value[i], data, deserializable);
+    for (let field of self) {
+      ToolboxUtils.withContext(() => {
+        serialize(field.content, value[field.position], data, deserializable);
+      }, `Serialize: Field: ${field.position}`);
     }
   }
 };
@@ -1261,6 +1781,9 @@ var serializePrefixVisitor = {
   },
   u64: (buffer, value) => {
     buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+  },
+  u128: (buffer, value) => {
+    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
   }
 };
 function serializePrimitive(primitive, value, data) {
@@ -1279,10 +1802,14 @@ var serializePrimitiveVisitor = {
     buffer.writeUInt32LE(ToolboxUtils.expectNumber(value));
   },
   u64: (buffer, value) => {
-    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    buffer.writeBigUInt64LE(ToolboxUtils.expectBigInt(value));
   },
   u128: (buffer, value) => {
-    buffer.writeBigUInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    let num = ToolboxUtils.expectBigInt(value);
+    let low = num & 0xffffffffffffffffn;
+    let high = num >> 64n & 0xffffffffffffffffn;
+    buffer.writeBigUInt64LE(low, 0);
+    buffer.writeBigUInt64LE(high, 8);
   },
   i8: (buffer, value) => {
     buffer.writeInt8(ToolboxUtils.expectNumber(value));
@@ -1294,10 +1821,14 @@ var serializePrimitiveVisitor = {
     buffer.writeInt32LE(ToolboxUtils.expectNumber(value));
   },
   i64: (buffer, value) => {
-    buffer.writeBigInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    buffer.writeBigInt64LE(ToolboxUtils.expectBigInt(value));
   },
   i128: (buffer, value) => {
-    buffer.writeBigInt64LE(BigInt(ToolboxUtils.expectNumber(value)));
+    let num = ToolboxUtils.expectBigInt(value);
+    let low = BigInt.asIntN(64, num);
+    let high = BigInt.asIntN(64, num >> 64n);
+    buffer.writeBigInt64LE(low, 0);
+    buffer.writeBigInt64LE(high, 8);
   },
   f32: (buffer, value) => {
     buffer.writeFloatLE(ToolboxUtils.expectNumber(value));
@@ -1329,7 +1860,7 @@ var _ToolboxIdlAccount = class _ToolboxIdlAccount {
   static tryParse(idlAccountName, idlAccount, typedefs) {
     let docs = idlAccount["docs"];
     let discriminator = Buffer.from(
-      idlAccount["discriminator"] ?? ToolboxUtils.discriminator("account:" + idlAccountName)
+      idlAccount["discriminator"] ?? ToolboxUtils.discriminator(`account:${idlAccountName}`)
     );
     let contentTypeFlat = parseObjectIsPossible(idlAccount) ? parse(idlAccount) : parse(idlAccountName);
     let contentTypeFull = hydrate(contentTypeFlat, /* @__PURE__ */ new Map(), typedefs);
@@ -1349,7 +1880,7 @@ var _ToolboxIdlAccount = class _ToolboxIdlAccount {
   }
   decode(accountData) {
     this.check(accountData);
-    let [_, accountState] = deserialize(
+    let [, accountState] = deserialize(
       this.contentTypeFull,
       accountData,
       this.discriminator.length
@@ -1422,7 +1953,7 @@ var ToolboxIdlEvent = class _ToolboxIdlEvent {
     let docs = idlEvent["docs"];
     let discriminator = Buffer.from(
       ToolboxUtils.expectArray(
-        idlEvent["discriminator"] ?? ToolboxUtils.discriminator("event:" + idlEventName)
+        idlEvent["discriminator"] ?? ToolboxUtils.discriminator(`event:${idlEventName}`)
       )
     );
     let infoTypeFlat = parseObjectIsPossible(idlEvent) ? parse(idlEvent) : parse(idlEventName);
@@ -1443,7 +1974,7 @@ var ToolboxIdlEvent = class _ToolboxIdlEvent {
   }
   decode(eventData) {
     this.check(eventData);
-    let [_, eventState] = deserialize(
+    let [, eventState] = deserialize(
       this.infoTypeFull,
       eventData,
       this.discriminator.length
@@ -1519,7 +2050,7 @@ var ToolboxIdlInstruction = class _ToolboxIdlInstruction {
   static tryParse(idlInstructionName, idlInstruction, typedefs, accounts) {
     let docs = idlInstruction["docs"];
     let discriminator = Buffer.from(
-      idlInstruction["discriminator"] ?? ToolboxUtils.discriminator("global:" + idlInstructionName)
+      idlInstruction["discriminator"] ?? ToolboxUtils.discriminator(`global:${idlInstructionName}`)
     );
     let idlInstructionAccounts = ToolboxUtils.expectArray(
       idlInstruction["accounts"] ?? []
@@ -1565,13 +2096,13 @@ var import_web35 = require("@solana/web3.js");
 
 // src/ToolboxIdlTypedef.ts
 var ToolboxIdlTypedef = class _ToolboxIdlTypedef {
-  constructor(name, docs, serialization, repr, generics, typeFlat) {
-    this.name = name;
-    this.docs = docs;
-    this.serialization = serialization;
-    this.repr = repr;
-    this.generics = generics;
-    this.typeFlat = typeFlat;
+  constructor(value) {
+    this.name = value.name;
+    this.docs = value.docs;
+    this.serialization = value.serialization;
+    this.repr = value.repr;
+    this.generics = value.generics;
+    this.typeFlat = value.typeFlat;
   }
   static tryParse(idlTypedefName, idlTypedef) {
     ToolboxUtils.expectObject(idlTypedef);
@@ -1599,14 +2130,14 @@ var ToolboxIdlTypedef = class _ToolboxIdlTypedef {
       }
     }
     let typeFlat = parse(idlTypedef);
-    return new _ToolboxIdlTypedef(
-      idlTypedefName,
+    return new _ToolboxIdlTypedef({
+      name: idlTypedefName,
       docs,
       serialization,
       repr,
       generics,
       typeFlat
-    );
+    });
   }
 };
 
@@ -1846,367 +2377,6 @@ var ToolboxIdlService = class _ToolboxIdlService {
     };
   }
 };
-
-// src/ToolboxIdlTypeFull.bytemuck.ts
-function bytemuckTypedef(typedef) {
-  let contentPod;
-  if (typedef.repr === void 0) {
-    contentPod = bytemuckReprRust(typedef.content);
-  } else if (typedef.repr === "c") {
-    contentPod = bytemuckReprC(typedef.content);
-  } else if (typedef.repr === "rust") {
-    contentPod = bytemuckReprRust(typedef.content);
-  } else {
-    throw new Error("Bytemuck: unsupported repr: " + typedef.repr);
-  }
-  return {
-    alignment: contentPod.alignment,
-    size: contentPod.size,
-    value: ToolboxIdlTypeFull.typedef({
-      name: typedef.name,
-      repr: typedef.repr,
-      content: contentPod.value
-    })
-  };
-}
-function bytemuckReprC(value) {
-  return value.traverse(bytemuckReprCVisitor, void 0, void 0, void 0);
-}
-var bytemuckReprCVisitor = {
-  typedef: (self) => {
-    return bytemuckTypedef(self);
-  },
-  option: (self) => {
-    let contentPod = bytemuckReprC(self.content);
-    let alignment = Math.max(self.prefix.size, contentPod.alignment);
-    let size = alignment + contentPod.size;
-    return {
-      alignment,
-      size,
-      value: ToolboxIdlTypeFull.padded({
-        before: 0,
-        minSize: size,
-        after: 0,
-        content: ToolboxIdlTypeFull.option({
-          prefix: internalPrefixFromAlignment(alignment),
-          content: contentPod.value
-        })
-      })
-    };
-  },
-  vec: (self) => {
-    throw new Error("Bytemuck: Repr(C): Vec is not supported");
-  },
-  array: (self) => {
-    let itemsPod = bytemuckReprC(self.items);
-    let alignment = itemsPod.alignment;
-    let size = itemsPod.size * self.length;
-    return {
-      alignment,
-      size,
-      value: ToolboxIdlTypeFull.array({
-        items: itemsPod.value,
-        length: self.length
-      })
-    };
-  },
-  string: (self) => {
-    throw new Error("Bytemuck: Repr(C): String is not supported");
-  },
-  struct: (self) => {
-    let fieldsPod = bytemuckFields(self.fields, 0, false);
-    return {
-      alignment: fieldsPod.alignment,
-      size: fieldsPod.size,
-      value: ToolboxIdlTypeFull.struct({
-        fields: fieldsPod.value
-      })
-    };
-  },
-  enum: (self) => {
-    let alignment = Math.max(4, self.prefix.size);
-    let size = 0;
-    let variantsReprC = [];
-    for (let variant of self.variants) {
-      let variantFieldsPod = bytemuckFields(variant.fields, 0, false);
-      alignment = Math.max(alignment, variantFieldsPod.alignment);
-      size = Math.max(size, variantFieldsPod.size);
-      variantsReprC.push({
-        name: variant.name,
-        code: variant.code,
-        fields: variantFieldsPod.value
-      });
-    }
-    size += alignment;
-    return {
-      alignment,
-      size,
-      value: ToolboxIdlTypeFull.padded({
-        before: 0,
-        minSize: size,
-        after: 0,
-        content: ToolboxIdlTypeFull.enum({
-          prefix: internalPrefixFromAlignment(alignment),
-          variants: variantsReprC
-        })
-      })
-    };
-  },
-  padded: (self) => {
-    throw new Error("Bytemuck: Repr(C): Padded is not supported");
-  },
-  const: (self) => {
-    throw new Error("Bytemuck: Repr(C): Const is not supported");
-  },
-  primitive: (self) => {
-    return {
-      alignment: self.alignment,
-      size: self.size,
-      value: ToolboxIdlTypeFull.primitive(self)
-    };
-  }
-};
-function bytemuckReprRust(value) {
-  return value.traverse(
-    bytemuckReprRustVisitor,
-    void 0,
-    void 0,
-    void 0
-  );
-}
-var bytemuckReprRustVisitor = {
-  typedef: (self) => {
-    return bytemuckTypedef(self);
-  },
-  option: (self) => {
-    let contentPod = bytemuckReprRust(self.content);
-    let alignment = Math.max(self.prefix.size, contentPod.alignment);
-    let size = alignment + contentPod.size;
-    return {
-      alignment,
-      size,
-      value: ToolboxIdlTypeFull.padded({
-        before: 0,
-        minSize: size,
-        after: 0,
-        content: ToolboxIdlTypeFull.option({
-          prefix: internalPrefixFromAlignment(alignment),
-          content: contentPod.value
-        })
-      })
-    };
-  },
-  vec: (self) => {
-    throw new Error("Bytemuck: Repr(Rust): Vec is not supported");
-  },
-  array: (self) => {
-    let itemsPod = bytemuckReprRust(self.items);
-    let alignment = itemsPod.alignment;
-    let size = itemsPod.size * self.length;
-    return {
-      alignment,
-      size,
-      value: ToolboxIdlTypeFull.array({
-        items: itemsPod.value,
-        length: self.length
-      })
-    };
-  },
-  string: (self) => {
-    throw new Error("Bytemuck: Repr(Rust): String is not supported");
-  },
-  struct: (self) => {
-    let fieldsPod = bytemuckFields(self.fields, 0, false);
-    return {
-      alignment: fieldsPod.alignment,
-      size: fieldsPod.size,
-      value: ToolboxIdlTypeFull.struct({
-        fields: fieldsPod.value
-      })
-    };
-  },
-  enum: (self) => {
-    let alignment = self.prefix.size;
-    let size = self.prefix.size;
-    let variantsReprRust = [];
-    for (let variant of self.variants) {
-      let variantFieldsPod = bytemuckFields(
-        variant.fields,
-        self.prefix.size,
-        true
-      );
-      alignment = Math.max(alignment, variantFieldsPod.alignment);
-      size = Math.max(size, variantFieldsPod.size);
-      variantsReprRust.push({
-        name: variant.name,
-        code: variant.code,
-        fields: variantFieldsPod.value
-      });
-    }
-    size += internalAlignmentPaddingNeeded(size, alignment);
-    return {
-      alignment,
-      size,
-      value: ToolboxIdlTypeFull.padded({
-        before: 0,
-        minSize: size,
-        after: 0,
-        content: ToolboxIdlTypeFull.enum({
-          prefix: internalPrefixFromAlignment(alignment),
-          variants: variantsReprRust
-        })
-      })
-    };
-  },
-  padded: (self) => {
-    throw new Error("Bytemuck: Repr(Rust): Padded is not supported");
-  },
-  const: (self) => {
-    throw new Error("Bytemuck: Repr(Rust): Const is not supported");
-  },
-  primitive: (self) => {
-    return {
-      alignment: self.alignment,
-      size: self.size,
-      value: ToolboxIdlTypeFull.primitive(self)
-    };
-  }
-};
-function bytemuckFields(typeFields, prefixSize, rustReorder) {
-  return typeFields.traverse(
-    bytemuckFieldsVisitor,
-    prefixSize,
-    rustReorder,
-    void 0
-  );
-}
-var bytemuckFieldsVisitor = {
-  named: (self, prefixSize, rustReorder) => {
-    let fieldsInfosPods = self.map((field) => {
-      let contentPod = bytemuckReprRust(field.content);
-      return {
-        alignment: contentPod.alignment,
-        size: contentPod.size,
-        meta: field.name,
-        type: contentPod.value
-      };
-    });
-    if (rustReorder) {
-      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods);
-    }
-    let fieldsInfosPadded = internalFieldsInfoAligned(
-      prefixSize,
-      fieldsInfosPods
-    );
-    return {
-      alignment: fieldsInfosPadded.alignment,
-      size: fieldsInfosPadded.size,
-      value: ToolboxIdlTypeFullFields.named(
-        fieldsInfosPadded.value.map((fieldInfo) => {
-          return {
-            name: fieldInfo.meta,
-            content: fieldInfo.type
-          };
-        })
-      )
-    };
-  },
-  unnamed: (self, prefixSize, rustReorder) => {
-    let fieldsInfosPods = self.map((field) => {
-      let contentPod = bytemuckReprRust(field.content);
-      return {
-        alignment: contentPod.alignment,
-        size: contentPod.size,
-        meta: field.position,
-        type: contentPod.value
-      };
-    });
-    if (rustReorder) {
-      internalVerifyUnstableOrder(prefixSize, fieldsInfosPods);
-    }
-    let fieldsInfosPadded = internalFieldsInfoAligned(
-      prefixSize,
-      fieldsInfosPods
-    );
-    return {
-      alignment: fieldsInfosPadded.alignment,
-      size: fieldsInfosPadded.size,
-      value: ToolboxIdlTypeFullFields.unnamed(
-        fieldsInfosPadded.value.map((fieldInfo) => {
-          return {
-            position: fieldInfo.meta,
-            content: fieldInfo.type
-          };
-        })
-      )
-    };
-  }
-};
-function internalFieldsInfoAligned(prefixSize, fieldsInfo) {
-  let alignment = prefixSize;
-  let size = prefixSize;
-  let lastFieldIndex = fieldsInfo.length - 1;
-  let fieldsInfoPadded = [];
-  for (let i = 0; i < fieldsInfo.length; i++) {
-    let {
-      alignment: fieldAlignment,
-      size: fieldSize,
-      meta: fieldMeta,
-      type: fieldType
-    } = fieldsInfo[i];
-    alignment = Math.max(alignment, fieldAlignment);
-    let paddingBefore = internalAlignmentPaddingNeeded(size, fieldAlignment);
-    size += paddingBefore + fieldSize;
-    let paddingAfter = 0;
-    if (i == lastFieldIndex) {
-      paddingAfter = internalAlignmentPaddingNeeded(size, alignment);
-    }
-    size += paddingAfter;
-    if (paddingBefore == 0 && paddingAfter == 0) {
-      fieldsInfoPadded.push({ meta: fieldMeta, type: fieldType });
-    } else {
-      fieldsInfoPadded.push({
-        meta: fieldMeta,
-        type: ToolboxIdlTypeFull.padded({
-          before: paddingBefore,
-          minSize: fieldSize,
-          after: paddingAfter,
-          content: fieldType
-        })
-      });
-    }
-  }
-  return {
-    alignment,
-    size,
-    value: fieldsInfo
-  };
-}
-function internalAlignmentPaddingNeeded(offset, alignment) {
-  let missalignment = offset % alignment;
-  if (missalignment == 0) {
-    return 0;
-  }
-  return alignment - missalignment;
-}
-function internalVerifyUnstableOrder(prefixSize, fieldsInfo) {
-  if (prefixSize == 0 && fieldsInfo.length <= 2) {
-    return;
-  }
-  if (fieldsInfo.length <= 1) {
-    return;
-  }
-  throw new Error(
-    "Bytemuck: Repr(Rust): Structs/Enums/Tuples fields ordering is compiler-dependent. Use Repr(C) instead."
-  );
-}
-function internalPrefixFromAlignment(alignment) {
-  let prefix = ToolboxIdlTypePrefix.prefixesBySize.get(alignment);
-  if (prefix === void 0) {
-    throw new Error("Unknown prefix size: " + alignment);
-  }
-  return prefix;
-}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   ToolboxEndpoint,

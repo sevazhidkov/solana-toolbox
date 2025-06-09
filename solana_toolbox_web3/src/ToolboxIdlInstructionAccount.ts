@@ -4,13 +4,13 @@ import { ToolboxIdlTypedef } from './ToolboxIdlTypedef';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlInstructionAccount {
-  public name: string;
-  public docs: any;
-  public writable: boolean;
-  public signer: boolean;
-  public optional: boolean;
-  public address: PublicKey | undefined;
-  public pda: any[] | undefined;
+  public readonly name: string;
+  public readonly docs: any;
+  public readonly writable: boolean;
+  public readonly signer: boolean;
+  public readonly optional: boolean;
+  public readonly address: PublicKey | undefined;
+  public readonly pda: any[] | undefined;
 
   constructor(value: {
     name: string;

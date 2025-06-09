@@ -33,15 +33,17 @@ declare class ToolboxIdlTypePrefix {
     static readonly U16: ToolboxIdlTypePrefix;
     static readonly U32: ToolboxIdlTypePrefix;
     static readonly U64: ToolboxIdlTypePrefix;
+    static readonly U128: ToolboxIdlTypePrefix;
     static readonly prefixesBySize: Map<number, ToolboxIdlTypePrefix>;
     name: string;
     size: number;
     private constructor();
-    traverse<P1, P2, P3, T>(visitor: {
+    traverse<P1, P2, T>(visitor: {
         u8: (param1: P1, param2: P2) => T;
         u16: (param1: P1, param2: P2) => T;
         u32: (param1: P1, param2: P2) => T;
         u64: (param1: P1, param2: P2) => T;
+        u128: (param1: P1, param2: P2) => T;
     }, param1: P1, param2: P2): T;
 }
 
@@ -172,6 +174,7 @@ declare class ToolboxIdlTypeFlatFields {
     private constructor();
     static named(content: ToolboxIdlTypeFlatFieldNamed[]): ToolboxIdlTypeFlatFields;
     static unnamed(content: ToolboxIdlTypeFlatFieldUnnamed[]): ToolboxIdlTypeFlatFields;
+    static nothing(): ToolboxIdlTypeFlatFields;
     traverse<P1, P2, T>(visitor: {
         named: (value: ToolboxIdlTypeFlatFieldNamed[], param1: P1, param2: P2) => T;
         unnamed: (value: ToolboxIdlTypeFlatFieldUnnamed[], param1: P1, param2: P2) => T;
@@ -185,7 +188,14 @@ declare class ToolboxIdlTypedef {
     repr?: string;
     generics: string[];
     typeFlat: ToolboxIdlTypeFlat;
-    constructor(name: string, docs: any, serialization: string | undefined, repr: string | undefined, generics: string[], typeFlat: ToolboxIdlTypeFlat);
+    constructor(value: {
+        name: string;
+        docs: any;
+        serialization: string | undefined;
+        repr: string | undefined;
+        generics: string[];
+        typeFlat: ToolboxIdlTypeFlat;
+    });
     static tryParse(idlTypedefName: string, idlTypedef: any): ToolboxIdlTypedef;
 }
 
@@ -273,6 +283,7 @@ declare class ToolboxIdlTypeFullFields {
     private constructor();
     static named(content: ToolboxIdlTypeFullFieldNamed[]): ToolboxIdlTypeFullFields;
     static unnamed(content: ToolboxIdlTypeFullFieldUnnamed[]): ToolboxIdlTypeFullFields;
+    static nothing(): ToolboxIdlTypeFullFields;
     traverse<P1, P2, P3, T>(visitor: {
         named: (value: ToolboxIdlTypeFullFieldNamed[], param1: P1, param2: P2, param3: P3) => T;
         unnamed: (value: ToolboxIdlTypeFullFieldUnnamed[], param1: P1, param2: P2, param3: P3) => T;

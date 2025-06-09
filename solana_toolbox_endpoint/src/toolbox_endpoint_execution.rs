@@ -9,13 +9,13 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointExecution {
+    // TODO - support block unix timestamp ?
     pub slot: u64,
     pub payer: Pubkey,
     pub instructions: Vec<Instruction>,
     pub steps: Option<Vec<ToolboxEndpointExecutionStep>>,
     pub logs: Option<Vec<String>>,
     pub error: Option<TransactionError>,
-    pub return_data: Option<Vec<u8>>,
     pub units_consumed: Option<u64>,
 }
 

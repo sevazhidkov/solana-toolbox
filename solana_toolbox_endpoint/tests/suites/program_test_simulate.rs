@@ -40,9 +40,9 @@ pub async fn run() {
     assert_eq!(
         simulation_success,
         ToolboxEndpointExecution {
+            slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_success],
-            slot: 1,
             error: None,
             steps: Some(vec![ToolboxEndpointExecutionStep::Call(
                 ToolboxEndpointExecutionStepCall {
@@ -58,7 +58,6 @@ pub async fn run() {
                     .to_string(),
                 "Program 11111111111111111111111111111111 success".to_string(),
             ]),
-            return_data: None,
             units_consumed: Some(150),
         },
     );
@@ -82,9 +81,9 @@ pub async fn run() {
     assert_eq!(
         simulation_failure,
         ToolboxEndpointExecution {
+            slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_failure],
-            slot: 1,
             error: Some(TransactionError::InstructionError(
                 0,
                 InstructionError::Custom(1)
@@ -109,7 +108,6 @@ pub async fn run() {
                 "Transfer: insufficient lamports 1999990000, need 10000000000".to_string(),
                 "Program 11111111111111111111111111111111 failed: custom program error: 0x1".to_string(),
             ]),
-            return_data: None,
             units_consumed: Some(150),
         },
     );
@@ -131,9 +129,9 @@ pub async fn run() {
     assert_eq!(
         simulation_returned,
         ToolboxEndpointExecution {
+            slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_returned],
-            slot: 1,
             error: None,
             steps: Some(vec![
                 ToolboxEndpointExecutionStep::Call(
@@ -145,7 +143,7 @@ pub async fn run() {
                             )
                         ],
                         consumed: Some((3034, 200000)),
-                        returns: Some(vec![32, 75, 188, 0, 0, 0, 0, 0]),
+                        returns: Some(12_340_000u64.to_le_bytes().to_vec()),
                         failure: None
                     }
                 )
@@ -157,7 +155,6 @@ pub async fn run() {
                 "Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA IEu8AAAAAAA=".to_string(),
                 "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success".to_string(),
             ]),
-            return_data: Some(12_340_000u64.to_le_bytes().to_vec()),
             units_consumed: Some(3034),
         },
     );
