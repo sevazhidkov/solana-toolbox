@@ -19,7 +19,7 @@ export class ToolboxIdlInstructionAccount {
     signer: boolean;
     optional: boolean;
     address?: PublicKey;
-    pda?: any[];
+    pda?: any[]; // TODO - support finding of accounts with PDAs and address
   }) {
     this.name = value.name;
     this.docs = value.docs;
