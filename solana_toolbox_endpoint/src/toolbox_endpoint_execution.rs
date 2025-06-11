@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::time::SystemTime;
 
 use anyhow::Result;
 use solana_sdk::instruction::Instruction;
@@ -9,7 +10,7 @@ use crate::toolbox_endpoint::ToolboxEndpoint;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolboxEndpointExecution {
-    // TODO - support block unix timestamp ?
+    pub processed_time: Option<SystemTime>,
     pub slot: u64,
     pub payer: Pubkey,
     pub instructions: Vec<Instruction>,

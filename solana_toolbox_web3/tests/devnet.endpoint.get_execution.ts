@@ -12,6 +12,7 @@ it('run', async () => {
   // Check that the execution details are correct
   expect(executionSuccess).toStrictEqual(
     new ToolboxEndpointExecution({
+      processedTime: new Date('2024-10-08T08:41:13.000Z'),
       slot: 331437116,
       payer: new PublicKey('Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi'),
       instructions: [

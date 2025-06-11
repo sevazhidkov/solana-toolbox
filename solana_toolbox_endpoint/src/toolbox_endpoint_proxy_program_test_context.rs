@@ -1,6 +1,8 @@
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::time::Duration;
+use std::time::SystemTime;
 
 use anyhow::anyhow;
 use anyhow::Result;
@@ -136,6 +138,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .await?;
         if let Some(simulation_details) = outcome.simulation_details {
             return Ok(ToolboxEndpointExecution {
+                processed_time: None,
                 slot: clock.slot,
                 payer,
                 instructions,
@@ -148,6 +151,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             });
         }
         Ok(ToolboxEndpointExecution {
+            processed_time: None,
             slot: clock.slot,
             payer,
             instructions,
@@ -205,12 +209,15 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
             .banks_client
             .get_sysvar::<Clock>()
             .await?;
+        let clock_time = SystemTime::UNIX_EPOCH
+            + Duration::from_secs(clock.unix_timestamp as u64);
         let signature = Signature::new_unique();
         for transaction_account in transaction_accounts {
             self.push_signature_for_address(transaction_account, signature);
         }
         let execution = match outcome.metadata {
             Some(metadata) => ToolboxEndpointExecution {
+                processed_time: Some(clock_time),
                 slot: clock.slot,
                 payer,
                 instructions,
@@ -222,6 +229,7 @@ impl ToolboxEndpointProxy for ToolboxEndpointProxyProgramTestContext {
                 units_consumed: Some(metadata.compute_units_consumed),
             },
             None => ToolboxEndpointExecution {
+                processed_time: Some(clock_time),
                 slot: clock.slot,
                 payer,
                 instructions,

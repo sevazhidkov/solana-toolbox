@@ -61,6 +61,7 @@ impl ToolboxEndpointProxyRpcClient {
             )
             .await?;
         Ok(ToolboxEndpointExecution {
+            processed_time: None,
             slot: outcome.context.slot,
             payer,
             instructions,

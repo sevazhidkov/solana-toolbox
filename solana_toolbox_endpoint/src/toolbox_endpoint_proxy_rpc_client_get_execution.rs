@@ -1,3 +1,6 @@
+use std::time::Duration;
+use std::time::SystemTime;
+
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
@@ -15,6 +18,7 @@ use crate::toolbox_endpoint_proxy_rpc_client::ToolboxEndpointProxyRpcClient;
 #[serde(rename_all = "camelCase")]
 struct GetTransactionResponse {
     pub transaction: GetTransactionResponseTransaction,
+    pub block_time: Option<i64>,
     pub slot: u64,
     pub meta: GetTransactionResponseMeta,
 }
@@ -134,6 +138,9 @@ impl ToolboxEndpointProxyRpcClient {
             &compiled_instructions,
         )?;
         Ok(Some(ToolboxEndpointExecution {
+            processed_time: response.block_time.map(|block_time| {
+                SystemTime::UNIX_EPOCH + Duration::from_secs(block_time as u64)
+            }),
             slot: response.slot,
             payer,
             instructions,

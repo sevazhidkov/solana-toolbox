@@ -1,4 +1,6 @@
 use std::str::FromStr;
+use std::time::Duration;
+use std::time::SystemTime;
 
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::instruction::Instruction;
@@ -23,6 +25,7 @@ pub async fn run() {
     assert_eq!(
         execution_success,
         ToolboxEndpointExecution {
+            processed_time: Some(SystemTime::UNIX_EPOCH + Duration::from_secs(1728376873)),
             slot: 331437116,
             payer: Pubkey::from_str("Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi")
             .unwrap(),

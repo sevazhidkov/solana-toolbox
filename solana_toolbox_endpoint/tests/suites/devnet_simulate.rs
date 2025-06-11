@@ -115,7 +115,9 @@ pub async fn run() {
         Some(vec![ToolboxEndpointExecutionStep::Call(
             ToolboxEndpointExecutionStepCall {
                 program_id: ToolboxEndpoint::SPL_TOKEN_PROGRAM_ID,
-                steps: vec![],
+                steps: vec![ToolboxEndpointExecutionStep::Log(
+                    "Instruction: UiAmountToAmount".to_string()
+                )],
                 consumed: Some((3034, 200000)),
                 returns: Some(12_340_000u64.to_le_bytes().to_vec()),
                 failure: None,

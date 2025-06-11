@@ -201,6 +201,9 @@ export class ToolboxEndpoint {
       compiledInstructions,
     );
     return new ToolboxEndpointExecution({
+      processedTime: response.blockTime
+        ? new Date(response.blockTime * 1000)
+        : null,
       slot: response.slot,
       payer: payer,
       instructions: instructions,

@@ -34,11 +34,15 @@ impl ToolboxIdlService {
         let idl_instruction = idl_program
             .guess_instruction(&instruction.data)
             .unwrap_or_default();
-        let (_, instruction_payload, instruction_addresses) = idl_instruction
+        let (
+            instruction_program_id,
+            instruction_payload,
+            instruction_addresses,
+        ) = idl_instruction
             .decode(instruction)
             .context("Decode Instruction")?;
         Ok(ToolboxIdlServiceInstructionDecoded {
-            program_id: instruction.program_id,
+            program_id: instruction_program_id,
             program: idl_program,
             instruction: idl_instruction,
             payload: instruction_payload,

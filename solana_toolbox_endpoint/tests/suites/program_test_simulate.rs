@@ -40,6 +40,7 @@ pub async fn run() {
     assert_eq!(
         simulation_success,
         ToolboxEndpointExecution {
+            processed_time: None,
             slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_success],
@@ -81,6 +82,7 @@ pub async fn run() {
     assert_eq!(
         simulation_failure,
         ToolboxEndpointExecution {
+            processed_time: None,
             slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_failure],
@@ -129,6 +131,7 @@ pub async fn run() {
     assert_eq!(
         simulation_returned,
         ToolboxEndpointExecution {
+            processed_time: None,
             slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_returned],

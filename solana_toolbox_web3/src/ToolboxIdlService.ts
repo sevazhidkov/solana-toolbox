@@ -7,6 +7,7 @@ import {
 import { ToolboxIdlProgram } from './ToolboxIdlProgram';
 import { ToolboxEndpoint } from './ToolboxEndpoint';
 import { ToolboxIdlAccount } from './ToolboxIdlAccount';
+import { ToolboxIdlInstruction } from './ToolboxIdlInstruction';
 
 export class ToolboxIdlService {
   private cachedPrograms: Map<PublicKey, ToolboxIdlProgram | null>;
@@ -81,6 +82,27 @@ export class ToolboxIdlService {
       program: idlProgram,
       account: idlAccount,
       state: accountState,
+    };
+  }
+
+  public async decodeInstruction(
+    endpoint: ToolboxEndpoint,
+    instruction: TransactionInstruction,
+  ) {
+    let idlProgram =
+      (await this.resolveProgram(endpoint, instruction.programId)) ??
+      ToolboxIdlProgram.Unknown;
+    let idlInstruction =
+      idlProgram.guessInstruction(instruction.data) ??
+      ToolboxIdlInstruction.Unknown;
+    let { instructionProgramId, instructionAddresses, instructionPayload } =
+      idlInstruction.decode(instruction);
+    return {
+      program: idlProgram,
+      instruction: idlInstruction,
+      instructionProgramId,
+      instructionAddresses,
+      instructionPayload,
     };
   }
 }

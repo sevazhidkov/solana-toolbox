@@ -21,6 +21,17 @@ import { serializeFields } from './ToolboxIdlTypeFull.serialize';
 import { ToolboxUtils } from './ToolboxUtils';
 
 export class ToolboxIdlInstruction {
+  public static readonly Unknown = new ToolboxIdlInstruction({
+    name: 'unknown',
+    docs: undefined,
+    discriminator: Buffer.from([]),
+    accounts: [],
+    argsTypeFlatFields: ToolboxIdlTypeFlatFields.nothing(),
+    argsTypeFullFields: ToolboxIdlTypeFullFields.nothing(),
+    returnTypeFlat: ToolboxIdlTypeFlat.nothing(),
+    returnTypeFull: ToolboxIdlTypeFull.nothing(),
+  });
+
   public readonly name: string;
   public readonly docs: any;
   public readonly discriminator: Buffer;

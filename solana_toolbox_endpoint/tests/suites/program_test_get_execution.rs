@@ -1,3 +1,6 @@
+use std::time::Duration;
+use std::time::SystemTime;
+
 use solana_sdk::instruction::InstructionError;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -19,6 +22,10 @@ pub async fn run() {
         .request_airdrop(&payer.pubkey(), 2_000_000_000)
         .await
         .unwrap();
+    // Fetch the clock
+    let clock = endpoint.get_sysvar_clock().await.unwrap();
+    let clock_time = SystemTime::UNIX_EPOCH
+        + Duration::from_secs(clock.unix_timestamp as u64);
     // Run an instruction that should succeed
     let account_success = Keypair::new();
     let program_success = Pubkey::new_unique();
@@ -44,6 +51,7 @@ pub async fn run() {
     assert_eq!(
         execution_success,
         ToolboxEndpointExecution {
+            processed_time: Some(clock_time),
             slot: 1,
             payer: payer.pubkey(),
             instructions: vec![instruction_success],
@@ -90,6 +98,7 @@ pub async fn run() {
         endpoint.get_execution(&processed_failure.0).await.unwrap();
     assert_eq!(execution_failure, processed_failure.1);
     assert_eq!(execution_failure, ToolboxEndpointExecution {
+        processed_time: Some(clock_time),
         slot: 1,
         payer: payer.pubkey(),
         instructions: vec![instruction_failure],

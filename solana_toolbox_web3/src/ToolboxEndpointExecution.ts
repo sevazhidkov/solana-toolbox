@@ -5,7 +5,7 @@ import {
 } from '@solana/web3.js';
 
 export class ToolboxEndpointExecution {
-  // TODO - support block time ?
+  public readonly processedTime: Date | null;
   public readonly slot: number;
   public readonly payer: PublicKey;
   public readonly instructions: TransactionInstruction[];
@@ -14,6 +14,7 @@ export class ToolboxEndpointExecution {
   public readonly unitsConsumed: number | null;
 
   constructor(value: {
+    processedTime: Date | null;
     slot: number;
     payer: PublicKey;
     instructions: TransactionInstruction[];
@@ -21,6 +22,7 @@ export class ToolboxEndpointExecution {
     error: TransactionError | null;
     unitsConsumed: number | null;
   }) {
+    this.processedTime = value.processedTime;
     this.slot = value.slot;
     this.payer = value.payer;
     this.instructions = value.instructions;
