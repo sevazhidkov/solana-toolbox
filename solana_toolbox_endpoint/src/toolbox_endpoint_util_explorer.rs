@@ -6,11 +6,11 @@ use solana_sdk::signature::Signature;
 use crate::toolbox_endpoint::ToolboxEndpoint;
 
 impl ToolboxEndpoint {
-    pub fn compute_explorer_address_link(
+    pub fn compute_explorer_address_url(
         rpc_url: &str,
         address: &Pubkey,
     ) -> String {
-        ToolboxEndpoint::compute_explorer_link(
+        ToolboxEndpoint::compute_explorer_url(
             rpc_url,
             "address",
             &address.to_string(),
@@ -18,11 +18,11 @@ impl ToolboxEndpoint {
         )
     }
 
-    pub fn compute_explorer_signature_link(
+    pub fn compute_explorer_signature_url(
         rpc_url: &str,
         signature: &Signature,
     ) -> String {
-        ToolboxEndpoint::compute_explorer_link(
+        ToolboxEndpoint::compute_explorer_url(
             rpc_url,
             "tx",
             &signature.to_string(),
@@ -30,7 +30,7 @@ impl ToolboxEndpoint {
         )
     }
 
-    pub fn compute_explorer_simulation_link(
+    pub fn compute_explorer_simulation_url(
         rpc_url: &str,
         transaction_signatures: &[Signature],
         transaction_message_serialized: &[u8],
@@ -51,7 +51,7 @@ impl ToolboxEndpoint {
             "message".to_string(),
             ToolboxEndpoint::encode_base64(transaction_message_serialized),
         );
-        ToolboxEndpoint::compute_explorer_link(
+        ToolboxEndpoint::compute_explorer_url(
             rpc_url,
             "tx",
             "inspector",
@@ -59,7 +59,7 @@ impl ToolboxEndpoint {
         )
     }
 
-    fn compute_explorer_link(
+    fn compute_explorer_url(
         rpc_url: &str,
         category: &str,
         payload: &str,

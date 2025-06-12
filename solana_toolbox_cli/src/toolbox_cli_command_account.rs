@@ -29,7 +29,7 @@ impl ToolboxCliCommandAccountArgs {
                 &account_decoded.account,
             ),
             "state": account_decoded.state,
-            "explorer": context.compute_explorer_address_link(&address),
+            "explorer_url": context.compute_explorer_address_url(&address),
         }))
     }
 }

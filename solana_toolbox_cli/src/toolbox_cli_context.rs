@@ -154,14 +154,14 @@ impl ToolboxCliContext {
         format!("?.{}", instruction.name)
     }
 
-    pub fn compute_explorer_address_link(&self, address: &Pubkey) -> String {
+    pub fn compute_explorer_address_url(&self, address: &Pubkey) -> String {
         ToolboxEndpoint::compute_explorer_address_link(
             &self.json_rpc_url,
             address,
         )
     }
 
-    pub fn compute_explorer_signature_link(
+    pub fn compute_explorer_signature_url(
         &self,
         signature: &Signature,
     ) -> String {
@@ -171,7 +171,7 @@ impl ToolboxCliContext {
         )
     }
 
-    pub fn compute_explorer_simulation_link(
+    pub fn compute_explorer_simulation_url(
         &self,
         transaction_signatures: &[Signature],
         transaction_message_serialized: &[u8],

@@ -20,6 +20,6 @@ pub async fn run() {
     );
     assert_eq!(
         &decoded.state["state"]["coordinator"]["config"]["min_clients"],
-        &json!(16)
+        &json!(24)
     );
 }

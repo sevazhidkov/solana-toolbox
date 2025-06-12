@@ -88,7 +88,7 @@ impl ToolboxCliCommandHistoryArgs {
                 json_history.push(json!({
                     "signature": signature.to_string(),
                     "instructions": json_instructions,
-                    "explorer": context.compute_explorer_signature_link(&signature),
+                    "explorer_url": context.compute_explorer_signature_url(&signature),
                 }));
             }
         }

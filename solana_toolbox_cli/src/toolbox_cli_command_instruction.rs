@@ -227,19 +227,18 @@ impl ToolboxCliCommandInstructionArgs {
                                 json!(signature.to_string()),
                             );
                             json_outcome.insert(
-                                "explorer".to_string(),
-                                json!(context.compute_explorer_signature_link(
+                                "explorer_url".to_string(),
+                                json!(context.compute_explorer_signature_url(
                                     &signature
                                 )),
                             );
                         } else {
                             json_outcome.insert(
-                                "explorer".to_string(),
-                                json!(context
-                                    .compute_explorer_simulation_link(
-                                        &transaction.signatures,
-                                        &transaction.message.serialize()
-                                    )),
+                                "explorer_url".to_string(),
+                                json!(context.compute_explorer_simulation_url(
+                                    &transaction.signatures,
+                                    &transaction.message.serialize()
+                                )),
                             );
                             match endpoint
                                 .simulate_transaction(

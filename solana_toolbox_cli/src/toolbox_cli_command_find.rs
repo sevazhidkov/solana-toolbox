@@ -159,7 +159,7 @@ impl ToolboxCliCommandFindArgs {
                     "address": address.to_string(),
                     "name": account_name,
                     "state": account_state,
-                    "explorer": context.compute_explorer_address_link(&address)
+                    "explorer_url": context.compute_explorer_address_url(&address)
                 }));
             }
         }
