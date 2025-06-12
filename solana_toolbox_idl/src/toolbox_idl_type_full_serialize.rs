@@ -328,7 +328,7 @@ impl ToolboxIdlTypeFullFields {
         data: &mut Vec<u8>,
         deserializable: bool,
     ) -> Result<()> {
-        if self.len() == 0 {
+        if self.is_empty() {
             return Ok(());
         }
         match self {

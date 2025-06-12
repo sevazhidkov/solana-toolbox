@@ -251,7 +251,7 @@ impl ToolboxIdlTypeFullFields {
 
 fn verify_unstable_fields_infos<T: Debug>(
     prefix_size: usize,
-    fields_infos: &Vec<(usize, usize, T, ToolboxIdlTypeFull)>,
+    fields_infos: &[(usize, usize, T, ToolboxIdlTypeFull)],
 ) -> Result<()> {
     if prefix_size == 0 && fields_infos.len() <= 2 {
         return Ok(());

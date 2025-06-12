@@ -94,10 +94,10 @@ impl ToolboxIdlTypeFlatFields {
         ToolboxIdlTypeFlatFields::Unnamed(vec![])
     }
 
-    pub fn len(&self) -> usize {
+    pub fn is_empty(&self) -> bool {
         match self {
-            ToolboxIdlTypeFlatFields::Named(fields) => fields.len(),
-            ToolboxIdlTypeFlatFields::Unnamed(fields) => fields.len(),
+            ToolboxIdlTypeFlatFields::Named(fields) => fields.is_empty(),
+            ToolboxIdlTypeFlatFields::Unnamed(fields) => fields.is_empty(),
         }
     }
 }

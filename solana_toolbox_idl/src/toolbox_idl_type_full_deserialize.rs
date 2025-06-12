@@ -343,7 +343,7 @@ impl ToolboxIdlTypeFullFields {
         data: &[u8],
         data_offset: usize,
     ) -> Result<(usize, Value)> {
-        if self.len() == 0 {
+        if self.is_empty() {
             return Ok((0, json!(null)));
         }
         Ok(match self {

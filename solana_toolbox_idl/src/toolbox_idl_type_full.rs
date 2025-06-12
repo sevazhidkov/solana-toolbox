@@ -121,10 +121,10 @@ impl ToolboxIdlTypeFullFields {
         ToolboxIdlTypeFullFields::Unnamed(vec![])
     }
 
-    pub fn len(&self) -> usize {
+    pub fn is_empty(&self) -> bool {
         match self {
-            ToolboxIdlTypeFullFields::Named(fields) => fields.len(),
-            ToolboxIdlTypeFullFields::Unnamed(fields) => fields.len(),
+            ToolboxIdlTypeFullFields::Named(fields) => fields.is_empty(),
+            ToolboxIdlTypeFullFields::Unnamed(fields) => fields.is_empty(),
         }
     }
 }

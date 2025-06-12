@@ -23,7 +23,7 @@ impl ToolboxIdlTypeFull {
             ToolboxIdlTypeFull::Enum { variants, .. } => {
                 let mut json_variants = vec![];
                 for variant in variants {
-                    json_variants.push(if variant.fields.len() == 0 {
+                    json_variants.push(if variant.fields.is_empty() {
                         json!(variant.name)
                     } else {
                         json!({ variant.name.to_string(): variant.fields.explained()})

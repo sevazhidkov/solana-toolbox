@@ -165,7 +165,7 @@ impl ToolboxIdlTypeFlatEnumVariant {
         if format.can_shortcut_enum_variant_to_string_if_no_fields
             && self.docs.is_none()
             && self.code == index_code
-            && self.fields.len() == 0
+            && self.fields.is_empty()
         {
             return json!(self.name);
         }
@@ -177,7 +177,7 @@ impl ToolboxIdlTypeFlatEnumVariant {
         if self.code != index_code {
             json_variant.insert("code".to_string(), json!(self.code));
         }
-        if self.fields.len() > 0 {
+        if !self.fields.is_empty() {
             json_variant
                 .insert("fields".to_string(), self.fields.export(format));
         }
