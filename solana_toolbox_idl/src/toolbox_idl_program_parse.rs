@@ -18,13 +18,13 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_program::ToolboxIdlProgramMetadata;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 use crate::toolbox_idl_utils::idl_convert_to_snake_case;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_object;
 use crate::toolbox_idl_utils::idl_object_get_key_as_str;
 use crate::toolbox_idl_utils::idl_slice_from_bytes;
 use crate::toolbox_idl_utils::idl_u32_from_bytes_at;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 
 impl ToolboxIdlProgram {
     pub const DISCRIMINATOR: &[u8] =

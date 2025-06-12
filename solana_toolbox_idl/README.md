@@ -40,7 +40,7 @@ let my_account_decoded = idl_service
     .get_and_decode_account(&mut endpoint, &my_account_address)
     .await?;
 // We'll need a ToolboxIdlProgram when we know exactly which program we're using
-let idl_program = idl_service.load_program(&mut endpoint, &my_program_id).await?;
+let idl_program = idl_service.get_or_resolve_program(&mut endpoint, &my_program_id).await?;
 // From there we can read the content of our IDL's program
 let idl_instruction = idl_program.instructions.get("my_ix").unwrap();
 // We can smartly generate an instruction from JSON data and accounts addresses
@@ -74,7 +74,7 @@ If a program's IDL is not available to be automatically downloaded from endpoint
 let idl_program = ToolboxIdlProgram::try_parse_from_str(
     &read_to_string("./my_idl.json").unwrap()
 )?;
-idl_service.preload_program(&program_id, Some(idl_program.into()));
+idl_service.set_program(&program_id, Some(idl_program.into()));
 // We can also manually generate IDLs inline (with or without shortcut syntax)
 let idl_program = ToolboxIdlProgram::try_parse(&json!({
     "name": "my_program",
@@ -99,7 +99,7 @@ let idl_program = ToolboxIdlProgram::try_parse(&json!({
     },
     "errors": {},
 }))?;
-idl_service.preload_program(&program_id, Some(idl_program.into()));
+idl_service.set_program(&program_id, Some(idl_program.into()));
 ```
 
 ## Documentation

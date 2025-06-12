@@ -23,9 +23,9 @@ export function serialize(
   typeFull: ToolboxIdlTypeFull,
   value: any,
   data: Buffer[],
-  deserializable: boolean,
+  prefixed: boolean,
 ) {
-  typeFull.traverse(serializeVisitor, value, data, deserializable);
+  typeFull.traverse(serializeVisitor, value, data, prefixed);
 }
 
 let serializeVisitor = {
@@ -33,61 +33,61 @@ let serializeVisitor = {
     self: ToolboxIdlTypeFullTypedef,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     ToolboxUtils.withContext(() => {
-      return serialize(self.content, value, data, deserializable);
+      return serialize(self.content, value, data, prefixed);
     }, `Serialize: Typedef: ${self.name}`);
   },
   option: (
     self: ToolboxIdlTypeFullOption,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     if (value === null) {
       serializePrefix(self.prefix, 0, data);
       return;
     }
     serializePrefix(self.prefix, 1, data);
-    serialize(self.content, value, data, deserializable);
+    serialize(self.content, value, data, prefixed);
   },
   vec: (
     self: ToolboxIdlTypeFullVec,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     let array = ToolboxUtils.expectArray(value);
-    if (deserializable) {
+    if (prefixed) {
       serializePrefix(self.prefix, array.length, data);
     }
     for (let item of array) {
-      serialize(self.items, item, data, deserializable);
+      serialize(self.items, item, data, prefixed);
     }
   },
   array: (
     self: ToolboxIdlTypeFullArray,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     let array = ToolboxUtils.expectArray(value);
     if (array.length != self.length) {
       throw new Error(`Expected an array of size: ${self.length}`);
     }
     for (let item of array) {
-      serialize(self.items, item, data, deserializable);
+      serialize(self.items, item, data, prefixed);
     }
   },
   string: (
     self: ToolboxIdlTypeFullString,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     let string = ToolboxUtils.expectString(value);
-    if (deserializable) {
+    if (prefixed) {
       serializePrefix(self.prefix, string.length, data);
     }
     data.push(Buffer.from(string, 'utf8'));
@@ -96,15 +96,15 @@ let serializeVisitor = {
     self: ToolboxIdlTypeFullStruct,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
-    serializeFields(self.fields, value, data, deserializable);
+    serializeFields(self.fields, value, data, prefixed);
   },
   enum: (
     self: ToolboxIdlTypeFullEnum,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     function serializeEnumVariant(
       variant: ToolboxIdlTypeFullEnumVariant,
@@ -112,7 +112,7 @@ let serializeVisitor = {
     ) {
       ToolboxUtils.withContext(() => {
         serializePrefix(self.prefix, variant.code, data);
-        serializeFields(variant.fields, value, data, deserializable);
+        serializeFields(variant.fields, value, data, prefixed);
       }, `Serialize: Enum Variant: ${variant.name}`);
     }
     if (ToolboxUtils.isNumber(value)) {
@@ -145,13 +145,13 @@ let serializeVisitor = {
     self: ToolboxIdlTypeFullPadded,
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     if (self.before) {
       data.push(Buffer.alloc(self.before));
     }
     let contentData: Buffer[] = [];
-    serialize(self.content, value, contentData, deserializable);
+    serialize(self.content, value, contentData, prefixed);
     for (let contentBuffer of contentData) {
       data.push(contentBuffer);
     }
@@ -169,7 +169,7 @@ let serializeVisitor = {
     _self: ToolboxIdlTypeFullConst,
     _value: any,
     _data: Buffer[],
-    _deserializable: boolean,
+    _prefixed: boolean,
   ) => {
     throw new Error('Cannot serialize a const type');
   },
@@ -177,7 +177,7 @@ let serializeVisitor = {
     self: ToolboxIdlTypePrimitive,
     value: any,
     data: Buffer[],
-    _deserializable: boolean,
+    _prefixed: boolean,
   ) => {
     serializePrimitive(self, value, data);
   },
@@ -187,9 +187,9 @@ export function serializeFields(
   typeFullFields: ToolboxIdlTypeFullFields,
   value: any,
   data: Buffer[],
-  deserializable: boolean,
+  prefixed: boolean,
 ) {
-  typeFullFields.traverse(serializeFieldsVisitor, value, data, deserializable);
+  typeFullFields.traverse(serializeFieldsVisitor, value, data, prefixed);
 }
 
 let serializeFieldsVisitor = {
@@ -197,7 +197,7 @@ let serializeFieldsVisitor = {
     self: ToolboxIdlTypeFullFieldNamed[],
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     if (self.length <= 0) {
       return;
@@ -205,7 +205,7 @@ let serializeFieldsVisitor = {
     ToolboxUtils.expectObject(value);
     for (let field of self) {
       ToolboxUtils.withContext(() => {
-        serialize(field.content, value[field.name], data, deserializable);
+        serialize(field.content, value[field.name], data, prefixed);
       }, `Serialize: Field: ${field.name}`);
     }
   },
@@ -213,7 +213,7 @@ let serializeFieldsVisitor = {
     self: ToolboxIdlTypeFullFieldUnnamed[],
     value: any,
     data: Buffer[],
-    deserializable: boolean,
+    prefixed: boolean,
   ) => {
     if (self.length <= 0) {
       return;
@@ -221,7 +221,7 @@ let serializeFieldsVisitor = {
     ToolboxUtils.expectArray(value);
     for (let field of self) {
       ToolboxUtils.withContext(() => {
-        serialize(field.content, value[field.position], data, deserializable);
+        serialize(field.content, value[field.position], data, prefixed);
       }, `Serialize: Field: ${field.position}`);
     }
   },

@@ -61,7 +61,7 @@ impl ToolboxCliCommandProgramCommandSummaryArgs {
         let mut endpoint = context.create_endpoint().await?;
         let mut idl_service = context.create_service().await?;
         let idl_program = idl_service
-            .resolve_program(&mut endpoint, &program_id)
+            .get_or_resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();
         let mut json_accounts_names = vec![];
@@ -112,7 +112,7 @@ impl ToolboxCliCommandProgramCommandExportArgs {
         let mut endpoint = context.create_endpoint().await?;
         let mut idl_service = context.create_service().await?;
         let idl_program = idl_service
-            .resolve_program(&mut endpoint, &program_id)
+            .get_or_resolve_program(&mut endpoint, &program_id)
             .await?
             .unwrap_or_default();
         let format_str: &str = &self.format.to_ascii_lowercase();

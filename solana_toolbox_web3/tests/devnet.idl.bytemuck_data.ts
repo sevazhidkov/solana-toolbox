@@ -17,5 +17,5 @@ it('run', async () => {
   );
   expect(
     decoded.state['state']['coordinator']['config']['min_clients'],
-  ).toStrictEqual(16);
+  ).toStrictEqual(24);
 });

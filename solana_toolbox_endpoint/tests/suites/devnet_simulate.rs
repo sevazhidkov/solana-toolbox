@@ -5,10 +5,9 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::system_instruction::create_account;
 use solana_sdk::transaction::TransactionError;
-use solana_toolbox_endpoint::{
-    ToolboxEndpoint, ToolboxEndpointExecutionStep,
-    ToolboxEndpointExecutionStepCall,
-};
+use solana_toolbox_endpoint::ToolboxEndpoint;
+use solana_toolbox_endpoint::ToolboxEndpointExecutionStep;
+use solana_toolbox_endpoint::ToolboxEndpointExecutionStepCall;
 use spl_token::instruction::ui_amount_to_amount;
 
 #[tokio::test]

@@ -25,7 +25,7 @@ impl ToolboxIdlService {
         }
     }
 
-    pub fn preload_program(
+    pub fn set_program(
         &mut self,
         program_id: &Pubkey,
         idl_program: Option<Arc<ToolboxIdlProgram>>,
@@ -33,7 +33,7 @@ impl ToolboxIdlService {
         self.cached_programs.insert(*program_id, idl_program);
     }
 
-    pub async fn load_program(
+    pub async fn get_or_resolve_program(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         program_id: &Pubkey,

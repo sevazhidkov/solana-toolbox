@@ -47,7 +47,7 @@ impl ToolboxCliCommandHistoryArgs {
             .map(|signature| context.parse_signature(signature))
             .transpose()?;
         let signatures = endpoint
-            .search_signatures(&address, start_before, rewind_until, self.limit)
+            .search_signatures(&address, self.limit, start_before, rewind_until)
             .await?;
         let mut json_history = vec![];
         for signature in signatures {

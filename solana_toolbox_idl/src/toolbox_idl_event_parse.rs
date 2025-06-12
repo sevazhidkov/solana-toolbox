@@ -9,10 +9,10 @@ use serde_json::Value;
 use crate::toolbox_idl_event::ToolboxIdlEvent;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
+use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 
 impl ToolboxIdlEvent {
     pub fn try_parse(

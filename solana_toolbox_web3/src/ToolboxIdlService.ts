@@ -16,14 +16,14 @@ export class ToolboxIdlService {
     this.cachedPrograms = new Map<PublicKey, ToolboxIdlProgram | null>();
   }
 
-  public preloadProgram(
+  public setProgram(
     programId: PublicKey,
     idlProgram: ToolboxIdlProgram | null,
   ) {
     this.cachedPrograms.set(programId, idlProgram);
   }
 
-  public async resolveProgram(
+  public async getOrResolveProgram(
     endpoint: ToolboxEndpoint,
     programId: PublicKey,
   ): Promise<ToolboxIdlProgram | null> {
@@ -31,7 +31,7 @@ export class ToolboxIdlService {
     if (cachedProgram !== undefined) {
       return cachedProgram;
     }
-    let resolvedProgram = await ToolboxIdlService.loadProgram(
+    let resolvedProgram = await ToolboxIdlService.resolveProgram(
       endpoint,
       programId,
     );
@@ -39,7 +39,7 @@ export class ToolboxIdlService {
     return resolvedProgram;
   }
 
-  static async loadProgram(
+  static async resolveProgram(
     endpoint: ToolboxEndpoint,
     programId: PublicKey,
   ): Promise<ToolboxIdlProgram | null> {
@@ -71,7 +71,7 @@ export class ToolboxIdlService {
     account: AccountInfo<Buffer>,
   ) {
     let idlProgram =
-      (await this.resolveProgram(endpoint, account.owner)) ??
+      (await this.getOrResolveProgram(endpoint, account.owner)) ??
       ToolboxIdlProgram.Unknown;
     let idlAccount =
       idlProgram.guessAccount(account.data) ?? ToolboxIdlAccount.Unknown;
@@ -90,7 +90,7 @@ export class ToolboxIdlService {
     instruction: TransactionInstruction,
   ) {
     let idlProgram =
-      (await this.resolveProgram(endpoint, instruction.programId)) ??
+      (await this.getOrResolveProgram(endpoint, instruction.programId)) ??
       ToolboxIdlProgram.Unknown;
     let idlInstruction =
       idlProgram.guessInstruction(instruction.data) ??
@@ -105,4 +105,6 @@ export class ToolboxIdlService {
       instructionPayload,
     };
   }
+
+  // TODO - support finding
 }

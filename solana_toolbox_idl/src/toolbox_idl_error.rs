@@ -5,7 +5,7 @@ pub struct ToolboxIdlError {
     pub name: String,
     pub docs: Option<Value>,
     pub code: u64,
-    pub msg: String,
+    pub msg: String, // TODO - this should be an option
 }
 
 impl Default for ToolboxIdlError {

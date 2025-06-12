@@ -9,13 +9,13 @@ use serde_json::Value;
 use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
-use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
-use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
+use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
+use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 
 impl ToolboxIdlAccount {
     pub fn try_parse(
@@ -25,17 +25,18 @@ impl ToolboxIdlAccount {
     ) -> Result<ToolboxIdlAccount> {
         let idl_account = idl_value_as_object_or_else(idl_account)?;
         let docs = idl_account.get("docs").cloned();
-        let discriminator = ToolboxIdlAccount::try_parse_discriminator(
-            idl_account_name,
-            idl_account,
-        )
-        .context("Parse Discriminator")?;
         let space = idl_object_get_key_as_u64(idl_account, "space")
             .map(usize::try_from)
             .transpose()
             .context("Parse Space")?;
         let blobs = ToolboxIdlAccount::try_parse_blobs(idl_account)
             .context("Parse Blobs")?;
+        let discriminator = ToolboxIdlAccount::try_parse_discriminator(
+            idl_account_name,
+            idl_account,
+        )
+        .context("Parse Discriminator")?;
+
         let content_type_flat = ToolboxIdlAccount::try_parse_content_type_flat(
             idl_account_name,
             idl_account,

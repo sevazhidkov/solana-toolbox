@@ -61,7 +61,6 @@ impl ToolboxCliCommandExecutionArgs {
             "instructions": json_instructions,
             "logs": execution.logs, // TODO (MEDIUM) - parse events from logs (39VGeYvhykSQnAFyqARriRrU1DLjGj1jLstRoDShxK4EG5SNQtPM6NQM8dLBwt5kbn7poRn3cJj4xFPL1uKABz3h)
             "error": execution.error, // TODO (MEDIUM) - could parse the error using the code
-            "return_data": execution.return_data,
             "units_consumed": execution.units_consumed,
         }))
     }

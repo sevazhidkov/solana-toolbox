@@ -53,7 +53,7 @@ impl ToolboxCliContext {
         let mut idl_service = ToolboxIdlService::new();
         for custom_idl in &self.custom_idls {
             if let Some((program_id, idl_file)) = custom_idl.split_once(":") {
-                idl_service.preload_program(
+                idl_service.set_program(
                     &self.parse_key(program_id)?.address(),
                     Some(
                         ToolboxIdlProgram::try_parse_from_str(
@@ -155,7 +155,7 @@ impl ToolboxCliContext {
     }
 
     pub fn compute_explorer_address_url(&self, address: &Pubkey) -> String {
-        ToolboxEndpoint::compute_explorer_address_link(
+        ToolboxEndpoint::compute_explorer_address_url(
             &self.json_rpc_url,
             address,
         )
@@ -165,7 +165,7 @@ impl ToolboxCliContext {
         &self,
         signature: &Signature,
     ) -> String {
-        ToolboxEndpoint::compute_explorer_signature_link(
+        ToolboxEndpoint::compute_explorer_signature_url(
             &self.json_rpc_url,
             signature,
         )
@@ -176,7 +176,7 @@ impl ToolboxCliContext {
         transaction_signatures: &[Signature],
         transaction_message_serialized: &[u8],
     ) -> String {
-        ToolboxEndpoint::compute_explorer_simulation_link(
+        ToolboxEndpoint::compute_explorer_simulation_url(
             &self.json_rpc_url,
             transaction_signatures,
             transaction_message_serialized,

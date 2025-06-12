@@ -149,6 +149,8 @@ it('run', () => {
     new ToolboxIdlAccount({
       name: 'MyAccount',
       docs: ['My Account doc'],
+      space: undefined,
+      blobs: [],
       discriminator: Buffer.from([246, 28, 6, 87, 251, 45, 50, 42]),
       contentTypeFlat: ToolboxIdlTypeFlat.struct({
         fields: ToolboxIdlTypeFlatFields.named([

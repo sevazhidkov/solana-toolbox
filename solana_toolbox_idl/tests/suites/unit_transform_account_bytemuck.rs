@@ -91,7 +91,6 @@ pub async fn run() {
                     { "name": "bytemuck_discriminant_c", "type": "BytemuckDiscriminantC" },
                     { "name": "bytemuck_discriminant_u8", "type": "BytemuckDiscriminantU8" },
                     { "name": "bytemuck_field", "type": "u8" },
-                    // { "name": "bytemuck_yolo", "type": "u128" },
                 ]
             },
             "BytemuckStructC": {

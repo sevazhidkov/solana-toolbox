@@ -17,7 +17,7 @@ pub async fn run() {
     let program_id = pubkey!("crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu");
     // Parse and load IDL from file JSON directly (since it's not available onchain)
     let mut idl_service = ToolboxIdlService::new();
-    idl_service.preload_program(
+    idl_service.set_program(
         &program_id,
         Some(
             ToolboxIdlProgram::try_parse_from_str(

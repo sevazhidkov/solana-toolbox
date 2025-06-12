@@ -58,7 +58,7 @@ impl ToolboxCliCommandPdaArgs {
         let mut seeds_bytes = vec![];
         for seed in &self.seeds {
             if let Some((seed_type, seed_value)) = seed.split_once(":") {
-                let seed_type_flat = ToolboxIdlTypeFlat::try_parse_value(
+                let seed_type_flat = ToolboxIdlTypeFlat::try_parse(
                     &context
                         .parse_hjson(seed_type)
                         .context("Parse Seed Type JSON")?,

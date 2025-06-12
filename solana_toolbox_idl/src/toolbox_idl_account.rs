@@ -51,13 +51,6 @@ impl ToolboxIdlAccount {
     }
 
     pub fn check(&self, account_data: &[u8]) -> Result<()> {
-        if !account_data.starts_with(&self.discriminator) {
-            return Err(anyhow!(
-                "Invalid account discriminator, expected: {:?}, found: {:?}",
-                self.discriminator,
-                account_data,
-            ));
-        }
         if let Some(space) = self.space {
             if account_data.len() != space {
                 return Err(anyhow!(
@@ -89,6 +82,13 @@ impl ToolboxIdlAccount {
                     bytes_found,
                 ));
             }
+        }
+        if !account_data.starts_with(&self.discriminator) {
+            return Err(anyhow!(
+                "Invalid account discriminator, expected: {:?}, found: {:?}",
+                self.discriminator,
+                account_data,
+            ));
         }
         Ok(())
     }

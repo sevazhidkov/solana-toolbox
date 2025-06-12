@@ -48,6 +48,7 @@ impl ToolboxIdlPath {
                 )
             },
             ToolboxIdlTypeFlat::Generic { symbol } => {
+                // TODO - doesnt work if its a gneric of a generic ?
                 let generic =
                     idl_map_get_key_or_else(generics_by_symbol, symbol)
                         .with_context(|| format!("Generic: {}", symbol))?;

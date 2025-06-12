@@ -33,69 +33,44 @@ impl ToolboxIdlTypeFull {
         // TODO (FAR) - Config object for allowing numbers as string
         // TODO (FAR) - Config object for pubkey hashmap and prefixes and existing
         // TODO (FAR) - Config object for custom serializers ?
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         match self {
             ToolboxIdlTypeFull::Typedef { name, content, .. } => {
                 ToolboxIdlTypeFull::try_serialize(
-                    content,
-                    value,
-                    data,
-                    deserializable,
+                    content, value, data, prefixed,
                 )
                 .with_context(|| format!("Serialize Typedef, name: {}", name))
             },
             ToolboxIdlTypeFull::Option {
                 prefix, content, ..
             } => ToolboxIdlTypeFull::try_serialize_option(
-                prefix,
-                content,
-                value,
-                data,
-                deserializable,
+                prefix, content, value, data, prefixed,
             ),
             ToolboxIdlTypeFull::Vec { prefix, items, .. } => {
                 ToolboxIdlTypeFull::try_serialize_vec(
-                    prefix,
-                    items,
-                    value,
-                    data,
-                    deserializable,
+                    prefix, items, value, data, prefixed,
                 )
             },
             ToolboxIdlTypeFull::Array { items, length } => {
                 ToolboxIdlTypeFull::try_serialize_array(
-                    items,
-                    length,
-                    value,
-                    data,
-                    deserializable,
+                    items, length, value, data, prefixed,
                 )
             },
             ToolboxIdlTypeFull::String { prefix, .. } => {
                 ToolboxIdlTypeFull::try_serialize_string(
-                    prefix,
-                    value,
-                    data,
-                    deserializable,
+                    prefix, value, data, prefixed,
                 )
             },
             ToolboxIdlTypeFull::Struct { fields, .. } => {
                 ToolboxIdlTypeFull::try_serialize_struct(
-                    fields,
-                    value,
-                    data,
-                    deserializable,
+                    fields, value, data, prefixed,
                 )
             },
             ToolboxIdlTypeFull::Enum {
                 prefix, variants, ..
             } => ToolboxIdlTypeFull::try_serialize_enum(
-                prefix,
-                variants,
-                value,
-                data,
-                deserializable,
+                prefix, variants, value, data, prefixed,
             ),
             ToolboxIdlTypeFull::Padded {
                 before,
@@ -103,13 +78,7 @@ impl ToolboxIdlTypeFull {
                 after,
                 content,
             } => ToolboxIdlTypeFull::try_serialize_padded(
-                before,
-                min_size,
-                after,
-                content,
-                value,
-                data,
-                deserializable,
+                before, min_size, after, content, value, data, prefixed,
             ),
             ToolboxIdlTypeFull::Const { literal } => {
                 Err(anyhow!("Can't use a const literal directly: {}", literal))
@@ -125,13 +94,13 @@ impl ToolboxIdlTypeFull {
         option_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         if value.is_null() {
             option_prefix.try_serialize(0, data)?;
         } else {
             option_prefix.try_serialize(1, data)?;
-            option_content.try_serialize(value, data, deserializable)?;
+            option_content.try_serialize(value, data, prefixed)?;
         }
         Ok(())
     }
@@ -141,23 +110,23 @@ impl ToolboxIdlTypeFull {
         vec_items: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
-            if deserializable {
+            if prefixed {
                 vec_prefix.try_serialize(u64::try_from(bytes.len())?, data)?;
             }
             data.extend_from_slice(&bytes);
             return Ok(());
         }
         let values = idl_value_as_array_or_else(value)?;
-        if deserializable {
+        if prefixed {
             vec_prefix.try_serialize(u64::try_from(values.len())?, data)?;
         }
         for (index, value_item) in values.iter().enumerate() {
             vec_items
-                .try_serialize(value_item, data, deserializable)
+                .try_serialize(value_item, data, prefixed)
                 .with_context(|| format!("Serialize Vec Item: {}", index))?;
         }
         Ok(())
@@ -168,7 +137,7 @@ impl ToolboxIdlTypeFull {
         array_length: &usize,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         if array_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
             let bytes = try_read_value_to_bytes(value)?;
@@ -192,7 +161,7 @@ impl ToolboxIdlTypeFull {
         }
         for (index, value_item) in values.iter().enumerate() {
             array_items
-                .try_serialize(value_item, data, deserializable)
+                .try_serialize(value_item, data, prefixed)
                 .with_context(|| format!("Serialize Array Item: {}", index))?;
         }
         Ok(())
@@ -202,10 +171,10 @@ impl ToolboxIdlTypeFull {
         string_prefix: &ToolboxIdlTypePrefix,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         let value_str = idl_value_as_str_or_else(value)?;
-        if deserializable {
+        if prefixed {
             string_prefix
                 .try_serialize(u64::try_from(value_str.len())?, data)?;
         }
@@ -217,9 +186,9 @@ impl ToolboxIdlTypeFull {
         struct_fields: &ToolboxIdlTypeFullFields,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
-        struct_fields.try_serialize(value, data, deserializable)
+        struct_fields.try_serialize(value, data, prefixed)
     }
 
     fn try_serialize_enum(
@@ -227,7 +196,7 @@ impl ToolboxIdlTypeFull {
         enum_variants: &[ToolboxIdlTypeFullEnumVariant],
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         if let Some(value_number) = value.as_u64() {
             for enum_variant in enum_variants {
@@ -237,7 +206,7 @@ impl ToolboxIdlTypeFull {
                         enum_variant,
                         &Value::Null,
                         data,
-                        deserializable,
+                        prefixed,
                     );
                 }
             }
@@ -254,7 +223,7 @@ impl ToolboxIdlTypeFull {
                         enum_variant,
                         &Value::Null,
                         data,
-                        deserializable,
+                        prefixed,
                     );
                 }
             }
@@ -271,7 +240,7 @@ impl ToolboxIdlTypeFull {
                         enum_variant,
                         enum_value,
                         data,
-                        deserializable,
+                        prefixed,
                     );
                 }
             }
@@ -286,11 +255,11 @@ impl ToolboxIdlTypeFull {
         enum_variant: &ToolboxIdlTypeFullEnumVariant,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         enum_variant
             .fields
-            .try_serialize(value, data, deserializable)
+            .try_serialize(value, data, prefixed)
             .with_context(|| {
                 format!("Serialize Enum Variant: {}", enum_variant.name)
             })
@@ -303,13 +272,13 @@ impl ToolboxIdlTypeFull {
         padded_content: &ToolboxIdlTypeFull,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         let data_offset_before = data.len() + *padded_before;
         while data.len() < data_offset_before {
             data.push(0);
         }
-        padded_content.try_serialize(value, data, deserializable)?;
+        padded_content.try_serialize(value, data, prefixed)?;
         let data_content_size = data.len() - data_offset_before;
         let data_offset_after = data_offset_before
             + max(*padded_min_size, data_content_size)
@@ -326,7 +295,7 @@ impl ToolboxIdlTypeFullFields {
         &self,
         value: &Value,
         data: &mut Vec<u8>,
-        deserializable: bool,
+        prefixed: bool,
     ) -> Result<()> {
         if self.is_empty() {
             return Ok(());
@@ -339,7 +308,7 @@ impl ToolboxIdlTypeFullFields {
                         idl_object_get_key_or_else(value, &field.name)?;
                     field
                         .content
-                        .try_serialize(value_field, data, deserializable)
+                        .try_serialize(value_field, data, prefixed)
                         .with_context(|| {
                             format!("Serialize Field: {}", field.name)
                         })?;
@@ -354,7 +323,7 @@ impl ToolboxIdlTypeFullFields {
                     let value_field = &values[field.position];
                     field
                         .content
-                        .try_serialize(value_field, data, deserializable)
+                        .try_serialize(value_field, data, prefixed)
                         .with_context(|| {
                             format!("Serialize Field: {}", field.position)
                         })?;

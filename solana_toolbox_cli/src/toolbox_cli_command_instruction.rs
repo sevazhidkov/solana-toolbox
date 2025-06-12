@@ -80,7 +80,7 @@ impl ToolboxCliCommandInstructionArgs {
         let instruction_name = self.name.clone().unwrap_or_default();
 
         let idl_program = match idl_service
-            .resolve_program(&mut endpoint, &instruction_program_id)
+            .get_or_resolve_program(&mut endpoint, &instruction_program_id)
             .await?
         {
             Some(idl_program) => idl_program,
@@ -253,7 +253,6 @@ impl ToolboxCliCommandInstructionArgs {
                                         json!({
                                             "error": simulation.error,
                                             "logs": simulation.logs,
-                                            "return_data": simulation.return_data,
                                             "units_consumed": simulation.units_consumed,
                                         }),
                                     );

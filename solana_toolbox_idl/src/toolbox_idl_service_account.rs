@@ -39,7 +39,7 @@ impl ToolboxIdlService {
         account: &Account,
     ) -> Result<ToolboxIdlServiceAccountDecoded> {
         let idl_program = self
-            .load_program(endpoint, &account.owner)
+            .get_or_resolve_program(endpoint, &account.owner)
             .await
             .context("Resolve Program")?
             .unwrap_or_default();
