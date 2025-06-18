@@ -21,9 +21,9 @@ in `Cargo.toml`:
 
 ```toml
 # For example when using solana version 1.18.26"
-solana_toolbox_endpoint = "=0.4.1-solana-1.18.26"
+solana_toolbox_endpoint = "=0.4.2-solana-1.18.26"
 # Or when using solana version 2.1.4"
-solana_toolbox_endpoint = "=0.4.1-solana-2.1.4"
+solana_toolbox_endpoint = "=0.4.2-solana-2.1.4"
 ```
 
 ## Examples

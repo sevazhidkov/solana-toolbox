@@ -164,7 +164,7 @@ tasks:
         --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-0.4.1-endpoint-1.18.26" --allow-empty
+      - git commit -m "publish-0.4.2-endpoint-1.18.26" --allow-empty
       - cargo publish
       - cp Cargo-solana-2.1.4.toml Cargo.toml
       - cargo test
@@ -174,7 +174,7 @@ tasks:
         --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-0.4.1-endpoint-2.1.4" --allow-empty
+      - git commit -m "publish-0.4.2-endpoint-2.1.4" --allow-empty
       - cargo publish
   publish_idl:
     dir: "{{ .TASKFILE_DIR }}/solana_toolbox_idl"
@@ -187,7 +187,7 @@ tasks:
         --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-0.4.1-idl-1.18.26" --allow-empty
+      - git commit -m "publish-0.4.2-idl-1.18.26" --allow-empty
       - cargo publish
       - cp Cargo-solana-2.1.4.toml Cargo.toml
       - cargo test
@@ -197,7 +197,7 @@ tasks:
         --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-0.4.1-idl-2.1.4" --allow-empty
+      - git commit -m "publish-0.4.2-idl-2.1.4" --allow-empty
       - cargo publish
   publish_anchor:
     dir: "{{ .TASKFILE_DIR }}/solana_toolbox_anchor"
@@ -210,7 +210,7 @@ tasks:
         --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-0.4.1-anchor" --allow-empty
+      - git commit -m "publish-0.4.2-anchor" --allow-empty
       - cargo publish
   publish_cli:
     dir: "{{ .TASKFILE_DIR }}/solana_toolbox_cli"
@@ -223,5 +223,5 @@ tasks:
       #  --allow=clippy::bool_assert_comparison
       - git add Cargo.toml
       - git add Cargo.lock
-      - git commit -m "publish-0.4.1-cli" --allow-empty
+      - git commit -m "publish-0.4.2-cli" --allow-empty
       - cargo publish

@@ -5559,7 +5559,7 @@ dependencies = [
 
 [[package]]
 name = "solana_toolbox_endpoint"
-version = "0.4.1-solana-2.1.4"
+version = "0.4.2-solana-2.1.4"
 dependencies = [
  "anyhow",
  "async-trait",

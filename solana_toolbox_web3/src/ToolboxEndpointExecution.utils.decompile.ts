@@ -37,7 +37,7 @@ export function decompileTransactionInstructions(
   usedAddresses.push(staticAddresses);
   usedAddresses.push(loadedWritableAddresses);
   usedAddresses.push(loadedReadonlyAddresses);
-  let instructions: TransactionInstruction[] = [];
+  let instructions = [];
   for (let compiledInstruction of compiledInstructions) {
     let instructionProgramId =
       staticAddresses[compiledInstruction.programIdIndex];
