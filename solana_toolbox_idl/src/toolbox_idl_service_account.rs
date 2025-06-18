@@ -20,7 +20,7 @@ pub struct ToolboxIdlServiceAccountDecoded {
 }
 
 impl ToolboxIdlService {
-    pub async fn get_and_decode_account(
+    pub async fn get_and_infer_and_decode_account(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         address: &Pubkey,
@@ -30,10 +30,10 @@ impl ToolboxIdlService {
             .await
             .context("Get Account")?
             .unwrap_or_default();
-        self.decode_account(endpoint, &account).await
+        self.infer_and_decode_account(endpoint, &account).await
     }
 
-    pub async fn decode_account(
+    pub async fn infer_and_decode_account(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         account: &Account,

@@ -58,7 +58,7 @@ pub async fn run() {
     );
     // Check the state of a system account
     let user_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &user)
+        .get_and_infer_and_decode_account(&mut endpoint, &user)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -69,7 +69,7 @@ pub async fn run() {
     );
     // Check the state of the collateral mint
     let collateral_mint_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &collateral_mint)
+        .get_and_infer_and_decode_account(&mut endpoint, &collateral_mint)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -86,7 +86,7 @@ pub async fn run() {
     );
     // Check the state of the collateral ATA
     let user_collateral_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &user_collateral)
+        .get_and_infer_and_decode_account(&mut endpoint, &user_collateral)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -106,7 +106,7 @@ pub async fn run() {
     );
     // Check the state of a known program
     let program_id_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &program_id)
+        .get_and_infer_and_decode_account(&mut endpoint, &program_id)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -119,7 +119,7 @@ pub async fn run() {
     );
     // Check the state of a known program's executable data
     let program_data_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &program_data)
+        .get_and_infer_and_decode_account(&mut endpoint, &program_data)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -133,7 +133,7 @@ pub async fn run() {
     );
     // Check the state of a known name record header
     let name_record_header_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &name_record_header)
+        .get_and_infer_and_decode_account(&mut endpoint, &name_record_header)
         .await
         .unwrap();
     assert_account_decoded_properly(

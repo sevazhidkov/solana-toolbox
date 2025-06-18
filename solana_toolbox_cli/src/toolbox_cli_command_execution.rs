@@ -32,7 +32,7 @@ impl ToolboxCliCommandExecutionArgs {
             let mut json_addresses = Map::new();
             for (name, address) in instruction_decoded.addresses {
                 let instruction_account_decoded = idl_service
-                    .get_and_decode_account(&mut endpoint, &address)
+                    .get_and_infer_and_decode_account(&mut endpoint, &address)
                     .await?;
                 json_addresses.insert(
                     name,

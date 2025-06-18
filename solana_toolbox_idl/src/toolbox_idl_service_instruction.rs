@@ -21,7 +21,7 @@ pub struct ToolboxIdlServiceInstructionDecoded {
 }
 
 impl ToolboxIdlService {
-    pub async fn decode_instruction(
+    pub async fn infer_and_decode_instruction(
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         instruction: &Instruction,
@@ -90,7 +90,7 @@ impl ToolboxIdlService {
             &instruction_addresses
         {
             let account_decoded = self
-                .get_and_decode_account(endpoint, instruction_address)
+                .get_and_infer_and_decode_account(endpoint, instruction_address)
                 .await
                 .with_context(|| {
                     format!(
@@ -125,7 +125,10 @@ impl ToolboxIdlService {
                         instruction_address,
                     );
                     let account_decoded = self
-                        .get_and_decode_account(endpoint, &instruction_address)
+                        .get_and_infer_and_decode_account(
+                            endpoint,
+                            &instruction_address,
+                        )
                         .await
                         .with_context(|| {
                             format!(

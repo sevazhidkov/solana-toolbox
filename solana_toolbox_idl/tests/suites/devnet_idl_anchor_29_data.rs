@@ -22,7 +22,7 @@ pub async fn run() {
     let uct_mint_bump = uct_mint_pda.1;
     // Actually fetch our account using the auto-resolved IDL on-chain
     let realm_decoded = ToolboxIdlService::new()
-        .get_and_decode_account(&mut endpoint, &realm)
+        .get_and_infer_and_decode_account(&mut endpoint, &realm)
         .await
         .unwrap();
     // Check that the account was parsed properly and values matches

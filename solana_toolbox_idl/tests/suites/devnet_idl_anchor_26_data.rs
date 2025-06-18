@@ -31,7 +31,7 @@ pub async fn run() {
     let global_market_state =
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;
     let global_market_state_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &global_market_state)
+        .get_and_infer_and_decode_account(&mut endpoint, &global_market_state)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -45,7 +45,7 @@ pub async fn run() {
     let program_state =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
     let program_state_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &program_state)
+        .get_and_infer_and_decode_account(&mut endpoint, &program_state)
         .await
         .unwrap();
     assert_account_decoded_properly(
@@ -62,7 +62,7 @@ pub async fn run() {
     )
     .0;
     let market_admins_decoded = idl_service
-        .get_and_decode_account(&mut endpoint, &market_admins)
+        .get_and_infer_and_decode_account(&mut endpoint, &market_admins)
         .await
         .unwrap();
     assert_account_decoded_properly(

@@ -10,7 +10,7 @@ pub async fn run() {
     // Actually fetch our account using the auto-resolved IDL on-chain
     let address = pubkey!("FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk");
     let decoded = ToolboxIdlService::new()
-        .get_and_decode_account(&mut endpoint, &address)
+        .get_and_infer_and_decode_account(&mut endpoint, &address)
         .await
         .unwrap();
     // Check that the account was parsed properly and values matches

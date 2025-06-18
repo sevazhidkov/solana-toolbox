@@ -18,7 +18,7 @@ impl ToolboxCliCommandAccountArgs {
         let mut idl_service = context.create_service().await?;
         let address = context.parse_key(&self.address)?.address();
         let account_decoded = idl_service
-            .get_and_decode_account(&mut endpoint, &address)
+            .get_and_infer_and_decode_account(&mut endpoint, &address)
             .await?;
         Ok(json!({
             "address": address.to_string(),

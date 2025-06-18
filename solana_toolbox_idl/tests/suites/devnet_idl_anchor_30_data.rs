@@ -18,7 +18,7 @@ pub async fn run() {
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly auto-downloaded from the chain
     let campaign_decoded = ToolboxIdlService::new()
-        .get_and_decode_account(&mut endpoint, &campaign)
+        .get_and_infer_and_decode_account(&mut endpoint, &campaign)
         .await
         .unwrap();
     // Check that the account was parsed properly and values matches

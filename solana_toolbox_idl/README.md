@@ -37,7 +37,7 @@ Note: see `solana_toolbox_endpoint` crate for interacting with a RPC or ProgramT
 let mut idl_service = ToolboxIdlService::new();
 // We can easily fetch, resolve and decode an account
 let my_account_decoded = idl_service
-    .get_and_decode_account(&mut endpoint, &my_account_address)
+    .get_and_infer_and_decode_account(&mut endpoint, &my_account_address)
     .await?;
 // We'll need a ToolboxIdlProgram when we know exactly which program we're using
 let idl_program = idl_service.get_or_resolve_program(&mut endpoint, &my_program_id).await?;
