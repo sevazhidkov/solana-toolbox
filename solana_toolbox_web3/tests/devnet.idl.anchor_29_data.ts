@@ -21,7 +21,7 @@ it('run', async () => {
   let uctMint = uctMintPda[0];
   let uctMintBump = uctMintPda[1];
   // Actually fetch our account using the auto-resolved IDL on-chain
-  let realmDecoded = await new ToolboxIdlService().getAndDecodeAccount(
+  let realmDecoded = await new ToolboxIdlService().getAndInferAndDecodeAccount(
     endpoint,
     realm,
   );

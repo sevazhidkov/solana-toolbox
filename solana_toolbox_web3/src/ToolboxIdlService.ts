@@ -53,7 +53,7 @@ export class ToolboxIdlService {
     return ToolboxIdlProgram.tryParseFromAccountData(account.data);
   }
 
-  public async getAndDecodeAccount(
+  public async getAndInferAndDecodeAccount(
     endpoint: ToolboxEndpoint,
     address: PublicKey,
   ) {
@@ -63,10 +63,10 @@ export class ToolboxIdlService {
       data: Buffer.from([]),
       executable: false,
     };
-    return this.decodeAccount(endpoint, account);
+    return this.inferAndDecodeAccount(endpoint, account);
   }
 
-  public async decodeAccount(
+  public async inferAndDecodeAccount(
     endpoint: ToolboxEndpoint,
     account: AccountInfo<Buffer>,
   ) {
@@ -85,7 +85,7 @@ export class ToolboxIdlService {
     };
   }
 
-  public async decodeInstruction(
+  public async inferAndDecodeInstruction(
     endpoint: ToolboxEndpoint,
     instruction: TransactionInstruction,
   ) {

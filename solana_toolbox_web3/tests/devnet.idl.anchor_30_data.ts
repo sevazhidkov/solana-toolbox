@@ -16,10 +16,11 @@ it('run', async () => {
   let campaign = campaignPda[0];
   let campaignBump = campaignPda[1];
   // Read an account using the IDL directly auto-downloaded from the chain
-  let campaignDecoded = await new ToolboxIdlService().getAndDecodeAccount(
-    endpoint,
-    campaign,
-  );
+  let campaignDecoded =
+    await new ToolboxIdlService().getAndInferAndDecodeAccount(
+      endpoint,
+      campaign,
+    );
   // Check that the account was parsed properly and values matches
   expect(campaignDecoded.program.metadata.name).toStrictEqual(
     'psyche_crowd_funding',

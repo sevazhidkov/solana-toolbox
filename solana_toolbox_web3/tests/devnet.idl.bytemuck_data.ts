@@ -7,7 +7,7 @@ it('run', async () => {
   let endpoint = new ToolboxEndpoint('devnet', 'confirmed');
   // Actually fetch our account using the auto-resolved IDL on-chain
   let address = new PublicKey('FdoXZqdMysWbzB8j5bK6U5J1Dczsos1vGwQi5Tur2mwk');
-  let decoded = await new ToolboxIdlService().getAndDecodeAccount(
+  let decoded = await new ToolboxIdlService().getAndInferAndDecodeAccount(
     endpoint,
     address,
   );
