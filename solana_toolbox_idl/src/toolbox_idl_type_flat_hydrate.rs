@@ -68,7 +68,7 @@ impl ToolboxIdlTypeFlat {
                 if let Some(serialization) = &typedef.serialization {
                     if serialization == "bytemuck" {
                         return Ok(type_full
-                            .bytemuck_typedef(&typedef.name, &typedef.repr)
+                            .bytemuck(&typedef.name, &typedef.repr)
                             .with_context(|| {
                                 format!("Hydrate Defined: {}, Bytemuck", name)
                             })?

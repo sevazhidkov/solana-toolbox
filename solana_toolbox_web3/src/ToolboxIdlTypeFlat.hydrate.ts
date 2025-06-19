@@ -19,7 +19,7 @@ import {
   ToolboxIdlTypeFull,
   ToolboxIdlTypeFullFields,
 } from './ToolboxIdlTypeFull';
-import { bytemuckTypedef } from './ToolboxIdlTypeFull.bytemuck';
+import { bytemuck } from './ToolboxIdlTypeFull.bytemuck';
 import { ToolboxIdlTypePrimitive } from './ToolboxIdlTypePrimitive';
 
 export function hydrate(
@@ -57,7 +57,7 @@ let hydrateVisitor = {
       content: typeFull,
     };
     if (typedef.serialization === 'bytemuck') {
-      return bytemuckTypedef(typeTypedef).value;
+      return bytemuck(typeTypedef).value;
     }
     return ToolboxIdlTypeFull.typedef(typeTypedef);
   },

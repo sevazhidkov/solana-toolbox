@@ -56,7 +56,7 @@ impl ToolboxCliCommandHistoryArgs {
             let mut filtered_out = self.name.is_some();
             for instruction in execution.instructions {
                 match idl_service
-                    .decode_instruction(&mut endpoint, &instruction)
+                    .infer_and_decode_instruction(&mut endpoint, &instruction)
                     .await
                 {
                     Ok(instruction_decoded) => {

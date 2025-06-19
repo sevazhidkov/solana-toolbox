@@ -29,19 +29,19 @@ type ToolboxIdlTypeFullPodFields = {
   value: ToolboxIdlTypeFullFields;
 };
 
-export function bytemuckTypedef(
+export function bytemuck(
   typedef: ToolboxIdlTypeFullTypedef,
 ): ToolboxIdlTypeFullPod {
   return ToolboxUtils.withContext(() => {
     let contentPod;
     if (typedef.repr === undefined) {
-      contentPod = bytemuckReprRust(typedef.content);
+      contentPod = bytemuckRust(typedef.content);
     } else if (typedef.repr === 'c') {
-      contentPod = bytemuckReprC(typedef.content);
+      contentPod = bytemuckC(typedef.content);
     } else if (typedef.repr === 'rust') {
-      contentPod = bytemuckReprRust(typedef.content);
+      contentPod = bytemuckRust(typedef.content);
     } else if (typedef.repr === 'transparent') {
-      contentPod = bytemuckReprRust(typedef.content);
+      contentPod = bytemuckRust(typedef.content);
     } else {
       throw new Error(`Bytemuck: Unsupported repr: ${typedef.repr}`);
     }
@@ -57,16 +57,16 @@ export function bytemuckTypedef(
   }, `Bytemuck: Typedef: ${typedef.name}`);
 }
 
-function bytemuckReprC(value: ToolboxIdlTypeFull): ToolboxIdlTypeFullPod {
-  return value.traverse(bytemuckReprCVisitor, undefined, undefined, undefined);
+function bytemuckC(value: ToolboxIdlTypeFull): ToolboxIdlTypeFullPod {
+  return value.traverse(bytemuckCVisitor, undefined, undefined, undefined);
 }
 
-let bytemuckReprCVisitor = {
+let bytemuckCVisitor = {
   typedef: (self: ToolboxIdlTypeFullTypedef): ToolboxIdlTypeFullPod => {
-    return bytemuckTypedef(self);
+    return bytemuck(self);
   },
   option: (self: ToolboxIdlTypeFullOption): ToolboxIdlTypeFullPod => {
-    let contentPod = bytemuckReprC(self.content);
+    let contentPod = bytemuckC(self.content);
     let alignment = Math.max(self.prefix.size, contentPod.alignment);
     let size = alignment + contentPod.size;
     return {
@@ -87,7 +87,7 @@ let bytemuckReprCVisitor = {
     throw new Error('Bytemuck: Repr(C): Vec is not supported');
   },
   array: (self: ToolboxIdlTypeFullArray): ToolboxIdlTypeFullPod => {
-    let itemsPod = bytemuckReprC(self.items);
+    let itemsPod = bytemuckC(self.items);
     let alignment = itemsPod.alignment;
     let size = itemsPod.size * self.length;
     return {
@@ -158,21 +158,16 @@ let bytemuckReprCVisitor = {
   },
 };
 
-function bytemuckReprRust(value: ToolboxIdlTypeFull): ToolboxIdlTypeFullPod {
-  return value.traverse(
-    bytemuckReprRustVisitor,
-    undefined,
-    undefined,
-    undefined,
-  );
+function bytemuckRust(value: ToolboxIdlTypeFull): ToolboxIdlTypeFullPod {
+  return value.traverse(bytemuckRustVisitor, undefined, undefined, undefined);
 }
 
-let bytemuckReprRustVisitor = {
+let bytemuckRustVisitor = {
   typedef: (self: ToolboxIdlTypeFullTypedef): ToolboxIdlTypeFullPod => {
-    return bytemuckTypedef(self);
+    return bytemuck(self);
   },
   option: (self: ToolboxIdlTypeFullOption): ToolboxIdlTypeFullPod => {
-    let contentPod = bytemuckReprRust(self.content);
+    let contentPod = bytemuckRust(self.content);
     let alignment = Math.max(self.prefix.size, contentPod.alignment);
     let size = alignment + contentPod.size;
     return {
@@ -193,7 +188,7 @@ let bytemuckReprRustVisitor = {
     throw new Error('Bytemuck: Repr(Rust): Vec is not supported');
   },
   array: (self: ToolboxIdlTypeFullArray): ToolboxIdlTypeFullPod => {
-    let itemsPod = bytemuckReprRust(self.items);
+    let itemsPod = bytemuckRust(self.items);
     let alignment = itemsPod.alignment;
     let size = itemsPod.size * self.length;
     return {
@@ -285,7 +280,7 @@ let bytemuckFieldsVisitor = {
   ): ToolboxIdlTypeFullPodFields => {
     let fieldsInfosPods = self.map((field) => {
       let contentPod = ToolboxUtils.withContext(() => {
-        return bytemuckReprRust(field.content);
+        return bytemuckRust(field.content);
       }, `Bytemuck: Field: ${field.name}`);
       return {
         alignment: contentPod.alignment,
@@ -321,7 +316,7 @@ let bytemuckFieldsVisitor = {
   ): ToolboxIdlTypeFullPodFields => {
     let fieldsInfosPods = self.map((field) => {
       let contentPod = ToolboxUtils.withContext(() => {
-        return bytemuckReprRust(field.content);
+        return bytemuckRust(field.content);
       }, `Bytemuck: Field: ${field.position}`);
       return {
         alignment: contentPod.alignment,

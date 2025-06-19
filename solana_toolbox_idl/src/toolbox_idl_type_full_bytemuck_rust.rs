@@ -15,17 +15,15 @@ use crate::toolbox_idl_utils::idl_alignment_padding_needed;
 use crate::toolbox_idl_utils::idl_fields_infos_aligned;
 
 impl ToolboxIdlTypeFull {
-    pub fn bytemuck_repr_rust(
-        self,
-    ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
+    pub fn bytemuck_rust(self) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         Ok(match self {
             ToolboxIdlTypeFull::Typedef {
                 name,
                 repr,
                 content,
-            } => content.bytemuck_typedef(&name, &repr)?,
+            } => content.bytemuck(&name, &repr)?,
             ToolboxIdlTypeFull::Option { prefix, content } => {
-                ToolboxIdlTypeFull::bytemuck_repr_rust_option(prefix, *content)?
+                ToolboxIdlTypeFull::bytemuck_rust_option(prefix, *content)?
             },
             ToolboxIdlTypeFull::Vec { .. } => {
                 return Err(anyhow!(
@@ -33,7 +31,7 @@ impl ToolboxIdlTypeFull {
                 ));
             },
             ToolboxIdlTypeFull::Array { items, length } => {
-                ToolboxIdlTypeFull::bytemuck_repr_rust_array(*items, length)?
+                ToolboxIdlTypeFull::bytemuck_rust_array(*items, length)?
             },
             ToolboxIdlTypeFull::String { .. } => {
                 return Err(anyhow!(
@@ -41,11 +39,11 @@ impl ToolboxIdlTypeFull {
                 ));
             },
             ToolboxIdlTypeFull::Struct { fields } => {
-                ToolboxIdlTypeFull::bytemuck_repr_rust_struct(fields)?
+                ToolboxIdlTypeFull::bytemuck_rust_struct(fields)?
             },
             ToolboxIdlTypeFull::Enum {
                 prefix, variants, ..
-            } => ToolboxIdlTypeFull::bytemuck_repr_rust_enum(prefix, variants)?,
+            } => ToolboxIdlTypeFull::bytemuck_rust_enum(prefix, variants)?,
             ToolboxIdlTypeFull::Padded { .. } => {
                 return Err(anyhow!(
                     "Bytemuck: Repr(Rust): Padded is not supported"
@@ -64,12 +62,12 @@ impl ToolboxIdlTypeFull {
         })
     }
 
-    fn bytemuck_repr_rust_option(
+    fn bytemuck_rust_option(
         option_prefix: ToolboxIdlTypePrefix,
         option_content: ToolboxIdlTypeFull,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (content_alignment, content_size, content_repr_rust) =
-            option_content.bytemuck_repr_rust()?;
+        let (content_alignment, content_size, content_rust) =
+            option_content.bytemuck_rust()?;
         let alignment = max(option_prefix.to_size(), content_alignment);
         let size = alignment + content_size;
         Ok((
@@ -81,57 +79,57 @@ impl ToolboxIdlTypeFull {
                 after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Option {
                     prefix: ToolboxIdlTypePrefix::from_size(alignment)?,
-                    content: Box::new(content_repr_rust),
+                    content: Box::new(content_rust),
                 }),
             },
         ))
     }
 
-    fn bytemuck_repr_rust_array(
+    fn bytemuck_rust_array(
         items: ToolboxIdlTypeFull,
         length: usize,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (items_alignment, items_size, items_repr_rust) =
-            items.bytemuck_repr_rust()?;
+        let (items_alignment, items_size, items_rust) =
+            items.bytemuck_rust()?;
         Ok((
             items_alignment,
             items_size * length,
             ToolboxIdlTypeFull::Array {
-                items: Box::new(items_repr_rust),
+                items: Box::new(items_rust),
                 length,
             },
         ))
     }
 
-    fn bytemuck_repr_rust_struct(
+    fn bytemuck_rust_struct(
         fields: ToolboxIdlTypeFullFields,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
-        let (fields_alignment, fields_size, fields_repr_rust) =
-            fields.bytemuck_repr_rust(0)?;
+        let (fields_alignment, fields_size, fields_rust) =
+            fields.bytemuck_rust(0)?;
         Ok((
             fields_alignment,
             fields_size,
             ToolboxIdlTypeFull::Struct {
-                fields: fields_repr_rust,
+                fields: fields_rust,
             },
         ))
     }
 
-    fn bytemuck_repr_rust_enum(
+    fn bytemuck_rust_enum(
         prefix: ToolboxIdlTypePrefix,
         variants: Vec<ToolboxIdlTypeFullEnumVariant>,
     ) -> Result<(usize, usize, ToolboxIdlTypeFull)> {
         let mut alignment = prefix.to_size();
         let mut size = prefix.to_size();
-        let mut variants_repr_rust = vec![];
+        let mut variants_rust = vec![];
         for variant in variants {
             let (
                 variant_fields_alignment,
                 variant_fields_size,
-                variant_fields_repr_rust,
+                variant_fields_rust,
             ) = variant
                 .fields
-                .bytemuck_repr_rust(prefix.to_size())
+                .bytemuck_rust(prefix.to_size())
                 .with_context(|| {
                     anyhow!(
                         "Bytemuck: Repr(Rust): Enum Variant: {}",
@@ -140,10 +138,10 @@ impl ToolboxIdlTypeFull {
                 })?;
             alignment = max(alignment, variant_fields_alignment);
             size = max(size, variant_fields_size);
-            variants_repr_rust.push(ToolboxIdlTypeFullEnumVariant {
+            variants_rust.push(ToolboxIdlTypeFullEnumVariant {
                 name: variant.name,
                 code: variant.code,
-                fields: variant_fields_repr_rust,
+                fields: variant_fields_rust,
             });
         }
         size += idl_alignment_padding_needed(size, alignment);
@@ -156,7 +154,7 @@ impl ToolboxIdlTypeFull {
                 after: 0,
                 content: Box::new(ToolboxIdlTypeFull::Enum {
                     prefix,
-                    variants: variants_repr_rust,
+                    variants: variants_rust,
                 }),
             },
         ))
@@ -164,7 +162,7 @@ impl ToolboxIdlTypeFull {
 }
 
 impl ToolboxIdlTypeFullFields {
-    pub fn bytemuck_repr_rust(
+    pub fn bytemuck_rust(
         self,
         prefix_size: usize,
     ) -> Result<(usize, usize, ToolboxIdlTypeFullFields)> {
@@ -172,10 +170,8 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Named(fields) => {
                 let mut fields_infos = vec![];
                 for field in fields {
-                    let (field_alignment, field_size, field_repr_rust) = field
-                        .content
-                        .bytemuck_repr_rust()
-                        .with_context(|| {
+                    let (field_alignment, field_size, field_rust) =
+                        field.content.bytemuck_rust().with_context(|| {
                             anyhow!(
                                 "Bytemuck: Repr(Rust): Field: {}",
                                 field.name
@@ -185,7 +181,7 @@ impl ToolboxIdlTypeFullFields {
                         field_alignment,
                         field_size,
                         field.name,
-                        field_repr_rust,
+                        field_rust,
                     ));
                 }
                 verify_unstable_fields_infos(prefix_size, &fields_infos)?;
@@ -210,10 +206,8 @@ impl ToolboxIdlTypeFullFields {
             ToolboxIdlTypeFullFields::Unnamed(fields) => {
                 let mut fields_infos = vec![];
                 for field in fields {
-                    let (field_alignment, field_size, field_repr_rust) = field
-                        .content
-                        .bytemuck_repr_rust()
-                        .with_context(|| {
+                    let (field_alignment, field_size, field_rust) =
+                        field.content.bytemuck_rust().with_context(|| {
                             anyhow!(
                                 "Bytemuck: Repr(Rust): Field: {}",
                                 field.position
@@ -223,7 +217,7 @@ impl ToolboxIdlTypeFullFields {
                         field_alignment,
                         field_size,
                         field.position,
-                        field_repr_rust,
+                        field_rust,
                     ));
                 }
                 verify_unstable_fields_infos(prefix_size, &fields_infos)?;

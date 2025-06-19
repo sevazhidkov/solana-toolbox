@@ -454,6 +454,8 @@ fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
         if let Some(data) = idl_object_get_key_as_u64(value_object, "zeroes") {
             return Ok(vec![0; usize::try_from(data)?]);
         }
+        // TODO - support 0xff padding ?
+        // TODO - support type/value pairs ?
     }
     Err(anyhow!("Could not read bytes, expected an array/object"))
 }
