@@ -17,28 +17,28 @@ pub async fn run() {
     let campaign = campaign_pda.0;
     let campaign_bump = campaign_pda.1;
     // Read an account using the IDL directly auto-downloaded from the chain
-    let campaign_decoded = ToolboxIdlService::new()
+    let campaign_info = ToolboxIdlService::new()
         .get_and_infer_and_decode_account(&mut endpoint, &campaign)
         .await
         .unwrap();
     // Check that the account was parsed properly and values matches
     assert_eq!(
-        campaign_decoded.program.metadata.name,
+        campaign_info.program.metadata.name,
         Some("psyche_crowd_funding".to_string()),
     );
-    assert_eq!(campaign_decoded.account.name, "Campaign");
-    assert_eq!(&campaign_decoded.state["bump"], &json!(campaign_bump),);
-    assert_eq!(&campaign_decoded.state["index"], &json!(campaign_index),);
+    assert_eq!(campaign_info.account.name, "Campaign");
+    assert_eq!(&campaign_info.state["bump"], &json!(campaign_bump),);
+    assert_eq!(&campaign_info.state["index"], &json!(campaign_index),);
     assert_eq!(
-        &campaign_decoded.state["authority"],
+        &campaign_info.state["authority"],
         &json!("Ady55LhZxWFABzdg8NCNTAZv5XstBqyNZYCMfWqW3Rq9"),
     );
     assert_eq!(
-        &campaign_decoded.state["collateral_mint"],
+        &campaign_info.state["collateral_mint"],
         &json!("EsQycjp856vTPvrxMuH1L6ymd5K63xT7aULGepiTcgM3"),
     );
     assert_eq!(
-        &campaign_decoded.state["redeemable_mint"],
+        &campaign_info.state["redeemable_mint"],
         &json!("3dtmuqjKdL12ptVmDPjAXeYJE9nLgA74ti1Gm2ME9qH9"),
     );
 }

@@ -26,22 +26,22 @@ impl ToolboxCliCommandExecutionArgs {
         let execution = endpoint.get_execution(&signature).await?;
         let mut json_instructions = vec![];
         for instruction in execution.instructions {
-            let instruction_decoded = idl_service
+            let instruction_info = idl_service
                 .infer_and_decode_instruction(&mut endpoint, &instruction)
                 .await?; // TODO - better error handling
             let mut json_addresses = Map::new();
-            for (name, address) in instruction_decoded.addresses {
-                let instruction_account_decoded = idl_service
+            for (name, address) in instruction_info.addresses {
+                let instruction_account_info = idl_service
                     .get_and_infer_and_decode_account(&mut endpoint, &address)
                     .await?;
                 json_addresses.insert(
                     name,
                     json!({
                         "address": address.to_string(),
-                        "owner": instruction_account_decoded.owner.to_string(),
+                        "owner": instruction_account_info.owner.to_string(),
                         "name": context.compute_account_name(
-                            &instruction_account_decoded.program,
-                            &instruction_account_decoded.account
+                            &instruction_account_info.program,
+                            &instruction_account_info.account
                         ),
                     }),
                 );
@@ -49,10 +49,10 @@ impl ToolboxCliCommandExecutionArgs {
             json_instructions.push(json!({
                 "program_id": instruction.program_id.to_string(),
                 "name": context.compute_instruction_name(
-                    &instruction_decoded.program,
-                    &instruction_decoded.instruction
+                    &instruction_info.program,
+                    &instruction_info.instruction
                 ),
-                "payload": instruction_decoded.payload,
+                "payload": instruction_info.payload,
                 "addresses": json_addresses,
             }));
         }

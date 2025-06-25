@@ -10,6 +10,7 @@ use convert_case::Casing;
 use serde_json::Map;
 use serde_json::Value;
 use solana_sdk::hash::Hasher;
+use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 
@@ -186,12 +187,34 @@ pub(crate) fn idl_value_as_bool_or_else(value: &Value) -> Result<bool> {
     value.as_bool().context("Expected a boolean")
 }
 
-pub(crate) fn idl_value_as_bytes_or_else(array: &[Value]) -> Result<Vec<u8>> {
-    let mut bytes = vec![];
-    for item in array {
-        bytes.push(u8::try_from(idl_value_as_u64_or_else(item)?)?);
+pub(crate) fn idl_value_as_bytes_or_else(value: &Value) -> Result<Vec<u8>> {
+    if let Some(value_array) = value.as_array() {
+        let mut bytes = vec![];
+        for item in value_array {
+            bytes.push(u8::try_from(idl_value_as_u64_or_else(item)?)?);
+        }
+        return Ok(bytes);
     }
-    Ok(bytes)
+    if let Some(value_object) = value.as_object() {
+        if let Some(data) = idl_object_get_key_as_str(value_object, "base16") {
+            return ToolboxEndpoint::sanitize_and_decode_base16(data);
+        }
+        if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
+            return ToolboxEndpoint::sanitize_and_decode_base58(data);
+        }
+        if let Some(data) = idl_object_get_key_as_str(value_object, "base64") {
+            return ToolboxEndpoint::sanitize_and_decode_base64(data);
+        }
+        if let Some(data) = idl_object_get_key_as_str(value_object, "utf8") {
+            return Ok(data.as_bytes().to_vec());
+        }
+        if let Some(data) = idl_object_get_key_as_u64(value_object, "zeroes") {
+            return Ok(vec![0; usize::try_from(data)?]);
+        }
+        // TODO - support 0xff padding ?
+        // TODO - support type/value pairs ?
+    }
+    Err(anyhow!("Could not read bytes, expected an array/object"))
 }
 
 pub(crate) fn idl_slice_from_bytes(

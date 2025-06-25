@@ -17,8 +17,7 @@ impl ToolboxIdlError {
             let code = idl_object_get_key_as_u64_or_else(idl_error, "code")
                 .context("Parse Code")?;
             let msg = idl_object_get_key_as_str(idl_error, "msg")
-                .unwrap_or("")
-                .to_string();
+                .map(|s| s.to_string());
             return Ok(ToolboxIdlError {
                 name: idl_error_name.to_string(),
                 docs,
@@ -31,7 +30,7 @@ impl ToolboxIdlError {
                 name: idl_error_name.to_string(),
                 docs: None,
                 code,
-                msg: "".to_string(),
+                msg: None,
             });
         }
         Err(anyhow!("Unparsable error (expected an object or number)"))

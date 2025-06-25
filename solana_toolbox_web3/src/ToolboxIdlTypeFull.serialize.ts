@@ -76,6 +76,7 @@ let serializeVisitor = {
     if (array.length != self.length) {
       throw new Error(`Expected an array of size: ${self.length}`);
     }
+    // TODO - handle special case of "bytes" fancy serializer
     for (let item of array) {
       serialize(self.items, item, data, prefixed);
     }

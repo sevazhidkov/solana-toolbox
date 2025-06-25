@@ -21,26 +21,23 @@ pub async fn run() {
     let uct_mint = uct_mint_pda.0;
     let uct_mint_bump = uct_mint_pda.1;
     // Actually fetch our account using the auto-resolved IDL on-chain
-    let realm_decoded = ToolboxIdlService::new()
+    let realm_info = ToolboxIdlService::new()
         .get_and_infer_and_decode_account(&mut endpoint, &realm)
         .await
         .unwrap();
     // Check that the account was parsed properly and values matches
     assert_eq!(
-        realm_decoded.program.metadata.name,
+        realm_info.program.metadata.name,
         Some("redemption".to_string()),
     );
-    assert_eq!(realm_decoded.account.name, "Realm");
-    assert_eq!(&realm_decoded.state["bump"], &json!(realm_bump));
+    assert_eq!(realm_info.account.name, "Realm");
+    assert_eq!(&realm_info.state["bump"], &json!(realm_bump));
     // Related "USDC mint" account checks
     assert_eq!(
-        &realm_decoded.state["usdc_mint"],
+        &realm_info.state["usdc_mint"],
         &json!("H7JmSvR6w6Qrp9wEbw4xGEBkbh95Jc9C4yXYYYvWmF8B"),
     );
     // Related "UCT mint" account checks
-    assert_eq!(&realm_decoded.state["uct_mint_bump"], &json!(uct_mint_bump),);
-    assert_eq!(
-        &realm_decoded.state["uct_mint"],
-        &json!(uct_mint.to_string()),
-    );
+    assert_eq!(&realm_info.state["uct_mint_bump"], &json!(uct_mint_bump),);
+    assert_eq!(&realm_info.state["uct_mint"], &json!(uct_mint.to_string()),);
 }

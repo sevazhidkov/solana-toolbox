@@ -69,6 +69,7 @@ export class ToolboxIdlInstruction {
   ): ToolboxIdlInstruction {
     let docs = idlInstruction['docs'];
     let discriminator = Buffer.from(
+      // TODO - utils to parse as "bytes"
       idlInstruction['discriminator'] ??
         ToolboxUtils.discriminator(`global:${idlInstructionName}`),
     );

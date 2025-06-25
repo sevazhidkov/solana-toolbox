@@ -12,7 +12,7 @@ use crate::toolbox_idl_instruction::ToolboxIdlInstruction;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_service::ToolboxIdlService;
 
-pub struct ToolboxIdlServiceInstructionDecoded {
+pub struct ToolboxIdlServiceInstructionInfo {
     pub program_id: Pubkey,
     pub program: Arc<ToolboxIdlProgram>,
     pub instruction: Arc<ToolboxIdlInstruction>,
@@ -25,7 +25,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         instruction: &Instruction,
-    ) -> Result<ToolboxIdlServiceInstructionDecoded> {
+    ) -> Result<ToolboxIdlServiceInstructionInfo> {
         let idl_program = self
             .get_or_resolve_program(endpoint, &instruction.program_id)
             .await
@@ -41,7 +41,7 @@ impl ToolboxIdlService {
         ) = idl_instruction
             .decode(instruction)
             .context("Decode Instruction")?;
-        Ok(ToolboxIdlServiceInstructionDecoded {
+        Ok(ToolboxIdlServiceInstructionInfo {
             program_id: instruction_program_id,
             program: idl_program,
             instruction: idl_instruction,
@@ -89,7 +89,7 @@ impl ToolboxIdlService {
         for (instruction_account_name, instruction_address) in
             &instruction_addresses
         {
-            let account_decoded = self
+            let account_info = self
                 .get_and_infer_and_decode_account(endpoint, instruction_address)
                 .await
                 .with_context(|| {
@@ -100,7 +100,7 @@ impl ToolboxIdlService {
                 })?;
             instruction_accounts_states.insert(
                 instruction_account_name.to_string(),
-                account_decoded.state,
+                account_info.state,
             );
         }
         loop {
@@ -124,7 +124,7 @@ impl ToolboxIdlService {
                         idl_instruction_account.name.to_string(),
                         instruction_address,
                     );
-                    let account_decoded = self
+                    let account_info = self
                         .get_and_infer_and_decode_account(
                             endpoint,
                             &instruction_address,
@@ -139,7 +139,7 @@ impl ToolboxIdlService {
                         })?;
                     instruction_accounts_states.insert(
                         idl_instruction_account.name.to_string(),
-                        account_decoded.state,
+                        account_info.state,
                     );
                 }
             }

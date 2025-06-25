@@ -10,7 +10,6 @@ use crate::toolbox_idl_event::ToolboxIdlEvent;
 use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
-use crate::toolbox_idl_utils::idl_object_get_key_as_array;
 use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 
@@ -46,9 +45,7 @@ impl ToolboxIdlEvent {
         idl_event_name: &str,
         idl_event: &Map<String, Value>,
     ) -> Result<Vec<u8>> {
-        if let Some(idl_event_discriminator) =
-            idl_object_get_key_as_array(idl_event, "discriminator")
-        {
+        if let Some(idl_event_discriminator) = idl_event.get("discriminator") {
             return idl_value_as_bytes_or_else(idl_event_discriminator);
         }
         Ok(idl_hash_discriminator_from_string(&format!(

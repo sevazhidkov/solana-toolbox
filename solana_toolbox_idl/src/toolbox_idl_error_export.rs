@@ -7,7 +7,9 @@ use crate::toolbox_idl_format::ToolboxIdlFormat;
 
 impl ToolboxIdlError {
     pub fn export(&self, format: &ToolboxIdlFormat) -> Value {
-        if format.can_shortcut_error_to_number_if_no_msg && self.msg.is_empty()
+        if format.can_shortcut_error_to_number_if_no_msg
+            && format.use_object_for_unordered_named_array
+            && self.msg.is_none()
         {
             return json!(self.code);
         }
@@ -16,7 +18,9 @@ impl ToolboxIdlError {
             json_object.insert("name".to_string(), json!(self.name));
         }
         json_object.insert("code".to_string(), json!(self.code));
-        json_object.insert("msg".to_string(), json!(self.msg));
+        if let Some(msg) = &self.msg {
+            json_object.insert("msg".to_string(), json!(msg));
+        }
         json!(json_object)
     }
 }

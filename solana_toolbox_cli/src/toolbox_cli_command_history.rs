@@ -59,11 +59,11 @@ impl ToolboxCliCommandHistoryArgs {
                     .infer_and_decode_instruction(&mut endpoint, &instruction)
                     .await
                 {
-                    Ok(instruction_decoded) => {
+                    Ok(instruction_info) => {
                         let instruction_name = context
                             .compute_instruction_name(
-                                &instruction_decoded.program,
-                                &instruction_decoded.instruction,
+                                &instruction_info.program,
+                                &instruction_info.instruction,
                             );
                         if let Some(name) = &self.name {
                             if instruction_name.contains(name) {
@@ -73,7 +73,7 @@ impl ToolboxCliCommandHistoryArgs {
                         json_instructions.push(json!({
                             "program_id": instruction.program_id.to_string(),
                             "name": instruction_name,
-                            "payload": instruction_decoded.payload,
+                            "payload": instruction_info.payload,
                         }))
                     },
                     Err(error) => {

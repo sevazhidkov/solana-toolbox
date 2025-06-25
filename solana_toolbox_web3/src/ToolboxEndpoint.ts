@@ -10,7 +10,7 @@ import { ToolboxEndpointExecution } from './ToolboxEndpointExecution';
 import {
   decompileTransactionInstructions,
   decompileTransactionPayerAddress,
-} from './ToolboxEndpointExecution.utils.decompile';
+} from './ToolboxEndpointExecution.decompile';
 
 export class ToolboxEndpoint {
   public static readonly PUBLIC_RPC_URL_MAINNET_BETA =

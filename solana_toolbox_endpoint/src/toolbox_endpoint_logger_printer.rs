@@ -5,7 +5,7 @@ use crate::toolbox_endpoint_execution::ToolboxEndpointExecution;
 use crate::toolbox_endpoint_logger::ToolboxEndpointLogger;
 
 #[derive(Default)]
-pub struct ToolboxEndpointLoggerPrinter {}
+pub struct ToolboxEndpointLoggerPrinter {} // TODO - probably should depreacte this now
 
 #[async_trait::async_trait]
 impl ToolboxEndpointLogger for ToolboxEndpointLoggerPrinter {

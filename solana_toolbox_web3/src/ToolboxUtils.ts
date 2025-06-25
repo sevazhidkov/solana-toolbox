@@ -75,7 +75,7 @@ export class ToolboxUtils {
   }
 
   public static discriminator(value: string) {
-    return Array.from(new sha256().update(value).digest()).slice(0, 8);
+    return new sha256().update(value).digest().subarray(0, 8);
   }
 
   public static withContext<T>(fn: () => T, message: string): T {

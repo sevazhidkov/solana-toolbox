@@ -11,7 +11,7 @@ use crate::toolbox_idl_account::ToolboxIdlAccount;
 use crate::toolbox_idl_program::ToolboxIdlProgram;
 use crate::toolbox_idl_service::ToolboxIdlService;
 
-pub struct ToolboxIdlServiceAccountDecoded {
+pub struct ToolboxIdlServiceAccountInfo {
     pub lamports: u64,
     pub owner: Pubkey,
     pub program: Arc<ToolboxIdlProgram>,
@@ -24,7 +24,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         address: &Pubkey,
-    ) -> Result<ToolboxIdlServiceAccountDecoded> {
+    ) -> Result<ToolboxIdlServiceAccountInfo> {
         let account = endpoint
             .get_account(address)
             .await
@@ -37,7 +37,7 @@ impl ToolboxIdlService {
         &mut self,
         endpoint: &mut ToolboxEndpoint,
         account: &Account,
-    ) -> Result<ToolboxIdlServiceAccountDecoded> {
+    ) -> Result<ToolboxIdlServiceAccountInfo> {
         let idl_program = self
             .get_or_resolve_program(endpoint, &account.owner)
             .await
@@ -48,7 +48,7 @@ impl ToolboxIdlService {
         let account_state = idl_account
             .decode(&account.data)
             .context("Decode Account State")?;
-        Ok(ToolboxIdlServiceAccountDecoded {
+        Ok(ToolboxIdlServiceAccountInfo {
             lamports: account.lamports,
             owner: account.owner,
             program: idl_program,

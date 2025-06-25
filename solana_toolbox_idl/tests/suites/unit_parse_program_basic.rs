@@ -197,7 +197,7 @@ pub async fn run() {
             name: "MyError".to_string(),
             docs: Some(json!(["This is an error"])),
             code: 4242,
-            msg: "My error message".to_string()
+            msg: Some("My error message".to_string())
         }
         .into()
     )

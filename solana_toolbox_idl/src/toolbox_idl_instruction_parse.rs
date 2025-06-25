@@ -70,7 +70,7 @@ impl ToolboxIdlInstruction {
         idl_instruction: &Map<String, Value>,
     ) -> Result<Vec<u8>> {
         if let Some(idl_instruction_discriminator) =
-            idl_object_get_key_as_array(idl_instruction, "discriminator")
+            idl_instruction.get("discriminator")
         {
             return idl_value_as_bytes_or_else(idl_instruction_discriminator);
         }

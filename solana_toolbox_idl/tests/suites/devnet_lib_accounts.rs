@@ -5,7 +5,7 @@ use serde_json::Value;
 use solana_sdk::pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlService;
-use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
+use solana_toolbox_idl::ToolboxIdlServiceAccountInfo;
 
 #[tokio::test]
 pub async fn run() {
@@ -57,23 +57,18 @@ pub async fn run() {
         user_collateral,
     );
     // Check the state of a system account
-    let user_decoded = idl_service
+    let user_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &user)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        user_decoded,
-        "system",
-        "Wallet",
-        json!(null),
-    );
+    assert_account_info(user_info, "system", "Wallet", json!(null));
     // Check the state of the collateral mint
-    let collateral_mint_decoded = idl_service
+    let collateral_mint_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &collateral_mint)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        collateral_mint_decoded,
+    assert_account_info(
+        collateral_mint_info,
         "spl_token",
         "TokenMint",
         json!({
@@ -85,12 +80,12 @@ pub async fn run() {
         }),
     );
     // Check the state of the collateral ATA
-    let user_collateral_decoded = idl_service
+    let user_collateral_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &user_collateral)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        user_collateral_decoded,
+    assert_account_info(
+        user_collateral_info,
         "spl_token",
         "TokenAccount",
         json!({
@@ -105,12 +100,12 @@ pub async fn run() {
         }),
     );
     // Check the state of a known program
-    let program_id_decoded = idl_service
+    let program_id_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &program_id)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        program_id_decoded,
+    assert_account_info(
+        program_id_info,
         "bpf_loader_upgradeable",
         "Program",
         json!({
@@ -118,12 +113,12 @@ pub async fn run() {
         }),
     );
     // Check the state of a known program's executable data
-    let program_data_decoded = idl_service
+    let program_data_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &program_data)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        program_data_decoded,
+    assert_account_info(
+        program_data_info,
         "bpf_loader_upgradeable",
         "ProgramData",
         json!({
@@ -132,12 +127,12 @@ pub async fn run() {
         }),
     );
     // Check the state of a known name record header
-    let name_record_header_decoded = idl_service
+    let name_record_header_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &name_record_header)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        name_record_header_decoded,
+    assert_account_info(
+        name_record_header_info,
         "spl_name_service",
         "NameRecordHeader",
         json!({
@@ -148,16 +143,16 @@ pub async fn run() {
     );
 }
 
-fn assert_account_decoded_properly(
-    account_decoded: ToolboxIdlServiceAccountDecoded,
+fn assert_account_info(
+    account_info: ToolboxIdlServiceAccountInfo,
     program_name: &str,
     account_name: &str,
     account_state: Value,
 ) {
     assert_eq!(
-        account_decoded.program.metadata.name,
+        account_info.program.metadata.name,
         Some(program_name.to_string())
     );
-    assert_eq!(account_decoded.account.name, account_name);
-    assert_eq!(account_decoded.state, account_state);
+    assert_eq!(account_info.account.name, account_name);
+    assert_eq!(account_info.state, account_state);
 }

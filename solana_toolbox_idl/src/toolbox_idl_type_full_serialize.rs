@@ -6,15 +6,12 @@ use anyhow::Context;
 use anyhow::Result;
 use serde_json::Value;
 use solana_sdk::pubkey::Pubkey;
-use solana_toolbox_endpoint::ToolboxEndpoint;
 
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFull;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullEnumVariant;
 use crate::toolbox_idl_type_full::ToolboxIdlTypeFullFields;
 use crate::toolbox_idl_type_prefix::ToolboxIdlTypePrefix;
 use crate::toolbox_idl_type_primitive::ToolboxIdlTypePrimitive;
-use crate::toolbox_idl_utils::idl_object_get_key_as_str;
-use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_value_as_array_or_else;
 use crate::toolbox_idl_utils::idl_value_as_bool_or_else;
@@ -113,7 +110,7 @@ impl ToolboxIdlTypeFull {
         prefixed: bool,
     ) -> Result<()> {
         if vec_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
-            let bytes = try_read_value_to_bytes(value)?;
+            let bytes = idl_value_as_bytes_or_else(value)?;
             if prefixed {
                 vec_prefix.try_serialize(u64::try_from(bytes.len())?, data)?;
             }
@@ -140,7 +137,7 @@ impl ToolboxIdlTypeFull {
         prefixed: bool,
     ) -> Result<()> {
         if array_items.is_primitive(&ToolboxIdlTypePrimitive::U8) {
-            let bytes = try_read_value_to_bytes(value)?;
+            let bytes = idl_value_as_bytes_or_else(value)?;
             if bytes.len() != *array_length {
                 return Err(anyhow!(
                     "value byte array is not the correct size: expected {} bytes, found {} bytes",
@@ -432,30 +429,4 @@ impl ToolboxIdlTypePrimitive {
         };
         Ok(())
     }
-}
-
-fn try_read_value_to_bytes(value: &Value) -> Result<Vec<u8>> {
-    if let Some(value_array) = value.as_array() {
-        return idl_value_as_bytes_or_else(value_array);
-    }
-    if let Some(value_object) = value.as_object() {
-        if let Some(data) = idl_object_get_key_as_str(value_object, "base16") {
-            return ToolboxEndpoint::sanitize_and_decode_base16(data);
-        }
-        if let Some(data) = idl_object_get_key_as_str(value_object, "base58") {
-            return ToolboxEndpoint::sanitize_and_decode_base58(data);
-        }
-        if let Some(data) = idl_object_get_key_as_str(value_object, "base64") {
-            return ToolboxEndpoint::sanitize_and_decode_base64(data);
-        }
-        if let Some(data) = idl_object_get_key_as_str(value_object, "utf8") {
-            return Ok(data.as_bytes().to_vec());
-        }
-        if let Some(data) = idl_object_get_key_as_u64(value_object, "zeroes") {
-            return Ok(vec![0; usize::try_from(data)?]);
-        }
-        // TODO - support 0xff padding ?
-        // TODO - support type/value pairs ?
-    }
-    Err(anyhow!("Could not read bytes, expected an array/object"))
 }

@@ -13,8 +13,6 @@ pub async fn run() {
         .get_and_infer_and_decode_account(&mut endpoint, &address)
         .await
         .unwrap();
-    eprintln!("Decoded Account: {:#?}", decoded.state);
-    panic!("LOL");
     // Check that the account was parsed properly and values matches
     assert_eq!(
         &decoded.state["state"]["metadata"]["vocab_size"],

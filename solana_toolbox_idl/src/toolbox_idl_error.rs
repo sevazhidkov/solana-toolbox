@@ -5,7 +5,7 @@ pub struct ToolboxIdlError {
     pub name: String,
     pub docs: Option<Value>,
     pub code: u64,
-    pub msg: String, // TODO - this should be an option
+    pub msg: Option<String>,
 }
 
 impl Default for ToolboxIdlError {
@@ -14,7 +14,7 @@ impl Default for ToolboxIdlError {
             name: "UnknownError".to_string(),
             docs: None,
             code: 0xFFFFFFFF,
-            msg: "Unknown error has happened and couldnt be parsed".to_string(),
+            msg: None,
         }
     }
 }

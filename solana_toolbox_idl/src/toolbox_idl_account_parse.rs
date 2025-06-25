@@ -11,9 +11,9 @@ use crate::toolbox_idl_type_flat::ToolboxIdlTypeFlat;
 use crate::toolbox_idl_typedef::ToolboxIdlTypedef;
 use crate::toolbox_idl_utils::idl_hash_discriminator_from_string;
 use crate::toolbox_idl_utils::idl_object_get_key_as_array;
-use crate::toolbox_idl_utils::idl_object_get_key_as_array_or_else;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64;
 use crate::toolbox_idl_utils::idl_object_get_key_as_u64_or_else;
+use crate::toolbox_idl_utils::idl_object_get_key_or_else;
 use crate::toolbox_idl_utils::idl_value_as_bytes_or_else;
 use crate::toolbox_idl_utils::idl_value_as_object_or_else;
 
@@ -61,7 +61,7 @@ impl ToolboxIdlAccount {
         idl_account: &Map<String, Value>,
     ) -> Result<Vec<u8>> {
         if let Some(idl_account_discriminator) =
-            idl_object_get_key_as_array(idl_account, "discriminator")
+            idl_account.get("discriminator")
         {
             return idl_value_as_bytes_or_else(idl_account_discriminator);
         }
@@ -86,10 +86,7 @@ impl ToolboxIdlAccount {
                             "offset",
                         )?)?;
                     let bytes = idl_value_as_bytes_or_else(
-                        idl_object_get_key_as_array_or_else(
-                            idl_account_blob,
-                            "value",
-                        )?,
+                        idl_object_get_key_or_else(idl_account_blob, "value")?,
                     )?;
                     blobs.push((offset, bytes));
                 }

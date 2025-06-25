@@ -10,30 +10,11 @@ pub async fn run() {
             {
                 "name": "MyError",
                 "code": 42,
-                "msg": "",
             },
         ],
     }))
     .unwrap();
     let idl_program2 = ToolboxIdlProgram::try_parse(&json!({
-        "errors": [
-            {
-                "name": "MyError",
-                "code": 42,
-            },
-        ],
-    }))
-    .unwrap();
-    let idl_program3 = ToolboxIdlProgram::try_parse(&json!({
-        "errors": {
-            "MyError": {
-                "code": 42,
-                "msg": "",
-            },
-        },
-    }))
-    .unwrap();
-    let idl_program4 = ToolboxIdlProgram::try_parse(&json!({
         "errors": {
             "MyError": 42,
         },
@@ -41,8 +22,6 @@ pub async fn run() {
     .unwrap();
     // Assert that all are equivalent
     assert_eq!(idl_program1, idl_program2);
-    assert_eq!(idl_program1, idl_program3);
-    assert_eq!(idl_program1, idl_program4);
     // Assert that the content is correct
     assert_eq!(
         *idl_program1.errors.get("MyError").unwrap(),
@@ -50,7 +29,7 @@ pub async fn run() {
             name: "MyError".to_string(),
             docs: None,
             code: 42,
-            msg: "".to_string(),
+            msg: None,
         }
         .into()
     )

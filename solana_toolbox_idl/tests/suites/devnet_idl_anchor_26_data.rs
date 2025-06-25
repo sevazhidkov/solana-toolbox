@@ -7,7 +7,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_toolbox_endpoint::ToolboxEndpoint;
 use solana_toolbox_idl::ToolboxIdlProgram;
 use solana_toolbox_idl::ToolboxIdlService;
-use solana_toolbox_idl::ToolboxIdlServiceAccountDecoded;
+use solana_toolbox_idl::ToolboxIdlServiceAccountInfo;
 
 #[tokio::test]
 pub async fn run() {
@@ -30,12 +30,12 @@ pub async fn run() {
     // Read the global market state content using the IDL
     let global_market_state =
         Pubkey::find_program_address(&[b"credix-marketplace"], &program_id).0;
-    let global_market_state_decoded = idl_service
+    let global_market_state_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &global_market_state)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        &global_market_state_decoded,
+    assert_account_info(
+        &global_market_state_info,
         "credix",
         "GlobalMarketState",
         "seed",
@@ -44,12 +44,12 @@ pub async fn run() {
     // Read the program state content using the IDL
     let program_state =
         Pubkey::find_program_address(&[b"program-state"], &program_id).0;
-    let program_state_decoded = idl_service
+    let program_state_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &program_state)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        &program_state_decoded,
+    assert_account_info(
+        &program_state_info,
         "credix",
         "ProgramState",
         "credix_multisig_key",
@@ -61,12 +61,12 @@ pub async fn run() {
         &program_id,
     )
     .0;
-    let market_admins_decoded = idl_service
+    let market_admins_info = idl_service
         .get_and_infer_and_decode_account(&mut endpoint, &market_admins)
         .await
         .unwrap();
-    assert_account_decoded_properly(
-        &market_admins_decoded,
+    assert_account_info(
+        &market_admins_info,
         "credix",
         "MarketAdmins",
         "multisig",
@@ -74,20 +74,17 @@ pub async fn run() {
     );
 }
 
-fn assert_account_decoded_properly(
-    account_decoded: &ToolboxIdlServiceAccountDecoded,
+fn assert_account_info(
+    account_info: &ToolboxIdlServiceAccountInfo,
     program_name: &str,
     account_name: &str,
     account_state_key: &str,
     account_state_value: &Value,
 ) {
     assert_eq!(
-        account_decoded.program.metadata.name,
+        account_info.program.metadata.name,
         Some(program_name.to_string()),
     );
-    assert_eq!(account_decoded.account.name, account_name);
-    assert_eq!(
-        &account_decoded.state[account_state_key],
-        account_state_value,
-    );
+    assert_eq!(account_info.account.name, account_name);
+    assert_eq!(&account_info.state[account_state_key], account_state_value,);
 }
