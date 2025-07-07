@@ -1,0 +1,2165 @@
+{
+  "version": "2.0.0",
+  "name": "lighthouse",
+  "instructions": [
+    {
+      "name": "MemoryWrite",
+      "discriminator": [0],
+      "args": [
+        {
+          "name": "memoryId",
+          "type": "u8"
+        },
+        {
+          "name": "memoryBump",
+          "type": "u8"
+        }
+      ],
+      "accounts": [
+        {
+          "name": "programId",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Lighthouse program"]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["System program"]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": ["Payer account"]
+        },
+        {
+          "name": "memory",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["Memory account"]
+        },
+        {
+          "name": "sourceAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Account to be written to memory"]
+        }
+      ]
+    },
+    {
+      "name": "MemoryClose",
+      "discriminator": [1],
+      "args": [
+        {
+          "name": "memoryId",
+          "type": "u8"
+        },
+        {
+          "name": "memoryBump",
+          "type": "u8"
+        }
+      ],
+      "accounts": [
+        {
+          "name": "programId",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Lighthouse program"]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": ["Payer account"]
+        },
+        {
+          "name": "memory",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["Memory account"]
+        }
+      ]
+    },
+    {
+      "name": "AssertAccountData",
+      "discriminator": [2],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertAccountDataMulti",
+      "discriminator": [3],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertAccountDelta",
+      "discriminator": [4],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "accountA",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Account A where the delta is calculated from"]
+        },
+        {
+          "name": "accountB",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Account B where the delta is calculated to"]
+        }
+      ]
+    },
+    {
+      "name": "AssertAccountInfo",
+      "discriminator": [5],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertAccountInfoMulti",
+      "discriminator": [6],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertMintAccount",
+      "discriminator": [7],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertMintAccountMulti",
+      "discriminator": [8],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertTokenAccount",
+      "discriminator": [9],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertTokenAccountMulti",
+      "discriminator": [10],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertStakeAccount",
+      "discriminator": [11],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertStakeAccountMulti",
+      "discriminator": [12],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertUpgradeableLoaderAccount",
+      "discriminator": [13],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertUpgradeableLoaderAccountMulti",
+      "discriminator": [14],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        }
+      ],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target account to be asserted"]
+        }
+      ]
+    },
+    {
+      "name": "AssertSysvarClock",
+      "discriminator": [15],
+      "accounts": [],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        },
+        {
+          "name": "assertion",
+          "type": {
+            "defined": "SysvarClockAssertion"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AssertMerkleTreeAccount",
+      "discriminator": [16],
+      "accounts": [
+        {
+          "name": "targetMerkleTree",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target merkle tree account to be asserted"]
+        },
+        {
+          "name": "root",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["The current root of the merkle tree"]
+        },
+        {
+          "name": "splAccountCompression",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["SPL account compression program"]
+        }
+      ],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        },
+        {
+          "name": "assertion",
+          "type": {
+            "defined": "MerkleTreeAssertion"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AssertBubblegumTreeConfigAccount",
+      "discriminator": [17],
+      "accounts": [
+        {
+          "name": "targetAccount",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["Target mpl-bubblegum tree config account to be asserted"]
+        }
+      ],
+      "args": [
+        {
+          "name": "logLevel",
+          "type": {
+            "defined": "LogLevel"
+          }
+        },
+        {
+          "name": "assertion",
+          "type": {
+            "defined": "BubblegumTreeConfigAssertion"
+          }
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "DataValueDeltaAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "U8",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i16"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "I8",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i16"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "U16",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i32"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "I16",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i32"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "U32",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "I32",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "U64",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i128"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "I64",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i128"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Bytes",
+            "fields": [
+              {
+                "name": "length",
+                "type": "u16"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountInfoDeltaAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Lamports",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i128"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "DataLength",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i128"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Owner",
+            "fields": [
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "RentEpoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i128"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountInfoAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Lamports",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "DataLength",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Owner",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "KnownOwner",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "defined": "KnownProgram"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "RentEpoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "IsSigner",
+            "fields": [
+              {
+                "name": "value",
+                "type": "bool"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "IsWritable",
+            "fields": [
+              {
+                "name": "value",
+                "type": "bool"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Executable",
+            "fields": [
+              {
+                "name": "value",
+                "type": "bool"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "VerifyDatahash",
+            "fields": [
+              {
+                "name": "expected_hash",
+                "type": {
+                  "array": ["u8", 32]
+                }
+              },
+              {
+                "name": "start",
+                "type": {
+                  "defined": "CompactU64"
+                }
+              },
+              {
+                "name": "length",
+                "type": {
+                  "defined": "CompactU64"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "AssertionResult",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "U8",
+            "fields": [
+              {
+                "option": "u8"
+              },
+              {
+                "option": "u8"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "U16",
+            "fields": [
+              {
+                "option": "u16"
+              },
+              {
+                "option": "u16"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "U32",
+            "fields": [
+              {
+                "option": "u32"
+              },
+              {
+                "option": "u32"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "U64",
+            "fields": [
+              {
+                "option": "u64"
+              },
+              {
+                "option": "u64"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "U128",
+            "fields": [
+              {
+                "option": "u128"
+              },
+              {
+                "option": "u128"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "I8",
+            "fields": [
+              {
+                "option": "i8"
+              },
+              {
+                "option": "i8"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "I16",
+            "fields": [
+              {
+                "option": "i16"
+              },
+              {
+                "option": "i16"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "I32",
+            "fields": [
+              {
+                "option": "i32"
+              },
+              {
+                "option": "i32"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "I64",
+            "fields": [
+              {
+                "option": "i64"
+              },
+              {
+                "option": "i64"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "I128",
+            "fields": [
+              {
+                "option": "i128"
+              },
+              {
+                "option": "i128"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "Pubkey",
+            "fields": [
+              {
+                "option": "publicKey"
+              },
+              {
+                "option": "publicKey"
+              },
+              "u8",
+              "bool"
+            ]
+          },
+          {
+            "name": "Bytes",
+            "fields": ["bytes", "bytes", "u8", "bool"]
+          },
+          {
+            "name": "Bool",
+            "fields": [
+              {
+                "option": "bool"
+              },
+              {
+                "option": "bool"
+              },
+              "u8",
+              "bool"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "BubblegumTreeConfigAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "TreeCreator",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "TreeDelegate",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "TotalMintCapacity",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "NumMinted",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "IsPublic",
+            "fields": [
+              {
+                "name": "value",
+                "type": "bool"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "IsDecompressible",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u8"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "SysvarClockAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Slot",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "EpochStartTimestamp",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Epoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "LeaderScheduleEpoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "UnixTimestamp",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "KnownProgram",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "System"
+          },
+          {
+            "name": "Token"
+          },
+          {
+            "name": "Token2022"
+          },
+          {
+            "name": "Rent"
+          },
+          {
+            "name": "Stake"
+          },
+          {
+            "name": "Vote"
+          },
+          {
+            "name": "BpfLoader"
+          },
+          {
+            "name": "UpgradeableLoader"
+          },
+          {
+            "name": "SysvarConfig"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LogLevel",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Silent"
+          },
+          {
+            "name": "PlaintextMessage"
+          },
+          {
+            "name": "EncodedMessage"
+          },
+          {
+            "name": "EncodedNoop"
+          },
+          {
+            "name": "FailedPlaintextMessage"
+          },
+          {
+            "name": "FailedEncodedMessage"
+          },
+          {
+            "name": "FailedEncodedNoop"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MerkleTreeAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "VerifyLeaf",
+            "fields": [
+              {
+                "name": "leaf_index",
+                "type": "u32"
+              },
+              {
+                "name": "leaf_hash",
+                "type": {
+                  "array": ["u8", 32]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintAccountAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "MintAuthority",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "publicKey"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Supply",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Decimals",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u8"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "IsInitialized",
+            "fields": [
+              {
+                "name": "value",
+                "type": "bool"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "FreezeAuthority",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "publicKey"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "IntegerOperator",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Equal"
+          },
+          {
+            "name": "NotEqual"
+          },
+          {
+            "name": "GreaterThan"
+          },
+          {
+            "name": "LessThan"
+          },
+          {
+            "name": "GreaterThanOrEqual"
+          },
+          {
+            "name": "LessThanOrEqual"
+          },
+          {
+            "name": "Contains"
+          },
+          {
+            "name": "DoesNotContain"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EquatableOperator",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Equal"
+          },
+          {
+            "name": "NotEqual"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeStateType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Uninitialized"
+          },
+          {
+            "name": "Initialized"
+          },
+          {
+            "name": "Stake"
+          },
+          {
+            "name": "RewardsPool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeAccountAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "State",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "defined": "StakeStateType"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "MetaAssertion",
+            "fields": [
+              {
+                "defined": "MetaAssertion"
+              }
+            ]
+          },
+          {
+            "name": "StakeAssertion",
+            "fields": [
+              {
+                "defined": "StakeAssertion"
+              }
+            ]
+          },
+          {
+            "name": "StakeFlags",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u8"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "MetaAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "RentExemptReserve",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "AuthorizedStaker",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "AuthorizedWithdrawer",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "LockupUnixTimestamp",
+            "fields": [
+              {
+                "name": "value",
+                "type": "i64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "LockupEpoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "LockupCustodian",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "DelegationVoterPubkey",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "DelegationStake",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "DelegationActivationEpoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "DelegationDeactivationEpoch",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "CreditsObserved",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenAccountAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Mint",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Owner",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Amount",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Delegate",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "publicKey"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "State",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u8"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "IsNative",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "u64"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "DelegatedAmount",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "CloseAuthority",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "publicKey"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "TokenAccountOwnerIsDerived"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpgradeableLoaderStateType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Uninitialized"
+          },
+          {
+            "name": "Buffer"
+          },
+          {
+            "name": "Program"
+          },
+          {
+            "name": "ProgramData"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpgradeableLoaderStateAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "State",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "defined": "UpgradeableLoaderStateType"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Buffer",
+            "fields": [
+              {
+                "defined": "UpgradableBufferAssertion"
+              }
+            ]
+          },
+          {
+            "name": "Program",
+            "fields": [
+              {
+                "defined": "UpgradeableProgramAssertion"
+              }
+            ]
+          },
+          {
+            "name": "ProgramData",
+            "fields": [
+              {
+                "defined": "UpgradeableProgramDataAssertion"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpgradableBufferAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Authority",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "publicKey"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpgradeableProgramAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ProgramDataAddress",
+            "fields": [
+              {
+                "name": "value",
+                "type": "publicKey"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpgradeableProgramDataAssertion",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "UpgradeAuthority",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "option": "publicKey"
+                }
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "EquatableOperator"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Slot",
+            "fields": [
+              {
+                "name": "value",
+                "type": "u64"
+              },
+              {
+                "name": "operator",
+                "type": {
+                  "defined": "IntegerOperator"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountInfoField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Key"
+          },
+          {
+            "name": "Lamports"
+          },
+          {
+            "name": "DataLength"
+          },
+          {
+            "name": "Owner"
+          },
+          {
+            "name": "RentEpoch"
+          },
+          {
+            "name": "Executable"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ClockField",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Slot"
+          },
+          {
+            "name": "EpochStartTimestamp"
+          },
+          {
+            "name": "Epoch"
+          },
+          {
+            "name": "LeaderScheduleEpoch"
+          },
+          {
+            "name": "UnixTimestamp"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataValue",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Bool",
+            "fields": ["bool"]
+          },
+          {
+            "name": "U8",
+            "fields": ["u8"]
+          },
+          {
+            "name": "I8",
+            "fields": ["i8"]
+          },
+          {
+            "name": "U16",
+            "fields": ["u16"]
+          },
+          {
+            "name": "I16",
+            "fields": ["i16"]
+          },
+          {
+            "name": "U32",
+            "fields": ["u32"]
+          },
+          {
+            "name": "I32",
+            "fields": ["i32"]
+          },
+          {
+            "name": "U64",
+            "fields": ["u64"]
+          },
+          {
+            "name": "I64",
+            "fields": ["i64"]
+          },
+          {
+            "name": "U128",
+            "fields": ["u128"]
+          },
+          {
+            "name": "I128",
+            "fields": ["i128"]
+          },
+          {
+            "name": "Bytes",
+            "fields": [
+              {
+                "defined": "CompactBytes"
+              }
+            ]
+          },
+          {
+            "name": "Pubkey",
+            "fields": ["publicKey"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "WriteType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "AccountData",
+            "fields": [
+              {
+                "name": "offset",
+                "type": "u16"
+              },
+              {
+                "name": "data_length",
+                "type": "u16"
+              }
+            ]
+          },
+          {
+            "name": "AccountInfoField",
+            "fields": [
+              {
+                "defined": "AccountInfoField"
+              }
+            ]
+          },
+          {
+            "name": "DataValue",
+            "fields": [
+              {
+                "defined": "DataValue"
+              }
+            ]
+          },
+          {
+            "name": "Clock",
+            "fields": [
+              {
+                "defined": "ClockField"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidInstructionData",
+      "msg": "Invalid instruction"
+    },
+    {
+      "code": 6001,
+      "name": "AssertionFailed",
+      "msg": "AssertionFailed"
+    },
+    {
+      "code": 6002,
+      "name": "NotEnoughAccounts",
+      "msg": "NotEnoughAccounts"
+    },
+    {
+      "code": 6003,
+      "name": "BumpNotFound",
+      "msg": "BumpNotFound"
+    },
+    {
+      "code": 6004,
+      "name": "AccountBorrowFailed",
+      "msg": "AccountBorrowFailed"
+    },
+    {
+      "code": 6005,
+      "name": "RangeOutOfBounds",
+      "msg": "RangeOutOfBounds"
+    },
+    {
+      "code": 6006,
+      "name": "IndexOutOfBounds",
+      "msg": "IndexOutOfBounds"
+    },
+    {
+      "code": 6007,
+      "name": "FailedToDeserialize",
+      "msg": "FailedToDeserialize"
+    },
+    {
+      "code": 6008,
+      "name": "FailedToSerialize",
+      "msg": "FailedToSerialize"
+    },
+    {
+      "code": 6009,
+      "name": "AccountOwnerMismatch",
+      "msg": "AccountOwnerMismatch"
+    },
+    {
+      "code": 6010,
+      "name": "AccountKeyMismatch",
+      "msg": "AccountKeyMismatch"
+    },
+    {
+      "code": 6011,
+      "name": "AccountNotInitialized",
+      "msg": "AccountNotInitialized"
+    },
+    {
+      "code": 6012,
+      "name": "AccountOwnerValidationFailed",
+      "msg": "AccountOwnerValidationFailed"
+    },
+    {
+      "code": 6013,
+      "name": "AccountFundedValidationFailed",
+      "msg": "AccountFundedValidationFailed"
+    },
+    {
+      "code": 6014,
+      "name": "AccountDiscriminatorValidationFailed",
+      "msg": "AccountDiscriminatorValidationFailed"
+    },
+    {
+      "code": 6015,
+      "name": "AccountValidationFailed",
+      "msg": "AccountValidaitonFailed"
+    },
+    {
+      "code": 6016,
+      "name": "CrossProgramInvokeViolation",
+      "msg": "CrossProgramInvokeViolation"
+    }
+  ],
+  "metadata": {
+    "address": "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95"
+  }
+}

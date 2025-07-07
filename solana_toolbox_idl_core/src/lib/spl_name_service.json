@@ -1,0 +1,127 @@
+{
+  "version": "0.2.0",
+  "name": "spl_name_service",
+  "instructions": {
+    "create": {
+      "discriminator": [0],
+      "accounts": [
+        {
+          "name": "system_program"
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "name_account",
+          "writable": true
+        },
+        {
+          "name": "name_owner"
+        }
+      ],
+      "args": [
+        {
+          "name": "hashed_name",
+          "type": ["u8"]
+        },
+        {
+          "name": "lamports",
+          "type": "u64"
+        },
+        {
+          "name": "space",
+          "type": "u32"
+        }
+      ]
+    },
+    "update": {
+      "discriminator": [1],
+      "accounts": [
+        {
+          "name": "name_account",
+          "writable": true
+        },
+        {
+          "name": "name_update_signer",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "offset",
+          "type": "u32"
+        },
+        {
+          "name": "data",
+          "type": ["u8"]
+        }
+      ]
+    },
+    "transfer": {
+      "discriminator": [2],
+      "accounts": [
+        {
+          "name": "name_account",
+          "writable": true
+        },
+        {
+          "name": "name_owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_name_owner",
+          "type": "pubkey"
+        }
+      ]
+    },
+    "delete": {
+      "discriminator": [3],
+      "accounts": [
+        {
+          "name": "name_account",
+          "writable": true
+        },
+        {
+          "name": "name_owner",
+
+          "signer": true
+        },
+        {
+          "name": "refundTarget",
+          "writable": true
+        }
+      ],
+      "args": []
+    }
+  },
+  "accounts": {
+    "NameRecordHeader": {
+      "discriminator": [],
+      "fields": [
+        {
+          "name": "parent_name",
+          "type": "pubkey"
+        },
+        {
+          "name": "owner",
+          "type": "pubkey"
+        },
+        {
+          "name": "class",
+          "type": "pubkey"
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "code": 0,
+      "name": "OutOfSpace",
+      "msg": "Out of space"
+    }
+  ]
+}
