@@ -11,8 +11,8 @@ serde_json = "1.0.135"
 convert_case = "0.7.1"
 anyhow = "1.0.97"
 
-solana-sdk = "=2.1.4"
-solana_toolbox_endpoint = "=0.4.2-solana-2.1.4"
+solana-sdk = "2.2.1"
+solana_toolbox_endpoint = { path = "../solana_toolbox_endpoint" }
 
 [dev-dependencies]
 tokio = "1.42.0"
