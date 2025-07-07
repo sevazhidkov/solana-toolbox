@@ -53,6 +53,7 @@ mod toolbox_idl_utils;
 
 pub use toolbox_idl_account::ToolboxIdlAccount;
 pub use toolbox_idl_error::ToolboxIdlError;
+pub use toolbox_idl_event::ToolboxIdlEvent;
 pub use toolbox_idl_format::ToolboxIdlFormat;
 pub use toolbox_idl_host::*;
 pub use toolbox_idl_instruction::ToolboxIdlInstruction;
