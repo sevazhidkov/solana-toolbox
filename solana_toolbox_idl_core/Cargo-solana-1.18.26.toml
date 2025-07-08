@@ -1,0 +1,21 @@
+[package]
+name = "solana_toolbox_idl_core"
+description = "Toolbox for interacting with programs using only IDLs"
+version = "0.4.2-solana-1.18.26"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+inflate = "0.4.5"
+serde_json = "1.0.135"
+convert_case = "0.7.1"
+anyhow = "1.0.97"
+base64 = "0.22.1"
+spl-token = { version = "4.0", features = ["no-entrypoint"], default-features = false }
+spl-associated-token-account = "6.0.0"
+
+solana-sdk = "=1.18.26"
+
+[dev-dependencies]
+tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+bytemuck = { version = "1.21.0", features = ["min_const_generics"] }

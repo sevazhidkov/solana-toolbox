@@ -1,0 +1,44 @@
+{
+  "name": "spl_associated_token",
+  "instructions": {
+    "Create": {
+      "discriminator": [],
+      "args": [],
+      "accounts": [
+        { "name": "payer" },
+        {
+          "name": "ata",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "wallet"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        { "name": "wallet" },
+        { "name": "mint" },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ]
+    }
+  },
+  "accounts": {},
+  "types": {},
+  "errors": {}
+}
